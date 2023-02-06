@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\ImGui">
+      <UniqueIdentifier>{e934adbd-2576-4cb7-8dac-88d5b0238fda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\ImGui">
+      <UniqueIdentifier>{1d85783f-54d2-4d31-a066-394b31c06b4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Interface">
+      <UniqueIdentifier>{7cc7b010-b7ae-4d96-9504-b314c0366c15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Interface">
+      <UniqueIdentifier>{a7ac8de3-cb8a-48d0-a04b-dbcdb5520fa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{7d3c067f-4633-4198-a43f-a79793efbaa4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget">
+      <UniqueIdentifier>{7c011e31-47eb-4730-b455-9a92186042f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget">
+      <UniqueIdentifier>{17a32c3e-566f-455f-bc6e-3ca8d52a7261}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Drag">
+      <UniqueIdentifier>{d81463d9-5572-4788-ae07-993f094bc556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Drag">
+      <UniqueIdentifier>{ac889ca1-eced-4637-8eef-348d49bcdecb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Input">
+      <UniqueIdentifier>{1f4987fb-1bf9-4669-9686-c85c84fed0a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Input">
+      <UniqueIdentifier>{959c3323-e1bd-44a1-8fd4-09268b3fe102}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Layout">
+      <UniqueIdentifier>{d3d296a0-7832-43b5-987a-c2612cbce184}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Layout">
+      <UniqueIdentifier>{78350eec-880b-4107-8cbc-7bf5ec5ca534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Slider">
+      <UniqueIdentifier>{fbc41416-ca70-4a4a-8f45-1b767e1d04df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Slider">
+      <UniqueIdentifier>{ffa47998-d70c-4017-b9cc-8c92b0dd37fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Selection">
+      <UniqueIdentifier>{2209ad03-940f-402d-9c41-20b8929ea113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Selection">
+      <UniqueIdentifier>{70d3aa34-df52-4ad2-8e88-0e587fcc4452}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Plane">
+      <UniqueIdentifier>{c4c39a35-f063-4c3b-8a30-3cf45eb9e42b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Plane">
+      <UniqueIdentifier>{f9136b33-6c29-4e4f-84ea-ef9e72631edf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Setting">
+      <UniqueIdentifier>{e16190ce-5ce4-453c-b5f4-9ad32b2dedf0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IDrawable.h">
+      <Filter>头文件\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="IWidget.h">
+      <Filter>头文件\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="IWidgetContainer.h">
+      <Filter>头文件\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="imconfig.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_internal.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_textedit.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_rectpack.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imstb_truetype.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imnodes.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imnodes_internal.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_dx12.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_win32.h">
+      <Filter>头文件\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="IDataWidget.h">
+      <Filter>头文件\Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="DragSingleScalar.h">
+      <Filter>头文件\Widget\Drag</Filter>
+    </ClInclude>
+    <ClInclude Include="IPlane.h">
+      <Filter>头文件\Plane</Filter>
+    </ClInclude>
+    <ClInclude Include="Setting.h">
+      <Filter>头文件\Setting</Filter>
+    </ClInclude>
+    <ClInclude Include="IPlaneTransformable.h">
+      <Filter>头文件\Plane</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="IWidget.cpp">
+      <Filter>源文件\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_draw.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_widgets.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="UITest.cpp">
+      <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="imnodes.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_dx12.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_win32.cpp">
+      <Filter>源文件\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="IWidgetContainer.cpp">
+      <Filter>源文件\Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="IPlane.cpp">
+      <Filter>源文件\Plane</Filter>
+    </ClCompile>
+    <ClCompile Include="IPlaneTransformable.cpp">
+      <Filter>源文件\Plane</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IDataWidget.inl">
+      <Filter>头文件\Interface</Filter>
+    </None>
+    <None Include="IWidgetContainer.inl">
+      <Filter>头文件\Interface</Filter>
+    </None>
+    <None Include="DragSingleScalar.inl">
+      <Filter>头文件\Widget\Drag</Filter>
+    </None>
+  </ItemGroup>
+</Project>
