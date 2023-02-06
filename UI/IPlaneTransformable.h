@@ -37,7 +37,7 @@ namespace UI {
 		void CopyImGuiSize();
 
 	public:
-		bool autoSize = true;
+		bool autoSize{ true };
 
 	protected:
 		Math::Vector2 mDefaultPosition;
@@ -49,8 +49,8 @@ namespace UI {
 		Math::Vector2 mPosition{ 0.0f, 0.0f };
 		Math::Vector2 mSize{ 0.0f, 0.0f };
 
-		bool mPositionChanged = false;
-		bool mSizeChanged = false;
+		bool mPositionChanged{ false };
+		bool mSizeChanged{ false };
 
 		HorizontalAlignment mHorizontalAlignment{ HorizontalAlignment::LEFT };
 		VerticalAlignment mVerticalAlignment{ VerticalAlignment::TOP };

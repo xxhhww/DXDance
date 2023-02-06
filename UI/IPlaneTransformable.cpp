@@ -2,9 +2,6 @@
 #include "imgui.h"
 
 namespace UI {
-	/*
-* Create a APanelTransformable
-*/
 	APanelTransformable::APanelTransformable
 	(
 		const Math::Vector2& defaultPosition,
@@ -19,25 +16,16 @@ namespace UI {
 	, mDefaultVerticalAlignment(defaultVerticalAlignment)
 	, mIgnoreConfigFile(ignoreConfigFile) {}
 
-	/*
-	* Defines the position of the panel
-	*/
 	void APanelTransformable::SetPosition(const Math::Vector2& position) {
 		mPosition = position;
 		mPositionChanged = true;
 	}
 
-	/*
-	* Defines the size of the panel
-	*/
 	void APanelTransformable::SetSize(const Math::Vector2& size) {
 		mSize = size;
 		mSizeChanged = true;
 	}
 
-	/*
-	* Defines the alignment of the panel
-	*/
 	void APanelTransformable::SetAlignment(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAligment) {
 		mHorizontalAlignment = horizontalAlignment;
 		mVerticalAlignment = verticalAligment;
@@ -45,14 +33,21 @@ namespace UI {
 	}
 
 	void APanelTransformable::Update() {
+		if (!mFirstFrame) {
+			if (!autoSize)
+				UpdateSize();
+			CopyImGuiSize();
 
+			UpdatePosition();
+			CopyImGuiPosition();
+		}
+		mFirstFrame = false;
 	}
 
 	Math::Vector2 APanelTransformable::CalculatePositionAlignmentOffset(bool useDefault) {
 		Math::Vector2 result(0.0f, 0.0f);
 
-		switch (useDefault ? mDefaultHorizontalAlignment : mHorizontalAlignment)
-		{
+		switch (useDefault ? mDefaultHorizontalAlignment : mHorizontalAlignment) {
 		case HorizontalAlignment::CENTER:
 			result.x -= mSize.x / 2.0f;
 			break;
@@ -61,8 +56,7 @@ namespace UI {
 			break;
 		}
 
-		switch (useDefault ? mDefaultVerticalAlignment : mVerticalAlignment)
-		{
+		switch (useDefault ? mDefaultVerticalAlignment : mVerticalAlignment) {
 		case VerticalAlignment::MIDDLE:
 			result.y -= mSize.y / 2.0f;
 			break;
@@ -75,13 +69,12 @@ namespace UI {
 	}
 
 	void APanelTransformable::UpdatePosition() {
-		if (mDefaultPosition.x != -1.0f && mDefaultPosition.y != 1.0f) {
+		if (mDefaultPosition.x != -1.0f && mDefaultPosition.y != -1.0f) {
 			Math::Vector2 offsettedDefaultPos = mDefaultPosition + CalculatePositionAlignmentOffset(true);
 			ImGui::SetWindowPos(ImVec2(offsettedDefaultPos.x, offsettedDefaultPos.y), mIgnoreConfigFile ? ImGuiCond_Once : ImGuiCond_FirstUseEver);
 		}
 
-		if (mPositionChanged || mAlignmentChanged)
-		{
+		if (mPositionChanged || mAlignmentChanged) {
 			Math::Vector2 offset = CalculatePositionAlignmentOffset(false);
 			Math::Vector2 offsettedPos(mPosition.x + offset.x, mPosition.y + offset.y);
 			ImGui::SetWindowPos(ImVec2(offsettedPos.x, offsettedPos.y), ImGuiCond_Always);
@@ -91,14 +84,19 @@ namespace UI {
 	}
 
 	void APanelTransformable::UpdateSize() {
-
+		if (mSizeChanged) {
+			ImGui::SetWindowSize(ImVec2(mSize.x, mSize.y), ImGuiCond_Always);
+			mSizeChanged = false;
+		}
 	}
 
 	void APanelTransformable::CopyImGuiPosition() {
-
+		ImVec2 imguiPos = ImGui::GetWindowPos();
+		mPosition = Math::Vector2(imguiPos.x, imguiPos.y);
 	}
 
 	void APanelTransformable::CopyImGuiSize() {
-
+		ImVec2 imguiSize = ImGui::GetWindowSize();
+		mSize = Math::Vector2(imguiSize.x, imguiSize.y);
 	}
 }
