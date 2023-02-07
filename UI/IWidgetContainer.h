@@ -21,7 +21,7 @@ namespace UI {
 
 		void DrawWidgets();
 		void DoDestruction();
-	private:
+	protected:
 		std::vector<std::pair<IWidget*, IWidgetMangement>> mWidgets;
 	public:
 		inline const auto& GetWidgets() const { return mWidgets; }

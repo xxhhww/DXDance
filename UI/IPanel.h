@@ -3,10 +3,10 @@
 #include "IWidgetContainer.h"
 
 namespace UI {
-	class IPlane : public IDrawable, public IWidgetContainer {
+	class IPanel : public IDrawable, public IWidgetContainer {
 	public:
-		IPlane();
-		virtual ~IPlane() = default;
+		IPanel();
+		virtual ~IPanel() = default;
 
 		void Draw() override;
 	protected:

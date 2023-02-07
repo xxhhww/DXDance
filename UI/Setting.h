@@ -14,19 +14,19 @@ namespace UI {
 	};
 
 	struct PanelWindowSettings {
-		bool closable = false;
+		bool closable = true;
 		bool resizable = true;
 		bool movable = true;
-		bool dockable = false;
+		bool dockable = true;
 		bool scrollable = true;
 		bool hideBackground = false;
 		bool forceHorizontalScrollbar = false;
 		bool forceVerticalScrollbar = false;
 		bool allowHorizontalScrollbar = false;
 		bool bringToFrontOnFocus = true;
-		bool collapsable = false;
+		bool collapsable = true;
 		bool allowInputs = true;
 		bool titleBar = true;
-		bool autoSize = false;
+		bool autoSize = true;
 	};
 }

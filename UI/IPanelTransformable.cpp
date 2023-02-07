@@ -1,8 +1,8 @@
-#include "IPlaneTransformable.h"
+#include "IPanelTransformable.h"
 #include "imgui.h"
 
 namespace UI {
-	APanelTransformable::APanelTransformable
+	IPanelTransformable::IPanelTransformable
 	(
 		const Math::Vector2& defaultPosition,
 		const Math::Vector2& defaultSize,
@@ -16,23 +16,23 @@ namespace UI {
 	, mDefaultVerticalAlignment(defaultVerticalAlignment)
 	, mIgnoreConfigFile(ignoreConfigFile) {}
 
-	void APanelTransformable::SetPosition(const Math::Vector2& position) {
+	void IPanelTransformable::SetPosition(const Math::Vector2& position) {
 		mPosition = position;
 		mPositionChanged = true;
 	}
 
-	void APanelTransformable::SetSize(const Math::Vector2& size) {
+	void IPanelTransformable::SetSize(const Math::Vector2& size) {
 		mSize = size;
 		mSizeChanged = true;
 	}
 
-	void APanelTransformable::SetAlignment(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAligment) {
+	void IPanelTransformable::SetAlignment(HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAligment) {
 		mHorizontalAlignment = horizontalAlignment;
 		mVerticalAlignment = verticalAligment;
 		mAlignmentChanged = true;
 	}
 
-	void APanelTransformable::Update() {
+	void IPanelTransformable::Update() {
 		if (!mFirstFrame) {
 			if (!autoSize)
 				UpdateSize();
@@ -44,7 +44,7 @@ namespace UI {
 		mFirstFrame = false;
 	}
 
-	Math::Vector2 APanelTransformable::CalculatePositionAlignmentOffset(bool useDefault) {
+	Math::Vector2 IPanelTransformable::CalculatePositionAlignmentOffset(bool useDefault) {
 		Math::Vector2 result(0.0f, 0.0f);
 
 		switch (useDefault ? mDefaultHorizontalAlignment : mHorizontalAlignment) {
@@ -68,7 +68,7 @@ namespace UI {
 		return result;
 	}
 
-	void APanelTransformable::UpdatePosition() {
+	void IPanelTransformable::UpdatePosition() {
 		if (mDefaultPosition.x != -1.0f && mDefaultPosition.y != -1.0f) {
 			Math::Vector2 offsettedDefaultPos = mDefaultPosition + CalculatePositionAlignmentOffset(true);
 			ImGui::SetWindowPos(ImVec2(offsettedDefaultPos.x, offsettedDefaultPos.y), mIgnoreConfigFile ? ImGuiCond_Once : ImGuiCond_FirstUseEver);
@@ -83,19 +83,19 @@ namespace UI {
 		}
 	}
 
-	void APanelTransformable::UpdateSize() {
+	void IPanelTransformable::UpdateSize() {
 		if (mSizeChanged) {
 			ImGui::SetWindowSize(ImVec2(mSize.x, mSize.y), ImGuiCond_Always);
 			mSizeChanged = false;
 		}
 	}
 
-	void APanelTransformable::CopyImGuiPosition() {
+	void IPanelTransformable::CopyImGuiPosition() {
 		ImVec2 imguiPos = ImGui::GetWindowPos();
 		mPosition = Math::Vector2(imguiPos.x, imguiPos.y);
 	}
 
-	void APanelTransformable::CopyImGuiSize() {
+	void IPanelTransformable::CopyImGuiSize() {
 		ImVec2 imguiSize = ImGui::GetWindowSize();
 		mSize = Math::Vector2(imguiSize.x, imguiSize.y);
 	}

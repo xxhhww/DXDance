@@ -1,13 +1,13 @@
-#include "IPlane.h"
+#include "IPanel.h"
 
 namespace UI {
-	int64_t IPlane::smPlaneIDInc = 0;
+	int64_t IPanel::smPlaneIDInc = 0;
 
-	IPlane::IPlane() {
+	IPanel::IPanel() {
 		mPlaneID = std::to_string(smPlaneIDInc++);
 	}
 
-	void IPlane::Draw() {
+	void IPanel::Draw() {
 		if (mEnable) {
 			_Draw_Internal_Impl();
 		}

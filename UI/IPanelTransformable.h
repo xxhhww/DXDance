@@ -1,12 +1,12 @@
 #pragma once
-#include "IPlane.h"
+#include "IPanel.h"
 #include "Setting.h"
 #include "Math/Vector.h"
 
 namespace UI {
-	class APanelTransformable : public IPlane {
+	class IPanelTransformable : public IPanel {
 	public:
-		APanelTransformable
+		IPanelTransformable
 		(
 			const Math::Vector2& defaultPosition = Math::Vector2(-1.0f, -1.0f),
 			const Math::Vector2& defaultSize = Math::Vector2(-1.f, -1.f),
@@ -14,6 +14,7 @@ namespace UI {
 			VerticalAlignment defaultVerticalAlignment = VerticalAlignment::TOP,
 			bool ignoreConfigFile = false
 		);
+		virtual ~IPanelTransformable() = default;
 
 		void SetPosition(const Math::Vector2& position);
 		void SetSize(const Math::Vector2& size);
@@ -26,7 +27,7 @@ namespace UI {
 
 	protected:
 		void Update();
-		virtual void _Draw_Impl() = 0;
+		virtual void _Draw_Internal_Impl() = 0;
 
 	private:
 		Math::Vector2 CalculatePositionAlignmentOffset(bool useDefault = false);

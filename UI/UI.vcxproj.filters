@@ -64,14 +64,14 @@
     <Filter Include="源文件\Widget\Selection">
       <UniqueIdentifier>{70d3aa34-df52-4ad2-8e88-0e587fcc4452}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Plane">
-      <UniqueIdentifier>{c4c39a35-f063-4c3b-8a30-3cf45eb9e42b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Plane">
-      <UniqueIdentifier>{f9136b33-6c29-4e4f-84ea-ef9e72631edf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Setting">
       <UniqueIdentifier>{e16190ce-5ce4-453c-b5f4-9ad32b2dedf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Panel">
+      <UniqueIdentifier>{c4c39a35-f063-4c3b-8a30-3cf45eb9e42b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Panel">
+      <UniqueIdentifier>{f9136b33-6c29-4e4f-84ea-ef9e72631edf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -120,14 +120,23 @@
     <ClInclude Include="DragSingleScalar.h">
       <Filter>头文件\Widget\Drag</Filter>
     </ClInclude>
-    <ClInclude Include="IPlane.h">
-      <Filter>头文件\Plane</Filter>
+    <ClInclude Include="IPanel.h">
+      <Filter>头文件\Panel</Filter>
     </ClInclude>
     <ClInclude Include="Setting.h">
       <Filter>头文件\Setting</Filter>
     </ClInclude>
-    <ClInclude Include="IPlaneTransformable.h">
-      <Filter>头文件\Plane</Filter>
+    <ClInclude Include="IPanelTransformable.h">
+      <Filter>头文件\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelWindow.h">
+      <Filter>头文件\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>头文件\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelMenuBar.h">
+      <Filter>头文件\Panel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -161,11 +170,20 @@
     <ClCompile Include="IWidgetContainer.cpp">
       <Filter>源文件\Interface</Filter>
     </ClCompile>
-    <ClCompile Include="IPlane.cpp">
-      <Filter>源文件\Plane</Filter>
+    <ClCompile Include="IPanel.cpp">
+      <Filter>源文件\Panel</Filter>
     </ClCompile>
-    <ClCompile Include="IPlaneTransformable.cpp">
-      <Filter>源文件\Plane</Filter>
+    <ClCompile Include="IPanelTransformable.cpp">
+      <Filter>源文件\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelWindow.cpp">
+      <Filter>源文件\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>源文件\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelMenuBar.cpp">
+      <Filter>源文件\Panel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
