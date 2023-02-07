@@ -138,6 +138,15 @@
     <ClInclude Include="PanelMenuBar.h">
       <Filter>头文件\Panel</Filter>
     </ClInclude>
+    <ClInclude Include="MenuList.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeNode.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -184,6 +193,15 @@
     </ClCompile>
     <ClCompile Include="PanelMenuBar.cpp">
       <Filter>源文件\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuList.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeNode.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Group.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

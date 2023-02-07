@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="DragSingleScalar.h" />
+    <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
     <ClInclude Include="IDrawable.h" />
     <ClInclude Include="imconfig.h" />
@@ -147,12 +148,15 @@
     <ClInclude Include="IPanelTransformable.h" />
     <ClInclude Include="IWidget.h" />
     <ClInclude Include="IWidgetContainer.h" />
+    <ClInclude Include="MenuList.h" />
     <ClInclude Include="PanelMenuBar.h" />
     <ClInclude Include="PanelWindow.h" />
     <ClInclude Include="Setting.h" />
+    <ClInclude Include="TreeNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="Group.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
@@ -164,8 +168,10 @@
     <ClCompile Include="IPanelTransformable.cpp" />
     <ClCompile Include="IWidget.cpp" />
     <ClCompile Include="IWidgetContainer.cpp" />
+    <ClCompile Include="MenuList.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="UITest.cpp" />
   </ItemGroup>
   <ItemGroup>
