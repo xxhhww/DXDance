@@ -10,8 +10,14 @@
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
 #include "imnodes.h"
-#include "DragSingleScalar.h"
 #include "PanelWindow.h"
+#include "Group.h"
+#include "MenuList.h"
+#include "NewLine.h"
+#include "Spacing.h"
+#include "TreeNode.h"
+#include "PanelMenuBar.h"
+#include "InputText.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <tchar.h>
@@ -138,14 +144,34 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     // Main loop
 
-    static float testFloat = 0.0f;
-    std::function<void(const float&)> lam = [](const float& f) {
-        testFloat = f;
+    float testFloat = 0.0f;
+    std::function<void(int addVal)> lam = [&testFloat](int addVal) {
+        testFloat += addVal;
     };
 
-    UI::DragSingleScalar<float> t(ImGuiDataType_Float, -1.0f, 1.0f, testFloat, 0.1f, "Test", "%.3f", lam);
+    UI::PanelMenuBar panelMenu;
+    // Menu1
+    auto& menu1 = panelMenu.CreateWidget<UI::MenuList>("Menu1");
+    menu1.CreateWidget<UI::MenuItem>("open").clickedEvent += std::bind(lam, 3);
+    menu1.CreateWidget<UI::MenuItem>("close");
+    auto& list1InMenu1 = menu1.CreateWidget<UI::MenuList>("list1InMenu1");
+    list1InMenu1.CreateWidget<UI::MenuItem>("open");
+    list1InMenu1.CreateWidget<UI::MenuItem>("close");
+    // Menu2
+    auto& menu2 = panelMenu.CreateWidget<UI::MenuList>("Menu2");
+    menu2.CreateWidget<UI::MenuItem>("open");
+    menu2.CreateWidget<UI::MenuItem>("close");
+    menu2.CreateWidget<UI::MenuItem>("about");
+
     UI::PanelWindow panelWindow("PanelWindow");
+    auto& group1 = panelWindow.CreateWidget<UI::GroupCollapsable>("Group1");
+    group1.CreateWidget<UI::TreeNode>("Leaf1", true);
+    auto& inputText1 = group1.CreateWidget<UI::InputText>("This is content", "InputText");
+    inputText1.valueChangedEvent += std::bind(lam, 1000);
+    inputText1.editCompletedEvent += std::bind(lam, 1);
+
     UI::PanelWindow panelWindow2("PanelWindow");
+
     bool done = false;
     while (!done)
     {
@@ -184,9 +210,16 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         ImGui::End();
 
         ImGui::PopStyleVar(3);
+
+        panelMenu.Draw();
         panelWindow.Draw();
         panelWindow2.Draw();
+        ImGui::ShowDemoWindow();
 
+        if (ImGui::Begin("TestWindow")) {
+            ImGui::DragFloat("TestFloat", &testFloat);
+        }
+        ImGui::End();
         // Rendering
         ImGui::Render();
 

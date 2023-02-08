@@ -2,15 +2,17 @@
 #include "imgui.h"
 
 namespace UI {
-	MenuItem::MenuItem(const std::string& name, bool clickable)
+	MenuItem::MenuItem(const std::string& name, bool checkable)
 	: mName(name) 
-	, mClickable(clickable) {}
+	, mCheckable(checkable) {}
 
 	void MenuItem::_Draw_Internal_Impl() {
-		if (ImGui::MenuItem((mName + mWidgetID).c_str(), nullptr, mClickable ? &mIsClicked : nullptr, mEnable)) {
-			if (mIsClicked) {
-				clickedEvent.Invoke();
-			}
+		bool prevCheckStatus = mCheckStatus;
+		if (ImGui::MenuItem((mName + mWidgetID).c_str(), nullptr, mCheckable ? &mCheckStatus : nullptr, mEnable)) {
+			clickedEvent.Invoke();
+		}
+		if (prevCheckStatus != mCheckStatus) {
+			checkStatusChangedEvent.Invoke();
 		}
 	}
 
@@ -24,10 +26,10 @@ namespace UI {
 				mOpenStatus = true;
 			}
 			DrawWidgets();
+			ImGui::EndMenu();
 		}
 		else {
 			mOpenStatus = false;
 		}
-		ImGui::EndMenu();
 	}
 }

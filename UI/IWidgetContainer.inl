@@ -9,7 +9,7 @@ namespace UI {
 			assert(false);
 		}
 		mWidgets.emplace_back(new T(args...), IWidgetMangement::InternalMangement);
-		T& instance = *reinterpret_cast<T*>(m_widgets.back().first);
+		T& instance = *reinterpret_cast<T*>(mWidgets.back().first);
 		instance.SetParent(this);
 		return instance;
 	}

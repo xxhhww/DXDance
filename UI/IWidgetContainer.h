@@ -27,3 +27,5 @@ namespace UI {
 		inline const auto& GetWidgets() const { return mWidgets; }
 	};
 }
+
+#include "IWidgetContainer.inl"

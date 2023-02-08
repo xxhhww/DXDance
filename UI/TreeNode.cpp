@@ -2,14 +2,17 @@
 #include "imgui.h"
 
 namespace UI {
-	TreeNode::TreeNode(const std::string& name) 
-	: mName(name) {}
+	TreeNode::TreeNode(const std::string& name, bool isLeaf)
+	: mName(name) 
+	, mIsLeaf(isLeaf) {}
 
 	void TreeNode::_Draw_Internal_Impl() {
 		bool prevOpenStatus = mOpenStatus;
 
 		ImGuiTreeNodeFlags flags{};
 		flags |= ImGuiTreeNodeFlags_OpenOnArrow;
+		if (mIsLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
+
 		mOpenStatus = ImGui::TreeNodeEx((mName + mWidgetID).c_str(), flags);
 		if (ImGui::IsItemClicked() && (ImGui::GetMousePos().x - ImGui::GetItemRectMin().x) > ImGui::GetTreeNodeToLabelSpacing()) {
 			if(ImGui::IsMouseClicked(0)){

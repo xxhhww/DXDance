@@ -73,6 +73,9 @@
     <Filter Include="源文件\Panel">
       <UniqueIdentifier>{f9136b33-6c29-4e4f-84ea-ef9e72631edf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Widget\Text">
+      <UniqueIdentifier>{49399e47-0ca3-4a07-9acf-d3ba3d6e6f95}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -114,12 +117,6 @@
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>头文件\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="IDataWidget.h">
-      <Filter>头文件\Interface</Filter>
-    </ClInclude>
-    <ClInclude Include="DragSingleScalar.h">
-      <Filter>头文件\Widget\Drag</Filter>
-    </ClInclude>
     <ClInclude Include="IPanel.h">
       <Filter>头文件\Panel</Filter>
     </ClInclude>
@@ -146,6 +143,21 @@
     </ClInclude>
     <ClInclude Include="Group.h">
       <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="NewLine.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="Spacing.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="IDataWidget.h">
+      <Filter>头文件\Widget</Filter>
+    </ClInclude>
+    <ClInclude Include="InputText.h">
+      <Filter>头文件\Widget\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputTextMultiline.h">
+      <Filter>头文件\Widget\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -203,16 +215,25 @@
     <ClCompile Include="Group.cpp">
       <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
+    <ClCompile Include="NewLine.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="Spacing.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
+    </ClCompile>
+    <ClCompile Include="InputText.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputTextMultiline.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="IDataWidget.inl">
-      <Filter>头文件\Interface</Filter>
-    </None>
     <None Include="IWidgetContainer.inl">
       <Filter>头文件\Interface</Filter>
     </None>
-    <None Include="DragSingleScalar.inl">
-      <Filter>头文件\Widget\Drag</Filter>
+    <None Include="IDataWidget.inl">
+      <Filter>头文件\Widget</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -130,7 +130,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Canvas.h" />
-    <ClInclude Include="DragSingleScalar.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
     <ClInclude Include="IDrawable.h" />
@@ -144,14 +143,18 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="InputText.h" />
+    <ClInclude Include="InputTextMultiline.h" />
     <ClInclude Include="IPanel.h" />
     <ClInclude Include="IPanelTransformable.h" />
     <ClInclude Include="IWidget.h" />
     <ClInclude Include="IWidgetContainer.h" />
     <ClInclude Include="MenuList.h" />
+    <ClInclude Include="NewLine.h" />
     <ClInclude Include="PanelMenuBar.h" />
     <ClInclude Include="PanelWindow.h" />
     <ClInclude Include="Setting.h" />
+    <ClInclude Include="Spacing.h" />
     <ClInclude Include="TreeNode.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,18 +167,21 @@
     <ClCompile Include="imgui_impl_win32.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="imnodes.cpp" />
+    <ClCompile Include="InputText.cpp" />
+    <ClCompile Include="InputTextMultiline.cpp" />
     <ClCompile Include="IPanel.cpp" />
     <ClCompile Include="IPanelTransformable.cpp" />
     <ClCompile Include="IWidget.cpp" />
     <ClCompile Include="IWidgetContainer.cpp" />
     <ClCompile Include="MenuList.cpp" />
+    <ClCompile Include="NewLine.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="Spacing.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="UITest.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DragSingleScalar.inl" />
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
   </ItemGroup>

@@ -1,28 +1,23 @@
 #pragma once
 #include "IDataWidget.h"
+#include "imgui.h"
 
 namespace UI {
 	template<typename TData>
-	IDataWidget<TData>::IDataWidget(const TData& data, std::function<void(const TData&)>& dataChangedAction)
-		: mData(data)
-		, mDataChangedAction(dataChangedAction) {}
+	IDataWidget<TData>::IDataWidget(const TData& data)
+	: mData(data) {}
 
 	template<typename TData>
 	void IDataWidget<TData>::Draw() {
 		if (mEnable) {
+			TData prevData = mData;
 			_Draw_Internal_Impl();
+			if (prevData != mData) {
+				valueChangedEvent.Invoke(mData);
+			}
 			if (!mLineBreak) {
 				ImGui::SameLine();
 			}
-			if (mValueChanged) {
-				mDataChangedAction(mData);
-				mValueChanged = false;
-			}
 		}
-	}
-
-	template<typename TData>
-	void IDataWidget<TData>::NotifyValueChanged() {
-		mValueChanged = true;
 	}
 }

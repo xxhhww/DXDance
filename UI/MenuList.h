@@ -5,15 +5,16 @@
 namespace UI {
 	class MenuItem : public IWidget {
 	public:
-		MenuItem(const std::string& name, bool clickable);
+		MenuItem(const std::string& name, bool checkable = false);
 	protected:
 		void _Draw_Internal_Impl() override;
 	public:
 		Tool::Event<> clickedEvent;
+		Tool::Event<> checkStatusChangedEvent;	// for mCheckStatus
 	private:
 		std::string mName;
-		bool mClickable;
-		bool mIsClicked{ false };
+		bool mCheckable;
+		bool mCheckStatus;
 	};
 
 	class MenuList : public IWidget, public IWidgetContainer {
