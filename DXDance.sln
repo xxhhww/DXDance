@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UI", "UI\UI.vcxproj", "{F30
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Math", "Math\Math.vcxproj", "{49EF35EC-4E53-4B6E-B6AA-7E0FC4239C11}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Windows", "Windows\Windows.vcxproj", "{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{49EF35EC-4E53-4B6E-B6AA-7E0FC4239C11}.Release|x64.Build.0 = Release|x64
 		{49EF35EC-4E53-4B6E-B6AA-7E0FC4239C11}.Release|x86.ActiveCfg = Release|Win32
 		{49EF35EC-4E53-4B6E-B6AA-7E0FC4239C11}.Release|x86.Build.0 = Release|Win32
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Debug|x64.ActiveCfg = Debug|x64
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Debug|x64.Build.0 = Debug|x64
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Debug|x86.ActiveCfg = Debug|Win32
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Debug|x86.Build.0 = Debug|Win32
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Release|x64.ActiveCfg = Release|x64
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Release|x64.Build.0 = Release|x64
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Release|x86.ActiveCfg = Release|Win32
+		{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

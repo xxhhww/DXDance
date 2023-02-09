@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</ProjectGuid>
-    <RootNamespace>Tools</RootNamespace>
+    <ProjectGuid>{d9babb68-acee-428f-befe-c0e72feb0779}</ProjectGuid>
+    <RootNamespace>Windows</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>../;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,14 +128,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Event.h" />
-    <ClInclude Include="StrUtil.h" />
+    <ClInclude Include="EKey.h" />
+    <ClInclude Include="EkeyState.h" />
+    <ClInclude Include="EMouseButton.h" />
+    <ClInclude Include="EMouseButtonState.h" />
+    <ClInclude Include="InputManger.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="WindowSetting.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Event.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="StrUtil.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

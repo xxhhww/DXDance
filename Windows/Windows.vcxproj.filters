@@ -13,35 +13,39 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\Event">
-      <UniqueIdentifier>{50478eb8-332e-4a22-b562-e42e4b967465}</UniqueIdentifier>
+    <Filter Include="头文件\Input">
+      <UniqueIdentifier>{f06834f5-5401-4a28-9511-437a0d369816}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\MemoryStream">
-      <UniqueIdentifier>{e001e98e-98e0-452c-b451-1325b4e90962}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\Utils">
-      <UniqueIdentifier>{8581e6f0-973c-485b-aa28-68418749fe02}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Utils">
-      <UniqueIdentifier>{1950c7dd-9689-4162-9556-b5cafa2165f6}</UniqueIdentifier>
+    <Filter Include="源文件\Input">
+      <UniqueIdentifier>{e2861e43-0134-4543-8d34-cd250437091f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Event.inl">
-      <Filter>头文件\Event</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Event.h">
-      <Filter>头文件\Event</Filter>
+    <ClInclude Include="Window.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="StrUtil.h">
-      <Filter>头文件\Utils</Filter>
+    <ClInclude Include="EKey.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="EkeyState.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="EMouseButton.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="EMouseButtonState.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManger.h">
+      <Filter>头文件\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowSetting.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StrUtil.cpp">
-      <Filter>源文件\Utils</Filter>
+    <ClCompile Include="Window.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
