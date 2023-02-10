@@ -19,6 +19,9 @@
     <Filter Include="源文件\Input">
       <UniqueIdentifier>{e2861e43-0134-4543-8d34-cd250437091f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{5f0b436b-77f7-4fa0-8232-a74df7d222af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -46,6 +49,12 @@
   <ItemGroup>
     <ClCompile Include="Window.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InputManger.cpp">
+      <Filter>源文件\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowTest.cpp">
+      <Filter>源文件\Test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -4,6 +4,6 @@
 namespace Tool {
 	class StrUtil {
 	public:
-		static std::wstring ToWString(const std::string& source);
+		static std::wstring UTF8ToWString(const std::string& source);
 	};
 }

@@ -1,34 +1,48 @@
 #include "Window.h"
 #include "Tools/StrUtil.h"
-#include "UI/imgui_impl_win32.h"
 #include <assert.h>
 
 using namespace Tool;
 
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 namespace Windows {
 	Window::Window(const WindowSetting& setting)
 	: mTitle(setting.title)
-	, mWidth(setting.width)
+	, mWidth(setting.width) 
 	, mHeight(setting.height) {
 		// register window class
-		WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, &Window::HandleMsgSetup, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"Window Class", NULL };
-		::RegisterClassExW(&wc);
+		mWc.cbSize = sizeof(mWc);
+		mWc.style = CS_HREDRAW | CS_VREDRAW;
+		mWc.lpfnWndProc = &Window::HandleMsgSetup;
+		mWc.cbClsExtra = 0;
+		mWc.cbWndExtra = 0;
+		mWc.hInstance = GetModuleHandle(NULL);
+		mWc.hIcon = NULL;
+		mWc.hCursor = NULL;
+		mWc.hbrBackground = (HBRUSH)(GetStockObject(BLACK_BRUSH));
+		mWc.lpszMenuName = NULL;
+		mWc.lpszClassName = L"Window Class";
+		mWc.hIconSm = NULL;
+		::RegisterClassExW(&mWc);
+
 		// dwStyle
-		DWORD dwStyle = 0;
-		if (setting.visible) {
-			dwStyle |= WS_VISIBLE;
-		}
+		DWORD dwStyle = 0;	
 		// 全屏模式
 		if (setting.fullscreen) {
-			dwStyle |= WS_MAXIMIZE;
+			dwStyle |= WS_POPUP;
+			mWidth = GetSystemMetrics(SM_CXSCREEN);
+			mHeight = GetSystemMetrics(SM_CYSCREEN);
 		}
 		// 窗口模式
 		else {
 			dwStyle |= (WS_CAPTION | WS_SYSMENU);
+			if (setting.visible) {
+				dwStyle |= WS_VISIBLE;
+			}
 			if (setting.maximized) {
+				RECT rect;
+				SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
+				mWidth = rect.right - rect.left;
+				mHeight = rect.bottom - rect.top;
 				dwStyle |= WS_MAXIMIZE;
 			}
 
@@ -39,27 +53,54 @@ namespace Windows {
 				dwStyle |= WS_BORDER;
 			}
 		}
+
 		// create window
-		mHwnd = ::CreateWindowW(
-			wc.lpszClassName,
-			StrUtil::ToWString(mTitle).c_str(),
-			dwStyle,
-			100, 100, mWidth, mHeight, 
-			NULL, NULL, wc.hInstance, this);
+		mHwnd = ::CreateWindow(
+			mWc.lpszClassName, StrUtil::UTF8ToWString(mTitle).c_str(),
+			dwStyle, 0, 0, mWidth, mHeight,
+			NULL, NULL, mWc.hInstance, this);
 		if (mHwnd == nullptr) {
 			assert(false);
 		}
+
+		// register mouse raw input device
+		RAWINPUTDEVICE rid{};
+		rid.usUsagePage = 0x01; // mouse page
+		rid.usUsage = 0x02;		// mouse usage
+		rid.dwFlags = 0;
+		rid.hwndTarget = mHwnd;
+		assert(RegisterRawInputDevices(&rid, 1, sizeof(rid)));
+
 		// Show the window
-		::ShowWindow(mHwnd, SW_SHOWDEFAULT);
+		if (setting.fullscreen) {
+			::ShowWindow(mHwnd, SW_MAXIMIZE);
+		}
+		else {
+			::ShowWindow(mHwnd, SW_SHOWDEFAULT);
+		}
 		::UpdateWindow(mHwnd);
+	}
+
+	Window::~Window() {
+		::DestroyWindow(mHwnd);
+		::UnregisterClassW(mWc.lpszClassName, mWc.hInstance);
+	}
+
+	HWND Window::GetHWND() {
+		return mHwnd;
 	}
 
 	LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		// use create parameter passed in from CreateWindow() to store window class pointer at WinAPI side
-		if (msg == WM_NCCREATE) {
+		if (msg == WM_NCCREATE)
+		{
 			// extract ptr to window class from creation data
 			const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
 			Window* const pWnd = static_cast<Window*>(pCreate->lpCreateParams);
+			// set WinAPI-managed user data to store ptr to window instance
+			SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
+			// set message proc to normal (non-setup) handler now that setup is finished
+			SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
 			// forward message to window instance handler
 			return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 		}
@@ -67,39 +108,113 @@ namespace Windows {
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
 
+	LRESULT CALLBACK Window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+		// retrieve ptr to window instance
+		Window* const pWnd = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+		// forward message to window instance handler
+		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
+	}
+
 	LRESULT WINAPI Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
-			return true;
+		if (imguiWndProcHandler != nullptr) {
+			if (imguiWndProcHandler(hWnd, msg, wParam, lParam)) {
+				return true;
+			}
 		}
 
 		switch (msg) {
 		/* KeyBoard Message */
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			keyPressedEvent.Invoke(static_cast<EKey>(wParam));
+		{
+			if (sEKeyMap.find(wParam) != sEKeyMap.end()) {
+				keyPressedEvent.Invoke(sEKeyMap[wParam]);
+			}
 			break;
+		}
+		case WM_CHAR:
+		{
+			if ((unsigned char)wParam >= 'a' && (unsigned char)wParam <= 'z') {
+				wParam = std::toupper(wParam);
+			}
+			if (sEKeyMap.find((unsigned char)wParam) != sEKeyMap.end()) {
+				keyPressedEvent.Invoke(sEKeyMap[wParam]);
+			}
+			break;
+		}
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			keyReleasedEvent.Invoke(static_cast<EKey>(wParam));
+		{
+			if (sEKeyMap.find(wParam) != sEKeyMap.end()) {
+				keyReleasedEvent.Invoke(sEKeyMap[wParam]);
+			}
 			break;
+		}
 		// case WM_CHAR:
 		/* MouseButton Message */
 		case WM_MOUSEMOVE:
+		{
 			const POINTS pt = MAKEPOINTS(lParam);
 			mouseMoveEvent.Invoke(pt.x, pt.y);
 			break;
+		}
 		case WM_LBUTTONDOWN:
+			mouseButtonPressedEvent.Invoke(EMouseButton::MOUSE_LBUTTON);
+			break;
 		case WM_RBUTTONDOWN:
+			mouseButtonPressedEvent.Invoke(EMouseButton::MOUSE_RBUTTON);
+			break;
 		case WM_MBUTTONDOWN:
-			mouseButtonPressedEvent.Invoke(static_cast<EMouseButton>(wParam));
+			mouseButtonPressedEvent.Invoke(EMouseButton::MOUSE_MBUTTON);
 			break;
 		case WM_LBUTTONUP:
-		case WM_RBUTTONUP:
-		case WM_MBUTTONUP:
-			mouseButtonReleasedEvent.Invoke(static_cast<EMouseButton>(wParam));
+			mouseButtonReleasedEvent.Invoke(EMouseButton::MOUSE_LBUTTON);
 			break;
+		case WM_RBUTTONUP:
+			mouseButtonReleasedEvent.Invoke(EMouseButton::MOUSE_RBUTTON);
+			break;
+		case WM_MBUTTONUP:
+			mouseButtonReleasedEvent.Invoke(EMouseButton::MOUSE_MBUTTON);
+			break;
+		case WM_INPUT:
+		{
+			UINT size = 0u;
+			std::vector<BYTE> rawDatas;
+			// first get the size of the input data
+			if (GetRawInputData(
+				reinterpret_cast<HRAWINPUT>(lParam),
+				RID_INPUT,
+				nullptr,
+				&size,
+				sizeof(RAWINPUTHEADER)) == -1) {
+				// bail msg processing if error
+				break;
+			}
+			rawDatas.resize(size);
+			// read in the input data
+			if (GetRawInputData(
+				reinterpret_cast<HRAWINPUT>(lParam),
+				RID_INPUT,
+				rawDatas.data(),
+				&size,
+				sizeof(RAWINPUTHEADER)) != size) {
+				// bail msg processing if error
+				break;
+			}
+			// process the raw input data
+			auto& ri = reinterpret_cast<const RAWINPUT&>(*rawDatas.data());
+			if (ri.header.dwType == RIM_TYPEMOUSE) {
+				rawDeltaEvent.Invoke(ri.data.mouse.lLastX, ri.data.mouse.lLastY);
+			}
+			break;
+		}
+		case WM_DESTROY:
+		{
+			::PostQuitMessage(0);
+			break;
+		}
 		default:
-			return DefWindowProc(hWnd, msg, wParam, lParam);
+			return ::DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 		return 0;
 	}

@@ -185,6 +185,11 @@
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Windows\Windows.vcxproj">
+      <Project>{d9babb68-acee-428f-befe-c0e72feb0779}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

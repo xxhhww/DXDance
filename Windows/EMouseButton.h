@@ -1,10 +1,18 @@
 #pragma once
-#include <WinUser.h>
+#include <Windows.h>
+#include <unordered_map>
 
 namespace Windows {
-	enum class EMouseButton {
-		MOUSE_BUTTON_LEFT = VK_LBUTTON,
-		MOUSE_BUTTON_RIGHT = VK_RBUTTON,
-		MOUSE_BUTTON_MIDDLE = VK_MBUTTON,
+	enum class EMouseButton : int {
+		MOUSE_LBUTTON,
+		MOUSE_RBUTTON,
+		MOUSE_MBUTTON,
+	};
+
+	static std::unordered_map<int, EMouseButton> sEMouseButtonMap =
+	{
+		{ VK_LBUTTON, EMouseButton::MOUSE_LBUTTON },
+		{ VK_RBUTTON, EMouseButton::MOUSE_RBUTTON },
+		{ VK_MBUTTON, EMouseButton::MOUSE_MBUTTON },
 	};
 }

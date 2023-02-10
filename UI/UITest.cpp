@@ -22,6 +22,9 @@
 #include <dxgi1_4.h>
 #include <tchar.h>
 #include <stack>
+#include "Windows/Window.h"
+#include "Windows/InputManger.h"
+#include "Windows/WindowSetting.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -70,34 +73,30 @@ void WaitForLastSubmittedFrame();
 FrameContext* WaitForNextFrameResources();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-struct Foo {
-    template<typename T>
-    Foo(int a, T& t) : value(a) {};
-
-    int value;
-};
-
+using namespace Windows;
 // Main code
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"ImGui Example", NULL };
-    ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX12 Example", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+    WindowSetting setting{};
+    setting.maximized = false;
+    setting.fullscreen = false;
+    setting.resizable = false;
+    Window window{ setting };
+    window.imguiWndProcHandler = ImGui_ImplWin32_WndProcHandler;
+    InputManger inputManger{ &window };
 
     // Initialize Direct3D
-    if (!CreateDeviceD3D(hwnd))
+    if (!CreateDeviceD3D(window.GetHWND()))
     {
-        CleanupDeviceD3D();
-        ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
+        // CleanupDeviceD3D();
+        // ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
         return 1;
     }
-
-    // Show the window
-    ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-    ::UpdateWindow(hwnd);
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -116,7 +115,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     ImNodes::StyleColorsDark();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplWin32_Init(window.GetHWND());
     ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
         DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
         g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
@@ -269,8 +268,6 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     ImGui::DestroyContext();
 
     CleanupDeviceD3D();
-    ::DestroyWindow(hwnd);
-    ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
 
     return 0;
 }
@@ -428,7 +425,7 @@ void CreateRenderTarget()
         g_mainRenderTargetResource[i] = pBackBuffer;
     }
 }
-ImGuiKey_
+
 void CleanupRenderTarget()
 {
     WaitForLastSubmittedFrame();
@@ -491,6 +488,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     switch (msg)
     {
+    case WM_KEYDOWN:
+    {
+        int i = 3;
+    }
     case WM_SIZE:
         if (g_pd3dDevice != NULL && wParam != SIZE_MINIMIZED)
         {

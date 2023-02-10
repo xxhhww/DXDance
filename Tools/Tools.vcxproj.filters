@@ -16,9 +16,6 @@
     <Filter Include="头文件\Event">
       <UniqueIdentifier>{50478eb8-332e-4a22-b562-e42e4b967465}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\MemoryStream">
-      <UniqueIdentifier>{e001e98e-98e0-452c-b451-1325b4e90962}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Utils">
       <UniqueIdentifier>{8581e6f0-973c-485b-aa28-68418749fe02}</UniqueIdentifier>
     </Filter>
