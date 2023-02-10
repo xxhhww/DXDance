@@ -22,10 +22,19 @@
     <Filter Include="源文件\Utils">
       <UniqueIdentifier>{1950c7dd-9689-4162-9556-b5cafa2165f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\MemoryStream">
+      <UniqueIdentifier>{3f3c96d9-fca6-4c26-b613-96fde45fba12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\MemoryStream">
+      <UniqueIdentifier>{0e94fd0c-b128-481a-b743-1690cd169cd1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
       <Filter>头文件\Event</Filter>
+    </None>
+    <None Include="MemoryStream.inl">
+      <Filter>头文件\MemoryStream</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -35,10 +44,16 @@
     <ClInclude Include="StrUtil.h">
       <Filter>头文件\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryStream.h">
+      <Filter>头文件\MemoryStream</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
       <Filter>源文件\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryStream.cpp">
+      <Filter>源文件\MemoryStream</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
