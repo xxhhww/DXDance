@@ -18,6 +18,7 @@
 #include "TreeNode.h"
 #include "PanelMenuBar.h"
 #include "InputText.h"
+#include "node_editor.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include <tchar.h>
@@ -108,7 +109,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     ImNodes::CreateContext();
-
+    example::NodeEditorInitialize();
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     //ImGui::StyleColorsLight();
@@ -220,6 +221,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         panelWindow.Draw();
         panelWindow2.Draw();
         ImGui::ShowDemoWindow();
+        example::NodeEditorShow();
 
         if (ImGui::Begin("TestWindow")) {
             ImGui::DragFloat("TestFloat", &testFloat);
@@ -269,7 +271,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     // Cleanup
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
-    // example::NodeEditorShutdown();
+    example::NodeEditorShutdown();
     ImNodes::DestroyContext();
     ImGui::DestroyContext();
 

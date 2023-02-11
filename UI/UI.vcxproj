@@ -136,6 +136,9 @@
     <ClInclude Include="DragFloat2.h" />
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="Node.h" />
+    <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
     <ClInclude Include="IDrawable.h" />
@@ -161,6 +164,7 @@
     <ClInclude Include="IWidgetContainer.h" />
     <ClInclude Include="MenuList.h" />
     <ClInclude Include="NewLine.h" />
+    <ClInclude Include="node_editor.h" />
     <ClInclude Include="PanelMenuBar.h" />
     <ClInclude Include="PanelWindow.h" />
     <ClInclude Include="Setting.h" />
@@ -174,11 +178,13 @@
   <ItemGroup>
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ColorEdit.cpp" />
+    <ClCompile Include="color_node_editor.cpp" />
     <ClCompile Include="ComboBox.cpp" />
     <ClCompile Include="DragFloat.cpp" />
     <ClCompile Include="DragFloat2.cpp" />
     <ClCompile Include="DragFloat3.cpp" />
     <ClCompile Include="DragFloat4.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -199,6 +205,7 @@
     <ClCompile Include="IWidgetContainer.cpp" />
     <ClCompile Include="MenuList.cpp" />
     <ClCompile Include="NewLine.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
     <ClCompile Include="SliderFloat.cpp" />

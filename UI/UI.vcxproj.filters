@@ -76,6 +76,15 @@
     <Filter Include="头文件\Widget\Text">
       <UniqueIdentifier>{49399e47-0ca3-4a07-9acf-d3ba3d6e6f95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Test">
+      <UniqueIdentifier>{c8b13429-3a5f-4131-8523-3b1d09b9ab30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Graph">
+      <UniqueIdentifier>{b7a335a6-4a85-4aaf-8a7c-90e31dad94b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Graph">
+      <UniqueIdentifier>{697bff7e-6811-4465-af70-99916ca18c5b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -201,6 +210,18 @@
     <ClInclude Include="ComboBox.h">
       <Filter>头文件\Widget\Selection</Filter>
     </ClInclude>
+    <ClInclude Include="node_editor.h">
+      <Filter>头文件\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="testgraph.h">
+      <Filter>头文件\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="Graph.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="Node.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -310,6 +331,15 @@
     </ClCompile>
     <ClCompile Include="ComboBox.cpp">
       <Filter>源文件\Widget\Selection</Filter>
+    </ClCompile>
+    <ClCompile Include="color_node_editor.cpp">
+      <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph.cpp">
+      <Filter>源文件\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.cpp">
+      <Filter>源文件\Graph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
