@@ -5,6 +5,7 @@ namespace Tool {
 	class OutputMemoryStream {
 	public:
 		OutputMemoryStream();
+		OutputMemoryStream(const std::string& str);
 		OutputMemoryStream(OutputMemoryStream&& rhs);
 		OutputMemoryStream(const OutputMemoryStream& rhs);
 		~OutputMemoryStream();
@@ -16,6 +17,7 @@ namespace Tool {
 		bool Write(const void* data, uint64_t size);
 
 		const void* Data() const;
+		std::string Str() const;
 		uint64_t Size() const;
 		uint64_t Capacity() const;
 	private:

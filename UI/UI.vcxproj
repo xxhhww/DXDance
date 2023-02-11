@@ -130,6 +130,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="ColorEdit.h" />
+    <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="DragFloat.h" />
+    <ClInclude Include="DragFloat2.h" />
+    <ClInclude Include="DragFloat3.h" />
+    <ClInclude Include="DragFloat4.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
     <ClInclude Include="IDrawable.h" />
@@ -143,6 +149,10 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="InputFloat.h" />
+    <ClInclude Include="InputFloat2.h" />
+    <ClInclude Include="InputFloat3.h" />
+    <ClInclude Include="InputFloat4.h" />
     <ClInclude Include="InputText.h" />
     <ClInclude Include="InputTextMultiline.h" />
     <ClInclude Include="IPanel.h" />
@@ -154,11 +164,21 @@
     <ClInclude Include="PanelMenuBar.h" />
     <ClInclude Include="PanelWindow.h" />
     <ClInclude Include="Setting.h" />
+    <ClInclude Include="SliderFloat.h" />
+    <ClInclude Include="SliderFloat2.h" />
+    <ClInclude Include="SliderFloat3.h" />
+    <ClInclude Include="SliderFloat4.h" />
     <ClInclude Include="Spacing.h" />
     <ClInclude Include="TreeNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="ColorEdit.cpp" />
+    <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="DragFloat.cpp" />
+    <ClCompile Include="DragFloat2.cpp" />
+    <ClCompile Include="DragFloat3.cpp" />
+    <ClCompile Include="DragFloat4.cpp" />
     <ClCompile Include="Group.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -167,6 +187,10 @@
     <ClCompile Include="imgui_impl_win32.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
     <ClCompile Include="imnodes.cpp" />
+    <ClCompile Include="InputFloat.cpp" />
+    <ClCompile Include="InputFloat2.cpp" />
+    <ClCompile Include="InputFloat3.cpp" />
+    <ClCompile Include="InputFloat4.cpp" />
     <ClCompile Include="InputText.cpp" />
     <ClCompile Include="InputTextMultiline.cpp" />
     <ClCompile Include="IPanel.cpp" />
@@ -177,6 +201,10 @@
     <ClCompile Include="NewLine.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="SliderFloat.cpp" />
+    <ClCompile Include="SliderFloat2.cpp" />
+    <ClCompile Include="SliderFloat3.cpp" />
+    <ClCompile Include="SliderFloat4.cpp" />
     <ClCompile Include="Spacing.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="UITest.cpp" />

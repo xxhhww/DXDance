@@ -2,7 +2,7 @@
 #include "imgui.h"
 
 namespace UI {
-	InputText::InputText(const std::string& content, const std::string& label, size_t maxSize)
+	InputText::InputText(const std::string& label, const std::string& content, size_t maxSize)
 	: IDataWidget<std::string>(content)
 	, mLabel(label) 
 	, mMaxSize(maxSize) {

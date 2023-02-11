@@ -20,12 +20,21 @@ namespace Core {
 
 	class Shader : public IAsset {
 	public:
+		Shader() = default;
+		Shader(const std::string& name);
+		~Shader() = default;
+
+		void SetHLSLCode(const std::string& code);
+		void SetGraphBlob(const std::string& code);
+		const auto& GetHLSLCode() const;
+		const auto& GetGraphBlob() const;
+	public:	// [Json Serialize]
+		void Serialize(rapidjson::Document& outputDoc) override;
+		void Deserialize(const rapidjson::Document& inputDoc) override;
 	private:
-		void* mD3DRootSignature{ nullptr };
-		void* mD3DPipelineState{ nullptr };
-		std::unordered_map<std::string, ShaderDataDesc> mDataLayout;	// 数据布局
-	public:
-		const auto& GetDataLayout() const { return mDataLayout; }
+		std::string mHLSLCode;	// HLSL代码
+		std::string mGraphBlob;	// ShaderGraph数据
+		std::unordered_map<std::string, ShaderDataDesc> mDataLayout;	// ConstantBuffer布局
 	};
 
 	class ShaderManger : public IAssetManger<Shader> {

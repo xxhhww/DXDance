@@ -159,6 +159,48 @@
     <ClInclude Include="InputTextMultiline.h">
       <Filter>头文件\Widget\Input</Filter>
     </ClInclude>
+    <ClInclude Include="DragFloat.h">
+      <Filter>头文件\Widget\Drag</Filter>
+    </ClInclude>
+    <ClInclude Include="DragFloat2.h">
+      <Filter>头文件\Widget\Drag</Filter>
+    </ClInclude>
+    <ClInclude Include="DragFloat3.h">
+      <Filter>头文件\Widget\Drag</Filter>
+    </ClInclude>
+    <ClInclude Include="DragFloat4.h">
+      <Filter>头文件\Widget\Drag</Filter>
+    </ClInclude>
+    <ClInclude Include="InputFloat.h">
+      <Filter>头文件\Widget\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputFloat2.h">
+      <Filter>头文件\Widget\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputFloat3.h">
+      <Filter>头文件\Widget\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputFloat4.h">
+      <Filter>头文件\Widget\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderFloat.h">
+      <Filter>头文件\Widget\Slider</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderFloat2.h">
+      <Filter>头文件\Widget\Slider</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderFloat3.h">
+      <Filter>头文件\Widget\Slider</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderFloat4.h">
+      <Filter>头文件\Widget\Slider</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorEdit.h">
+      <Filter>头文件\Widget\Selection</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBox.h">
+      <Filter>头文件\Widget\Selection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -226,6 +268,48 @@
     </ClCompile>
     <ClCompile Include="InputTextMultiline.cpp">
       <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="DragFloat.cpp">
+      <Filter>源文件\Widget\Drag</Filter>
+    </ClCompile>
+    <ClCompile Include="DragFloat2.cpp">
+      <Filter>源文件\Widget\Drag</Filter>
+    </ClCompile>
+    <ClCompile Include="DragFloat3.cpp">
+      <Filter>源文件\Widget\Drag</Filter>
+    </ClCompile>
+    <ClCompile Include="DragFloat4.cpp">
+      <Filter>源文件\Widget\Drag</Filter>
+    </ClCompile>
+    <ClCompile Include="InputFloat.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputFloat2.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputFloat3.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputFloat4.cpp">
+      <Filter>源文件\Widget\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderFloat.cpp">
+      <Filter>源文件\Widget\Slider</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderFloat2.cpp">
+      <Filter>源文件\Widget\Slider</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderFloat3.cpp">
+      <Filter>源文件\Widget\Slider</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderFloat4.cpp">
+      <Filter>源文件\Widget\Slider</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorEdit.cpp">
+      <Filter>源文件\Widget\Selection</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboBox.cpp">
+      <Filter>源文件\Widget\Selection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

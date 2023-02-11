@@ -3,7 +3,7 @@
 #include "Vector.h"
 
 namespace Math {
-	class Color : public XMFLOAT3 {
+	struct Color : public XMFLOAT3 {
 	public:
 		inline Color() = default;
 		inline Color(float xyz) : XMFLOAT3(xyz, xyz, xyz) {}

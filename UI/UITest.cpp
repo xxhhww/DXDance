@@ -165,8 +165,14 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     UI::PanelWindow panelWindow("PanelWindow");
     auto& group1 = panelWindow.CreateWidget<UI::GroupCollapsable>("Group1");
     group1.CreateWidget<UI::TreeNode>("Leaf1", true);
-    auto& inputText1 = group1.CreateWidget<UI::InputText>("This is content", "InputText");
-    inputText1.valueChangedEvent += std::bind(lam, 1000);
+    std::string sss = "This is content";
+    auto& inputText1 = group1.CreateWidget<UI::InputText>("InputText", sss);
+    std::function<void(float)> ttt = [](float t) {};
+    std::function<void(const std::string&)> teee = std::bind(ttt, 3.0f);
+    inputText1.valueChangedEvent += std::bind(ttt, 3.0);
+    inputText1.valueChangedEvent += [&sss](const std::string& str) {
+        sss = str;
+    };
     inputText1.editCompletedEvent += std::bind(lam, 1);
 
     UI::PanelWindow panelWindow2("PanelWindow");

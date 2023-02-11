@@ -7,6 +7,13 @@ namespace Tool {
 	, mSize(0u)
 	, mCapacity(0u) {}
 
+	OutputMemoryStream::OutputMemoryStream(const std::string& str) {
+		mData = new char[str.size()];
+		memcpy(mData, str.data(), str.size());
+		mSize = str.size();
+		mCapacity = mSize;
+	}
+
 	OutputMemoryStream::OutputMemoryStream(OutputMemoryStream&& rhs) {
 		mSize = rhs.mSize;
 		mCapacity = rhs.mCapacity;
@@ -47,7 +54,7 @@ namespace Tool {
 		mCapacity = rhs.mCapacity;
 	}
 
-	void OutputMemoryStream::operator=(OutputMemoryStream&& rhs) noexcept {
+	void OutputMemoryStream::operator=(OutputMemoryStream&& rhs) {
 		if (mData != nullptr) delete mData;
 
 		mSize = rhs.mSize;
@@ -70,6 +77,22 @@ namespace Tool {
 		memcpy(mData + mSize, data, size);
 		mSize += size;
 		return true;
+	}
+
+	const void* OutputMemoryStream::Data() const {
+		return mData;
+	}
+
+	std::string OutputMemoryStream::Str() const {
+		return std::string(mData);
+	}
+
+	uint64_t OutputMemoryStream::Size() const {
+		return mSize;
+	}
+
+	uint64_t OutputMemoryStream::Capacity() const {
+		return mCapacity;
 	}
 
 	void OutputMemoryStream::Reserve(uint64_t size) {
@@ -95,5 +118,17 @@ namespace Tool {
 		if (size > 0) memcpy(data, mData + mPos, size);
 		mPos += size;
 		return true;
+	}
+
+	const void* InputMemoryStream::Data() const {
+		return mData;
+	}
+
+	uint64_t InputMemoryStream::Size() const {
+		return mSize;
+	}
+
+	uint64_t InputMemoryStream::Pos() const {
+		return mPos;
 	}
 }

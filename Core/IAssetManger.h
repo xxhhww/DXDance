@@ -13,13 +13,13 @@ namespace Core {
 		// Create From Runtime
 		inline IAsset(const std::string& name) : mName(name), mID(smAtomicIncID++) {}
 		virtual ~IAsset() = default;
+
+		inline const auto& GetName()	const { return mName; }
+		inline const auto& GetID()		const { return mID; }
 	protected:
 		std::string mName{ "" };
 		int64_t		mID{ -1 };
 		static std::atomic<int64_t> smAtomicIncID;
-	public:
-		inline const auto& GetName()	const { return mName; }
-		inline const auto& GetID()		const { return mID; }
 	};
 
 	// IAssetManger的子类模板必须是IAsset的子类
