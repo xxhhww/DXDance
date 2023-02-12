@@ -45,3 +45,5 @@ namespace Tool {
 		uint64_t mPos{ 0u };
 	};
 }
+
+#include "MemoryStream.inl"

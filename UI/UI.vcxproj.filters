@@ -222,6 +222,12 @@
     <ClInclude Include="Node.h">
       <Filter>头文件\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="VariableNode.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="MathNode.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -341,6 +347,12 @@
     <ClCompile Include="Node.cpp">
       <Filter>源文件\Graph</Filter>
     </ClCompile>
+    <ClCompile Include="VariableNode.cpp">
+      <Filter>源文件\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="MathNode.cpp">
+      <Filter>源文件\Graph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IWidgetContainer.inl">
@@ -348,6 +360,9 @@
     </None>
     <None Include="IDataWidget.inl">
       <Filter>头文件\Widget</Filter>
+    </None>
+    <None Include="VariableNode.inl">
+      <Filter>头文件\Graph</Filter>
     </None>
   </ItemGroup>
 </Project>

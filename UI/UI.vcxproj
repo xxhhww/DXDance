@@ -137,6 +137,7 @@
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
     <ClInclude Include="Graph.h" />
+    <ClInclude Include="MathNode.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="SliderFloat4.h" />
     <ClInclude Include="Spacing.h" />
     <ClInclude Include="TreeNode.h" />
+    <ClInclude Include="VariableNode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Canvas.cpp" />
@@ -203,6 +205,7 @@
     <ClCompile Include="IPanelTransformable.cpp" />
     <ClCompile Include="IWidget.cpp" />
     <ClCompile Include="IWidgetContainer.cpp" />
+    <ClCompile Include="MathNode.cpp" />
     <ClCompile Include="MenuList.cpp" />
     <ClCompile Include="NewLine.cpp" />
     <ClCompile Include="Node.cpp" />
@@ -215,12 +218,17 @@
     <ClCompile Include="Spacing.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="UITest.cpp" />
+    <ClCompile Include="VariableNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
+    <None Include="VariableNode.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Tools\Tools.vcxproj">
+      <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Windows\Windows.vcxproj">
       <Project>{d9babb68-acee-428f-befe-c0e72feb0779}</Project>
     </ProjectReference>

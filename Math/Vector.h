@@ -13,7 +13,7 @@ namespace Math {
 
 	struct Vector2 : public XMFLOAT2 {
 	public:
-		inline Vector2() = default;
+		inline Vector2() : XMFLOAT2(0.0f, 0.0f) {}
 		inline Vector2(float xy) : XMFLOAT2(xy, xy) {}
 		inline Vector2(float x, float y) : XMFLOAT2(x, y) {}
 		inline Vector2(const float* pData) : XMFLOAT2(pData) {}
@@ -57,7 +57,7 @@ namespace Math {
 
 	struct Vector3 : public XMFLOAT3 {
 	public:
-		inline Vector3() = default;
+		inline Vector3() :XMFLOAT3(0.0f, 0.0f, 0.0f) {}
 		inline Vector3(float xyz) : XMFLOAT3(xyz, xyz, xyz) {}
 		inline Vector3(float x, float y, float z) : XMFLOAT3(x, y, z) {}
 		inline Vector3(const float* pData) : XMFLOAT3(pData) {}
@@ -110,7 +110,7 @@ namespace Math {
 
 	struct Vector4 : public XMFLOAT4 {
 	public:
-		inline Vector4() = default;
+		inline Vector4() : XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f) {}
 		inline Vector4(float xyzw) : XMFLOAT4(xyzw, xyzw, xyzw, xyzw) {}
 		inline Vector4(float x, float y, float z, float w) : XMFLOAT4(x, y, z, w) {}
 		inline Vector4(const float* pData) : XMFLOAT4(pData) {}

@@ -222,9 +222,10 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         panelWindow2.Draw();
         ImGui::ShowDemoWindow();
         example::NodeEditorShow();
-
+        
         if (ImGui::Begin("TestWindow")) {
-            ImGui::DragFloat("TestFloat", &testFloat);
+            Math::Vector4 ttt;
+            ImGui::DragFloat4("TestFloat", reinterpret_cast<float*>(&ttt), 0.0f, 1.0f);
         }
         ImGui::End();
         // Rendering
