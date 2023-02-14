@@ -85,6 +85,12 @@
     <Filter Include="源文件\Graph">
       <UniqueIdentifier>{697bff7e-6811-4465-af70-99916ca18c5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Manger">
+      <UniqueIdentifier>{3a0c566d-5b1f-4714-ba24-a813b24682cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Magner">
+      <UniqueIdentifier>{fd200bdd-e070-4318-aa88-9be33c662aa2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -228,6 +234,15 @@
     <ClInclude Include="MathNode.h">
       <Filter>头文件\Graph</Filter>
     </ClInclude>
+    <ClInclude Include="IUndoEditor.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderEditor.h">
+      <Filter>头文件\Graph</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManger.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -353,6 +368,15 @@
     <ClCompile Include="MathNode.cpp">
       <Filter>源文件\Graph</Filter>
     </ClCompile>
+    <ClCompile Include="IUndoEditor.cpp">
+      <Filter>源文件\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderEditor.cpp">
+      <Filter>源文件\Graph</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManger.cpp">
+      <Filter>源文件\Magner</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IWidgetContainer.inl">
@@ -363,6 +387,9 @@
     </None>
     <None Include="VariableNode.inl">
       <Filter>头文件\Graph</Filter>
+    </None>
+    <None Include="Canvas.inl">
+      <Filter>头文件\Panel</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -35,7 +35,7 @@ namespace Windows {
 		bool maximized = true;
 
 		/*
-		* 指定窗口窗口时是否可见
+		* 指定窗口初始化时是否可见，只在窗口模式时有效
 		*/
 		bool visible = true;
 	};

@@ -1,20 +1,47 @@
 #include "Canvas.h"
 #include "imgui_impl_dx12.h"
 #include "imgui_impl_win32.h"
+#include <algorithm>
 
 namespace UI {
-	void Canvas::AddPanel(IPanel* panel) {
-		mPanels.push_back(panel);
+	void Canvas::RegisterPanel(IPanel* panel) {
+		mPanels.emplace_back(panel, CanvasMemoryMode::Extra);
 	}
 
-	void Canvas::RemovePanel(IPanel* panel) {
-		mPanels.erase(std::remove_if(mPanels.begin(), mPanels.end(),
-			[&panel](IPanel* item) {
-				return item == panel;
-			}));
+	void Canvas::UnregisterPanel(IPanel* panel) {
+		auto it = std::find_if(mPanels.begin(), mPanels.end(),
+			[&panel](auto& pair) {
+				if (pair.first == panel) {
+					return true;
+				}
+			});
+
+		if (it != mPanels.end()) {
+			mPanels.erase(it);
+		}
 	}
 
-	void Canvas::RemoveAllPanels() {
+	void Canvas::DeletePanel(IPanel* panel) {
+		auto it = std::find_if(mPanels.begin(), mPanels.end(),
+			[&panel](auto& pair) {
+				if (pair.first == panel && pair.second == CanvasMemoryMode::Internal) {
+					return true;
+				}
+			});
+
+		if (it != mPanels.end()) {
+			mPanels.erase(it);
+			delete panel;
+		}
+	}
+
+	void Canvas::DeleteAllPanels() {
+		std::for_each(mPanels.begin(), mPanels.end(),
+			[](auto& pair) {
+				if (pair.second == CanvasMemoryMode::Internal) {
+					delete pair.first;
+				}
+			});
 		mPanels.clear();
 	}
 
@@ -52,8 +79,8 @@ namespace UI {
 				ImGui::PopStyleVar(3);
 			}
 
-			for (auto& panel : mPanels) {
-				panel->Draw();
+			for (auto& pair : mPanels) {
+				pair.first->Draw();
 			}
 			ImGui::Render();
 		}

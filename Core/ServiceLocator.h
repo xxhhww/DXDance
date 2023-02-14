@@ -17,7 +17,7 @@ namespace Core {
 		template<typename T>
 		static void Provide(T& p_service)
 		{
-			smServices[typeid(T).hash_code()] = std::any(&p_service);
+			smServices[typeid(T).hash_code()] = reinterpret_cast<void*>(&p_service);
 		}
 
 		/**
@@ -26,10 +26,14 @@ namespace Core {
 		template<typename T>
 		static T& Get()
 		{
-			return *std::any_cast<T*>(smServices[typeid(T).hash_code()]);
+			return *reinterpret_cast<T*>(smServices[typeid(T).hash_code()]);
+		}
+
+		static void RemoveAllServices() {
+			smServices.clear();
 		}
 
 	private:
-		static std::unordered_map<size_t, std::any> smServices;
+		static std::unordered_map<size_t, void*> smServices;
 	};
 }

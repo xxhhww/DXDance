@@ -137,8 +137,10 @@
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
     <ClInclude Include="Graph.h" />
+    <ClInclude Include="IUndoEditor.h" />
     <ClInclude Include="MathNode.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
@@ -175,6 +177,7 @@
     <ClInclude Include="SliderFloat4.h" />
     <ClInclude Include="Spacing.h" />
     <ClInclude Include="TreeNode.h" />
+    <ClInclude Include="UIManger.h" />
     <ClInclude Include="VariableNode.h" />
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +191,7 @@
     <ClCompile Include="DragFloat4.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="Group.cpp" />
+    <ClCompile Include="IUndoEditor.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
@@ -211,16 +215,19 @@
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="ShaderEditor.cpp" />
     <ClCompile Include="SliderFloat.cpp" />
     <ClCompile Include="SliderFloat2.cpp" />
     <ClCompile Include="SliderFloat3.cpp" />
     <ClCompile Include="SliderFloat4.cpp" />
     <ClCompile Include="Spacing.cpp" />
     <ClCompile Include="TreeNode.cpp" />
+    <ClCompile Include="UIManger.cpp" />
     <ClCompile Include="UITest.cpp" />
     <ClCompile Include="VariableNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Canvas.inl" />
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
     <None Include="VariableNode.inl" />

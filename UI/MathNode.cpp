@@ -5,7 +5,7 @@ namespace UI {
 		bool outputTypeChanged{ false };
 
 		SlotType targetType = SlotType::Float;
-		for (const auto& slotPtr : oppositeSlots) {
+		for (const auto slotPtr : oppositeSlots) {
 			if (slotPtr->type > targetType) {
 				targetType = slotPtr->type;
 			}

@@ -106,10 +106,6 @@ namespace UI {
 		mPosition = Math::Vector2(x, y);
 	}
 
-	Math::Vector2 Node::GetPosition() const {
-		return mPosition;
-	}
-
 	Node::Node(int id, NodeType nodeType, const std::string& label)
 	: ImnodeObject(id) 
 	, mNodeType(nodeType)

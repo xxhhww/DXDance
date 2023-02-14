@@ -61,6 +61,8 @@ namespace UI {
 
 	class Link : public ImnodeObject {
 	public:
+		using Ptr = std::shared_ptr<Link>;
+	public:
 		inline Link(int id) :ImnodeObject(id) {}
 		~Link() = default;
 
@@ -80,6 +82,8 @@ namespace UI {
 
 	class Node : public ImnodeObject {
 	public:
+		using Ptr = std::shared_ptr<Node>;
+	public:
 		Node(int id, NodeType nodeType, const std::string& label);
 		virtual ~Node() = default;
 		
@@ -95,7 +99,10 @@ namespace UI {
 		void SetOutputSlotBroken(int index);
 
 		void SetPosition(float x, float y);
-		Math::Vector2 GetPosition() const;
+		inline const auto& GetPosition() const { return mPosition; }
+
+		inline auto& GetInputSlots()	{ return mInputSlots; }
+		inline auto& GetOutputSlots()	{ return mOutputSlots; }
 
 		virtual void Serialize(Tool::OutputMemoryStream& blob) = 0;
 		virtual void Deserialize(Tool::InputMemoryStream& blob) = 0;
