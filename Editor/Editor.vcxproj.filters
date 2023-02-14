@@ -13,27 +13,98 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\Core">
+      <UniqueIdentifier>{436efbee-b257-4ea3-9de3-e1b034cc624a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Core">
+      <UniqueIdentifier>{8368c287-83a0-4e33-87f2-afd337e29c0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Panels">
+      <UniqueIdentifier>{565af572-b1ab-4e1c-bb71-762f67e8a01c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Panels">
+      <UniqueIdentifier>{a09c69b0-7e9c-4851-be07-b537214af60f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{a34e3130-0700-46ae-8a78-39d576113732}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Panels\ShaderEditor">
+      <UniqueIdentifier>{2779d17a-317c-4078-b217-78eeeba48740}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Panels\ShaderEditor">
+      <UniqueIdentifier>{3599e355-f0cb-4a30-ade9-a77e0e35babf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Editor.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>头文件\Core</Filter>
     </ClInclude>
     <ClInclude Include="Context.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuBar.h">
+      <Filter>头文件\Panels</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\Graph.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\IUndoEditor.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\MathNode.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\Node.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\ShaderEditor.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UI\VariableNode.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Editor.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>源文件\Core</Filter>
     </ClCompile>
     <ClCompile Include="Context.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\Core</Filter>
     </ClCompile>
+    <ClCompile Include="appTest.cpp">
+      <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuBar.cpp">
+      <Filter>源文件\Panels</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\Graph.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\IUndoEditor.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\MathNode.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\Node.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\ShaderEditor.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\UI\VariableNode.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\UI\VariableNode.inl">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </None>
   </ItemGroup>
 </Project>

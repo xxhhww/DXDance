@@ -26,6 +26,16 @@ namespace UI {
 		autoSize = panelSettings.autoSize;
 	}
 
+	void PanelWindow::SetOpen(bool status) {
+		if (mOpened && !status) {
+			closedEvent.Invoke();
+		}
+		else if (!mOpened && status) {
+			openedEvent.Invoke();
+		}
+		mOpened = status;
+	}
+
 	void PanelWindow::Open() {
 		if (!mOpened) {
 			mOpened = true;

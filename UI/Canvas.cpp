@@ -14,6 +14,7 @@ namespace UI {
 				if (pair.first == panel) {
 					return true;
 				}
+				return false;
 			});
 
 		if (it != mPanels.end()) {
@@ -27,6 +28,7 @@ namespace UI {
 				if (pair.first == panel && pair.second == CanvasMemoryMode::Internal) {
 					return true;
 				}
+				return false;
 			});
 
 		if (it != mPanels.end()) {
@@ -59,7 +61,7 @@ namespace UI {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-			if (mDockSpace) {
+			if (true) {
 				ImGuiViewport* viewport = ImGui::GetMainViewport();
 				ImGui::SetNextWindowPos(viewport->Pos);
 				ImGui::SetNextWindowSize(viewport->Size);
@@ -82,7 +84,6 @@ namespace UI {
 			for (auto& pair : mPanels) {
 				pair.first->Draw();
 			}
-			ImGui::Render();
 		}
 	}
 }

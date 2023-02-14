@@ -26,6 +26,7 @@ namespace UI {
 				if (pair.first == widget && pair.second == IWidgetMangement::InternalMangement) {
 					return true;
 				}
+				return false;
 			}
 		);
 

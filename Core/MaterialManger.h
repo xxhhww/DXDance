@@ -10,8 +10,6 @@ namespace Core {
 		~Material() = default;
 
 		void SetShader(int64_t shaderID);
-		// 着色器发生变动,重新计算materialDatas
-		void OnShaderChanged();
 	private:
 		int64_t mShaderID{ -1 };
 		std::unordered_map<std::string, Var> mMaterialDatas;

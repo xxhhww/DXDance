@@ -36,4 +36,5 @@ namespace Core {
 	private:
 		static std::unordered_map<size_t, void*> smServices;
 	};
+	std::unordered_map<size_t, void*> ServiceLocator::smServices;
 }

@@ -3,14 +3,25 @@
 #include "Context.h"
 #include <string>
 
-namespace Editor {
+namespace App {
 	class Application {
 	public:
-		// TODO：后续由ProjHub进行初始化
+		/*
+		* 初始化引擎上下文与编辑器
+		*/
 		Application(const std::string& projPath = "E:\\DXDanceProj", const std::string& projName = "DXDacneTest");
+
+		/*
+		* 默认析构函数
+		*/
 		~Application() = default;
+
+		/*
+		* 运行Application
+		*/
+		int Run();
 	private:
-		
+		Context mContext;
 		Editor mEditor;
 	};
 }

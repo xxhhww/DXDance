@@ -1,6 +1,12 @@
 #pragma once
 
 namespace UI {
+	enum class UIStyle {
+		CLASSIC,
+		DARK,
+		LIGHT,
+	};
+
 	enum class HorizontalAlignment {
 		LEFT,
 		CENTER,

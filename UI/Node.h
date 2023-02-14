@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include "imnodes.h"
-#include "IWidgetContainer.h"
+#include "UI/imnodes.h"
+#include "UI/IWidgetContainer.h"
 #include "Math/Vector.h"
 #include "Tools/MemoryStream.h"
 
@@ -63,6 +63,7 @@ namespace UI {
 	public:
 		using Ptr = std::shared_ptr<Link>;
 	public:
+		inline Link() : ImnodeObject(-1) {}
 		inline Link(int id) :ImnodeObject(id) {}
 		~Link() = default;
 

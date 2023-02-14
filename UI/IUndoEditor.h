@@ -1,6 +1,6 @@
 #pragma once
-#include "Tools/MemoryStream.h"
 #include <stack>
+#include "Tools/MemoryStream.h"
 
 namespace UI {
 	class IUndoEditor {

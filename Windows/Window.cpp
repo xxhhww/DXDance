@@ -39,7 +39,7 @@ namespace Windows {
 				dwStyle |= WS_VISIBLE;
 			}
 			if (setting.maximized) {
-				RECT rect;
+				RECT rect{};
 				SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 				mWidth = rect.right - rect.left;
 				mHeight = rect.bottom - rect.top;

@@ -24,6 +24,7 @@
     <ProjectGuid>{2270efea-254d-4767-8461-b72adf1dafba}</ProjectGuid>
     <RootNamespace>Editor</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Application</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -105,6 +106,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,14 +130,43 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\UI\Graph.h" />
+    <ClInclude Include="..\UI\IUndoEditor.h" />
+    <ClInclude Include="..\UI\MathNode.h" />
+    <ClInclude Include="..\UI\Node.h" />
+    <ClInclude Include="..\UI\ShaderEditor.h" />
+    <ClInclude Include="..\UI\VariableNode.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="MenuBar.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\UI\Graph.cpp" />
+    <ClCompile Include="..\UI\IUndoEditor.cpp" />
+    <ClCompile Include="..\UI\MathNode.cpp" />
+    <ClCompile Include="..\UI\Node.cpp" />
+    <ClCompile Include="..\UI\ShaderEditor.cpp" />
+    <ClCompile Include="..\UI\VariableNode.cpp" />
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="appTest.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="MenuBar.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.vcxproj">
+      <Project>{cc73a8f3-16a6-44d9-a924-34d75ef88bbc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\UI\UI.vcxproj">
+      <Project>{f3015252-dc64-4f6d-b5d9-07f6bcdbd611}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Windows\Windows.vcxproj">
+      <Project>{d9babb68-acee-428f-befe-c0e72feb0779}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\UI\VariableNode.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

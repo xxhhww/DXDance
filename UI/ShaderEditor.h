@@ -1,11 +1,10 @@
 #pragma once
 #include "IUndoEditor.h"
-#include "IPanelTransformable.h"
-#include "imnodes.h"
+#include "UI/PanelWindow.h"
 #include "Graph.h"
 
 namespace UI {
-	class ShaderEditor : public IUndoEditor, public IPanelTransformable {
+	class ShaderEditor : public IUndoEditor, public PanelWindow {
 	public:
 	protected:
 		void _Draw_Internal_Impl() override;

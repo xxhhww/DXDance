@@ -13,6 +13,7 @@ namespace UI {
 		);
 		~PanelWindow() = default;
 
+		void SetOpen(bool status);
 		void Open();
 		void Close();
 		void Focus();

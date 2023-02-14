@@ -79,12 +79,6 @@
     <Filter Include="头文件\Test">
       <UniqueIdentifier>{c8b13429-3a5f-4131-8523-3b1d09b9ab30}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Graph">
-      <UniqueIdentifier>{b7a335a6-4a85-4aaf-8a7c-90e31dad94b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Graph">
-      <UniqueIdentifier>{697bff7e-6811-4465-af70-99916ca18c5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Manger">
       <UniqueIdentifier>{3a0c566d-5b1f-4714-ba24-a813b24682cd}</UniqueIdentifier>
     </Filter>
@@ -222,24 +216,6 @@
     <ClInclude Include="testgraph.h">
       <Filter>头文件\Test</Filter>
     </ClInclude>
-    <ClInclude Include="Graph.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="Node.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="VariableNode.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="MathNode.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="IUndoEditor.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderEditor.h">
-      <Filter>头文件\Graph</Filter>
-    </ClInclude>
     <ClInclude Include="UIManger.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
@@ -356,24 +332,6 @@
     <ClCompile Include="color_node_editor.cpp">
       <Filter>源文件\Test</Filter>
     </ClCompile>
-    <ClCompile Include="Graph.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="Node.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="VariableNode.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="MathNode.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="IUndoEditor.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderEditor.cpp">
-      <Filter>源文件\Graph</Filter>
-    </ClCompile>
     <ClCompile Include="UIManger.cpp">
       <Filter>源文件\Magner</Filter>
     </ClCompile>
@@ -384,9 +342,6 @@
     </None>
     <None Include="IDataWidget.inl">
       <Filter>头文件\Widget</Filter>
-    </None>
-    <None Include="VariableNode.inl">
-      <Filter>头文件\Graph</Filter>
     </None>
     <None Include="Canvas.inl">
       <Filter>头文件\Panel</Filter>

@@ -2,9 +2,10 @@
 #include "imgui.h"
 
 namespace UI {
-	MenuItem::MenuItem(const std::string& name, bool checkable)
+	MenuItem::MenuItem(const std::string& name, bool checkable, bool checkStatus)
 	: mName(name) 
-	, mCheckable(checkable) {}
+	, mCheckable(checkable) 
+	, mCheckStatus(checkStatus) {}
 
 	void MenuItem::_Draw_Internal_Impl() {
 		bool prevCheckStatus = mCheckStatus;
@@ -12,7 +13,7 @@ namespace UI {
 			clickedEvent.Invoke();
 		}
 		if (prevCheckStatus != mCheckStatus) {
-			checkStatusChangedEvent.Invoke();
+			checkStatusChangedEvent.Invoke(mCheckStatus);
 		}
 	}
 
