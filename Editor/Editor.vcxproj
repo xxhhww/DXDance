@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\UI\Graph.h" />
-    <ClInclude Include="..\UI\IUndoEditor.h" />
+    <ClInclude Include="..\UI\ISupportUndo.h" />
     <ClInclude Include="..\UI\MathNode.h" />
     <ClInclude Include="..\UI\Node.h" />
     <ClInclude Include="..\UI\ShaderEditor.h" />
@@ -143,7 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\UI\Graph.cpp" />
-    <ClCompile Include="..\UI\IUndoEditor.cpp" />
+    <ClCompile Include="..\UI\ISupportUndo.cpp" />
     <ClCompile Include="..\UI\MathNode.cpp" />
     <ClCompile Include="..\UI\Node.cpp" />
     <ClCompile Include="..\UI\ShaderEditor.cpp" />

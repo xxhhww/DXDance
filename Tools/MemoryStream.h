@@ -15,6 +15,7 @@ namespace Tool {
 		template<typename T>
 		bool Write(const T& value);
 		bool Write(const void* data, uint64_t size);
+		bool Write(const std::string& data);
 
 		const void* Data() const;
 		std::string Str() const;
@@ -35,6 +36,7 @@ namespace Tool {
 		template<typename T>
 		void Read(T& v);
 		bool Read(void* data, uint64_t size);
+		void Read(std::string& v);
 
 		const void* Data() const;
 		uint64_t Size() const;

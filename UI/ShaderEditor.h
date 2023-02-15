@@ -1,16 +1,25 @@
 #pragma once
-#include "IUndoEditor.h"
+#include "ISupportUndo.h"
 #include "UI/PanelWindow.h"
 #include "Graph.h"
 
-namespace UI {
-	class ShaderEditor : public IUndoEditor, public PanelWindow {
+namespace App {
+	class ShaderEditor : public ISupportUndo, public UI::PanelWindow {
 	public:
+		/*
+		* 构造函数
+		*/
+		ShaderEditor();
+
+		/*
+		* 默认析构函数
+		*/
+		inline ShaderEditor() = default;
 	protected:
 		void _Draw_Internal_Impl() override;
 	private:
-		uint32_t mNodeIDGenerator{ 0u };
-		uint32_t mLinkIDGenerator{ 0u };
+		uint32_t mNodeIncID{ 0u };
+		uint32_t mLinkIncID{ 0u };
 		Graph* mGraph{ nullptr };
 		ImNodesMiniMapLocation mMinimapLocation{ ImNodesMiniMapLocation_BottomRight };
 	};

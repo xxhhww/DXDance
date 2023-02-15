@@ -131,17 +131,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="IAssetManger.h" />
-    <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MaterialManger.h" />
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="ShaderManger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MaterialManger.cpp" />
+    <ClCompile Include="ShaderManger.cpp" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="IAssetManger.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tools\Tools.vcxproj">
+      <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

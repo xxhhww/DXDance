@@ -79,12 +79,21 @@ namespace Tool {
 		return true;
 	}
 
+	bool OutputMemoryStream::Write(const std::string& data) {
+		// Ð´Èë×Ö·û´®³¤¶È
+		size_t length = data.size();
+		Write(&length, sizeof(size_t));
+		// Ð´Èë×Ö·û´®
+		Write(data.data(), length * sizeof(char));
+		return true;
+	}
+
 	const void* OutputMemoryStream::Data() const {
 		return mData;
 	}
 
 	std::string OutputMemoryStream::Str() const {
-		return std::string(mData);
+		return std::string(mData, mSize);
 	}
 
 	uint64_t OutputMemoryStream::Size() const {
@@ -118,6 +127,14 @@ namespace Tool {
 		if (size > 0) memcpy(data, mData + mPos, size);
 		mPos += size;
 		return true;
+	}
+
+	void InputMemoryStream::Read(std::string& v) {
+		// ¶ÁÈ¡×Ö·û´®³¤¶È
+		size_t length;
+		Read(&length, sizeof(length));
+		// ¶ÁÈ¡×Ö·û´®
+		Read(v.data(), length * sizeof(char));
 	}
 
 	const void* InputMemoryStream::Data() const {

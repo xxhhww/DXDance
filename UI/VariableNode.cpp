@@ -1,6 +1,6 @@
 #include "VariableNode.h"
 
-namespace UI {
+namespace App {
 	Float::Float(int id)
 	: VariableNode<float>(id, NodeType::Float, "Float") {
 		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float);

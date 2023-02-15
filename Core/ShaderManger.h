@@ -1,40 +1,36 @@
 #pragma once
-#include "IAssetManger.h"
 #include <variant>
+#include "IAssetManger.h"
+#include "Math/Vector.h"
+#include "Math/Color.h"
 
 namespace Core {
-	using Var = std::variant<bool, int, float>;
-
-	enum class ShaderVar {
-		Bool, Int, Float, Vec2, Vec3, Vec4, Color
-	};
-
-	enum class ShaderVarUI {
-		Drag, Slider, Input, Color
-	};
-
-	struct ShaderDataDesc {
-		ShaderVar	var;
-		ShaderVarUI ui;
-	};
+	using TextureID = int64_t;
+	using ShaderVar = std::variant<bool, float, Math::Vector2, Math::Vector3, Math::Vector4, Math::Color, TextureID>;
 
 	class Shader : public IAsset {
 	public:
-		Shader() = default;
-		Shader(const std::string& name);
-		~Shader() = default;
+		/*
+		* 默认构造函数，用于资产从文件中读取的情景
+		*/
+		inline Shader() = default;
 
-		void SetHLSLCode(const std::string& code);
-		void SetGraphBlob(const std::string& code);
-		const auto& GetHLSLCode() const;
-		const auto& GetGraphBlob() const;
-	public:	// [Json Serialize]
-		void Serialize(rapidjson::Document& outputDoc) override;
-		void Deserialize(const rapidjson::Document& inputDoc) override;
+		/*
+		* 构造函数，用于资产在编辑器运行时创建的情景，需要提供资产名称
+		*/
+		Shader(const std::string& name);
+
+		/*
+		* 默认析构函数
+		*/
+		inline ~Shader() = default;
+
+		void Serialize(Tool::OutputMemoryStream& blob) const	override;
+		void Deserialize(const Tool::InputMemoryStream& blob)	override;
 	private:
-		std::string mHLSLCode;	// HLSL代码
-		std::string mGraphBlob;	// ShaderGraph数据
-		std::unordered_map<std::string, ShaderDataDesc> mDataLayout;	// ConstantBuffer布局
+		std::string mHLSLCode{ "" };							// HLSL代码
+		Tool::OutputMemoryStream mGraphBlob{ "" };				// ShaderGraph数据
+		std::unordered_map<std::string, ShaderVar> mDataLayout;	// ConstantBuffer布局
 	};
 
 	class ShaderManger : public IAssetManger<Shader> {

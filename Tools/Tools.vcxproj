@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Event.h" />
+    <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="StrUtil.h" />
   </ItemGroup>

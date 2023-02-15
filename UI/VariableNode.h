@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.h"
 
-namespace UI {
+namespace App {
 
 	template<typename TData>
 	class VariableNode : public Node {

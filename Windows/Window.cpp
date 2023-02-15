@@ -125,12 +125,12 @@ namespace Windows {
 		switch (msg) {
 		/* KeyBoard Message */
 		case WM_KEYDOWN:
-		case WM_SYSKEYDOWN:
 		{
-			if (sEKeyMap.find(wParam) != sEKeyMap.end()) {
-				keyPressedEvent.Invoke(sEKeyMap[wParam]);
+			auto ttt = GetKeyState(VK_LCONTROL);
+			if (GetKeyState(VK_LCONTROL) & 0x8000) {
+				keyPressedEvent.Invoke(sEKeyMap[VK_LCONTROL]);
+				break;
 			}
-			break;
 		}
 		case WM_CHAR:
 		{
@@ -143,14 +143,13 @@ namespace Windows {
 			break;
 		}
 		case WM_KEYUP:
-		case WM_SYSKEYUP:
 		{
 			if (sEKeyMap.find(wParam) != sEKeyMap.end()) {
 				keyReleasedEvent.Invoke(sEKeyMap[wParam]);
+				break;
 			}
 			break;
 		}
-		// case WM_CHAR:
 		/* MouseButton Message */
 		case WM_MOUSEMOVE:
 		{

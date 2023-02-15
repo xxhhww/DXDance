@@ -33,9 +33,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ISerializable.h">
-      <Filter>头文件\Interface</Filter>
-    </ClInclude>
     <ClInclude Include="IAssetManger.h">
       <Filter>头文件\Asset</Filter>
     </ClInclude>
@@ -54,6 +51,9 @@
       <Filter>头文件\Interface</Filter>
     </ClCompile>
     <ClCompile Include="MaterialManger.cpp">
+      <Filter>源文件\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManger.cpp">
       <Filter>源文件\Asset</Filter>
     </ClCompile>
   </ItemGroup>

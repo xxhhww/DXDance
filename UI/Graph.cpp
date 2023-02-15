@@ -1,7 +1,7 @@
 #include "Graph.h"
 #include <queue>
 
-namespace UI {
+namespace App {
 	inline void Graph::PushNode(Node::Ptr node) {
 		mNeighborMap[node->objectID] = std::vector<int>{};
 		mNodeMap[node->objectID] = std::move(node);

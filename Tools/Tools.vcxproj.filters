@@ -28,6 +28,9 @@
     <Filter Include="源文件\MemoryStream">
       <UniqueIdentifier>{0e94fd0c-b128-481a-b743-1690cd169cd1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Interface">
+      <UniqueIdentifier>{002ca075-e61d-44d4-be7d-97a161fbeb36}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -46,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="MemoryStream.h">
       <Filter>头文件\MemoryStream</Filter>
+    </ClInclude>
+    <ClInclude Include="ISerializable.h">
+      <Filter>头文件\Interface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

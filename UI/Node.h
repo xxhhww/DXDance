@@ -8,7 +8,7 @@
 #include "Math/Vector.h"
 #include "Tools/MemoryStream.h"
 
-namespace UI {
+namespace App {
 	class Node;
 	// 编译生成的Shader带有常量缓冲区与纹理插槽数组
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.h"
 
-namespace UI {
+namespace App {
 	class Graph {
 	public:
 		void PushNode(Node::Ptr node);

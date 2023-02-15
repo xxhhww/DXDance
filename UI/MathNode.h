@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.h"
 
-namespace UI {
+namespace App {
 	class MathNode : public Node {
 	public:
 		inline MathNode(int id, NodeType nodeType, const std::string& label) : Node(id, nodeType, label) {}

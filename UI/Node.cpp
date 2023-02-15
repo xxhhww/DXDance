@@ -1,6 +1,6 @@
 #include "Node.h"
 
-namespace UI {
+namespace App {
 	// Helper Function
 
 	// 获取类型提示
@@ -18,7 +18,7 @@ namespace UI {
 	}
 }
 
-namespace UI {
+namespace App {
 	ImnodeObject::ImnodeObject(int id)
 	: objectID(id) {}
 

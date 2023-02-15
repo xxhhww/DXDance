@@ -1,6 +1,6 @@
 #include "MathNode.h"
 
-namespace UI {
+namespace App {
 	bool MathNode::OnInputSlotTypeChanged(const std::vector<Slot*>& oppositeSlots) {
 		bool outputTypeChanged{ false };
 

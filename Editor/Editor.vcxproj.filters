@@ -51,7 +51,7 @@
     <ClInclude Include="..\UI\Graph.h">
       <Filter>头文件\Panels\ShaderEditor</Filter>
     </ClInclude>
-    <ClInclude Include="..\UI\IUndoEditor.h">
+    <ClInclude Include="..\UI\ISupportUndo.h">
       <Filter>头文件\Panels\ShaderEditor</Filter>
     </ClInclude>
     <ClInclude Include="..\UI\MathNode.h">
@@ -86,7 +86,7 @@
     <ClCompile Include="..\UI\Graph.cpp">
       <Filter>源文件\Panels\ShaderEditor</Filter>
     </ClCompile>
-    <ClCompile Include="..\UI\IUndoEditor.cpp">
+    <ClCompile Include="..\UI\ISupportUndo.cpp">
       <Filter>源文件\Panels\ShaderEditor</Filter>
     </ClCompile>
     <ClCompile Include="..\UI\MathNode.cpp">

@@ -1,13 +1,13 @@
-#include "IUndoEditor.h"
+#include "ISupportUndo.h"
 
-namespace UI {
-	void IUndoEditor::PushUndo() {
+namespace App {
+	void ISupportUndo::PushUndo() {
 		Undo undo;
 		Serialize(undo.blob);
 		mUndos.push(std::move(undo));
 	}
 
-	void IUndoEditor::PopUndo() {
+	void ISupportUndo::PopUndo() {
 		if (mUndos.empty()) {
 			return;
 		}
@@ -23,9 +23,9 @@ namespace UI {
 		}
 	}
 
-	void IUndoEditor::RegisterOrigin(Tool::OutputMemoryStream& blob) { mOriginalBlob = std::move(blob); }
+	void ISupportUndo::RegisterOrigin(Tool::OutputMemoryStream& blob) { mOriginalBlob = std::move(blob); }
 
-	void IUndoEditor::UpdateOrigin() {
+	void ISupportUndo::UpdateOrigin() {
 		if (mUndos.empty()) {
 			return;
 		}
@@ -34,5 +34,9 @@ namespace UI {
 
 		std::stack<Undo> tempStack;
 		mUndos.swap(tempStack);
+	}
+
+	const auto& ISupportUndo::GetOriginBlob() const {
+		return mOriginalBlob;
 	}
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include "VariableNode.h"
 
-namespace UI {
+namespace App {
 	template<typename TData>
 	void VariableNode<TData>::Serialize(Tool::OutputMemoryStream& blob) {
 		blob.Write(mNodeType);
