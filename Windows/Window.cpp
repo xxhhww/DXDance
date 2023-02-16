@@ -125,13 +125,34 @@ namespace Windows {
 		switch (msg) {
 		/* KeyBoard Message */
 		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
 		{
-			auto ttt = GetKeyState(VK_LCONTROL);
-			if (GetKeyState(VK_LCONTROL) & 0x8000) {
-				keyPressedEvent.Invoke(sEKeyMap[VK_LCONTROL]);
+			WORD vkCode = LOWORD(wParam);		// virtual-key code
+			WORD keyFlags = HIWORD(lParam);
+			WORD scanCode = LOBYTE(keyFlags);	// scan code
+			BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED; // extended-key flag, 1 if scancode has 0xE0 prefix
+
+			if (isExtendedKey) {
+				scanCode = MAKEWORD(scanCode, 0xE0);
+			}
+
+			// if we want to distinguish these keys:
+			switch (vkCode) {
+			case VK_SHIFT:   // converts to VK_LSHIFT or VK_RSHIFT
+			case VK_CONTROL: // converts to VK_LCONTROL or VK_RCONTROL
+			case VK_MENU:    // converts to VK_LMENU or VK_RMENU
+				vkCode = LOWORD(MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX));
+				break;
+			default:
+				vkCode = vkCode;
 				break;
 			}
+			if (sEKeyMap.find(vkCode) != sEKeyMap.end()) {
+				keyPressedEvent.Invoke(sEKeyMap.at(vkCode));
+			}
+			break;
 		}
+		/*
 		case WM_CHAR:
 		{
 			if ((unsigned char)wParam >= 'a' && (unsigned char)wParam <= 'z') {
@@ -142,11 +163,32 @@ namespace Windows {
 			}
 			break;
 		}
+		*/
 		case WM_KEYUP:
+		case WM_SYSKEYUP:
 		{
-			if (sEKeyMap.find(wParam) != sEKeyMap.end()) {
-				keyReleasedEvent.Invoke(sEKeyMap[wParam]);
+			WORD vkCode = LOWORD(wParam);		// virtual-key code
+			WORD keyFlags = HIWORD(lParam);
+			WORD scanCode = LOBYTE(keyFlags);	// scan code
+			BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED; // extended-key flag, 1 if scancode has 0xE0 prefix
+
+			if (isExtendedKey) {
+				scanCode = MAKEWORD(scanCode, 0xE0);
+			}
+
+			// if we want to distinguish these keys:
+			switch (vkCode) {
+			case VK_SHIFT:   // converts to VK_LSHIFT or VK_RSHIFT
+			case VK_CONTROL: // converts to VK_LCONTROL or VK_RCONTROL
+			case VK_MENU:    // converts to VK_LMENU or VK_RMENU
+				vkCode = LOWORD(MapVirtualKeyW(scanCode, MAPVK_VSC_TO_VK_EX));
 				break;
+			default:
+				vkCode = vkCode;
+				break;
+			}
+			if (sEKeyMap.find(vkCode) != sEKeyMap.end()) {
+				keyReleasedEvent.Invoke(sEKeyMap.at(vkCode));
 			}
 			break;
 		}

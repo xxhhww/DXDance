@@ -1,10 +1,6 @@
 #include "Editor.h"
-#include "MenuBar.h"
-#include "UI/PanelWindow.h"
-#include "UI/MenuList.h"
-#include "UI/Group.h"
-#include "UI/TreeNode.h"
-#include "UI/InputText.h"
+#include "MainMenuBar.h"
+#include "ShaderEditor.h"
 
 namespace App {
 	/*
@@ -12,17 +8,13 @@ namespace App {
 	*/
 	Editor::Editor(Context& context)
 	: mContext(context) {
-		/* ≤‚ ‘”√Panels */
 
-		auto& menuBar = mCanvas.CreatePanel<MenuBar>();
+		auto& mainMenuBar = mCanvas.CreatePanel<MainMenuBar>();
 
-		auto& panelWindow = mCanvas.CreatePanel<UI::PanelWindow>("TestPanel");
-		auto& group1 = panelWindow.CreateWidget<UI::GroupCollapsable>("Group");
-		group1.CreateWidget<UI::TreeNode>("Leaf1", true);
-		std::string sss = "This is content";
-		auto& inputText1 = group1.CreateWidget<UI::InputText>("InputText", sss);
 
-		menuBar.RegisterPanel(&panelWindow);
+		auto& shaderEditor = mCanvas.CreatePanel<ShaderEditor>("ShaderEditor");
+
+		mainMenuBar.RegisterPanel(&shaderEditor);
 
 		mContext.uiManger->SetCanvas(&mCanvas);
 	}

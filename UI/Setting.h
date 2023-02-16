@@ -33,6 +33,7 @@ namespace UI {
 		bool collapsable = true;
 		bool allowInputs = true;
 		bool titleBar = true;
+		bool menuBar = true;
 		bool autoSize = true;
 	};
 }

@@ -22,6 +22,7 @@ namespace UI {
 	, bringToFrontOnFocus(panelSettings.bringToFrontOnFocus)
 	, collapsable(panelSettings.collapsable)
 	, allowInputs(panelSettings.allowInputs)
+	, menuBar(panelSettings.menuBar)
 	, mOpened(opened) {
 		autoSize = panelSettings.autoSize;
 	}
@@ -106,6 +107,7 @@ namespace UI {
 			if (!allowInputs)				windowFlags |= ImGuiWindowFlags_NoInputs;
 			if (!scrollable)                windowFlags |= ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar;
 			if (!titleBar)					windowFlags |= ImGuiWindowFlags_NoTitleBar;
+			if (menuBar)					windowFlags |= ImGuiWindowFlags_MenuBar;
 
 			ImVec2 minSizeConstraint{ minSize.x, minSize.y };
 			ImVec2 maxSizeConstraint{ maxSize.x, maxSize.y };
@@ -129,7 +131,7 @@ namespace UI {
 				mScrolledToTop = scrollY == 0.0f;
 
 				// 除了初始化时默认开启外，控制界面为Open状态有且仅有通过点击菜单栏的View
-				// 控制界面为Close状态除了菜单栏的View外，还可以通过点击Panel自带的x图标来实现关闭
+				// 控制界面为Close状态除了菜单栏的Window外，还可以通过点击Panel自带的x图标来实现关闭
 				// 综上所述，此处需要对Panel的状态进行判定
 				if (!mOpened)
 					closedEvent.Invoke();

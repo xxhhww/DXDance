@@ -47,7 +47,9 @@ namespace UI {
 		bool collapsable = false;
 		bool allowInputs = true;
 		bool titleBar = true;
-	private:
+		bool menuBar = true;
+
+	protected:
 		bool mOpened;
 		bool mHovered;
 		bool mFocused;

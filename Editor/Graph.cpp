@@ -2,12 +2,12 @@
 #include <queue>
 
 namespace App {
-	inline void Graph::PushNode(Node::Ptr node) {
+	void Graph::PushNode(Node::Ptr node) {
 		mNeighborMap[node->objectID] = std::vector<int>{};
 		mNodeMap[node->objectID] = std::move(node);
 	}
 
-	inline void Graph::PushLink(Link& link) {
+	void Graph::PushLink(Link& link) {
 		// É¾³ý³åÍ»µÄLink
 		std::vector<int> linkDeleted{};
 		for (const auto& pair : mLinkMap) {
@@ -51,7 +51,7 @@ namespace App {
 		}
 	}
 
-	inline void Graph::EraseNode(uint32_t id) {
+	void Graph::EraseNode(uint32_t id) {
 		// É¾³ýLink
 		std::vector<uint32_t> linkDeleted{};
 		for (const auto& pair : mLinkMap) {
@@ -69,7 +69,7 @@ namespace App {
 		mNodeMap.erase(id);
 	}
 
-	inline void Graph::EraseLink(uint32_t id) {
+	void Graph::EraseLink(uint32_t id) {
 		if (mLinkMap.find(id) == mLinkMap.end()) return;
 		// ¸´ÖÆÒ»·Ý
 		const Link link = mLinkMap[id];
@@ -111,7 +111,7 @@ namespace App {
 		}
 	}
 
-	inline void Graph::clear() {
+	void Graph::clear() {
 		mNodeMap.clear();
 		mLinkMap.clear();
 		mNeighborMap.clear();

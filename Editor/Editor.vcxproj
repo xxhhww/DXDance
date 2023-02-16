@@ -130,29 +130,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\UI\Graph.h" />
-    <ClInclude Include="..\UI\ISupportUndo.h" />
-    <ClInclude Include="..\UI\MathNode.h" />
-    <ClInclude Include="..\UI\Node.h" />
-    <ClInclude Include="..\UI\ShaderEditor.h" />
-    <ClInclude Include="..\UI\VariableNode.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Editor.h" />
-    <ClInclude Include="MenuBar.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="ISupportUndo.h" />
+    <ClInclude Include="MainMenuBar.h" />
+    <ClInclude Include="MathNode.h" />
+    <ClInclude Include="Node.h" />
+    <ClInclude Include="ShaderEditor.h" />
+    <ClInclude Include="VariableNode.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\UI\Graph.cpp" />
-    <ClCompile Include="..\UI\ISupportUndo.cpp" />
-    <ClCompile Include="..\UI\MathNode.cpp" />
-    <ClCompile Include="..\UI\Node.cpp" />
-    <ClCompile Include="..\UI\ShaderEditor.cpp" />
-    <ClCompile Include="..\UI\VariableNode.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="appTest.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Editor.cpp" />
-    <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="Graph.cpp" />
+    <ClCompile Include="ISupportUndo.cpp" />
+    <ClCompile Include="MainMenuBar.cpp" />
+    <ClCompile Include="MathNode.cpp" />
+    <ClCompile Include="Node.cpp" />
+    <ClCompile Include="ShaderEditor.cpp" />
+    <ClCompile Include="VariableNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
@@ -166,7 +166,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\UI\VariableNode.inl" />
+    <None Include="imgui.ini" />
+    <None Include="VariableNode.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

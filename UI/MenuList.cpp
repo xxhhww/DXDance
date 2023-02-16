@@ -5,15 +5,15 @@ namespace UI {
 	MenuItem::MenuItem(const std::string& name, bool checkable, bool checkStatus)
 	: mName(name) 
 	, mCheckable(checkable) 
-	, mCheckStatus(checkStatus) {}
+	, checkStatus(checkStatus) {}
 
 	void MenuItem::_Draw_Internal_Impl() {
-		bool prevCheckStatus = mCheckStatus;
-		if (ImGui::MenuItem((mName + mWidgetID).c_str(), nullptr, mCheckable ? &mCheckStatus : nullptr, mEnable)) {
+		bool prevCheckStatus = checkStatus;
+		if (ImGui::MenuItem((mName + mWidgetID).c_str(), nullptr, mCheckable ? &checkStatus : nullptr, mEnable)) {
 			clickedEvent.Invoke();
 		}
-		if (prevCheckStatus != mCheckStatus) {
-			checkStatusChangedEvent.Invoke(mCheckStatus);
+		if (prevCheckStatus != checkStatus) {
+			checkStatusChangedEvent.Invoke(checkStatus);
 		}
 	}
 
@@ -31,6 +31,13 @@ namespace UI {
 		}
 		else {
 			mOpenStatus = false;
+		}
+	}
+
+	void MenuBar::_Draw_Internal_Impl() {
+		if (ImGui::BeginMenuBar()) {
+			DrawWidgets();
+			ImGui::EndMenuBar();
 		}
 	}
 }

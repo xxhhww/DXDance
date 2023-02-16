@@ -22,7 +22,7 @@ namespace App {
 		bool Draw() override;
 
 		// From Node
-		inline bool DrawAttribute() override { return false; }
+		inline bool DrawProperty() override { return false; }
 	};
 
 	class Cos : public MathNode {
@@ -34,6 +34,6 @@ namespace App {
 		bool Draw() override;
 
 		// From Node
-		inline bool DrawAttribute() override { return false; }
+		inline bool DrawProperty() override { return false; }
 	};
 }

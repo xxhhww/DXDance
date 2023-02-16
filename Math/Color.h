@@ -5,7 +5,7 @@
 namespace Math {
 	struct Color : public XMFLOAT3 {
 	public:
-		inline Color() = default;
+		inline Color() : XMFLOAT3(0.0f, 0.0f, 0.0f) {}
 		inline Color(float xyz) : XMFLOAT3(xyz, xyz, xyz) {}
 		inline Color(float x, float y, float z) : XMFLOAT3(x, y, z) {}
 		inline Color(const float* pData) : XMFLOAT3(pData) {}

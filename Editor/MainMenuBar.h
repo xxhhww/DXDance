@@ -4,17 +4,17 @@
 #include "UI/MenuList.h"
 
 namespace App {
-	class MenuBar : public UI::PanelMenuBar {
+	class MainMenuBar : public UI::PanelMenuBar {
 	public:
 		/*
 		* 菜单栏的构造函数
 		*/
-		MenuBar();
+		MainMenuBar();
 
 		/*
 		* 菜单栏的析构函数
 		*/
-		~MenuBar();
+		~MainMenuBar();
 
 		/*
 		* 向窗口菜单中注册需要控制的PanelWindow类对象

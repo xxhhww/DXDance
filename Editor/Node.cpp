@@ -1,4 +1,6 @@
 #include "Node.h"
+#include "VariableNode.h"
+#include "MathNode.h"
 
 namespace App {
 	// Helper Function
@@ -22,9 +24,10 @@ namespace App {
 	ImnodeObject::ImnodeObject(int id)
 	: objectID(id) {}
 
-	Slot::Slot(Node* node, int id, const std::string& label, SlotType slotType) 
+	Slot::Slot(Node* node, int id, const std::string& label, SlotType slotType, bool output)
 	: ImnodeObject(id)
 	, ownNode(node) 
+	, isOutput(output)
 	, type(slotType) 
 	, mLabel(label) {}
 
@@ -110,4 +113,22 @@ namespace App {
 	: ImnodeObject(id) 
 	, mNodeType(nodeType)
 	, mLabel(label) {}
+
+	Node::Ptr Node::CreateNode(int id, NodeType nodeType) {
+		switch (nodeType) {
+		case App::NodeType::Float:			return std::make_shared<Float>(id);
+		case App::NodeType::Float2:			return std::make_shared<Float2>(id);
+		case App::NodeType::Float3:			
+		case App::NodeType::Float4:			
+		case App::NodeType::Bool:
+		case App::NodeType::Color:			return std::make_shared<Color>(id);
+		case App::NodeType::SamplerState:	
+		case App::NodeType::Texture2D:		return nullptr;
+		case App::NodeType::Add:			return std::make_shared<Add>(id);
+		case App::NodeType::Cos:			return std::make_shared<Cos>(id);
+		case App::NodeType::BRDF:			return nullptr;
+		}
+		assert(false);
+		return nullptr;
+	}
 }

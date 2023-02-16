@@ -1,13 +1,20 @@
 #include "ISupportUndo.h"
 
 namespace App {
-	void ISupportUndo::PushUndo() {
+	ISupportUndoWindow::ISupportUndoWindow(
+		const std::string& name,
+		bool opened,
+		const UI::PanelWindowSettings& panelSettings)
+	: PanelWindow(name, opened, panelSettings) {}
+
+
+	void ISupportUndoWindow::PushUndo() {
 		Undo undo;
 		Serialize(undo.blob);
 		mUndos.push(std::move(undo));
 	}
 
-	void ISupportUndo::PopUndo() {
+	void ISupportUndoWindow::PopUndo() {
 		if (mUndos.empty()) {
 			return;
 		}
@@ -23,9 +30,9 @@ namespace App {
 		}
 	}
 
-	void ISupportUndo::RegisterOrigin(Tool::OutputMemoryStream& blob) { mOriginalBlob = std::move(blob); }
+	void ISupportUndoWindow::RegisterOrigin(Tool::OutputMemoryStream& blob) { mOriginalBlob = std::move(blob); }
 
-	void ISupportUndo::UpdateOrigin() {
+	void ISupportUndoWindow::UpdateOrigin() {
 		if (mUndos.empty()) {
 			return;
 		}
@@ -36,7 +43,7 @@ namespace App {
 		mUndos.swap(tempStack);
 	}
 
-	const auto& ISupportUndo::GetOriginBlob() const {
+	const auto& ISupportUndoWindow::GetOriginBlob() const {
 		return mOriginalBlob;
 	}
 }

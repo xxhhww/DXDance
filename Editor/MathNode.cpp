@@ -36,10 +36,10 @@ namespace App {
 
 	Add::Add(int id)
 	: MathNode(id, NodeType::Add, "Add") {
-		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float);
-		mInputSlots.emplace_back(this, (id | (1 << 16) | InputFlag), "Right", SlotType::Float);
+		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float, false);
+		mInputSlots.emplace_back(this, (id | (1 << 16) | InputFlag), "Right", SlotType::Float, false);
 
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float);
+		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float, true);
 	}
 
 	bool Add::Draw() {
@@ -57,6 +57,8 @@ namespace App {
 		}
 		ImGui::EndGroup();
 
+		ImGui::SameLine();
+
 		ImGui::BeginGroup();
 		for (auto& slot : mOutputSlots) {
 			slot.Draw();
@@ -71,9 +73,9 @@ namespace App {
 
 	Cos::Cos(int id)
 	: MathNode(id, NodeType::Cos, "Cos") {
-		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float);
+		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float, false);
 
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float);
+		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float, true);
 	}
 
 	bool Cos::Draw() {
@@ -90,6 +92,8 @@ namespace App {
 			slot.Draw();
 		}
 		ImGui::EndGroup();
+
+		ImGui::SameLine();
 
 		ImGui::BeginGroup();
 		for (auto& slot : mOutputSlots) {

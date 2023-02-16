@@ -45,7 +45,7 @@ namespace App {
 	// objectID的前16位与该Slot对应的Node的ID相同
 	class Slot : public ImnodeObject {
 	public:
-		Slot(Node* node, int id, const std::string& label, SlotType slotType);
+		Slot(Node* node, int id, const std::string& label, SlotType slotType, bool output);
 		~Slot() = default;
 
 		bool Draw() override;
@@ -89,7 +89,8 @@ namespace App {
 		virtual ~Node() = default;
 		
 		// 节点属性绘制
-		virtual bool DrawAttribute() = 0;
+		virtual bool DrawProperty() = 0;
+
 		// 输入槽位的节点类型可能发生改变
 		// 一般作用于Add, Mul等算术类型节点
 		virtual bool OnInputSlotTypeChanged(const std::vector<Slot*>& oppositeSlots);
@@ -107,6 +108,8 @@ namespace App {
 
 		virtual void Serialize(Tool::OutputMemoryStream& blob) = 0;
 		virtual void Deserialize(Tool::InputMemoryStream& blob) = 0;
+
+		static Node::Ptr CreateNode(int id, NodeType nodeType);
 	public:
 		float width{ 100.0f };
 	protected:
@@ -115,6 +118,6 @@ namespace App {
 		Math::Vector2 mPosition;
 		std::vector<Slot> mInputSlots;		// 输入槽
 		std::vector<Slot> mOutputSlots;		// 输出槽
-		IWidgetContainer mWidgetContainer;	// 中间控件
+		UI::IWidgetContainer mWidgetContainer;	// 中间控件
 	};
 }

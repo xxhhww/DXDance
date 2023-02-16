@@ -11,10 +11,11 @@ namespace UI {
 	public:
 		Tool::Event<> clickedEvent;
 		Tool::Event<bool> checkStatusChangedEvent;	// for mCheckStatus
+	public:
+		bool checkStatus;
 	private:
 		std::string mName;
 		bool mCheckable;
-		bool mCheckStatus;
 	};
 
 	class MenuList : public IWidget, public IWidgetContainer {
@@ -29,5 +30,10 @@ namespace UI {
 	private:
 		std::string mName;
 		bool mOpenStatus{ false };
+	};
+
+	class MenuBar : public IWidget, public IWidgetContainer {
+	protected:
+		void _Draw_Internal_Impl() override;
 	};
 }

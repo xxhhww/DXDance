@@ -1,5 +1,6 @@
 #pragma once
 #include "Node.h"
+#include "Math/Color.h"
 
 namespace App {
 
@@ -23,25 +24,49 @@ namespace App {
 	class Float : public VariableNode<float> {
 	public:
 		Float(int id);
-		~Float() = default;
+		inline ~Float() = default;
 
-		// From ImnodeObject
+		/*
+		* 在NodeEditor中绘制图形
+		*/
 		bool Draw() override;
 
-		// From Node
-		inline bool DrawAttribute() override { return false; }
+		/*
+		* 在NodeAttribute中绘制图形
+		*/
+		inline bool DrawProperty() override { return false; }
 	};
 
 	class Float2 : public VariableNode<Math::Vector2> {
 	public:
 		Float2(int id);
-		~Float2() = default;
+		inline ~Float2() = default;
 
-		// From ImnodeObject
+		/*
+		* 在NodeEditor中绘制图形
+		*/
 		bool Draw() override;
 
-		// From Node
-		inline bool DrawAttribute() override { return false; }
+		/*
+		* 在NodeAttribute中绘制图形
+		*/
+		inline bool DrawProperty() override { return false; }
+	};
+
+	class Color : public VariableNode<Math::Color> {
+	public:
+		Color(int id);
+		inline ~Color() = default;
+
+		/*
+		* 在NodeEditor中绘制图形
+		*/
+		bool Draw() override;
+
+		/*
+		* 在NodeAttribute中绘制图形
+		*/
+		inline bool DrawProperty() override { return false; }
 	};
 }
 

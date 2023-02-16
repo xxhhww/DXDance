@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ColorEdit.h" />
+    <ClInclude Include="Columns.h" />
     <ClInclude Include="ComboBox.h" />
     <ClInclude Include="DragFloat.h" />
     <ClInclude Include="DragFloat2.h" />
@@ -216,6 +217,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Canvas.inl" />
+    <None Include="Columns.inl" />
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
   </ItemGroup>
