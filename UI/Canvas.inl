@@ -9,7 +9,7 @@ namespace UI {
 			assert(false);
 		}
 		mPanels.emplace_back(new T(args...), CanvasMemoryMode::Internal);
-		T& instance = *reinterpret_cast<T*>(mPanels.back().first);
+		T& instance = *dynamic_cast<T*>(mPanels.back().first);
 		return instance;
 	}
 }

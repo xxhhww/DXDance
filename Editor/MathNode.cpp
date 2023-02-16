@@ -1,26 +1,29 @@
 #include "MathNode.h"
+#include "UI/imnodes.h"
+#include "UI/Group.h"
+#include "UI/SameLine.h"
 
 namespace App {
-	bool MathNode::OnInputSlotTypeChanged(const std::vector<Slot*>& oppositeSlots) {
-		bool outputTypeChanged{ false };
+	bool MathNode::OnInputPinTypeChanged(const std::vector<Pin*>& oppositePins) {
+		bool typeChanged{ false };
 
-		SlotType targetType = SlotType::Float;
-		for (const auto slotPtr : oppositeSlots) {
-			if (slotPtr->type > targetType) {
-				targetType = slotPtr->type;
+		PinType targetType = PinType::Float;
+		for (const auto pin : oppositePins) {
+			if (pin->type > targetType) {
+				targetType = pin->type;
 			}
 		}
 
-		for (auto& slot : mInputSlots) {
-			slot.type = targetType;
+		for (auto& pin : mInputPins) {
+			pin->type = targetType;
 		}
-		for (auto& slot : mOutputSlots) {
-			if (slot.type != targetType) {
-				slot.type = targetType;
-				outputTypeChanged = true;
+		for (auto& pin : mOutputPins) {
+			if (pin->type != targetType) {
+				pin->type = targetType;
+				typeChanged = true;
 			}
 		}
-		return outputTypeChanged;
+		return typeChanged;
 	}
 
 	void MathNode::Serialize(Tool::OutputMemoryStream& blob) {
@@ -36,74 +39,24 @@ namespace App {
 
 	Add::Add(int id)
 	: MathNode(id, NodeType::Add, "Add") {
-		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float, false);
-		mInputSlots.emplace_back(this, (id | (1 << 16) | InputFlag), "Right", SlotType::Float, false);
+		auto& inputGroup = CreateWidget<UI::Group>();
+		EmplaceInputPin(&inputGroup, PinType::Float, "Left");
+		EmplaceInputPin(&inputGroup, PinType::Float, "Right");
 
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float, true);
-	}
+		CreateWidget<UI::SameLine>();
 
-	bool Add::Draw() {
-		bool isEdited{ false };
-		ImGui::PushItemWidth(width);
-		ImNodes::BeginNode(objectID);
-
-		ImNodes::BeginNodeTitleBar();
-		ImGui::TextUnformatted(mLabel.c_str());
-		ImNodes::EndNodeTitleBar();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mInputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImGui::SameLine();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mOutputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImNodes::EndNode();
-		ImGui::PopItemWidth();
-
-		return isEdited;
+		auto& outputGroup = CreateWidget<UI::Group>();
+		EmplaceOutputPin(&outputGroup, PinType::Float, "Result");
 	}
 
 	Cos::Cos(int id)
 	: MathNode(id, NodeType::Cos, "Cos") {
-		mInputSlots.emplace_back(this, (id | (0 << 16) | InputFlag), "Left", SlotType::Float, false);
+		auto& inputGroup = CreateWidget<UI::Group>();
+		EmplaceInputPin(&inputGroup, PinType::Float, "Left");
 
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float, true);
-	}
+		CreateWidget<UI::SameLine>();
 
-	bool Cos::Draw() {
-		bool isEdited{ false };
-		ImGui::PushItemWidth(width);
-		ImNodes::BeginNode(objectID);
-
-		ImNodes::BeginNodeTitleBar();
-		ImGui::TextUnformatted(mLabel.c_str());
-		ImNodes::EndNodeTitleBar();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mInputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImGui::SameLine();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mOutputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImNodes::EndNode();
-		ImGui::PopItemWidth();
-
-		return isEdited;
+		auto& outputGroup = CreateWidget<UI::Group>();
+		EmplaceOutputPin(&outputGroup, PinType::Float, "Result");
 	}
 };

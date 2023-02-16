@@ -127,14 +127,14 @@ namespace Windows {
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
 		{
-			WORD vkCode = LOWORD(wParam);		// virtual-key code
+			WORD vkCode = LOWORD(wParam);									// virtual-key code
 			WORD keyFlags = HIWORD(lParam);
-			WORD scanCode = LOBYTE(keyFlags);	// scan code
-			BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED; // extended-key flag, 1 if scancode has 0xE0 prefix
-
+			WORD scanCode = LOBYTE(keyFlags);								// scan code
+			BOOL isExtendedKey = (keyFlags & KF_EXTENDED) == KF_EXTENDED;	// extended-key flag, 1 if scancode has 0xE0 prefix
 			if (isExtendedKey) {
 				scanCode = MAKEWORD(scanCode, 0xE0);
 			}
+			bool autoRepeat = ((keyFlags & KF_REPEAT) == KF_REPEAT);		// is auto repeat
 
 			// if we want to distinguish these keys:
 			switch (vkCode) {
@@ -147,23 +147,17 @@ namespace Windows {
 				vkCode = vkCode;
 				break;
 			}
-			if (sEKeyMap.find(vkCode) != sEKeyMap.end()) {
+			if (vkCode == 162) {
+				int i = 32;
+			}
+			if (vkCode == 90) {
+				int i = 32;
+			}
+			if (sEKeyMap.find(vkCode) != sEKeyMap.end() && !autoRepeat) {
 				keyPressedEvent.Invoke(sEKeyMap.at(vkCode));
 			}
 			break;
 		}
-		/*
-		case WM_CHAR:
-		{
-			if ((unsigned char)wParam >= 'a' && (unsigned char)wParam <= 'z') {
-				wParam = std::toupper(wParam);
-			}
-			if (sEKeyMap.find((unsigned char)wParam) != sEKeyMap.end()) {
-				keyPressedEvent.Invoke(sEKeyMap[wParam]);
-			}
-			break;
-		}
-		*/
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
 		{

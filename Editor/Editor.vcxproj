@@ -135,10 +135,12 @@
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="ISupportUndo.h" />
+    <ClInclude Include="Link.h" />
     <ClInclude Include="MainMenuBar.h" />
     <ClInclude Include="MathNode.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="ShaderEditor.h" />
+    <ClInclude Include="Pin.h" />
     <ClInclude Include="VariableNode.h" />
   </ItemGroup>
   <ItemGroup>
@@ -148,10 +150,12 @@
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="ISupportUndo.cpp" />
+    <ClCompile Include="Link.cpp" />
     <ClCompile Include="MainMenuBar.cpp" />
     <ClCompile Include="MathNode.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
+    <ClCompile Include="Pin.cpp" />
     <ClCompile Include="VariableNode.cpp" />
   </ItemGroup>
   <ItemGroup>

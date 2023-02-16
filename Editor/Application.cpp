@@ -28,6 +28,7 @@ namespace App {
 
             // ÔËÐÐ±à¼­Æ÷
             mEditor.Update(1.0f);
+            mEditor.PostUpdate(1.0f);
         }
         return 0;
 	}

@@ -1,110 +1,42 @@
 #include "VariableNode.h"
+#include "UI/Group.h"
+#include "UI/SameLine.h"
+#include "UI/DragFloat.h"
+#include "UI/DragFloat2.h"
+#include "UI/DragFloat3.h"
+#include "UI/DragFloat4.h"
+#include "UI/ColorEdit.h"
 
 namespace App {
 	Float::Float(int id)
 	: VariableNode<float>(id, NodeType::Float, "Float") {
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float, true);
-	}
+		auto& group = CreateWidget<UI::Group>();
+		auto& drag = group.CreateWidget<UI::DragFloat>("##hidelabel", mValue, mMin, mMax);
+		drag.editCompletedEvent += [this](const float& value) {
+			this->mIsEdited = true;
+		};
+	
+		CreateWidget<UI::SameLine>();
 
-	bool Float::Draw() {
-		bool isEdited{ false };
-		ImGui::PushItemWidth(width);
-		ImNodes::BeginNode(objectID);
-
-		// Title Bar
-		ImNodes::BeginNodeTitleBar();
-		ImGui::TextUnformatted(mLabel.c_str());
-		ImNodes::EndNodeTitleBar();
-
-		ImGui::BeginGroup();
-		ImGui::DragFloat("##hidelabel", &mValue, 0.01f, mMin, mMax);
-		isEdited = ImGui::IsItemDeactivatedAfterEdit();
-		ImGui::EndGroup();
-
-		ImGui::SameLine();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mOutputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImNodes::EndNode();
-		ImGui::PopItemWidth();
-
-		return isEdited;
+		auto& outputGroup = CreateWidget<UI::Group>();
+		EmplaceOutputPin(&outputGroup, PinType::Float, "Result");
 	}
 
 	Float2::Float2(int id)
 	: VariableNode<Math::Vector2>(id, NodeType::Float2, "Float2") {
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float2, true);
-	}
-
-	bool Float2::Draw() {
-		bool isEdited{ false };
-		ImGui::PushItemWidth(width);
-		ImNodes::BeginNode(objectID);
-
-		// Title Bar
-		ImNodes::BeginNodeTitleBar();
-		ImGui::TextUnformatted(mLabel.c_str());
-		ImNodes::EndNodeTitleBar();
-
-		ImGui::BeginGroup();
-		ImGui::DragFloat("##hidelabel1", &mValue.x, 0.01f, mMin.x, mMax.x);
-		isEdited = ImGui::IsItemDeactivatedAfterEdit();
-		ImGui::DragFloat("##hidelabel2", &mValue.y, 0.01f, mMin.y, mMax.y);
-		isEdited = ImGui::IsItemDeactivatedAfterEdit();
-		ImGui::EndGroup();
-
-		ImGui::SameLine();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mOutputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImNodes::EndNode();
-		ImGui::PopItemWidth();
-
-		return isEdited;
 	}
 
 	Color::Color(int id) 
 	: VariableNode<Math::Color>(id, NodeType::Color, "Color") {
-		mOutputSlots.emplace_back(this, (id | (0 << 16) | OutputFlag), "Result", SlotType::Float3, true);
-	}
+		auto& group = CreateWidget<UI::Group>();
+		auto& colorEdit = group.CreateWidget<UI::ColorEdit>("##hidelabel", mValue);
+		colorEdit.editCompletedEvent += [this](const Math::Color& value) {
+			this->mIsEdited = true;
+		};
 
-	/*
-	* 在NodeEditor中绘制图形
-	*/
-	bool Color::Draw() {
-		bool isEdited{ false };
-		ImGui::PushItemWidth(width);
-		ImNodes::BeginNode(objectID);
+		CreateWidget<UI::SameLine>();
 
-		// Title Bar
-		ImNodes::BeginNodeTitleBar();
-		ImGui::TextUnformatted(mLabel.c_str());
-		ImNodes::EndNodeTitleBar();
-
-		ImGui::BeginGroup();
-		ImGui::ColorEdit3("##hidelabel", reinterpret_cast<float*>(&mValue));
-		isEdited = ImGui::IsItemDeactivatedAfterEdit();
-		ImGui::EndGroup();
-
-		ImGui::SameLine();
-
-		ImGui::BeginGroup();
-		for (auto& slot : mOutputSlots) {
-			slot.Draw();
-		}
-		ImGui::EndGroup();
-
-		ImNodes::EndNode();
-		ImGui::PopItemWidth();
-
-		return isEdited;
+		auto& outputGroup = CreateWidget<UI::Group>();
+		EmplaceOutputPin(&outputGroup, PinType::Float3, "Result");
 	}
 }

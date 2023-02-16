@@ -7,7 +7,7 @@ namespace App {
 		inline MathNode(int id, NodeType nodeType, const std::string& label) : Node(id, nodeType, label) {}
 		virtual ~MathNode() = default;
 
-		bool OnInputSlotTypeChanged(const std::vector<Slot*>& oppositeSlots) override;
+		bool OnInputPinTypeChanged(const std::vector<Pin*>& oppositePins) override;
 
 		void Serialize(Tool::OutputMemoryStream& blob) override;
 		void Deserialize(Tool::InputMemoryStream& blob) override;
@@ -18,9 +18,6 @@ namespace App {
 		Add(int id);
 		~Add() = default;
 
-		// From ImnodeObject
-		bool Draw() override;
-
 		// From Node
 		inline bool DrawProperty() override { return false; }
 	};
@@ -29,9 +26,6 @@ namespace App {
 	public:
 		Cos(int id);
 		~Cos() = default;
-
-		// From ImnodeObject
-		bool Draw() override;
 
 		// From Node
 		inline bool DrawProperty() override { return false; }

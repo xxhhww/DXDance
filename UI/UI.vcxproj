@@ -137,6 +137,7 @@
     <ClInclude Include="DragFloat2.h" />
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
+    <ClInclude Include="SameLine.h" />
     <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="NewLine.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="SameLine.cpp" />
     <ClCompile Include="SliderFloat.cpp" />
     <ClCompile Include="SliderFloat2.cpp" />
     <ClCompile Include="SliderFloat3.cpp" />

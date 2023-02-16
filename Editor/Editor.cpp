@@ -12,9 +12,9 @@ namespace App {
 		auto& mainMenuBar = mCanvas.CreatePanel<MainMenuBar>();
 
 
-		auto& shaderEditor = mCanvas.CreatePanel<ShaderEditor>("ShaderEditor");
+		mShaderEditor = &mCanvas.CreatePanel<ShaderEditor>("ShaderEditor");
 
-		mainMenuBar.RegisterPanel(&shaderEditor);
+		mainMenuBar.RegisterPanel(mShaderEditor);
 
 		mContext.uiManger->SetCanvas(&mCanvas);
 	}
@@ -30,13 +30,19 @@ namespace App {
 	* 编辑器更新函数
 	*/
 	void Editor::Update(float delta) {
-		// 更新编辑器数据
+		// 处理编辑器输入
+		mShaderEditor->HandleShortCut();
 		// 处理Actor的行为逻辑
-		// 渲染数据
+
+		// 图形渲染
+
 		// 绘制画布
 		DrawEditorPanels();
 	}
 
+	void Editor::PostUpdate(float delta) {
+		mContext.inputManger->ClearStates();
+	}
 	/*
 	* 绘制编辑器所有的控制面板
 	*/

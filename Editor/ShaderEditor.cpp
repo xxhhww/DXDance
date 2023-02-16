@@ -1,4 +1,6 @@
 #include "ShaderEditor.h"
+#include "Core/ServiceLocator.h"
+#include "Windows/InputManger.h"
 
 namespace App {
 	/*
@@ -16,13 +18,34 @@ namespace App {
 
 		// 创建Graph
 		mGraph = std::make_unique<Graph>();
+
+		// 设置原初状态
+		Tool::OutputMemoryStream blob;
+		Serialize(blob);
+		RegisterOrigin(blob);
 	}
 
 	/*
 	* 处理快捷键输入
 	*/
 	void ShaderEditor::HandleShortCut() {
+		if (IsOpened() && IsFocused()) {
+			// Ctrl-Z
+			{
+				if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_LCTRL) &&
+					CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_Z)) {
+					ISupportUndoWindow::PopUndo();
+				}
+			}
 
+			// Ctrl-S
+			{
+				if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_LCTRL) &&
+					CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_S)) {
+					ISupportUndoWindow::UpdateOrigin();
+				}
+			}
+		}
 	}
 
 	/*
@@ -87,12 +110,12 @@ namespace App {
 
 		auto lambda = [this](const NodeType& nodeType) {
 			// 创建节点并设置节点坐标
-			Node::Ptr node = Node::CreateNode(mNodeIncID++, nodeType);
+			std::unique_ptr<Node> node = Node::CreateNode(mNodeIncID++, nodeType);
 			ImVec2 clickPos = ImGui::GetMousePos();
 			ImNodes::SetNodeScreenSpacePos(node->objectID, clickPos);
 			ImVec2 nodePosition = ImNodes::GetNodeEditorSpacePos(node->objectID);
 			node->SetPosition(nodePosition.x, nodePosition.y);
-			this->mGraph->PushNode(std::move(node));
+			this->mGraph->PushNode(node);
 			this->PushUndo();
 		};
 		auto& mathNodeMenu = menu.CreateWidget<UI::MenuList>("Math");
@@ -173,9 +196,13 @@ namespace App {
 
 				// 绘制MenuBar
 				DrawWidgets();
+				mHovered = ImGui::IsWindowHovered();
+				mFocused = ImGui::IsWindowFocused();
 
 				// 绘制Editor
 				ImNodes::BeginNodeEditor();
+				mHovered = ImGui::IsWindowHovered();
+				mFocused = ImGui::IsWindowFocused();
 
 				for (auto& pair : mGraph->GetNodeMap()) {
 					if (pair.second->Draw()) {
@@ -183,7 +210,7 @@ namespace App {
 					}
 				}
 				for (auto& pair : mGraph->GetLinkMap()) {
-					pair.second.Draw();
+					pair.second->Draw();
 				}
 
 				ImNodes::MiniMap(0.2f, mMinimapLocation);
@@ -193,10 +220,7 @@ namespace App {
 				{
 					int startPin, endPin;
 					if (ImNodes::IsLinkCreated(&startPin, &endPin)) {
-						Link link;
-						link.objectID = mLinkIncID++;
-						link.fromSlot = startPin;
-						link.toSlot = endPin;
+						std::unique_ptr<Link> link = std::make_unique<Link>(mLinkIncID++, startPin, endPin);
 						mGraph->PushLink(link);
 						ISupportUndoWindow::PushUndo();
 					}
@@ -207,10 +231,54 @@ namespace App {
 	}
 
 	void ShaderEditor::Serialize(Tool::OutputMemoryStream& blob)  const {
+		blob.Write(mNodeIncID);
+		blob.Write(mLinkIncID);
 
+		const auto& nodes = mGraph->GetNodeMap();
+		blob.Write(nodes.size());
+		for (const auto& pair : nodes) {
+			pair.second->Serialize(blob);
+		}
+
+		const auto& links = mGraph->GetLinkMap();
+		blob.Write(links.size());
+		for (const auto& pair : links) {
+			pair.second->Serialize(blob);
+		}
 	}
 
-	void ShaderEditor::Deserialize(const Tool::InputMemoryStream& blob) {
+	void ShaderEditor::Deserialize(Tool::InputMemoryStream& blob) {
+		mGraph->Clear();
 
+		blob.Read(mNodeIncID);
+		blob.Read(mLinkIncID);
+
+		size_t nodeCount{ 0u };
+		blob.Read(nodeCount);
+		for (uint32_t i = 0; i < nodeCount; i++) {
+			NodeType type;
+			int id;
+			blob.Read(type);
+			blob.Read(id);
+			
+			std::unique_ptr<Node> node = Node::CreateNode(id, type);
+			node->Deserialize(blob);
+			mGraph->PushNode(node);
+		}
+
+		size_t linkCount{ 0u };
+		blob.Read(linkCount);
+		for (uint32_t i = 0; i < linkCount; i++) {
+			int objectID;
+			int startPin;
+			int endPin;
+			blob.Read(objectID);
+			blob.Read(startPin);
+			blob.Read(endPin);
+			
+			std::unique_ptr<Link> link = std::make_unique<Link>(objectID, startPin, endPin);
+			link->Deserialize(blob);
+			mGraph->PushLink(link);
+		}
 	}
 }

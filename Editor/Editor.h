@@ -2,6 +2,8 @@
 #include "Context.h"
 
 namespace App {
+	class ShaderEditor;
+
 	class Editor {
 	public:
 		/*
@@ -20,11 +22,17 @@ namespace App {
 		void Update(float delta);
 
 		/*
+		* 编辑器后处理函数
+		*/
+		void PostUpdate(float delta);
+
+		/*
 		* 绘制编辑器所有的控制面板
 		*/
 		void DrawEditorPanels();
 	private:
 		Context& mContext;	// 引擎上下文
 		UI::Canvas mCanvas;	// 编辑器画布
+		ShaderEditor* mShaderEditor{ nullptr };
 	};
 }

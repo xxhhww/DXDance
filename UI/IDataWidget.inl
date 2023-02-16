@@ -15,9 +15,6 @@ namespace UI {
 			if (prevData != mData) {
 				valueChangedEvent.Invoke(mData);
 			}
-			if (!mLineBreak) {
-				ImGui::SameLine();
-			}
 		}
 	}
 }

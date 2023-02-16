@@ -11,7 +11,7 @@ namespace UI {
 			bool opened = true,
 			const PanelWindowSettings& panelSettings = PanelWindowSettings{}
 		);
-		~PanelWindow() = default;
+		virtual ~PanelWindow() = default;
 
 		void SetOpen(bool status);
 		void Open();
@@ -26,7 +26,7 @@ namespace UI {
 		bool IsScrolledToBottom() const;
 		bool IsScrolledToTop() const;
 	protected:
-		void _Draw_Internal_Impl() override;
+		virtual void _Draw_Internal_Impl() override;
 	public:
 		std::string name;
 		Math::Vector2 minSize { 0.0f, 0.0f };

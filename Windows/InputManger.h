@@ -3,6 +3,7 @@
 #include "EkeyState.h"
 #include "EMouseButtonState.h"
 #include "Math/Vector.h"
+#include <bitset>
 
 namespace Windows {
 	class InputManger {
@@ -17,6 +18,8 @@ namespace Windows {
 		bool IsKeyReleased(EKey key) const;
 		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsMouseButtonReleased(EMouseButton button) const;
+
+		void ClearStates();
 	private:
 		void OnKeyPressed(EKey key);
 		void OnKeyReleased(EKey key);
@@ -34,8 +37,11 @@ namespace Windows {
 		Tool::ListenerID mMouseMoveListenerID;
 		Tool::ListenerID mRawDeltaListenerID;
 
-		std::unordered_map<EKey, EKeyState> mKeyStates;
-		std::unordered_map<EMouseButton, EMouseButtonState> mMouseButtonStates;
+		std::bitset<128> mKeyStates;
+		std::bitset<3>	 mMouseButtonStates;
+		
+		// std::unordered_map<EKey, EKeyState> mKeyStates;
+		// std::unordered_map<EMouseButton, EMouseButtonState> mMouseButtonStates;
 		// 鼠标位置
 		Math::Vector2 mMousePosition;
 		// 鼠标位移增量(dx, dy)

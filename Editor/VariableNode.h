@@ -1,6 +1,7 @@
 #pragma once
 #include "Node.h"
 #include "Math/Color.h"
+#include "UI/imnodes.h"
 
 namespace App {
 
@@ -27,11 +28,6 @@ namespace App {
 		inline ~Float() = default;
 
 		/*
-		* 在NodeEditor中绘制图形
-		*/
-		bool Draw() override;
-
-		/*
 		* 在NodeAttribute中绘制图形
 		*/
 		inline bool DrawProperty() override { return false; }
@@ -43,11 +39,6 @@ namespace App {
 		inline ~Float2() = default;
 
 		/*
-		* 在NodeEditor中绘制图形
-		*/
-		bool Draw() override;
-
-		/*
 		* 在NodeAttribute中绘制图形
 		*/
 		inline bool DrawProperty() override { return false; }
@@ -57,11 +48,6 @@ namespace App {
 	public:
 		Color(int id);
 		inline ~Color() = default;
-
-		/*
-		* 在NodeEditor中绘制图形
-		*/
-		bool Draw() override;
 
 		/*
 		* 在NodeAttribute中绘制图形

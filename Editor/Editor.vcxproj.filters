@@ -66,6 +66,12 @@
     <ClInclude Include="VariableNode.h">
       <Filter>头文件\Panels\ShaderEditor</Filter>
     </ClInclude>
+    <ClInclude Include="Pin.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Link.h">
+      <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -99,6 +105,12 @@
       <Filter>源文件\Panels\ShaderEditor</Filter>
     </ClCompile>
     <ClCompile Include="ShaderEditor.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Pin.cpp">
+      <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Link.cpp">
       <Filter>源文件\Panels\ShaderEditor</Filter>
     </ClCompile>
   </ItemGroup>

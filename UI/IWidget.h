@@ -18,11 +18,10 @@ namespace UI {
 	protected:
 		bool mEnable{ true };
 		bool mDestory{ false };
-		bool mLineBreak{ true };
 		IWidgetContainer* mParent{ nullptr };
 		std::string mWidgetID{ "?" };
 	private:
-		static int64_t smWidgetIDInc;
+		inline static int64_t smWidgetIDInc = 0;
 	public:
 		inline auto IsDestory() const { return mDestory; }
 		inline auto IsEnabled() const { return mEnable; }

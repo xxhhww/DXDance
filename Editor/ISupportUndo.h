@@ -45,7 +45,7 @@ namespace App {
 		const auto& GetOriginBlob() const;
 
 		virtual void Serialize(Tool::OutputMemoryStream& blob)	const = 0;
-		virtual void Deserialize(const Tool::InputMemoryStream& blob) = 0;
+		virtual void Deserialize(Tool::InputMemoryStream& blob) = 0;
 	private:
 		std::stack<Undo> mUndos;
 		Tool::OutputMemoryStream mOriginalBlob;

@@ -1,8 +1,7 @@
 #pragma once
 #include "ISupportUndo.h"
-#include "UI/PanelWindow.h"
 #include "UI/MenuList.h"
-#include "UI/Setting.h"
+#include "UI/imnodes.h"
 #include "Graph.h"
 
 namespace App {
@@ -50,7 +49,7 @@ namespace App {
 		void _Draw_Internal_Impl() override;
 
 		void Serialize(Tool::OutputMemoryStream& blob)  const;
-		void Deserialize(const Tool::InputMemoryStream& blob);
+		void Deserialize(Tool::InputMemoryStream& blob);
 	private:
 		uint32_t mNodeIncID{ 0u };
 		uint32_t mLinkIncID{ 0u };

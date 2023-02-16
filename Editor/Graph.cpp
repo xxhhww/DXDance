@@ -2,17 +2,17 @@
 #include <queue>
 
 namespace App {
-	void Graph::PushNode(Node::Ptr node) {
+	void Graph::PushNode(std::unique_ptr<Node>& node) {
 		mNeighborMap[node->objectID] = std::vector<int>{};
 		mNodeMap[node->objectID] = std::move(node);
 	}
 
-	void Graph::PushLink(Link& link) {
+	void Graph::PushLink(std::unique_ptr<Link>& link) {
 		// 删除冲突的Link
 		std::vector<int> linkDeleted{};
 		for (const auto& pair : mLinkMap) {
-			if (link.toSlot == pair.second.toSlot) {
-				linkDeleted.push_back(pair.second.objectID);
+			if (link->endPin == pair.second->endPin) {
+				linkDeleted.push_back(pair.second->objectID);
 			}
 		}
 		for (const auto& id : linkDeleted) {
@@ -20,31 +20,32 @@ namespace App {
 		}
 
 		// 更新邻接表
-		mNeighborMap[link.ToNodeID()].push_back(link.objectID);
+		mNeighborMap[link->EndNodeID()].push_back(link->objectID);
 		// 更新node的插槽
-		mNodeMap[link.FromNodeID()]->SetOutputSlotLinked(link.FromSlotIndex());
-		mNodeMap[link.ToNodeID()]->SetInputSlotLinked(link.ToSlotIndex(), link.objectID);
+		mNodeMap[link->StartNodeID()]->SetOutputPinLinked(link->StartPinIndex());
+		mNodeMap[link->EndNodeID()]->SetInputPinLinked(link->EndPinIndex(), link->objectID);
 		// 更新linkMap
-		mLinkMap[link.objectID] = std::move(link);
+		int endNodeID = link->EndNodeID();
+		mLinkMap[link->objectID] = std::move(link);
 
 		// 更新Slot类型
 		std::queue<Node*> tmpQueue{};
-		tmpQueue.push(mNodeMap[link.ToNodeID()].get());
+		tmpQueue.push(mNodeMap[endNodeID].get());
 		while (!tmpQueue.empty()) {
 			Node* currNode = tmpQueue.front();
 			tmpQueue.pop();
 			// 寻找输入的Pin
-			std::vector<Slot*> oppoSlots;
+			std::vector<Pin*> oppoSlots;
 			std::vector<int> inLinks = mNeighborMap[currNode->objectID];
 			for (const int& linkID : inLinks) {
-				const Link& inLink = mLinkMap[linkID];
-				Slot& oppoSlot = mNodeMap[inLink.FromNodeID()]->GetOutputSlots().at(inLink.FromSlotIndex());
-				oppoSlots.push_back(&oppoSlot);
+				const auto& inLink = mLinkMap[linkID];
+				Pin* oppoSlot = mNodeMap[inLink->StartNodeID()]->GetOutputPins().at(inLink->StartPinIndex());
+				oppoSlots.push_back(oppoSlot);
 			}
-			if (currNode->OnInputSlotTypeChanged(oppoSlots)) {
+			if (currNode->OnInputPinTypeChanged(oppoSlots)) {
 				for (const auto& pair : mLinkMap) {
-					if (pair.second.FromNodeID() == currNode->objectID) {
-						tmpQueue.push(mNodeMap[pair.second.ToNodeID()].get());
+					if (pair.second->StartNodeID() == currNode->objectID) {
+						tmpQueue.push(mNodeMap[pair.second->EndNodeID()].get());
 					}
 				}
 			}
@@ -55,9 +56,9 @@ namespace App {
 		// 删除Link
 		std::vector<uint32_t> linkDeleted{};
 		for (const auto& pair : mLinkMap) {
-			const Link& link = pair.second;
-			if (link.FromNodeID() == id || link.ToNodeID() == id) {
-				linkDeleted.push_back(link.objectID);
+			const auto& link = pair.second;
+			if (link->StartNodeID() == id || link->EndNodeID() == id) {
+				linkDeleted.push_back(link->objectID);
 			}
 		}
 		for (const auto& id : linkDeleted) {
@@ -72,16 +73,16 @@ namespace App {
 	void Graph::EraseLink(uint32_t id) {
 		if (mLinkMap.find(id) == mLinkMap.end()) return;
 		// 复制一份
-		const Link link = mLinkMap[id];
+		const auto& link = mLinkMap[id];
 		// 更新link两端节点的插槽
-		mNodeMap[link.FromNodeID()]->SetOutputSlotBroken(link.FromSlotIndex());
-		mNodeMap[link.ToNodeID()]->SetInputSlotBroken(link.ToSlotIndex());
+		mNodeMap[link->StartNodeID()]->SetOutputPinBroken(link->StartPinIndex());
+		mNodeMap[link->EndNodeID()]->SetInputPinBroken(link->EndPinIndex());
 
 		// 删除邻接
-		uint32_t nodeID = link.ToNodeID();
+		uint32_t nodeID = link->EndNodeID();
 		if (mNeighborMap.find(nodeID) == mNeighborMap.end()) return;
 		auto& neighbors = mNeighborMap[nodeID];
-		auto iter = std::find(neighbors.begin(), neighbors.end(), link.objectID);
+		auto iter = std::find(neighbors.begin(), neighbors.end(), link->objectID);
 		if (iter == neighbors.end()) return;
 		neighbors.erase(iter);
 		// 删除Link
@@ -89,29 +90,29 @@ namespace App {
 
 		// 更新Slot类型
 		std::queue<Node*> tmpQueue{};
-		tmpQueue.push(mNodeMap[link.ToNodeID()].get());
+		tmpQueue.push(mNodeMap[link->EndNodeID()].get());
 		while (!tmpQueue.empty()) {
 			Node* currNode = tmpQueue.front();
 			tmpQueue.pop();
 			// 寻找输入的Pin
-			std::vector<Slot*> oppoSlots;
+			std::vector<Pin*> oppoSlots;
 			std::vector<int> enterLinks = mNeighborMap[currNode->objectID];
 			for (const int& linkID : enterLinks) {
-				const Link& enterLink = mLinkMap[linkID];
-				Slot& oppoSlot = mNodeMap[enterLink.FromNodeID()]->GetOutputSlots().at(enterLink.FromSlotIndex());
-				oppoSlots.push_back(&oppoSlot);
+				const auto& enterLink = mLinkMap[linkID];
+				Pin* oppoSlot = mNodeMap[enterLink->StartNodeID()]->GetOutputPins().at(enterLink->StartPinIndex());
+				oppoSlots.push_back(oppoSlot);
 			}
-			if (currNode->OnInputSlotTypeChanged(oppoSlots)) {
+			if (currNode->OnInputPinTypeChanged(oppoSlots)) {
 				for (const auto& pair : mLinkMap) {
-					if (pair.second.FromNodeID() == currNode->objectID) {
-						tmpQueue.push(mNodeMap[pair.second.ToNodeID()].get());
+					if (pair.second->StartNodeID() == currNode->objectID) {
+						tmpQueue.push(mNodeMap[pair.second->EndNodeID()].get());
 					}
 				}
 			}
 		}
 	}
 
-	void Graph::clear() {
+	void Graph::Clear() {
 		mNodeMap.clear();
 		mLinkMap.clear();
 		mNeighborMap.clear();

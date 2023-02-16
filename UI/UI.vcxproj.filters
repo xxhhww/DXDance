@@ -222,6 +222,9 @@
     <ClInclude Include="Columns.h">
       <Filter>头文件\Widget\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="SameLine.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -337,6 +340,9 @@
     </ClCompile>
     <ClCompile Include="UIManger.cpp">
       <Filter>源文件\Magner</Filter>
+    </ClCompile>
+    <ClCompile Include="SameLine.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -16,13 +16,6 @@ namespace Windows {
 			mWindow->mouseMoveEvent.AddListener(std::bind(&InputManger::OnMouseMove, this, std::placeholders::_1, std::placeholders::_2));
 		mRawDeltaListenerID = 
 			mWindow->rawDeltaEvent.AddListener(std::bind(&InputManger::OnRawDelta, this, std::placeholders::_1, std::placeholders::_2));
-		// 初始化按键与鼠标
-		for (const auto& pair : sEKeyMap) {
-			mKeyStates[pair.second] = EKeyState::KEY_UP;
-		}
-		for (const auto& pair : sEMouseButtonMap) {
-			mMouseButtonStates[pair.second] = EMouseButtonState::MOUSE_UP;
-		}
 	}
 
 	InputManger::~InputManger() {
@@ -32,48 +25,51 @@ namespace Windows {
 			mWindow->mouseButtonPressedEvent.RemoveListener(mMouseButtonPressedListenerID);
 			mWindow->mouseButtonReleasedEvent.RemoveListener(mMouseButtonReleasedListenerID);
 		}
-		mKeyStates.clear();
-		mMouseButtonStates.clear();
 	}
 
 	EKeyState InputManger::GetKeyState(EKey key) const {
-		return mKeyStates.at(key);
+		return static_cast<EKeyState>(mKeyStates[static_cast<int>(key)]);
 	}
 
 	EMouseButtonState InputManger::GetMouseButtonState(EMouseButton button) const {
-		return mMouseButtonStates.at(button);
+		return static_cast<EMouseButtonState>(mMouseButtonStates[static_cast<int>(button)]);
 	}
 
 	bool InputManger::IsKeyPressed(EKey key) const {
-		return (mKeyStates.at(key) == EKeyState::KEY_DOWN);
+		return mKeyStates[static_cast<int>(key)];
 	}
 
 	bool InputManger::IsKeyReleased(EKey key) const {
-		return (mKeyStates.at(key) == EKeyState::KEY_UP);
+		return mKeyStates[static_cast<int>(key)];
 	}
 
 	bool InputManger::IsMouseButtonPressed(EMouseButton button) const {
-		return (mMouseButtonStates.at(button) == EMouseButtonState::MOUSE_DOWN);
+		return mMouseButtonStates[static_cast<int>(button)];
 	}
 
 	bool InputManger::IsMouseButtonReleased(EMouseButton button) const {
-		return (mMouseButtonStates.at(button) == EMouseButtonState::MOUSE_UP);
+		return mMouseButtonStates[static_cast<int>(button)];
+	}
+
+	void InputManger::ClearStates() {
+		mKeyStates.reset();
+		mMouseButtonStates.reset();
 	}
 
 	void InputManger::OnKeyPressed(EKey key) {
-		mKeyStates[key] = EKeyState::KEY_DOWN;
+		mKeyStates[static_cast<int>(key)] = 1;
 	}
 
 	void InputManger::OnKeyReleased(EKey key) {
-		mKeyStates[key] = EKeyState::KEY_UP;
+		mKeyStates[static_cast<int>(key)] = 0;
 	}
 
 	void InputManger::OnMouseButtonPressed(EMouseButton button) {
-		mMouseButtonStates[button] = EMouseButtonState::MOUSE_DOWN;
+		mMouseButtonStates[static_cast<int>(button)] = true;
 	}
 
 	void InputManger::OnMouseButtonReleased(EMouseButton button) {
-		mMouseButtonStates[button] = EMouseButtonState::MOUSE_UP;
+		mMouseButtonStates[static_cast<int>(button)] = false;
 	}
 
 	void InputManger::OnMouseMove(int16_t x, int16_t y) {
