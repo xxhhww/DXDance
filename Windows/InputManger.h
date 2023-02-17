@@ -4,6 +4,8 @@
 #include "EMouseButtonState.h"
 #include "Math/Vector.h"
 #include <bitset>
+#include <array>
+#include <queue>
 
 namespace Windows {
 	class InputManger {
@@ -11,16 +13,25 @@ namespace Windows {
 		InputManger(Window* window);
 		~InputManger();
 
-		EKeyState GetKeyState(EKey key) const;
+		void SetKeyRepeatDelay(float delay);
+		void SetKeyRepeatRate(float rate);
+		EKeyData& GetKeyData(EKey key);
+		const EKeyData& GetKeyData(EKey key) const;
 		EMouseButtonState GetMouseButtonState(EMouseButton button) const;
 
-		bool IsKeyPressed(EKey key) const;
+		bool IsKeyDown(EKey key) const;
+		bool IsKeyPressed(EKey key, bool autoRepeat = true) const;
 		bool IsKeyReleased(EKey key) const;
 		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsMouseButtonReleased(EMouseButton button) const;
 
-		void ClearStates();
+		void PreUpdate(float delta);
+		void PostUpdate();
 	private:
+		void GetTypematicRepeatRate(float* repeatDelay, float* repeatRate) const;
+		int GetKeyPressedAmount(EKey key, float repeatDelay, float repeatRate) const;
+		int CalcTypematicRepeatAmount(float t0, float t1, float repeatDelay, float repeatRate) const;
+
 		void OnKeyPressed(EKey key);
 		void OnKeyReleased(EKey key);
 		void OnMouseButtonPressed(EMouseButton button);
@@ -37,11 +48,13 @@ namespace Windows {
 		Tool::ListenerID mMouseMoveListenerID;
 		Tool::ListenerID mRawDeltaListenerID;
 
-		std::bitset<128> mKeyStates;
+		float mKeyRepeatDelay{ 0.275f };
+		float mKeyRepeatRate{ 0.05f };
+		std::queue<EKeyEvent> mKeyEventQueue;
+		std::array<EKeyData, static_cast<size_t>(EKey::KEY_COUNT)> mKeyDatas;
+
+
 		std::bitset<3>	 mMouseButtonStates;
-		
-		// std::unordered_map<EKey, EKeyState> mKeyStates;
-		// std::unordered_map<EMouseButton, EMouseButtonState> mMouseButtonStates;
 		// 鼠标位置
 		Math::Vector2 mMousePosition;
 		// 鼠标位移增量(dx, dy)

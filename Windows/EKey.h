@@ -54,6 +54,7 @@ namespace Windows {
         KEY_7           ,
         KEY_8           ,
         KEY_9           ,
+        KEY_COUNT       ,
 	};
 
     static std::unordered_map<int, EKey> sEKeyMap = {

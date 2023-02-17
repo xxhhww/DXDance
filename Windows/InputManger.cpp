@@ -27,20 +27,54 @@ namespace Windows {
 		}
 	}
 
-	EKeyState InputManger::GetKeyState(EKey key) const {
-		return static_cast<EKeyState>(mKeyStates[static_cast<int>(key)]);
+	void InputManger::SetKeyRepeatDelay(float delay) {
+		mKeyRepeatDelay = delay;
+	}
+
+	void InputManger::SetKeyRepeatRate(float rate) {
+		mKeyRepeatRate = rate;
+	}
+
+	EKeyData& InputManger::GetKeyData(EKey key) {
+		return mKeyDatas.at(static_cast<size_t>(key));
+	}
+
+	const EKeyData& InputManger::GetKeyData(EKey key) const {
+		return mKeyDatas.at(static_cast<size_t>(key));
 	}
 
 	EMouseButtonState InputManger::GetMouseButtonState(EMouseButton button) const {
 		return static_cast<EMouseButtonState>(mMouseButtonStates[static_cast<int>(button)]);
 	}
 
-	bool InputManger::IsKeyPressed(EKey key) const {
-		return mKeyStates[static_cast<int>(key)];
+	bool InputManger::IsKeyDown(EKey key) const {
+		const EKeyData& keyData = GetKeyData(key);
+		return keyData.down;
+	}
+
+	bool InputManger::IsKeyPressed(EKey key, bool autoRepeat) const {
+		const EKeyData& keyData = GetKeyData(key);
+		const float t = keyData.downDuration;
+		if (t < 0.0f) {
+			return false;
+		}
+
+		// 按键被按下
+		bool pressed = (t == 0.0f);
+
+		// 按键一直被按着
+		if (!pressed && autoRepeat) {
+			float repeatDelay, repeatRate;
+			GetTypematicRepeatRate(&repeatDelay, &repeatRate);
+			pressed = (t > repeatDelay) && GetKeyPressedAmount(key, repeatDelay, repeatRate) > 0;
+		}
+
+		return pressed;
 	}
 
 	bool InputManger::IsKeyReleased(EKey key) const {
-		return mKeyStates[static_cast<int>(key)];
+		const EKeyData& keyData = GetKeyData(key);
+		return !keyData.down && keyData.downDurationPrev >= 0.0f;
 	}
 
 	bool InputManger::IsMouseButtonPressed(EMouseButton button) const {
@@ -51,17 +85,53 @@ namespace Windows {
 		return mMouseButtonStates[static_cast<int>(button)];
 	}
 
-	void InputManger::ClearStates() {
-		mKeyStates.reset();
+	void InputManger::PreUpdate(float delta) {
+		while (!mKeyEventQueue.empty()) {
+			const EKeyEvent& event = mKeyEventQueue.front();
+			
+			EKeyData& keyData = GetKeyData(event.key);
+			keyData.down = event.down;
+			keyData.downDurationPrev = keyData.downDuration;
+			keyData.downDuration = keyData.down ? (keyData.downDuration < 0.0f ? 0.0f : keyData.downDuration + delta) : -1.0f;
+
+			mKeyEventQueue.pop();
+		}
+	}
+
+	void InputManger::PostUpdate() {
 		mMouseButtonStates.reset();
 	}
 
+	void InputManger::GetTypematicRepeatRate(float* repeatDelay, float* repeatRate) const {
+		*repeatDelay = mKeyRepeatDelay;
+		*repeatRate = mKeyRepeatRate;
+	}
+
+	int InputManger::GetKeyPressedAmount(EKey key, float repeatDelay, float repeatRate) const {
+		const EKeyData& keyData = GetKeyData(key);
+		const float t = keyData.downDuration;
+		return CalcTypematicRepeatAmount(t - g.IO.DeltaTime, t, repeatDelay, repeatRate);
+	}
+
+	int InputManger::CalcTypematicRepeatAmount(float t0, float t1, float repeatDelay, float repeatRate) const {
+		if (t1 == 0.0f)
+			return 1;
+		if (t0 >= t1)
+			return 0;
+		if (repeatRate <= 0.0f)
+			return (t0 < repeatDelay) && (t1 >= repeatDelay);
+		const int count_t0 = (t0 < repeatDelay) ? -1 : (int)((t0 - repeatDelay) / repeatRate);
+		const int count_t1 = (t1 < repeatDelay) ? -1 : (int)((t1 - repeatDelay) / repeatRate);
+		const int count = count_t1 - count_t0;
+		return count;
+	}
+
 	void InputManger::OnKeyPressed(EKey key) {
-		mKeyStates[static_cast<int>(key)] = 1;
+		mKeyEventQueue.emplace(key, true);
 	}
 
 	void InputManger::OnKeyReleased(EKey key) {
-		mKeyStates[static_cast<int>(key)] = 0;
+		mKeyEventQueue.emplace(key, false);
 	}
 
 	void InputManger::OnMouseButtonPressed(EMouseButton button) {
