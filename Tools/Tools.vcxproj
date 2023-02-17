@@ -128,6 +128,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Clock.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
@@ -138,6 +139,7 @@
     <None Include="MemoryStream.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="StrUtil.cpp" />
   </ItemGroup>

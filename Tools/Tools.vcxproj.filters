@@ -31,6 +31,12 @@
     <Filter Include="头文件\Interface">
       <UniqueIdentifier>{002ca075-e61d-44d4-be7d-97a161fbeb36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Time">
+      <UniqueIdentifier>{806c7db8-d433-47c8-856e-a77126f6c43c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Time">
+      <UniqueIdentifier>{abad0955-4b27-4430-bfb5-77d33bff2e22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -53,6 +59,9 @@
     <ClInclude Include="ISerializable.h">
       <Filter>头文件\Interface</Filter>
     </ClInclude>
+    <ClInclude Include="Clock.h">
+      <Filter>头文件\Time</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -60,6 +69,9 @@
     </ClCompile>
     <ClCompile Include="MemoryStream.cpp">
       <Filter>源文件\MemoryStream</Filter>
+    </ClCompile>
+    <ClCompile Include="Clock.cpp">
+      <Filter>源文件\Time</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
