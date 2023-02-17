@@ -48,11 +48,11 @@ namespace Windows {
 		Tool::ListenerID mMouseMoveListenerID;
 		Tool::ListenerID mRawDeltaListenerID;
 
-		float mKeyRepeatDelay{ 0.275f };
-		float mKeyRepeatRate{ 0.05f };
+		float mDeltaTime{ 0.0f };
+		float mKeyRepeatDelay{ 0.5f };
+		float mKeyRepeatRate{ 0.1f };
 		std::queue<EKeyEvent> mKeyEventQueue;
 		std::array<EKeyData, static_cast<size_t>(EKey::KEY_COUNT)> mKeyDatas;
-
 
 		std::bitset<3>	 mMouseButtonStates;
 		//  Û±ÍŒª÷√

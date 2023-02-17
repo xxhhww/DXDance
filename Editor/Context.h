@@ -4,6 +4,7 @@
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
 #include "UI/UIManger.h"
+#include "Tools/Clock.h"
 
 namespace App {
 	class Context {
@@ -27,5 +28,6 @@ namespace App {
 		std::unique_ptr<Windows::Window>		window;
 		std::unique_ptr<Windows::InputManger>	inputManger;
 		std::unique_ptr<UI::UIManger>			uiManger;		// UIManger的画布由Editor类进行设置
+		std::unique_ptr<Tool::Clock>			clock;			// 定时器
 	};
 }

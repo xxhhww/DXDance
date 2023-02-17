@@ -27,6 +27,26 @@ namespace App {
 	}
 
 	/*
+	* 编辑器运行函数
+	*/
+	void Editor::Run() {
+		float delta = mContext.clock->GetDeltaTime();
+
+		PreUpdate(delta);
+		Update(delta);
+		PostUpdate(delta);
+
+		mContext.clock->Update();
+	}
+
+	/*
+	* 编辑器预处理函数
+	*/
+	void Editor::PreUpdate(float delta) {
+		mContext.inputManger->PreUpdate(delta);
+	}
+
+	/*
 	* 编辑器更新函数
 	*/
 	void Editor::Update(float delta) {
@@ -41,7 +61,7 @@ namespace App {
 	}
 
 	void Editor::PostUpdate(float delta) {
-		mContext.inputManger->ClearStates();
+		mContext.inputManger->PostUpdate();
 	}
 	/*
 	* 绘制编辑器所有的控制面板

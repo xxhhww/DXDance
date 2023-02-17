@@ -147,13 +147,8 @@ namespace Windows {
 				vkCode = vkCode;
 				break;
 			}
-			if (vkCode == 162) {
-				int i = 32;
-			}
-			if (vkCode == 90) {
-				int i = 32;
-			}
-			if (sEKeyMap.find(vkCode) != sEKeyMap.end() && !autoRepeat) {
+
+			if (sEKeyMap.find(vkCode) != sEKeyMap.end()) {
 				keyPressedEvent.Invoke(sEKeyMap.at(vkCode));
 			}
 			break;

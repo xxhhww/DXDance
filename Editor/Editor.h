@@ -17,6 +17,16 @@ namespace App {
 		~Editor();
 
 		/*
+		* 编辑器运行函数
+		*/
+		void Run();
+
+		/*
+		* 编辑器预处理函数
+		*/
+		void PreUpdate(float delta);
+
+		/*
 		* 编辑器更新函数
 		*/
 		void Update(float delta);

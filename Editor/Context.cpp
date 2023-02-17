@@ -26,10 +26,14 @@ namespace App {
 		// 初始化UI管理
 		uiManger = std::make_unique<UI::UIManger>(window.get(), UI::UIStyle::DARK);
 
+		// 初始化定时器
+		clock = std::make_unique<Tool::Clock>();
+
 		// 注册服务
 		Core::ServiceLocator::Provide(*window.get());
 		Core::ServiceLocator::Provide(*inputManger.get());
 		Core::ServiceLocator::Provide(*uiManger.get());
+		Core::ServiceLocator::Provide(*clock.get());
 	}
 
 	Context::~Context() {

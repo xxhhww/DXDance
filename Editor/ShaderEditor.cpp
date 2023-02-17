@@ -1,6 +1,7 @@
 #include "ShaderEditor.h"
 #include "Core/ServiceLocator.h"
 #include "Windows/InputManger.h"
+#include <sstream>
 
 namespace App {
 	/*
@@ -32,7 +33,7 @@ namespace App {
 		if (IsOpened() && IsFocused()) {
 			// Ctrl-Z
 			{
-				if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_LCTRL) &&
+				if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_LCTRL) &&
 					CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_Z)) {
 					ISupportUndoWindow::PopUndo();
 				}

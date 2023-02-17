@@ -2,13 +2,6 @@
 
 namespace Windows {
 	/*
-	enum class EKeyState : int {
-		KEY_UP = 0,
-		KEY_DOWN = 1
-	};
-	*/
-
-	/*
 	* °´Å¥Êý¾Ý
 	*/
 	struct EKeyData {

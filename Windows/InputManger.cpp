@@ -86,15 +86,19 @@ namespace Windows {
 	}
 
 	void InputManger::PreUpdate(float delta) {
+		mDeltaTime = delta;
+		// handle key event
 		while (!mKeyEventQueue.empty()) {
 			const EKeyEvent& event = mKeyEventQueue.front();
-			
 			EKeyData& keyData = GetKeyData(event.key);
 			keyData.down = event.down;
+			mKeyEventQueue.pop();
+		}
+		// update keys
+		for (int i = 0; i < mKeyDatas.size(); i++) {
+			EKeyData& keyData = mKeyDatas.at(i);
 			keyData.downDurationPrev = keyData.downDuration;
 			keyData.downDuration = keyData.down ? (keyData.downDuration < 0.0f ? 0.0f : keyData.downDuration + delta) : -1.0f;
-
-			mKeyEventQueue.pop();
 		}
 	}
 
@@ -110,7 +114,7 @@ namespace Windows {
 	int InputManger::GetKeyPressedAmount(EKey key, float repeatDelay, float repeatRate) const {
 		const EKeyData& keyData = GetKeyData(key);
 		const float t = keyData.downDuration;
-		return CalcTypematicRepeatAmount(t - g.IO.DeltaTime, t, repeatDelay, repeatRate);
+		return CalcTypematicRepeatAmount(t - mDeltaTime, t, repeatDelay, repeatRate);
 	}
 
 	int InputManger::CalcTypematicRepeatAmount(float t0, float t1, float repeatDelay, float repeatRate) const {

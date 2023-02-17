@@ -27,8 +27,7 @@ namespace App {
             if (over) break;
 
             // ÔËÐÐ±à¼­Æ÷
-            mEditor.Update(1.0f);
-            mEditor.PostUpdate(1.0f);
+            mEditor.Run();
         }
         return 0;
 	}
