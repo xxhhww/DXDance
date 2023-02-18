@@ -3,7 +3,9 @@
 
 namespace UI {
 	void Group::_Draw_Internal_Impl() {
+		ImGui::BeginGroup();
 		DrawWidgets();
+		ImGui::EndGroup();
 	}
 
 	GroupCollapsable::GroupCollapsable(const std::string& name) 

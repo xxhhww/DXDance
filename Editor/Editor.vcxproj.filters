@@ -116,8 +116,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
-    <None Include="VariableNode.inl">
-      <Filter>头文件\Panels\ShaderEditor</Filter>
-    </None>
   </ItemGroup>
 </Project>

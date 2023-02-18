@@ -19,10 +19,12 @@ namespace UI {
 		if (max < min)
 			max = min;
 
-		if (data < min)
-			data = min;
-		else if (data > max)
-			data = max;
+		if (max != min) {
+			if (data < min)
+				data = min;
+			else if (data > max)
+				data = max;
+		}
 
 		ImGui::DragFloat((label + mWidgetID).c_str(), &data, speed, min, max, format.c_str());
 		if (ImGui::IsItemDeactivatedAfterEdit()) {

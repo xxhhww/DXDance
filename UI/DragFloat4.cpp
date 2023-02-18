@@ -18,7 +18,9 @@ namespace UI {
 	void DragFloat4::_Draw_Internal_Impl() {
 		if (max < min)
 			max = min;
-		data = Math::Clamp(data, Math::Vector4(min), Math::Vector4(max));
+		if (min != max) {
+			data = Math::Clamp(data, Math::Vector4(min), Math::Vector4(max));
+		}
 
 		ImGui::DragFloat4((label + mWidgetID).c_str(), reinterpret_cast<float*>(&data), speed, min, max, format.c_str());
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
@@ -44,7 +46,9 @@ namespace UI {
 	void DragFloat4Split::_Draw_Internal_Impl() {
 		if (max < min)
 			max = min;
-		data = Math::Clamp(data, Math::Vector4(min), Math::Vector4(max));
+		if (min != max) {
+			data = Math::Clamp(data, Math::Vector4(min), Math::Vector4(max));
+		}
 
 		bool edited{ false };
 		ImGui::DragFloat((label + mWidgetID + "_1").c_str(), &data.x, speed, min.x, max.x, format.c_str());

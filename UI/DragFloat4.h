@@ -27,9 +27,9 @@ namespace UI {
 	public:
 		DragFloat4Split(
 			const std::string& label,
-			Math::Vector4 value = Math::Vector4{ 0.0f, 0.0f, 0.0f },
-			Math::Vector4 min = Math::Vector4{ 0.0f, 0.0f, 0.0f },
-			Math::Vector4 max = Math::Vector4{ 0.0f, 0.0f, 0.0f },
+			Math::Vector4 value = Math::Vector4{ 0.0f, 0.0f, 0.0f, 0.0f },
+			Math::Vector4 min = Math::Vector4{ 0.0f, 0.0f, 0.0f, 0.0f },
+			Math::Vector4 max = Math::Vector4{ 0.0f, 0.0f, 0.0f, 0.0f },
 			float speed = 0.1f,
 			const std::string& format = "%.3f");
 	protected:

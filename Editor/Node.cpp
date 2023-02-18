@@ -58,8 +58,8 @@ namespace App {
 		switch (nodeType) {
 		case App::NodeType::Float:			return std::make_unique<Float>(id);
 		case App::NodeType::Float2:			return std::make_unique<Float2>(id);
-		case App::NodeType::Float3:			
-		case App::NodeType::Float4:			
+		case App::NodeType::Float3:			return std::make_unique<Float3>(id);
+		case App::NodeType::Float4:			return std::make_unique<Float4>(id);
 		case App::NodeType::Bool:
 		case App::NodeType::Color:			return std::make_unique<Color>(id);
 		case App::NodeType::SamplerState:	

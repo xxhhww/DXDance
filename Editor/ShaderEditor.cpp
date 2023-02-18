@@ -30,23 +30,6 @@ namespace App {
 	* 处理快捷键输入
 	*/
 	void ShaderEditor::HandleShortCut() {
-		if (IsOpened() && IsFocused()) {
-			// Ctrl-Z
-			{
-				if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_LCTRL) &&
-					CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_Z)) {
-					ISupportUndoWindow::PopUndo();
-				}
-			}
-
-			// Ctrl-S
-			{
-				if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_LCTRL) &&
-					CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_S)) {
-					ISupportUndoWindow::UpdateOrigin();
-				}
-			}
-		}
 	}
 
 	/*
@@ -130,8 +113,8 @@ namespace App {
 		variableNodeMenu.CreateWidget<UI::MenuItem>("Bool");
 		variableNodeMenu.CreateWidget<UI::MenuItem>("Float").clickedEvent	+= std::bind(lambda, NodeType::Float);
 		variableNodeMenu.CreateWidget<UI::MenuItem>("Float2").clickedEvent	+= std::bind(lambda, NodeType::Float2);
-		variableNodeMenu.CreateWidget<UI::MenuItem>("Float3");
-		variableNodeMenu.CreateWidget<UI::MenuItem>("Float4");
+		variableNodeMenu.CreateWidget<UI::MenuItem>("Float3").clickedEvent	+= std::bind(lambda, NodeType::Float3);
+		variableNodeMenu.CreateWidget<UI::MenuItem>("Float4").clickedEvent	+= std::bind(lambda, NodeType::Float4);
 		variableNodeMenu.CreateWidget<UI::MenuItem>("Color").clickedEvent	+= std::bind(lambda, NodeType::Color);
 
 		auto& rootNodeMenu = menu.CreateWidget<UI::MenuList>("Root");
@@ -197,13 +180,9 @@ namespace App {
 
 				// 绘制MenuBar
 				DrawWidgets();
-				mHovered = ImGui::IsWindowHovered();
-				mFocused = ImGui::IsWindowFocused();
 
 				// 绘制Editor
 				ImNodes::BeginNodeEditor();
-				mHovered = ImGui::IsWindowHovered();
-				mFocused = ImGui::IsWindowFocused();
 
 				for (auto& pair : mGraph->GetNodeMap()) {
 					if (pair.second->Draw()) {
@@ -224,6 +203,83 @@ namespace App {
 						std::unique_ptr<Link> link = std::make_unique<Link>(mLinkIncID++, startPin, endPin);
 						mGraph->PushLink(link);
 						ISupportUndoWindow::PushUndo();
+					}
+				}
+
+				// Link & Node Deleted
+				{
+					if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_X)) {
+						bool isDeleted{ false };
+						// Link Deleted
+						{
+							const int selectedLinkCount = ImNodes::NumSelectedLinks();
+							if (selectedLinkCount > 0) {
+								std::vector<int> linkSelected;
+								linkSelected.resize(static_cast<size_t>(selectedLinkCount));
+								ImNodes::GetSelectedLinks(linkSelected.data());
+								for (const auto& id : linkSelected) {
+									mGraph->EraseLink(id);
+								}
+								isDeleted = true;
+							}
+						}
+						// Node Deleted
+						{
+							const int selectedNodeCount = ImNodes::NumSelectedNodes();
+							if (selectedNodeCount > 0) {
+								std::vector<int> nodeSelected;
+								nodeSelected.resize(static_cast<size_t>(selectedNodeCount));
+								ImNodes::GetSelectedNodes(nodeSelected.data());
+								for (const auto& id : nodeSelected) {
+									mGraph->EraseNode(id);
+								}
+								isDeleted = true;
+							}
+						}
+						if (isDeleted) {
+							ISupportUndoWindow::PushUndo();
+						}
+					}
+				}
+
+				// Node Moved
+				{
+					const int selectedNodeCount = ImNodes::NumSelectedNodes();
+					if (selectedNodeCount > 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+						std::vector<int> nodeMoved;
+						nodeMoved.resize(static_cast<size_t>(selectedNodeCount));
+						ImNodes::GetSelectedNodes(nodeMoved.data());
+						bool isMoved{ false };
+						for (const auto& id : nodeMoved) {
+							if (id == (int)0x80000000) continue;
+							const auto newPos = ImNodes::GetNodeEditorSpacePos(id);
+							auto& node = mGraph->GetNodeMap()[id];
+							auto oldPos = node->GetPosition();
+							if (oldPos.x != newPos.x || oldPos.y != newPos.y) isMoved = true;
+							else isMoved = false;
+							if (isMoved) {
+								node->SetPosition(newPos.x, newPos.y);
+							}
+						}
+						if (isMoved) {
+							ISupportUndoWindow::PushUndo();
+						}
+					}
+				}
+
+				// Ctrl-Z
+				{
+					if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_LCTRL) &&
+						CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_Z)) {
+						ISupportUndoWindow::PopUndo();
+					}
+				}
+
+				// Ctrl-S
+				{
+					if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_LCTRL) &&
+						CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_S)) {
+						ISupportUndoWindow::UpdateOrigin();
 					}
 				}
 			}

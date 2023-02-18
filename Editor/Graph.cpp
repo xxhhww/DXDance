@@ -86,11 +86,12 @@ namespace App {
 		if (iter == neighbors.end()) return;
 		neighbors.erase(iter);
 		// 删除Link
+		int endNodeID = link->EndNodeID();
 		mLinkMap.erase(id);
 
 		// 更新Slot类型
 		std::queue<Node*> tmpQueue{};
-		tmpQueue.push(mNodeMap[link->EndNodeID()].get());
+		tmpQueue.push(mNodeMap[endNodeID].get());
 		while (!tmpQueue.empty()) {
 			Node* currNode = tmpQueue.front();
 			tmpQueue.pop();
