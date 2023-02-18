@@ -5,15 +5,15 @@
 namespace UI {
 	template<typename TData>
 	IDataWidget<TData>::IDataWidget(const TData& data)
-	: mData(data) {}
+	: data(data) {}
 
 	template<typename TData>
 	void IDataWidget<TData>::Draw() {
 		if (mEnable) {
-			TData prevData = mData;
+			TData prevData = data;
 			_Draw_Internal_Impl();
-			if (prevData != mData) {
-				valueChangedEvent.Invoke(mData);
+			if (prevData != data) {
+				valueChangedEvent.Invoke(data);
 			}
 		}
 	}

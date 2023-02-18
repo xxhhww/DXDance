@@ -15,9 +15,9 @@ namespace UI {
 
 	void InputFloat4::_Draw_Internal_Impl() {
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
-		bool editCompleted = ImGui::InputScalarN((mLabel + mWidgetID).c_str(), ImGuiDataType_Float, reinterpret_cast<float*>(&mData), 4, &mStep, &mStepFast, mFormat.c_str(), flags);
+		bool editCompleted = ImGui::InputScalarN((mLabel + mWidgetID).c_str(), ImGuiDataType_Float, reinterpret_cast<float*>(&data), 4, &mStep, &mStepFast, mFormat.c_str(), flags);
 		if (editCompleted) {
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

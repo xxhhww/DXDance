@@ -17,15 +17,15 @@ namespace UI {
 		if (mMax < mMin)
 			mMax = mMin;
 
-		if (mData < mMin)
-			mData = mMin;
-		else if (mData > mMax)
-			mData = mMax;
+		if (data < mMin)
+			data = mMin;
+		else if (data > mMax)
+			data = mMax;
 
-		ImGui::SliderFloat((mLabel + mWidgetID).c_str(), &mData, mMin, mMax, mFormat.c_str());
+		ImGui::SliderFloat((mLabel + mWidgetID).c_str(), &data, mMin, mMax, mFormat.c_str());
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
 			// Item ±»±à¼­Íê³É
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

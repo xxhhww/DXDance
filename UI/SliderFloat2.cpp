@@ -16,12 +16,12 @@ namespace UI {
 	void SliderFloat2::_Draw_Internal_Impl() {
 		if (mMax < mMin)
 			mMax = mMin;
-		mData = Math::Clamp(mData, Math::Vector2(mMin), Math::Vector2(mMax));
+		data = Math::Clamp(data, Math::Vector2(mMin), Math::Vector2(mMax));
 
-		ImGui::SliderFloat2((mLabel + mWidgetID).c_str(), reinterpret_cast<float*>(&mData), mMin, mMax, mFormat.c_str());
+		ImGui::SliderFloat2((mLabel + mWidgetID).c_str(), reinterpret_cast<float*>(&data), mMin, mMax, mFormat.c_str());
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
 			// Item ±»±à¼­Íê³É
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

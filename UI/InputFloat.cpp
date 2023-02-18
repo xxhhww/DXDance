@@ -15,9 +15,9 @@ namespace UI {
 
 	void InputFloat::_Draw_Internal_Impl() {
 		ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
-		bool editCompleted = ImGui::InputFloat((mLabel + mWidgetID).c_str(), &mData, mStep, mStepFast, mFormat.c_str(), flags);
+		bool editCompleted = ImGui::InputFloat((mLabel + mWidgetID).c_str(), &data, mStep, mStepFast, mFormat.c_str(), flags);
 		if (editCompleted) {
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

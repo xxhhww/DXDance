@@ -36,6 +36,10 @@ namespace Math {
 
 		inline bool operator!= (Vector2 v2) const { return Vector2(XMVectorNotEqual(*this, v2)).x; }
 		inline bool operator== (Vector2 v2) const { return Vector2(XMVectorEqual(*this, v2)).x; }
+		inline bool operator<  (Vector2 v2) const { return Vector2(XMVectorLess(*this, v2)).x; }
+		inline bool operator<= (Vector2 v2) const { return Vector2(XMVectorLessOrEqual(*this, v2)).x; }
+		inline bool operator>  (Vector2 v2) const { return Vector2(XMVectorGreater(*this, v2)).x; }
+		inline bool operator>= (Vector2 v2) const { return Vector2(XMVectorGreaterOrEqual(*this, v2)).x; }
 		inline Vector2 operator- () const { return XMVectorNegate(*this); }
 		inline Vector2 operator+ (Vector2 v2) const { return XMVectorAdd(*this, v2); }
 		inline Vector2 operator- (Vector2 v2) const { return XMVectorSubtract(*this, v2); }
@@ -87,6 +91,10 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
+		inline bool operator<  (Vector3 v2) const { return Vector3(XMVectorLess(*this, v2)).x; }
+		inline bool operator<= (Vector3 v2) const { return Vector3(XMVectorLessOrEqual(*this, v2)).x; }
+		inline bool operator>  (Vector3 v2) const { return Vector3(XMVectorGreater(*this, v2)).x; }
+		inline bool operator>= (Vector3 v2) const { return Vector3(XMVectorGreaterOrEqual(*this, v2)).x; }
 		inline Vector3 operator- () const { return XMVectorNegate(*this); }
 		inline Vector3 operator+ (Vector3 v2) const { return XMVectorAdd(*this, v2); }
 		inline Vector3 operator- (Vector3 v2) const { return XMVectorSubtract(*this, v2); }
@@ -130,6 +138,10 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
+		inline bool operator<  (Vector4 v2) const { return Vector4(XMVectorLess(*this, v2)).x; }
+		inline bool operator<= (Vector4 v2) const { return Vector4(XMVectorLessOrEqual(*this, v2)).x; }
+		inline bool operator>  (Vector4 v2) const { return Vector4(XMVectorGreater(*this, v2)).x; }
+		inline bool operator>= (Vector4 v2) const { return Vector4(XMVectorGreaterOrEqual(*this, v2)).x; }
 		inline bool operator !=(Vector4 v) const { return Vector4(XMVectorNotEqual(*this, v)).x; }
 		inline bool operator ==(Vector4 v) const { return Vector4(XMVectorEqual(*this, v)).x; }
 		inline Vector4 operator- () const { return Vector4(XMVectorNegate(*this)); }

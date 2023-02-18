@@ -6,17 +6,17 @@ namespace UI {
 	, mLabel(label) {}
 
 	void ComboBox::_Draw_Internal_Impl() {
-		if (choices.find(mData) == choices.end()) {
-			mData = choices.begin()->first;
+		if (choices.find(data) == choices.end()) {
+			data = choices.begin()->first;
 		}
 
-		if (ImGui::BeginCombo((mLabel + mWidgetID).c_str(), choices[mData].c_str())) {
+		if (ImGui::BeginCombo((mLabel + mWidgetID).c_str(), choices[data].c_str())) {
 			for (const auto& [key, value] : choices) {
-				bool selected = key == mData;
+				bool selected = key == data;
 				if (ImGui::Selectable(value.c_str(), selected)) {
 					if (!selected) {
 						ImGui::SetItemDefaultFocus();
-						mData = key;
+						data = key;
 					}
 				}
 			}

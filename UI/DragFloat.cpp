@@ -9,25 +9,25 @@ namespace UI {
 		float speed,
 		const std::string& format)
 		: IDataWidget<float>(value)
-		, mLabel(label)
-		, mMin(min)
-		, mMax(max)
-		, mSpeed(speed)
-		, mFormat(format) {}
+		, label(label)
+		, min(min)
+		, max(max)
+		, speed(speed)
+		, format(format) {}
 
 	void DragFloat::_Draw_Internal_Impl() {
-		if (mMax < mMin)
-			mMax = mMin;
+		if (max < min)
+			max = min;
 
-		if (mData < mMin)
-			mData = mMin;
-		else if (mData > mMax)
-			mData = mMax;
+		if (data < min)
+			data = min;
+		else if (data > max)
+			data = max;
 
-		ImGui::DragFloat((mLabel + mWidgetID).c_str(), &mData, mSpeed, mMin, mMax, mFormat.c_str());
+		ImGui::DragFloat((label + mWidgetID).c_str(), &data, speed, min, max, format.c_str());
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
 			// Item ±»±à¼­Íê³É
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

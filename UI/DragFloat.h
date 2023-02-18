@@ -6,7 +6,7 @@ namespace UI {
 	public:
 		DragFloat(
 			const std::string& label,
-			float value,
+			float value = 0.0f,
 			float min = 0.0f,
 			float max = 0.0f,
 			float speed = 0.1f, 
@@ -15,11 +15,10 @@ namespace UI {
 		void _Draw_Internal_Impl() override;
 	public:
 		Tool::Event<float> editCompletedEvent;
-	private:
-		std::string mLabel;
-		float mMin;
-		float mMax;
-		float mSpeed;
-		std::string mFormat;
+		std::string		label;
+		float			min;
+		float			max;
+		float			speed;
+		std::string		format;
 	};
 }

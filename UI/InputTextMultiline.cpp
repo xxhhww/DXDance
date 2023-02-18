@@ -7,9 +7,9 @@ namespace UI {
 	, mMaxSize(maxSize) {}
 
 	void InputTextMultiline::_Draw_Internal_Impl() {
-		bool editCompleted = ImGui::InputText((mLabel + mWidgetID).c_str(), &mData[0], mMaxSize, ImGuiInputTextFlags_EnterReturnsTrue);
+		bool editCompleted = ImGui::InputText((mLabel + mWidgetID).c_str(), &data[0], mMaxSize, ImGuiInputTextFlags_EnterReturnsTrue);
 		if (editCompleted) {
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

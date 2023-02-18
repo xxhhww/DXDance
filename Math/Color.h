@@ -20,13 +20,17 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
+		inline bool operator<  (Color v2) const { return Color(XMVectorLess(*this, v2)).x; }
+		inline bool operator<= (Color v2) const { return Color(XMVectorLessOrEqual(*this, v2)).x; }
+		inline bool operator>  (Color v2) const { return Color(XMVectorGreater(*this, v2)).x; }
+		inline bool operator>= (Color v2) const { return Color(XMVectorGreaterOrEqual(*this, v2)).x; }
+		inline bool operator !=(Color v) const { return Vector3(XMVectorNotEqual(*this, v)).x; }
+		inline bool operator ==(Color v) const { return Vector3(XMVectorEqual(*this, v)).x; }
 		inline Color operator- () const { return XMVectorNegate(*this); }
 		inline Color operator+ (Color v2) const { return XMVectorAdd(*this, v2); }
 		inline Color operator- (Color v2) const { return XMVectorSubtract(*this, v2); }
 		inline Color operator* (Color v2) const { return XMVectorMultiply(*this, v2); }
 		inline Color operator/ (Color v2) const { return XMVectorDivide(*this, v2); }
-		inline bool operator !=(Color v) const { return Vector3(XMVectorNotEqual(*this, v)).x; }
-		inline bool operator ==(Color v) const { return Vector3(XMVectorEqual(*this, v)).x; }
 		inline Color operator+ (float  v2) const { return *this * Color(v2); }
 		inline Color operator- (float  v2) const { return *this * Color(v2); }
 		inline Color operator* (float  v2) const { return *this * Color(v2); }

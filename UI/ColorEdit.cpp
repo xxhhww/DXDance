@@ -6,9 +6,9 @@ namespace UI {
 	, mLabel(label) {}
 
 	void ColorEdit::_Draw_Internal_Impl() {
-		ImGui::ColorEdit3((mLabel + mWidgetID).c_str(), reinterpret_cast<float*>(&mData));
+		ImGui::ColorEdit3((mLabel + mWidgetID).c_str(), reinterpret_cast<float*>(&data));
 		if (ImGui::IsItemDeactivatedAfterEdit()) {
-			editCompletedEvent.Invoke(mData);
+			editCompletedEvent.Invoke(data);
 		}
 	}
 }

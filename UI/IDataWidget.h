@@ -12,8 +12,7 @@ namespace UI {
 		void Draw() override;
 	public:
 		Tool::Event<const TData&> valueChangedEvent;
-	protected:
-		TData mData;
+		TData data;
 	};
 }
 
