@@ -1,28 +1,26 @@
 #pragma once
 #include "IPanel.h"
+#include <unordered_map>
+#include <memory>
 
 namespace UI {
-	enum class CanvasMemoryMode {
-		Internal, Extra
-	};
-
 	class Canvas : public IDrawable {
 	public:
-		void RegisterPanel(IPanel* panel);
-		void UnregisterPanel(IPanel* panel);
-
-		void DeletePanel(IPanel* panel);
 		void DeleteAllPanels();
 
 		template<typename T, typename ...Args>
-		T& CreatePanel(Args&&... args);
+		T& CreatePanel(const std::string& name, Args&&... args);
+
+		template<typename T>
+		T& GetPanel(const std::string& name);
 
 		void SetDockspace(bool status);
 		bool IsDockspace() const;
 
 		void Draw() override;
 	private:
-		std::vector<std::pair<IPanel*, CanvasMemoryMode>> mPanels;
+		std::unordered_map<std::string, std::unique_ptr<IPanel>> mPanels;
+		// std::vector<std::pair<IPanel*, CanvasMemoryMode>> mPanels;
 		bool mDockSpace{ false };
 	};
 }

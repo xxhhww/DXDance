@@ -4,46 +4,7 @@
 #include <algorithm>
 
 namespace UI {
-	void Canvas::RegisterPanel(IPanel* panel) {
-		mPanels.emplace_back(panel, CanvasMemoryMode::Extra);
-	}
-
-	void Canvas::UnregisterPanel(IPanel* panel) {
-		auto it = std::find_if(mPanels.begin(), mPanels.end(),
-			[&panel](auto& pair) {
-				if (pair.first == panel) {
-					return true;
-				}
-				return false;
-			});
-
-		if (it != mPanels.end()) {
-			mPanels.erase(it);
-		}
-	}
-
-	void Canvas::DeletePanel(IPanel* panel) {
-		auto it = std::find_if(mPanels.begin(), mPanels.end(),
-			[&panel](auto& pair) {
-				if (pair.first == panel && pair.second == CanvasMemoryMode::Internal) {
-					return true;
-				}
-				return false;
-			});
-
-		if (it != mPanels.end()) {
-			mPanels.erase(it);
-			delete panel;
-		}
-	}
-
 	void Canvas::DeleteAllPanels() {
-		std::for_each(mPanels.begin(), mPanels.end(),
-			[](auto& pair) {
-				if (pair.second == CanvasMemoryMode::Internal) {
-					delete pair.first;
-				}
-			});
 		mPanels.clear();
 	}
 
@@ -82,7 +43,7 @@ namespace UI {
 			}
 
 			for (auto& pair : mPanels) {
-				pair.first->Draw();
+				pair.second->Draw();
 			}
 		}
 	}

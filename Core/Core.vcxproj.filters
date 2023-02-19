@@ -45,6 +45,9 @@
     <ClInclude Include="ServiceLocator.h">
       <Filter>头文件\Global</Filter>
     </ClInclude>
+    <ClInclude Include="TextureManger.h">
+      <Filter>头文件\Asset</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp">
@@ -54,6 +57,9 @@
       <Filter>源文件\Asset</Filter>
     </ClCompile>
     <ClCompile Include="ShaderManger.cpp">
+      <Filter>源文件\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManger.cpp">
       <Filter>源文件\Asset</Filter>
     </ClCompile>
   </ItemGroup>

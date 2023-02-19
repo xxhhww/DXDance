@@ -9,10 +9,10 @@ namespace App {
 	Editor::Editor(Context& context)
 	: mContext(context) {
 
-		auto& mainMenuBar = mCanvas.CreatePanel<MainMenuBar>();
+		auto& mainMenuBar = mCanvas.CreatePanel<MainMenuBar>("Main Menu Bar");
 
 
-		mShaderEditor = &mCanvas.CreatePanel<ShaderEditor>("ShaderEditor");
+		mShaderEditor = &mCanvas.CreatePanel<ShaderEditor>("Shader Editor");
 
 		mainMenuBar.RegisterPanel(mShaderEditor);
 
