@@ -85,6 +85,12 @@
     <Filter Include="源文件\Magner">
       <UniqueIdentifier>{fd200bdd-e070-4318-aa88-9be33c662aa2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Plugins">
+      <UniqueIdentifier>{803a8185-53fe-4f7d-8293-2cb12d296b1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Plugins">
+      <UniqueIdentifier>{0a1b785a-b541-4e36-a031-2738fe7712a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -225,6 +231,18 @@
     <ClInclude Include="SameLine.h">
       <Filter>头文件\Widget\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="Pluginable.h">
+      <Filter>头文件\Plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="IPlugin.h">
+      <Filter>头文件\Plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSource.h">
+      <Filter>头文件\Plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="DDTarget.h">
+      <Filter>头文件\Plugins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -344,6 +362,9 @@
     <ClCompile Include="SameLine.cpp">
       <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
+    <ClCompile Include="Pluginable.cpp">
+      <Filter>源文件\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IWidgetContainer.inl">
@@ -357,6 +378,15 @@
     </None>
     <None Include="Columns.inl">
       <Filter>头文件\Widget\Layout</Filter>
+    </None>
+    <None Include="Pluginable.inl">
+      <Filter>头文件\Plugins</Filter>
+    </None>
+    <None Include="DDTarget.inl">
+      <Filter>头文件\Plugins</Filter>
+    </None>
+    <None Include="DDSource.inl">
+      <Filter>头文件\Plugins</Filter>
     </None>
   </ItemGroup>
 </Project>

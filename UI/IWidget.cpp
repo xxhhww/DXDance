@@ -17,6 +17,10 @@ namespace UI {
 	void IWidget::Draw() {
 		if (mEnable) {
 			_Draw_Internal_Impl();
+
+			if (mAutoExecutePlugins) {
+				ExecuteAllPlugins();
+			}
 		}
 	}
 }

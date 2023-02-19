@@ -1,11 +1,12 @@
 #pragma once
 #include "IDrawable.h"
+#include "Pluginable.h"
 #include <string>
 
 namespace UI {
 	class IWidgetContainer;
 
-	class IWidget : public IDrawable {
+	class IWidget : public IDrawable, public Pluginable {
 	public:
 		IWidget();
 		virtual ~IWidget() = default;
@@ -18,6 +19,7 @@ namespace UI {
 	protected:
 		bool mEnable{ true };
 		bool mDestory{ false };
+		bool mAutoExecutePlugins{ true };
 		IWidgetContainer* mParent{ nullptr };
 		std::string mWidgetID{ "?" };
 	private:

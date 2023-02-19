@@ -133,10 +133,14 @@
     <ClInclude Include="ColorEdit.h" />
     <ClInclude Include="Columns.h" />
     <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="DDSource.h" />
+    <ClInclude Include="DDTarget.h" />
     <ClInclude Include="DragFloat.h" />
     <ClInclude Include="DragFloat2.h" />
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
+    <ClInclude Include="IPlugin.h" />
+    <ClInclude Include="Pluginable.h" />
     <ClInclude Include="SameLine.h" />
     <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
@@ -207,6 +211,7 @@
     <ClCompile Include="NewLine.cpp" />
     <ClCompile Include="PanelMenuBar.cpp" />
     <ClCompile Include="PanelWindow.cpp" />
+    <ClCompile Include="Pluginable.cpp" />
     <ClCompile Include="SameLine.cpp" />
     <ClCompile Include="SliderFloat.cpp" />
     <ClCompile Include="SliderFloat2.cpp" />
@@ -220,8 +225,11 @@
   <ItemGroup>
     <None Include="Canvas.inl" />
     <None Include="Columns.inl" />
+    <None Include="DDSource.inl" />
+    <None Include="DDTarget.inl" />
     <None Include="IDataWidget.inl" />
     <None Include="IWidgetContainer.inl" />
+    <None Include="Pluginable.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
