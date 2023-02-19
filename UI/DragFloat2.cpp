@@ -55,9 +55,9 @@ namespace UI {
 
 		bool edited{ false };
 		ImGui::DragFloat((label + mWidgetID + "_1").c_str(), &data.x, speed, min.x, max.x, format.c_str());
-		edited = ImGui::IsItemDeactivatedAfterEdit();
+		edited |= ImGui::IsItemDeactivatedAfterEdit();
 		ImGui::DragFloat((label + mWidgetID + "_2").c_str(), &data.y, speed, min.y, max.y, format.c_str());
-		edited = ImGui::IsItemDeactivatedAfterEdit();
+		edited |= ImGui::IsItemDeactivatedAfterEdit();
 
 		if (edited) {
 			editCompletedEvent.Invoke(data);

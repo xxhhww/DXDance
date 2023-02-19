@@ -91,6 +91,15 @@
     <Filter Include="源文件\Plugins">
       <UniqueIdentifier>{0a1b785a-b541-4e36-a031-2738fe7712a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Text">
+      <UniqueIdentifier>{4294ee90-6265-481f-b906-2fb374a2c355}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Widget\Button">
+      <UniqueIdentifier>{aaa79922-59e0-4adb-b3fb-1442215d4065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Widget\Button">
+      <UniqueIdentifier>{53eec50b-fc00-461d-af6a-27b444996644}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -243,6 +252,18 @@
     <ClInclude Include="DDTarget.h">
       <Filter>头文件\Plugins</Filter>
     </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>头文件\Widget\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextSelectable.h">
+      <Filter>头文件\Widget\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>头文件\Widget\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonColored.h">
+      <Filter>头文件\Widget\Button</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -364,6 +385,18 @@
     </ClCompile>
     <ClCompile Include="Pluginable.cpp">
       <Filter>源文件\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>源文件\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextSelectable.cpp">
+      <Filter>源文件\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>源文件\Widget\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonColored.cpp">
+      <Filter>源文件\Widget\Button</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -129,6 +129,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="ButtonColored.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ColorEdit.h" />
     <ClInclude Include="Columns.h" />
@@ -177,10 +179,14 @@
     <ClInclude Include="SliderFloat3.h" />
     <ClInclude Include="SliderFloat4.h" />
     <ClInclude Include="Spacing.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextSelectable.h" />
     <ClInclude Include="TreeNode.h" />
     <ClInclude Include="UIManger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="ButtonColored.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ColorEdit.cpp" />
     <ClCompile Include="color_node_editor.cpp" />
@@ -218,6 +224,8 @@
     <ClCompile Include="SliderFloat3.cpp" />
     <ClCompile Include="SliderFloat4.cpp" />
     <ClCompile Include="Spacing.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="TextSelectable.cpp" />
     <ClCompile Include="TreeNode.cpp" />
     <ClCompile Include="UIManger.cpp" />
     <ClCompile Include="UITest.cpp" />

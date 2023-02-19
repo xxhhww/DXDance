@@ -27,9 +27,9 @@ namespace UI {
 	public:
 		DragFloat3Split(
 			const std::string& label,
-			Math::Vector3 value = Math::Vector3{ 0.0f, 0.0f, 0.0f },
-			Math::Vector3 min = Math::Vector3{ 0.0f, 0.0f, 0.0f },
-			Math::Vector3 max = Math::Vector3{ 0.0f, 0.0f, 0.0f },
+			Math::Vector3 value = Math::Vector3{},
+			Math::Vector3 min = Math::Vector3{},
+			Math::Vector3 max = Math::Vector3{},
 			float speed = 0.1f,
 			const std::string& format = "%.3f");
 	protected:
