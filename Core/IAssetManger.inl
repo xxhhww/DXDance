@@ -6,6 +6,16 @@ namespace Core {
 	IAssetManger<TAsset>::IAssetManger(const std::string& path) 
 	: mAssetPath(path) {}
 
+	/*
+	* ×¢²á×ÊÔ´
+	*/
+	template<typename TAsset>
+	void IAssetManger<TAsset>::RegisterResource(TAsset* target) {
+		if (!GetResource(target->GetID()) && !GetResource(target->GetName())) {
+			mAssets[target->GetID] = std::make_unique(target);
+		}
+	}
+	
 	template<typename TAsset>
 	bool IAssetManger<TAsset>::IsRegistered(int64_t id) {
 		return mAssets.find(id) != mAssets.end();

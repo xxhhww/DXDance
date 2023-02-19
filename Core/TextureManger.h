@@ -1,39 +1,14 @@
 #pragma once
 #include "IAssetManger.h"
-#include "DirectXTex/DirectXTex.h"
+#include "Texture.h"
 
 namespace Core {
-	// 纹理资产
-	class Texture : public IAsset, public DirectX::ScratchImage {
-	public:
-		/*
-		* 默认构造函数，用于资产从文件中读取的情景
-		*/
-		inline Texture() = default;
-
-		/*
-		* 构造函数，用于资产在编辑器运行时创建的情景，需要提供资产名称
-		*/
-		Texture(const std::string& name) : IAsset(name) {}
-
-		/*
-		* 默认析构函数 
-		*/
-		inline ~Texture() = default;
-
-		inline void RemoveSRGB() {
-			m_metadata.format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		}
-
-		void Serialize(Tool::OutputMemoryStream& blob) const	override;
-		void Deserialize(const Tool::InputMemoryStream& blob)	override;
-	
-	private:
-		std::string mAbsolutePath;
-	};
-
 	class TextureManger : public IAssetManger<Texture> {
 	public:
-
+		/*
+		* 通过指定的路径(必须是项目路径或者引擎路径)来解析并管理资源.
+		* 其他路径的资源由AssetLoader解析，并通过RegisterResource()方法来注册进管理类.
+		*/
+		Texture* CreateResource(const std::string& path) override;
 	};
 }
