@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <fstream>
 
 namespace Tool {
 	class OutputMemoryStream {
@@ -32,6 +33,8 @@ namespace Tool {
 	class InputMemoryStream {
 	public:
 		explicit InputMemoryStream(const OutputMemoryStream& blob);
+		explicit InputMemoryStream(std::ifstream& file);
+		~InputMemoryStream();
 
 		template<typename T>
 		void Read(T& v);
@@ -42,7 +45,7 @@ namespace Tool {
 		uint64_t Size() const;
 		uint64_t Pos() const;
 	private:
-		const char* mData{ nullptr };
+		char* mData{ nullptr };
 		uint64_t mSize{ 0u };
 		uint64_t mPos{ 0u };
 	};

@@ -115,9 +115,27 @@ namespace Tool {
 	}
 
 	InputMemoryStream::InputMemoryStream(const OutputMemoryStream& blob)
-	: mData((const char*)blob.Data())
-	, mSize(blob.Size())
-	, mPos(0u) {}
+	: mSize(blob.Size())
+	, mPos(0u) {
+		mData = new char[mSize];
+		memcpy(mData, blob.Data(), mSize);
+	}
+
+	InputMemoryStream::InputMemoryStream(std::ifstream& file) 
+	: mPos(0u) {
+		file.seekg(0, std::ios::end);
+		mSize = file.tellg();
+		file.seekg(0, std::ios::beg);
+
+		mData = new char[mSize];
+		file.read(mData, mSize);
+
+		file.close();
+	}
+
+	InputMemoryStream::~InputMemoryStream() {
+		delete mData;
+	}
 
 	bool InputMemoryStream::Read(void* data, uint64_t size) {
 		if (mPos + size > mSize) {

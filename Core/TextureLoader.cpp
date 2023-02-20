@@ -4,7 +4,7 @@
 #include <assert.h>
 
 namespace Core {
-	Texture* TextureLoader::Create(const std::string& path) {
+	void TextureLoader::Create(const std::string& path, Texture& texture) {
 		if (!smInitialized) {
 			CoInitialize(NULL);
 			smInitialized = true;
@@ -13,29 +13,23 @@ namespace Core {
 		std::string extension = Tool::StrUtil::GetFileExtension(path);
 		
 		if (path == "png") {
-			return CreateFromWICFile(path);
+			CreateFromWICFile(path, texture);
 		}
 		else if (path == "dds") {
-			return CreateFromDDSFile(path);
+			CreateFromDDSFile(path, texture);
 		}
 		else if (path == "tga") {
-			return CreateFromTGAFile(path);
+			CreateFromTGAFile(path, texture);
 		}
 		else {
 			assert(false);
 		}
-		return nullptr;
 	}
 
 	/*
 	* 加载WICFile
 	*/
-	Texture* TextureLoader::CreateFromWICFile(const std::string& path) {
-		// 获取资产名称
-		std::string name = Tool::StrUtil::RemoveBasePath(path);
-		
-		Texture* texture = new Texture(name);
-
+	void TextureLoader::CreateFromWICFile(const std::string& path, Texture& texture) {
 		DirectX::ScratchImage baseImage;
 		DirectX::LoadFromWICFile(
 			Tool::StrUtil::UTF8ToWString(path).c_str(),
@@ -54,24 +48,22 @@ namespace Core {
 			baseImage.GetMetadata(),
 			DirectX::TEX_FILTER_FLAGS::TEX_FILTER_DEFAULT,
 			mipMaps,
-			*texture
+			texture
 		);
 
-		return texture;
+		baseImage.Release();
 	}
 
 	/*
 	* 加载DDSFile
 	*/
-	Texture* TextureLoader::CreateFromDDSFile(const std::string& path) {
-		return nullptr;
+	void TextureLoader::CreateFromDDSFile(const std::string& path, Texture& texture) {
 	}
 
 	/*
 	* 加载TGAFile
 	*/
-	Texture* TextureLoader::CreateFromTGAFile(const std::string& path) {
-		return nullptr;
+	void TextureLoader::CreateFromTGAFile(const std::string& path, Texture& texture) {
 	}
 
 	/*

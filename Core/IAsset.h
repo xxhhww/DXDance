@@ -21,6 +21,8 @@ namespace Core {
 		*/
 		virtual ~IAsset() = default;
 
+		inline void SetName(const std::string& name) { mName = name; }
+
 		inline const auto& GetName()	const { return mName; }
 		inline const auto& GetID()		const { return mID; }
 

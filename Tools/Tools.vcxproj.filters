@@ -37,6 +37,12 @@
     <Filter Include="源文件\Time">
       <UniqueIdentifier>{abad0955-4b27-4430-bfb5-77d33bff2e22}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\FileSystem">
+      <UniqueIdentifier>{ccb0e540-2d06-4afe-9a69-06c9c62d25e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\FileSystem">
+      <UniqueIdentifier>{7d917145-0fda-4628-be6d-a44b660c5e9a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">

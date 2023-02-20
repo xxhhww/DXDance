@@ -18,22 +18,22 @@ namespace Core {
 		/*
 		* 通过绝对路径来创建纹理
 		*/
-		static Texture* Create(const std::string& path);
+		static void Create(const std::string& path, Texture& texture);
 
 		/*
 		* 加载WICFile
 		*/
-		static Texture* CreateFromWICFile(const std::string& path);
+		static void CreateFromWICFile(const std::string& path, Texture& texture);
 
 		/*
 		* 加载DDSFile
 		*/
-		static Texture* CreateFromDDSFile(const std::string& path);
+		static void CreateFromDDSFile(const std::string& path, Texture& texture);
 
 		/*
 		* 加载TGAFile
 		*/
-		static Texture* CreateFromTGAFile(const std::string& path);
+		static void CreateFromTGAFile(const std::string& path, Texture& texture);
 
 		/*
 		* 计算MipCounts
