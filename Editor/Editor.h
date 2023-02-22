@@ -3,6 +3,7 @@
 
 namespace App {
 	class ShaderEditor;
+	class AssetBrowser;
 
 	class Editor {
 	public:
@@ -44,5 +45,6 @@ namespace App {
 		Context& mContext;	// 引擎上下文
 		UI::Canvas mCanvas;	// 编辑器画布
 		ShaderEditor* mShaderEditor{ nullptr };
+		AssetBrowser* mAssetBrowser{ nullptr };
 	};
 }

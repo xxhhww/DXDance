@@ -34,6 +34,12 @@
     <Filter Include="源文件\Panels\ShaderEditor">
       <UniqueIdentifier>{3599e355-f0cb-4a30-ade9-a77e0e35babf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Panels\AssetBrowser">
+      <UniqueIdentifier>{a3470c05-8473-4fef-93df-bd3910b685a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Panels\AssetBrowser">
+      <UniqueIdentifier>{fd3db230-dadd-4358-957d-7d880a4ef313}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">
@@ -71,6 +77,9 @@
     </ClInclude>
     <ClInclude Include="Link.h">
       <Filter>头文件\Panels\ShaderEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetBrowser.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="Link.cpp">
       <Filter>源文件\Panels\ShaderEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetBrowser.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

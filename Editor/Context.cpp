@@ -6,11 +6,10 @@ namespace App {
 	* 初始化并注册核心服务
 	*/
 	Context::Context(const std::string& projPath, const std::string& projName)
-	: projectPath(projectPath)
-	, projectName(projectName)
-	, projectAssetPath(projectPath + "\\Assets")
-	, projectShaderPath(projectAssetPath + "\\Shaders")
-	, projectMaterialPath(projectAssetPath + "\\Materials") {
+	: projectPath(projPath)
+	, projectName(projName)
+	, projectEnginePath(projPath + "\\Engine")
+	, projectAssetPath(projPath + "\\Assets") {
 		// 初始化Win32窗口
 		Windows::WindowSetting winSetting{};
 		winSetting.fullscreen = false;

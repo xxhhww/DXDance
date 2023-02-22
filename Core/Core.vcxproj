@@ -136,16 +136,12 @@
   <ItemGroup>
     <ClInclude Include="IAsset.h" />
     <ClInclude Include="IAssetManger.h" />
-    <ClInclude Include="MaterialManger.h" />
     <ClInclude Include="ServiceLocator.h" />
-    <ClInclude Include="ShaderManger.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureManger.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MaterialManger.cpp" />
-    <ClCompile Include="ShaderManger.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureManger.cpp" />

@@ -21,9 +21,8 @@ namespace App {
 	public:
 		const std::string projectPath;
 		const std::string projectName;
+		const std::string projectEnginePath;
 		const std::string projectAssetPath;
-		const std::string projectShaderPath;
-		const std::string projectMaterialPath;
 
 		std::unique_ptr<Windows::Window>		window;
 		std::unique_ptr<Windows::InputManger>	inputManger;

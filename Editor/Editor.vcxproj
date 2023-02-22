@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="AssetBrowser.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Graph.h" />
@@ -146,6 +147,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="appTest.cpp" />
+    <ClCompile Include="AssetBrowser.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Graph.cpp" />

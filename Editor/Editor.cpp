@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include "MainMenuBar.h"
 #include "ShaderEditor.h"
+#include "AssetBrowser.h"
 
 namespace App {
 	/*
@@ -13,8 +14,10 @@ namespace App {
 
 
 		mShaderEditor = &mCanvas.CreatePanel<ShaderEditor>("Shader Editor");
+		mAssetBrowser = &mCanvas.CreatePanel<AssetBrowser>("Asset Browser", mContext.projectEnginePath, mContext.projectAssetPath);
 
 		mainMenuBar.RegisterPanel(mShaderEditor);
+		mainMenuBar.RegisterPanel(mAssetBrowser);
 
 		mContext.uiManger->SetCanvas(&mCanvas);
 	}

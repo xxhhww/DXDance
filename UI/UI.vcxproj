@@ -132,6 +132,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonColored.h" />
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="Child.h" />
     <ClInclude Include="ColorEdit.h" />
     <ClInclude Include="Columns.h" />
     <ClInclude Include="ComboBox.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="IPlugin.h" />
     <ClInclude Include="Pluginable.h" />
     <ClInclude Include="SameLine.h" />
+    <ClInclude Include="Separator.h" />
     <ClInclude Include="testgraph.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="IDataWidget.h" />
@@ -188,6 +190,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonColored.cpp" />
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="Child.cpp" />
     <ClCompile Include="ColorEdit.cpp" />
     <ClCompile Include="color_node_editor.cpp" />
     <ClCompile Include="ComboBox.cpp" />
@@ -219,6 +222,7 @@
     <ClCompile Include="PanelWindow.cpp" />
     <ClCompile Include="Pluginable.cpp" />
     <ClCompile Include="SameLine.cpp" />
+    <ClCompile Include="Separator.cpp" />
     <ClCompile Include="SliderFloat.cpp" />
     <ClCompile Include="SliderFloat2.cpp" />
     <ClCompile Include="SliderFloat3.cpp" />

@@ -1,5 +1,6 @@
 #pragma once
 #include "Columns.h"
+#include "imgui.h"
 
 namespace UI {
 	template<int TSize>
@@ -10,7 +11,8 @@ namespace UI {
 
 	template<int TSize>
 	void Columns<TSize>::_Draw_Internal_Impl() {
-		ImGui::Columns(TSize, ("##" + mWidgetID).c_str(), false);
+
+		ImGui::Columns(TSize, ("##" + mWidgetID).c_str(), useBorder);
 		DoDestruction();
 
 		int counter = 0;

@@ -100,6 +100,12 @@
     <Filter Include="源文件\Widget\Button">
       <UniqueIdentifier>{53eec50b-fc00-461d-af6a-27b444996644}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Widget\Visual">
+      <UniqueIdentifier>{aea2821a-c721-4f2b-9cb1-c7d8dca324fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Visual">
+      <UniqueIdentifier>{3b0cdb25-4ce8-42a1-9753-de7d38f65867}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDrawable.h">
@@ -264,6 +270,12 @@
     <ClInclude Include="ButtonColored.h">
       <Filter>头文件\Widget\Button</Filter>
     </ClInclude>
+    <ClInclude Include="Separator.h">
+      <Filter>头文件\Widget\Visual</Filter>
+    </ClInclude>
+    <ClInclude Include="Child.h">
+      <Filter>头文件\Widget\Layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -397,6 +409,12 @@
     </ClCompile>
     <ClCompile Include="ButtonColored.cpp">
       <Filter>源文件\Widget\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="Separator.cpp">
+      <Filter>源文件\Visual</Filter>
+    </ClCompile>
+    <ClCompile Include="Child.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -54,12 +54,6 @@
     <ClInclude Include="IAssetManger.h">
       <Filter>头文件\AssetManger</Filter>
     </ClInclude>
-    <ClInclude Include="MaterialManger.h">
-      <Filter>头文件\AssetManger</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderManger.h">
-      <Filter>头文件\AssetManger</Filter>
-    </ClInclude>
     <ClInclude Include="IAsset.h">
       <Filter>头文件\Asset</Filter>
     </ClInclude>
@@ -75,12 +69,6 @@
       <Filter>头文件\Interface</Filter>
     </ClCompile>
     <ClCompile Include="TextureManger.cpp">
-      <Filter>源文件\AssetManger</Filter>
-    </ClCompile>
-    <ClCompile Include="MaterialManger.cpp">
-      <Filter>源文件\AssetManger</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderManger.cpp">
       <Filter>源文件\AssetManger</Filter>
     </ClCompile>
     <ClCompile Include="TextureLoader.cpp">
