@@ -1,7 +1,9 @@
 #pragma once
 #include "UI/PanelWindow.h"
 #include "UI/Group.h"
-#include "UI/Columns.h"
+#include "UI/Child.h"
+#include "UI/TreeNode.h"
+#include <filesystem>
 
 namespace App {
 	/*
@@ -26,11 +28,15 @@ namespace App {
 		~AssetBrowser();
 
 	private:
+		/*
+		* 递归函数，处理项目路径下的文件夹或者目录
+		*/
+		void ConsiderItem(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
+	private:
 		std::string mEnginePath;
 		std::string mAssetPath;
 
-		UI::Columns<2>* mColumns{ nullptr };
-		UI::Group* mVirtualFolder{ nullptr };
-		UI::Group* mAssetList{ nullptr };
+		UI::Child* mVirtualFolder{ nullptr };
+		UI::Child* mAssetGrid{ nullptr };
 	};
 }

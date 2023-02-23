@@ -31,11 +31,10 @@ namespace Tool {
     */
     std::string	StrUtil::RemoveBasePath(const std::string& path) {
         size_t pos{ 0u };
-
         if ((pos = path.rfind('/')) != std::string::npos) {
             return path.substr(pos + 1);
         }
-        else if (pos = path.rfind('\\') != std::string::npos) {
+        else if ((pos = path.rfind('\\')) != std::string::npos) {
             return path.substr(pos + 1);
         }
 
