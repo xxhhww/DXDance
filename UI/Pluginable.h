@@ -10,8 +10,8 @@ namespace UI {
 
 		void DeleteAllPlugins();
 
-		template<typename T, typename Args>
-		T& CreatePlugin(Args args...);
+		template<typename T, typename... Args>
+		T& CreatePlugin(Args&&... args);
 
 		template<typename T>
 		T* GetPlugin();

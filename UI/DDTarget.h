@@ -14,7 +14,7 @@ namespace UI {
 		/*
 		* Create the drag and drop target
 		*/
-		DDTarget(const std::string& p_identifier) : identifier(p_identifier) {}
+		DDTarget(const std::string& p_identifier);
 
 		/*
 		* Execute the drag and drop target behaviour

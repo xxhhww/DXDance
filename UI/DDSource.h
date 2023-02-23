@@ -19,7 +19,7 @@ namespace UI {
 			const std::string& p_identifier,
 			const std::string& p_tooltip,
 			T p_data
-		) : identifier(p_identifier), tooltip(p_tooltip), data(p_data);
+		);
 
 		/*
 		* Execute the behaviour of the drag and drop source
@@ -45,4 +45,4 @@ namespace UI {
 	};
 }
 
-#include "DDSource.h"
+#include "DDSource.inl"

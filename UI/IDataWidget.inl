@@ -12,6 +12,9 @@ namespace UI {
 		if (mEnable) {
 			TData prevData = data;
 			_Draw_Internal_Impl();
+			if (mAutoExecutePlugins) {
+				ExecuteAllPlugins();
+			}
 			if (prevData != data) {
 				valueChangedEvent.Invoke(data);
 			}

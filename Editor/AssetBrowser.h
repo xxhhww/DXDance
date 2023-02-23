@@ -32,6 +32,11 @@ namespace App {
 		* 递归函数，处理项目路径下的文件夹或者目录
 		*/
 		void ConsiderItem(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
+
+		/*
+		* 绘制资产网格
+		*/
+
 	private:
 		std::string mEnginePath;
 		std::string mAssetPath;
