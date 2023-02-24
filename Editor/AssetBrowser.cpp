@@ -140,6 +140,7 @@ namespace App {
 	* 绘制资产网格
 	*/
 	void AssetBrowser::BuildAssetGrid() {
+		// 更换编程设备，提交测试
 		std::filesystem::directory_entry directory(mCurrentPath);
 		for (auto& item : std::filesystem::directory_iterator(directory)) {
 			auto& group = mAssetGridColumns->CreateWidget<UI::Group>();
