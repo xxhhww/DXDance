@@ -416,6 +416,9 @@
     <ClCompile Include="Child.cpp">
       <Filter>源文件\Widget\Layout</Filter>
     </ClCompile>
+    <ClCompile Include="Columns.cpp">
+      <Filter>源文件\Widget\Layout</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IWidgetContainer.inl">
@@ -426,9 +429,6 @@
     </None>
     <None Include="Canvas.inl">
       <Filter>头文件\Panel</Filter>
-    </None>
-    <None Include="Columns.inl">
-      <Filter>头文件\Widget\Layout</Filter>
     </None>
     <None Include="Pluginable.inl">
       <Filter>头文件\Plugins</Filter>

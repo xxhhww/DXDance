@@ -193,6 +193,7 @@
     <ClCompile Include="Child.cpp" />
     <ClCompile Include="ColorEdit.cpp" />
     <ClCompile Include="color_node_editor.cpp" />
+    <ClCompile Include="Columns.cpp" />
     <ClCompile Include="ComboBox.cpp" />
     <ClCompile Include="DragFloat.cpp" />
     <ClCompile Include="DragFloat2.cpp" />
@@ -236,7 +237,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Canvas.inl" />
-    <None Include="Columns.inl" />
     <None Include="DDSource.inl" />
     <None Include="DDTarget.inl" />
     <None Include="IDataWidget.inl" />

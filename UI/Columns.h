@@ -4,16 +4,22 @@
 #include "Tools/Event.h"
 
 namespace UI {
-	template<int TSize>
+
 	class Columns : public IWidget, public IWidgetContainer {
 	public:
-		Columns(bool border = true);
+		/*
+		* @param cols: 列数
+		* @param width: 每列的宽度
+		* @param autoArrange: 是否自动排列
+		* @param border: 是否显示边界
+		*/
+		Columns(int cols = 1, float width = 0.0f, bool autoArrange = true, bool border = false);
 	protected:
 		void _Draw_Internal_Impl() override;
 	public:
-		bool useBorder;
-		std::array<float, TSize> widths;	// 每列的宽度
+		int		cols{ 1 };
+		float	width{ 0.0f };
+		bool	autoArrange{ true };
+		bool	useBorder{ false };
 	};
 }
-
-#include "Columns.inl"

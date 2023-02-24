@@ -255,6 +255,7 @@ namespace UI {
 
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#include <filesystem>
 
 namespace UI {
 	/*
@@ -343,6 +344,15 @@ namespace UI {
         if (mCanvas) {
             mCanvas->Draw();
             ImGui::ShowDemoWindow();
+
+            static float padding = 8.0f;
+            static float thumbnailSize = 128.0f;
+            static float cellSize = thumbnailSize + padding;
+
+            std::filesystem::directory_entry directory("E:\\DXDanceProj\\Assets");
+
+ 
+
             ImGui::Render();
 
             FrameContext* frameCtx = WaitForNextFrameResources();

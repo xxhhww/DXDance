@@ -1,8 +1,8 @@
 #pragma once
 #include "UI/PanelWindow.h"
-#include "UI/Group.h"
 #include "UI/Child.h"
 #include "UI/TreeNode.h"
+#include "UI/Columns.h"
 #include <filesystem>
 
 namespace App {
@@ -31,17 +31,20 @@ namespace App {
 		/*
 		* 递归函数，处理项目路径下的文件夹或者目录
 		*/
-		void ConsiderItem(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
+		void BuildVirtualFs(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
 
 		/*
 		* 绘制资产网格
 		*/
-
+		void BuildAssetGrid();
 	private:
-		std::string mEnginePath;
-		std::string mAssetPath;
-
-		UI::Child* mVirtualFolder{ nullptr };
-		UI::Child* mAssetGrid{ nullptr };
+		std::string		mEnginePath;
+		std::string		mAssetPath;
+		std::string		mCurrentPath;
+		UI::Child*		mVirtualFs{ nullptr };
+		UI::Child*		mAssetGrid{ nullptr };
+		UI::Columns*	mAssetGridColumns{ nullptr };
+		const float		mGridPadding = 16.0f;
+		const float		mThumbnailSize = 96.0f;
 	};
 }

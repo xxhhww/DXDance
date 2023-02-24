@@ -5,6 +5,8 @@
 #include "UI/TextSelectable.h"
 #include "UI/DDSource.h"
 #include "UI/DDTarget.h"
+#include "UI/Group.h"
+#include "UI/Text.h"
 #include "Tools/StrUtil.h"
 
 namespace App {
@@ -17,7 +19,8 @@ namespace App {
 	)
 	: PanelWindow(title, opened, panelSetting)
 	, mEnginePath(enginePath)
-	, mAssetPath(assetPath) {
+	, mAssetPath(assetPath)
+	, mCurrentPath(assetPath) {
 		if (!std::filesystem::exists(mEnginePath)) {
 			std::filesystem::create_directories(mEnginePath);
 		}
@@ -26,15 +29,15 @@ namespace App {
 			std::filesystem::create_directories(mAssetPath);
 		}
 
-		mVirtualFolder = &CreateWidget<UI::Child>("Folder", 0.2f);
+		mVirtualFs = &CreateWidget<UI::Child>("VirtualFs", 0.2f);
+		BuildVirtualFs(nullptr, std::filesystem::directory_entry(mEnginePath), false);
+		BuildVirtualFs(nullptr, std::filesystem::directory_entry(mAssetPath), false);
 
 		CreateWidget<UI::SameLine>();
 
-		mAssetGrid = &CreateWidget<UI::Child>("Grid");
-		mAssetGrid->CreateWidget<UI::Separator>();
-
-		ConsiderItem(nullptr, std::filesystem::directory_entry(mEnginePath), false);
-		ConsiderItem(nullptr, std::filesystem::directory_entry(mAssetPath), false);
+		mAssetGrid = &CreateWidget<UI::Child>("Browser");
+		mAssetGridColumns = &mAssetGrid->CreateWidget<UI::Columns>(0, mThumbnailSize + mGridPadding);
+		BuildAssetGrid();
 	}
 
 	/*
@@ -47,11 +50,11 @@ namespace App {
 	/*
 	* 递归函数，处理项目路径下的文件夹或者目录
 	*/
-	void AssetBrowser::ConsiderItem(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem) {
+	void AssetBrowser::BuildVirtualFs(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem) {
 		std::string pathName = entry.path().string();
 		std::string itemName = Tool::StrUtil::RemoveBasePath(pathName);
 		bool isDirectory = entry.is_directory();
-		auto& itemGroup = (root == nullptr ? mVirtualFolder->CreateWidget<UI::Group>() : root->CreateWidget<UI::Group>());
+		auto& itemGroup = (root == nullptr ? mVirtualFs->CreateWidget<UI::Group>() : root->CreateWidget<UI::Group>());
 
 		if (isDirectory) {
 			auto& treeNode = itemGroup.CreateWidget<UI::TreeNode>(itemName);
@@ -59,7 +62,7 @@ namespace App {
 			treeNode.openedEvent += [this, &treeNode, isEngineItem, pathName]() {
 				treeNode.DeleteAllWidgets();
 				for (auto& item : std::filesystem::directory_iterator(pathName)) {
-					ConsiderItem(&treeNode, item, isEngineItem);
+					BuildVirtualFs(&treeNode, item, isEngineItem);
 				}
 			};
 
@@ -71,10 +74,14 @@ namespace App {
 				return;
 			}
 
+
 			treeNode.CreatePlugin<UI::DDSource<std::pair<std::string, UI::Group*>>>(
 				"Folder",
 				itemName,
 				std::make_pair(pathName, &itemGroup));
+
+			if (!root)
+				treeNode.DeleteAllPlugins();
 
 			treeNode.CreatePlugin<UI::DDTarget<std::pair<std::string, UI::Group*>>>("Folder").dataReceivedEvent += [&treeNode, pathName](const std::pair<std::string, UI::Group*>& data) {
 				std::string prevPath = data.first;
@@ -126,6 +133,24 @@ namespace App {
 				"File",
 				itemName,
 				std::make_pair(pathName, &itemGroup));
+		}
+	}
+
+	/*
+	* 绘制资产网格
+	*/
+	void AssetBrowser::BuildAssetGrid() {
+		std::filesystem::directory_entry directory(mCurrentPath);
+		for (auto& item : std::filesystem::directory_iterator(directory)) {
+			auto& group = mAssetGridColumns->CreateWidget<UI::Group>();
+			group.CreateWidget<UI::Button>(item.path().filename().string().c_str(), Math::Vector2{ mThumbnailSize, mThumbnailSize });
+			group.CreateWidget<UI::Text>(item.path().filename().string().c_str());
+			if (item.is_directory()) {
+
+			}
+			else {
+
+			}
 		}
 	}
 }
