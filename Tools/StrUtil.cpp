@@ -40,4 +40,16 @@ namespace Tool {
 
         return path;
     }
+
+    std::string	StrUtil::GetBasePath(const std::string& path) {
+        size_t pos{ 0u };
+        if ((pos = path.rfind('/')) != std::string::npos) {
+            return path.substr(0, pos);
+        }
+        else if ((pos = path.rfind('\\')) != std::string::npos) {
+            return path.substr(0, pos);
+        }
+
+        return path;
+    }
 }

@@ -13,9 +13,9 @@ namespace UI {
 		Tool::Event<> closedEvent;
 		Tool::Event<> clickedEvent;
 		Tool::Event<> doubleClickedEvent;
-	private:
-		std::string mName;
-		bool mIsLeaf;
-		bool mOpenStatus{ false };
+
+		std::string name;
+		bool isLeaf{ false };
+		bool opened{ false };
 	};
 }

@@ -3,6 +3,7 @@
 #include "UI/Child.h"
 #include "UI/TreeNode.h"
 #include "UI/Columns.h"
+#include "UI/Text.h"
 #include <filesystem>
 
 namespace App {
@@ -43,6 +44,7 @@ namespace App {
 		std::string		mCurrentPath;
 		UI::Child*		mVirtualFs{ nullptr };
 		UI::Child*		mAssetGrid{ nullptr };
+		UI::Text*		mCurrPathText{ nullptr };
 		UI::Columns*	mAssetGridColumns{ nullptr };
 		const float		mGridPadding = 16.0f;
 		const float		mThumbnailSize = 96.0f;

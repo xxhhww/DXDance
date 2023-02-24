@@ -46,10 +46,27 @@ namespace UI {
 		mWidgets.clear();
 	}
 
+	void IWidgetContainer::DestoryAllWidgets() {
+		std::for_each(mWidgets.begin(), mWidgets.end(),
+			[](auto& pair) {
+				pair.first->Destory();
+			});
+	}
+
 	void IWidgetContainer::DrawWidgets() {
 		DoDestruction();
+		DoPreparation();
+
 		for (const auto& pair : mWidgets) {
 			pair.first->Draw();
+		}
+	}
+
+	void IWidgetContainer::DoPreparation() {
+		while (!mDelayWidgets.empty()) {
+			IWidget* widget = mDelayWidgets.front();
+			mWidgets.emplace_back(widget, IWidgetMangement::InternalMangement);
+			mDelayWidgets.pop();
 		}
 	}
 

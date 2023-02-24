@@ -11,6 +11,7 @@ namespace UI {
 		void _Draw_Internal_Impl() override;
 	public:
 		Tool::Event<>	clickedEvent;
+		Tool::Event<>	doubleClickedEvent;
 		std::string		label;
 		Math::Vector2	size;
 		bool			disable;

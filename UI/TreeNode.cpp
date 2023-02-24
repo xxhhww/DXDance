@@ -3,29 +3,29 @@
 
 namespace UI {
 	TreeNode::TreeNode(const std::string& name, bool isLeaf)
-	: mName(name) 
-	, mIsLeaf(isLeaf) {
+	: name(name) 
+	, isLeaf(isLeaf) {
 		mAutoExecutePlugins = false;
 	}
 
 	void TreeNode::_Draw_Internal_Impl() {
-		bool prevOpenStatus = mOpenStatus;
+		bool prevOpenStatus = opened;
 
 		ImGuiTreeNodeFlags flags{};
-		flags |= ImGuiTreeNodeFlags_OpenOnDoubleClick;
-		if (mIsLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
+		flags |= ImGuiTreeNodeFlags_OpenOnArrow;
+		if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
-		mOpenStatus = ImGui::TreeNodeEx((mName + mWidgetID).c_str(), flags);
+		opened = ImGui::TreeNodeEx((name + mWidgetID).c_str(), flags);
 		if (ImGui::IsItemClicked() && (ImGui::GetMousePos().x - ImGui::GetItemRectMin().x) > ImGui::GetTreeNodeToLabelSpacing()) {
-			if(ImGui::IsMouseClicked(0)){
+			if(ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
 				clickedEvent.Invoke();
 			}
-			else if (ImGui::IsMouseDoubleClicked(0)) {
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 				doubleClickedEvent.Invoke();
 			}
 		}
 
-		if (mOpenStatus) {
+		if (opened) {
 			if (!prevOpenStatus) {
 				openedEvent.Invoke();
 			}

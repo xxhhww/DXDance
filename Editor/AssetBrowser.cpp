@@ -6,7 +6,6 @@
 #include "UI/DDSource.h"
 #include "UI/DDTarget.h"
 #include "UI/Group.h"
-#include "UI/Text.h"
 #include "Tools/StrUtil.h"
 
 namespace App {
@@ -30,12 +29,15 @@ namespace App {
 		}
 
 		mVirtualFs = &CreateWidget<UI::Child>("VirtualFs", 0.2f);
+		mVirtualFs->CreateWidget<UI::Separator>();
 		BuildVirtualFs(nullptr, std::filesystem::directory_entry(mEnginePath), false);
 		BuildVirtualFs(nullptr, std::filesystem::directory_entry(mAssetPath), false);
 
 		CreateWidget<UI::SameLine>();
 
 		mAssetGrid = &CreateWidget<UI::Child>("Browser");
+		mCurrPathText = &mAssetGrid->CreateWidget<UI::Text>(mCurrentPath);
+		mAssetGrid->CreateWidget<UI::Separator>();
 		mAssetGridColumns = &mAssetGrid->CreateWidget<UI::Columns>(0, mThumbnailSize + mGridPadding);
 		BuildAssetGrid();
 	}
@@ -54,26 +56,31 @@ namespace App {
 		std::string pathName = entry.path().string();
 		std::string itemName = Tool::StrUtil::RemoveBasePath(pathName);
 		bool isDirectory = entry.is_directory();
-		auto& itemGroup = (root == nullptr ? mVirtualFs->CreateWidget<UI::Group>() : root->CreateWidget<UI::Group>());
+		auto& itemGroup = (root == nullptr ? mVirtualFs->CreateWidgetDelay<UI::Group>() : root->CreateWidgetDelay<UI::Group>());
 
 		if (isDirectory) {
-			auto& treeNode = itemGroup.CreateWidget<UI::TreeNode>(itemName);
+			auto& treeNode = itemGroup.CreateWidgetDelay<UI::TreeNode>(itemName);
 
 			treeNode.openedEvent += [this, &treeNode, isEngineItem, pathName]() {
-				treeNode.DeleteAllWidgets();
+				treeNode.DestoryAllWidgets();
 				for (auto& item : std::filesystem::directory_iterator(pathName)) {
 					BuildVirtualFs(&treeNode, item, isEngineItem);
+				}
+
+				mCurrentPath = pathName;
+				BuildAssetGrid();
+			};
+
+			treeNode.clickedEvent += [this, &treeNode, pathName]() {
+				if (treeNode.opened) {
+					mCurrentPath = pathName;
+					BuildAssetGrid();
 				}
 			};
 
 			treeNode.closedEvent += [&treeNode]() {
-				treeNode.DeleteAllWidgets();
+				treeNode.DestoryAllWidgets();
 			};
-
-			if (isEngineItem) {
-				return;
-			}
-
 
 			treeNode.CreatePlugin<UI::DDSource<std::pair<std::string, UI::Group*>>>(
 				"Folder",
@@ -82,6 +89,11 @@ namespace App {
 
 			if (!root)
 				treeNode.DeleteAllPlugins();
+
+			// 引擎文件和文件夹无法成为拖动的目标
+			if (isEngineItem) {
+				return;
+			}
 
 			treeNode.CreatePlugin<UI::DDTarget<std::pair<std::string, UI::Group*>>>("Folder").dataReceivedEvent += [&treeNode, pathName](const std::pair<std::string, UI::Group*>& data) {
 				std::string prevPath = data.first;
@@ -98,7 +110,10 @@ namespace App {
 					std::filesystem::create_directories(currPath);
 					std::filesystem::copy(prevPath, currPath, std::filesystem::copy_options::recursive);
 					std::filesystem::remove_all(prevPath);
-					data.second->Destory();
+
+					if (data.second != nullptr) {
+						data.second->Destory();
+					}
 					treeNode.openedEvent.Invoke();
 				}
 			};
@@ -119,16 +134,20 @@ namespace App {
 				std::filesystem::remove(prevPath);
 				treeNode.openedEvent.Invoke();
 
-				data.second->Destory();
+				if (data.second != nullptr) {
+					data.second->Destory();
+				}
 			};
 		}
 		else {
-			auto& selectableText = itemGroup.CreateWidget<UI::TextSelectable>(itemName);
+			auto& selectableText = itemGroup.CreateWidgetDelay<UI::TextSelectable>(itemName);
 
-			if (isEngineItem) {
-				return;
-			}
+			selectableText.clickedEvent += [this, pathName]() {
+				mCurrentPath = Tool::StrUtil::GetBasePath(pathName);
+				BuildAssetGrid();
+			};
 
+			// 引擎文件和普通文件均可拖动
 			auto& ddSource = selectableText.CreatePlugin<UI::DDSource<std::pair<std::string, UI::Group*>>>(
 				"File",
 				itemName,
@@ -140,17 +159,29 @@ namespace App {
 	* 绘制资产网格
 	*/
 	void AssetBrowser::BuildAssetGrid() {
-		// 更换编程设备，提交测试
+		mCurrPathText->data = mCurrentPath;
+
+		mAssetGridColumns->DestoryAllWidgets();
+
 		std::filesystem::directory_entry directory(mCurrentPath);
 		for (auto& item : std::filesystem::directory_iterator(directory)) {
-			auto& group = mAssetGridColumns->CreateWidget<UI::Group>();
-			group.CreateWidget<UI::Button>(item.path().filename().string().c_str(), Math::Vector2{ mThumbnailSize, mThumbnailSize });
-			group.CreateWidget<UI::Text>(item.path().filename().string().c_str());
-			if (item.is_directory()) {
+			std::string pathName = item.path().string();
+			std::string itemName = Tool::StrUtil::RemoveBasePath(pathName);
 
+			auto& group = mAssetGridColumns->CreateWidgetDelay<UI::Group>();
+			auto& button = group.CreateWidgetDelay<UI::Button>(itemName, Math::Vector2{ mThumbnailSize, mThumbnailSize });
+			group.CreateWidgetDelay<UI::Text>(itemName);
+			if (item.is_directory()) {
+				button.doubleClickedEvent += [this, pathName]() {
+					mCurrentPath = pathName;
+					BuildAssetGrid();
+				};
 			}
 			else {
-
+				button.CreatePlugin<UI::DDSource<std::pair<std::string, UI::Group*>>>(
+					"File",
+					itemName,
+					std::make_pair(pathName, nullptr));
 			}
 		}
 	}

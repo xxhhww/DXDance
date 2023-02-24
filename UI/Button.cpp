@@ -9,7 +9,12 @@ namespace UI {
 	, disable(disable) {}
 
 	void Button::_Draw_Internal_Impl() {
-		if (ImGui::ButtonEx((label + mWidgetID).c_str(), ImVec2(size.x, size.y), disable ? ImGuiButtonFlags_Disabled : 0)) {
+		ImGui::ButtonEx((label + mWidgetID).c_str(), ImVec2(size.x, size.y), disable ? ImGuiButtonFlags_Disabled : 0);
+
+		if (ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+			doubleClickedEvent.Invoke();
+		}
+		if (ImGui::IsItemClicked() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			clickedEvent.Invoke();
 		}
 	}

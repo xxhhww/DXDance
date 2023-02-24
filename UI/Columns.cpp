@@ -20,6 +20,7 @@ namespace UI {
 
 		ImGui::Columns(count, ("##" + mWidgetID).c_str(), useBorder);
 		DoDestruction();
+		DoPreparation();
 
 		int index = 0;
 		for (auto it = mWidgets.begin(); it != mWidgets.end(); it++) {

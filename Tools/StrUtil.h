@@ -18,5 +18,10 @@ namespace Tool {
 		* 获得路径的最后一个层级
 		*/
 		static std::string	RemoveBasePath(const std::string& path);
+
+		/*
+		* 获得路径的目录层级(即去掉文件名)
+		*/
+		static std::string	GetBasePath(const std::string& path);
 	};
 }
