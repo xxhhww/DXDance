@@ -1,9 +1,9 @@
 #pragma once
 #include "UI/PanelWindow.h"
 #include "UI/Child.h"
-#include "UI/TreeNode.h"
 #include "UI/Columns.h"
 #include "UI/Text.h"
+#include "FolderItem.h"
 #include <filesystem>
 
 namespace App {
@@ -32,7 +32,7 @@ namespace App {
 		/*
 		* 递归函数，处理项目路径下的文件夹或者目录
 		*/
-		void BuildVirtualFs(UI::TreeNode* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
+		void BuildVirtualFs(FolderItem* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
 
 		/*
 		* 绘制资产网格

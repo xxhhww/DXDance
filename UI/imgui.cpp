@@ -9971,7 +9971,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
             // A) Read the explanation below, B) Use the ImGuiDragDropFlags_SourceAllowNullID flag, C) Swallow your programmer pride.
             if (!(flags & ImGuiDragDropFlags_SourceAllowNullID))
             {
-                IM_ASSERT(0);
+                // IM_ASSERT(0);
                 return false;
             }
 

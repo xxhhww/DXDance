@@ -132,7 +132,10 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="AssetBrowser.h" />
+    <ClInclude Include="BrowserItem.h" />
     <ClInclude Include="Context.h" />
+    <ClInclude Include="FileItem.h" />
+    <ClInclude Include="FolderItem.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="ISupportUndo.h" />
@@ -148,8 +151,11 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="appTest.cpp" />
     <ClCompile Include="AssetBrowser.cpp" />
+    <ClCompile Include="BrowserItem.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="FileItem.cpp" />
+    <ClCompile Include="FolderItem.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="ISupportUndo.cpp" />
     <ClCompile Include="Link.cpp" />

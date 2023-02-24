@@ -81,6 +81,15 @@
     <ClInclude Include="AssetBrowser.h">
       <Filter>头文件\Panels\AssetBrowser</Filter>
     </ClInclude>
+    <ClInclude Include="BrowserItem.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FolderItem.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FileItem.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -123,6 +132,15 @@
       <Filter>源文件\Panels\ShaderEditor</Filter>
     </ClCompile>
     <ClCompile Include="AssetBrowser.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserItem.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FolderItem.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileItem.cpp">
       <Filter>源文件\Panels\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>
