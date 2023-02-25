@@ -133,6 +133,7 @@
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="StrUtil.h" />
+    <ClInclude Include="SystemCall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl" />
@@ -142,6 +143,7 @@
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="StrUtil.cpp" />
+    <ClCompile Include="SystemCall.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

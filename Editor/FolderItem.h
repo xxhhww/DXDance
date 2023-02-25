@@ -28,6 +28,13 @@ namespace App {
 		* 删除被标记为销毁的Widget
 		*/
 		void DoDestruction();
+
+		/*
+		* Get方法
+		*/
+		auto& GetBrowserItems() { return mBrowserItems; }
+		const auto& GetBrowserItems() const { return mBrowserItems; }
+
 	protected:
 		void _Draw_Internal_Impl() override;
 	public:

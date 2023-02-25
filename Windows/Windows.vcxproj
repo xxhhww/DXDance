@@ -133,12 +133,18 @@
     <ClInclude Include="EkeyState.h" />
     <ClInclude Include="EMouseButton.h" />
     <ClInclude Include="EMouseButtonState.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="InputManger.h" />
+    <ClInclude Include="OpenFileDialog.h" />
+    <ClInclude Include="SaveFileDialog.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowSetting.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="InputManger.cpp" />
+    <ClCompile Include="OpenFileDialog.cpp" />
+    <ClCompile Include="SaveFileDialog.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowTest.cpp" />
   </ItemGroup>

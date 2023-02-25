@@ -6,13 +6,15 @@ namespace UI {
 	: IDataWidget<std::string>(content)
 	, mLabel(label) 
 	, mMaxSize(maxSize) {
-		data.resize(mMaxSize, '\0');
+		// data.resize(mMaxSize, '\0');
 	}
 
 	void InputText::_Draw_Internal_Impl() {
-		bool editCompleted = ImGui::InputText((mLabel + mWidgetID).c_str(), &data[0], mMaxSize, ImGuiInputTextFlags_EnterReturnsTrue);
-		if (editCompleted) {
-			editCompletedEvent.Invoke(data);
+		data.resize(mMaxSize, '\0');
+		bool enterPressed = ImGui::InputText((mLabel + mWidgetID).c_str(), &data[0], mMaxSize, ImGuiInputTextFlags_EnterReturnsTrue);
+		data = data.c_str();
+		if (enterPressed) {
+			enterPressedEvent.Invoke(data);
 		}
 	}
 }

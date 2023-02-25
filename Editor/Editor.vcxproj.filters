@@ -90,6 +90,15 @@
     <ClInclude Include="FileItem.h">
       <Filter>头文件\Panels\AssetBrowser</Filter>
     </ClInclude>
+    <ClInclude Include="BrowserItemContextualMenu.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FolderItemContextualMenu.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="FileItemContextualMenu.h">
+      <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -141,6 +150,15 @@
       <Filter>源文件\Panels\AssetBrowser</Filter>
     </ClCompile>
     <ClCompile Include="FileItem.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserItemContextualMenu.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FolderItemContextualMenu.cpp">
+      <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="FileItemContextualMenu.cpp">
       <Filter>源文件\Panels\AssetBrowser</Filter>
     </ClCompile>
   </ItemGroup>

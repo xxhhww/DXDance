@@ -136,6 +136,7 @@
     <ClInclude Include="ColorEdit.h" />
     <ClInclude Include="Columns.h" />
     <ClInclude Include="ComboBox.h" />
+    <ClInclude Include="ContextualMenu.h" />
     <ClInclude Include="DDSource.h" />
     <ClInclude Include="DDTarget.h" />
     <ClInclude Include="DragFloat.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="color_node_editor.cpp" />
     <ClCompile Include="Columns.cpp" />
     <ClCompile Include="ComboBox.cpp" />
+    <ClCompile Include="ContextualMenu.cpp" />
     <ClCompile Include="DragFloat.cpp" />
     <ClCompile Include="DragFloat2.cpp" />
     <ClCompile Include="DragFloat3.cpp" />

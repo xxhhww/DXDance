@@ -16,12 +16,6 @@
     <Filter Include="头文件\Event">
       <UniqueIdentifier>{50478eb8-332e-4a22-b562-e42e4b967465}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Utils">
-      <UniqueIdentifier>{8581e6f0-973c-485b-aa28-68418749fe02}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Utils">
-      <UniqueIdentifier>{1950c7dd-9689-4162-9556-b5cafa2165f6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\MemoryStream">
       <UniqueIdentifier>{3f3c96d9-fca6-4c26-b613-96fde45fba12}</UniqueIdentifier>
     </Filter>
@@ -43,6 +37,18 @@
     <Filter Include="源文件\FileSystem">
       <UniqueIdentifier>{7d917145-0fda-4628-be6d-a44b660c5e9a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\StrUtil">
+      <UniqueIdentifier>{8581e6f0-973c-485b-aa28-68418749fe02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\StrUtil">
+      <UniqueIdentifier>{1950c7dd-9689-4162-9556-b5cafa2165f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\SystemCall">
+      <UniqueIdentifier>{b0f07373-aa71-45fd-b3ce-dd58e076bd17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\SystemCall">
+      <UniqueIdentifier>{d35bb107-74af-401c-b5bc-fbe9f296cb79}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -57,7 +63,7 @@
       <Filter>头文件\Event</Filter>
     </ClInclude>
     <ClInclude Include="StrUtil.h">
-      <Filter>头文件\Utils</Filter>
+      <Filter>头文件\StrUtil</Filter>
     </ClInclude>
     <ClInclude Include="MemoryStream.h">
       <Filter>头文件\MemoryStream</Filter>
@@ -68,16 +74,22 @@
     <ClInclude Include="Clock.h">
       <Filter>头文件\Time</Filter>
     </ClInclude>
+    <ClInclude Include="SystemCall.h">
+      <Filter>头文件\SystemCall</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
-      <Filter>源文件\Utils</Filter>
+      <Filter>源文件\StrUtil</Filter>
     </ClCompile>
     <ClCompile Include="MemoryStream.cpp">
       <Filter>源文件\MemoryStream</Filter>
     </ClCompile>
     <ClCompile Include="Clock.cpp">
       <Filter>源文件\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemCall.cpp">
+      <Filter>源文件\SystemCall</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

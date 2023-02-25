@@ -3,7 +3,7 @@
 
 namespace App {
 	FolderItem::FolderItem(const std::string& name, const std::string& path)
-	: BrowserItem(name, path) {
+	: BrowserItem(name, path, true) {
 		mAutoExecutePlugins = false;
 	}
 

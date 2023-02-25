@@ -35,17 +35,26 @@ namespace App {
 		void BuildVirtualFs(FolderItem* root, std::filesystem::directory_entry entry, bool isEngineItem = false);
 
 		/*
-		* 绘制资产网格
+		* 绘制虚拟文件夹视图
 		*/
-		void BuildAssetGrid();
+		void BuildVirtualFsView(FolderItem* node);
+
+		/*
+		* 判断文件路径是否为引擎文件，即为匹配字符串前缀
+		*/
+		bool IsEngineItem(const std::string& viewPath);
 	private:
 		std::string		mEnginePath;
 		std::string		mAssetPath;
-		std::string		mCurrentPath;
-		UI::Child*		mVirtualFs{ nullptr };
-		UI::Child*		mAssetGrid{ nullptr };
-		UI::Text*		mCurrPathText{ nullptr };
-		UI::Columns*	mAssetGridColumns{ nullptr };
+		
+		UI::Child*		mVirtualFs{ nullptr };			// 虚拟文件夹子窗口
+		FolderItem*		mEngineFolderItem{ nullptr };	// 引擎文件的根项目
+		FolderItem*		mAssetFolderItem{ nullptr };	// 资产文件的根项目
+
+		UI::Child*		mFolderItemView{ nullptr };		// 虚拟文件系统视图
+		UI::Text*		mViewPathText{ nullptr };		// 显示视图当前展示的路径
+		UI::Columns*	mViewColumns{ nullptr };		// 视图的展示列
+		FolderItem*		mCurrFolderItem{ nullptr };		// 当前展示的文件夹项目
 		const float		mGridPadding = 16.0f;
 		const float		mThumbnailSize = 96.0f;
 	};

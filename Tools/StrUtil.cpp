@@ -1,19 +1,19 @@
 #include "StrUtil.h"
 #include <Windows.h>
+#include <codecvt>
 
 namespace Tool {
     /*
     * string to wstring
     */
 	std::wstring StrUtil::UTF8ToWString(const std::string& str) {
-        std::wstring result;
         int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
-        if (len < 0)return result;
+        if (len < 0)return L"";
         wchar_t* buffer = new wchar_t[len + 1];
-        if (buffer == NULL)return result;
+        if (buffer == NULL)return L"";
         MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), buffer, len);
         buffer[len] = '\0';
-        result.append(buffer);
+        std::wstring result(buffer, len);
         delete[] buffer;
         return result;
 	}
@@ -51,5 +51,20 @@ namespace Tool {
         }
 
         return path;
+    }
+
+    bool StrUtil::StartWith(const std::string& path, const std::string& prefix) {
+        return path.size() >= prefix.size() && path.compare(0, prefix.size(), prefix) == 0;
+    }
+
+    std::string StrUtil::MakeWindowsStyle(const std::string& path) {
+        std::string result;
+        result.resize(path.size());
+
+        for (size_t i = 0; i < path.size(); ++i) {
+            result[i] = path[i] == '/' ? '\\' : path[i];
+        }
+
+        return result;
     }
 }

@@ -11,9 +11,10 @@ namespace App {
 		/*
 		* 构造函数
 		*/
-		BrowserItem(const std::string& name, const std::string& path);
+		BrowserItem(const std::string& name, const std::string& path, bool isDirectory);
 	public:
-		std::string name;	// 项目名称
-		std::string path;	// 项目路径
+		std::string name;			// 项目名称
+		std::string path;			// 项目路径
+		bool		isDirectory;	// 是否为目录
 	};
 }

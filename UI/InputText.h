@@ -9,7 +9,7 @@ namespace UI {
 	protected:
 		void _Draw_Internal_Impl() override;
 	public:
-		Tool::Event<const std::string&> editCompletedEvent;
+		Tool::Event<const std::string&> enterPressedEvent;
 	private:
 		std::string mLabel;
 		size_t mMaxSize;

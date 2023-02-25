@@ -22,6 +22,12 @@
     <Filter Include="源文件\Test">
       <UniqueIdentifier>{5f0b436b-77f7-4fa0-8232-a74df7d222af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Dialogs">
+      <UniqueIdentifier>{d5c6bf8f-f556-47a3-a5e1-f140e0e9a5a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Dialogs">
+      <UniqueIdentifier>{9ca23165-dd7f-4f51-8e36-6ca67da43cb8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -45,6 +51,15 @@
     <ClInclude Include="WindowSetting.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="OpenFileDialog.h">
+      <Filter>头文件\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>头文件\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveFileDialog.h">
+      <Filter>头文件\Dialogs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -55,6 +70,15 @@
     </ClCompile>
     <ClCompile Include="WindowTest.cpp">
       <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>源文件\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenFileDialog.cpp">
+      <Filter>源文件\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="SaveFileDialog.cpp">
+      <Filter>源文件\Dialogs</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

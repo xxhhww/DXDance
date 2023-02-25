@@ -174,7 +174,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     inputText1.valueChangedEvent += [&sss](const std::string& str) {
         sss = str;
     };
-    inputText1.editCompletedEvent += std::bind(lam, 1);
+    // inputText1.editCompletedEvent += std::bind(lam, 1);
 
     UI::PanelWindow panelWindow2("PanelWindow");
 
