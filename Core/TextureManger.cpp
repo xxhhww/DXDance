@@ -20,7 +20,7 @@ namespace Core {
 		target->Serialize(oStream);
 
 		std::string abPath = mAssetPath + "/" + target->GetName();
-		std::ofstream oFile(abPath + ".tex", std::ios::binary | std::ios::out);
+		std::ofstream oFile(abPath + ".meta", std::ios::binary | std::ios::out);
 		oFile.write((const char*)oStream.Data(), oStream.Size());
 	}
 
@@ -32,7 +32,7 @@ namespace Core {
 		std::string name = Tool::StrUtil::RemoveBasePath(path);
 
 		std::string abPath = mAssetPath + "/" + path;
-		std::ifstream iFile(abPath + ".tex", std::ios::binary | std::ios::in);
+		std::ifstream iFile(abPath + ".meta", std::ios::binary | std::ios::in);
 		Tool::InputMemoryStream iStream(iFile);
 
 		Texture* texture = new Texture();

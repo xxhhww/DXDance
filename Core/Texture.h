@@ -1,6 +1,6 @@
 #pragma once
 #include "IAsset.h"
-#include "DirectXTex/DirectXTex.h"
+#include "ThirdParty/include/DirectXTex/DirectXTex.h"
 
 namespace Core {
 	/*

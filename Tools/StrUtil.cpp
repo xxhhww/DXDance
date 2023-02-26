@@ -18,6 +18,17 @@ namespace Tool {
         return result;
 	}
 
+    std::string StrUtil::WStringToUTF8(const std::wstring& str) {
+        int len;
+        int slength = (int)str.length() + 1;
+        len = WideCharToMultiByte(CP_ACP, 0, str.c_str(), slength, 0, 0, 0, 0);
+        char* buf = new char[len];
+        WideCharToMultiByte(CP_ACP, 0, str.c_str(), slength, buf, len, 0, 0);
+        std::string r(buf, len);
+        delete[] buf;
+        return r;
+    }
+
     /*
     * 获得文件/路径的扩展名
     */

@@ -3,6 +3,7 @@
 #include "UI/InputText.h"
 #include "Tools/SystemCall.h"
 #include "Windows/OpenFileDialog.h"
+#include "Core/Texture.h"
 #include <filesystem>
 
 namespace App {
@@ -46,9 +47,8 @@ namespace App {
 			selectAssetDialog.Show();
 
 			if (selectAssetDialog.HasSucceeded()) {
-				std::string source = selectAssetDialog.GetSelectedFilePath();
+				std::string filepath = selectAssetDialog.GetSelectedFilePath();
 				std::string filename = selectAssetDialog.GetSelectedFileName();
-				int i = 32;
 			}
 		};
 

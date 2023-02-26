@@ -51,7 +51,7 @@ namespace Windows {
 		else
 			m_filepathW = m_filepathW.c_str();
 
-		m_filepath = 
+		m_filepath = Tool::StrUtil::WStringToUTF8(m_filepathW);
 		/* Extract filename from filepath */
 		m_filename.clear();
 		for (auto it = m_filepath.rbegin(); it != m_filepath.rend() && *it != '\\' && *it != '/'; ++it)

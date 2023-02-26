@@ -10,6 +10,11 @@ namespace Tool {
 		static std::wstring UTF8ToWString(const std::string& source);
 
 		/*
+		* wstring to string
+		*/
+		static std::string	WStringToUTF8(const std::wstring& source);
+
+		/*
 		* 获得文件/路径的扩展名
 		*/
 		static std::string	GetFileExtension(const std::string& path);

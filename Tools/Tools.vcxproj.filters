@@ -31,12 +31,6 @@
     <Filter Include="源文件\Time">
       <UniqueIdentifier>{abad0955-4b27-4430-bfb5-77d33bff2e22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\FileSystem">
-      <UniqueIdentifier>{ccb0e540-2d06-4afe-9a69-06c9c62d25e8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\FileSystem">
-      <UniqueIdentifier>{7d917145-0fda-4628-be6d-a44b660c5e9a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\StrUtil">
       <UniqueIdentifier>{8581e6f0-973c-485b-aa28-68418749fe02}</UniqueIdentifier>
     </Filter>
@@ -49,6 +43,12 @@
     <Filter Include="源文件\SystemCall">
       <UniqueIdentifier>{d35bb107-74af-401c-b5bc-fbe9f296cb79}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\MetaFile">
+      <UniqueIdentifier>{ccb0e540-2d06-4afe-9a69-06c9c62d25e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\MetaFile">
+      <UniqueIdentifier>{7d917145-0fda-4628-be6d-a44b660c5e9a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -56,6 +56,9 @@
     </None>
     <None Include="MemoryStream.inl">
       <Filter>头文件\MemoryStream</Filter>
+    </None>
+    <None Include="MetaFile.inl">
+      <Filter>头文件\MetaFile</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -77,6 +80,9 @@
     <ClInclude Include="SystemCall.h">
       <Filter>头文件\SystemCall</Filter>
     </ClInclude>
+    <ClInclude Include="MetaFile.h">
+      <Filter>头文件\MetaFile</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -90,6 +96,9 @@
     </ClCompile>
     <ClCompile Include="SystemCall.cpp">
       <Filter>源文件\SystemCall</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaFile.cpp">
+      <Filter>源文件\MetaFile</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

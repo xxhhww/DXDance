@@ -132,16 +132,19 @@
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
+    <ClInclude Include="MetaFile.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl" />
     <None Include="MemoryStream.inl" />
+    <None Include="MetaFile.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
+    <ClCompile Include="MetaFile.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />
   </ItemGroup>
