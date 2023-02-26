@@ -135,6 +135,7 @@
     <ClInclude Include="MetaFile.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
+    <ClInclude Include="UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl" />
@@ -147,6 +148,7 @@
     <ClCompile Include="MetaFile.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />
+    <ClCompile Include="UIDGenerator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -25,6 +25,16 @@ namespace App {
 		}
 
 		/*
+		* 修改Key
+		*/
+		void UpdateKey(const std::string& oldKey, const std::string& newKey);
+
+		/*
+		* 传播新的路径信息
+		*/
+		void PropagatePath(const std::string& parentPath) override;
+
+		/*
 		* 删除被标记为销毁的Widget
 		*/
 		void DoDestruction();
@@ -46,5 +56,6 @@ namespace App {
 		bool opened{ false };	// 文件夹项目是否打开
 	protected:
 		std::map<std::string, std::unique_ptr<BrowserItem>> mBrowserItems;	// 子项目
+		std::vector<std::pair<std::string, std::string>>	mkeyUpadtes;	// Key更新
 	};
 }

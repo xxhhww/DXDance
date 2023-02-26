@@ -3,9 +3,6 @@
 #include <codecvt>
 
 namespace Tool {
-    /*
-    * string to wstring
-    */
 	std::wstring StrUtil::UTF8ToWString(const std::string& str) {
         int len = MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
         if (len < 0)return L"";
@@ -19,27 +16,51 @@ namespace Tool {
 	}
 
     std::string StrUtil::WStringToUTF8(const std::wstring& str) {
-        int len;
-        int slength = (int)str.length() + 1;
-        len = WideCharToMultiByte(CP_ACP, 0, str.c_str(), slength, 0, 0, 0, 0);
-        char* buf = new char[len];
-        WideCharToMultiByte(CP_ACP, 0, str.c_str(), slength, buf, len, 0, 0);
-        std::string r(buf, len);
-        delete[] buf;
-        return r;
+        int len = WideCharToMultiByte(CP_ACP, 0, str.c_str(), str.size(), 0, 0, 0, 0);
+        char* buffer = new char[len + 1];
+        WideCharToMultiByte(CP_ACP, 0, str.c_str(), str.size(), buffer, len, 0, 0);
+        buffer[len] = '\0';
+        std::string result(buffer, len);
+        delete[] buffer;
+        return result;
     }
 
-    /*
-    * 获得文件/路径的扩展名
-    */
+    std::string	StrUtil::RemoveExtension(const std::string& path) {
+        size_t pos{ 0u };
+        if ((pos = path.rfind('.')) != std::string::npos) {
+            return path.substr(0, pos);
+        }
+
+        return path;
+    }
+
     std::string	StrUtil::GetFileExtension(const std::string& path) {
         size_t pos = path.find_last_of(".");
         return path.substr(pos + 1);
     }
 
-    /*
-    * 获得路径的最后一个层级
-    */
+    FileType StrUtil::GetFileType(const std::string& path) {
+        std::string extension = StrUtil::GetFileExtension(path);
+
+        if (extension == "png" || extension == "jpg" || extension == "tga" || extension == "dds") {
+            return FileType::TEXTURE;
+        }
+        else if (extension == "pmx" || extension == "fbx" || extension == "obj") {
+            return FileType::MODEL;
+        }
+        else if (extension == "wav" || extension == "mp3") {
+            return FileType::AUDIO;
+        }
+        else if (extension == "shader") {
+            return FileType::SHADER;
+        }
+        else if (extension == "mat") {
+            return FileType::MATERIAL;
+        }
+
+        return FileType::UNSUPPORT;
+    }
+
     std::string	StrUtil::RemoveBasePath(const std::string& path) {
         size_t pos{ 0u };
         if ((pos = path.rfind('/')) != std::string::npos) {

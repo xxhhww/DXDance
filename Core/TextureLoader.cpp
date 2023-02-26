@@ -12,13 +12,13 @@ namespace Core {
 
 		std::string extension = Tool::StrUtil::GetFileExtension(path);
 		
-		if (path == "png") {
+		if (extension == "png" || extension == "jpg") {
 			CreateFromWICFile(path, texture);
 		}
-		else if (path == "dds") {
+		else if (extension == "dds") {
 			CreateFromDDSFile(path, texture);
 		}
-		else if (path == "tga") {
+		else if (extension == "tga") {
 			CreateFromTGAFile(path, texture);
 		}
 		else {

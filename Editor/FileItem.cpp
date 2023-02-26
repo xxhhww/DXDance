@@ -5,6 +5,10 @@ namespace App {
 	FileItem::FileItem(const std::string& name, const std::string& path)
 	: BrowserItem(name, path, false) {}
 
+	void FileItem::PropagatePath(const std::string& parentPath) {
+		path = parentPath + '\\' + name;
+	}
+
 	void FileItem::_Draw_Internal_Impl() {
 		bool useless = false;
 

@@ -49,6 +49,12 @@
     <Filter Include="源文件\MetaFile">
       <UniqueIdentifier>{7d917145-0fda-4628-be6d-a44b660c5e9a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\UID">
+      <UniqueIdentifier>{04be5721-4663-4968-b0f6-3226508e0260}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\UID">
+      <UniqueIdentifier>{8d0ef182-b7f8-43e9-8285-d33d72136e77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -83,6 +89,9 @@
     <ClInclude Include="MetaFile.h">
       <Filter>头文件\MetaFile</Filter>
     </ClInclude>
+    <ClInclude Include="UIDGenerator.h">
+      <Filter>头文件\UID</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -99,6 +108,9 @@
     </ClCompile>
     <ClCompile Include="MetaFile.cpp">
       <Filter>源文件\MetaFile</Filter>
+    </ClCompile>
+    <ClCompile Include="UIDGenerator.cpp">
+      <Filter>源文件\UID</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

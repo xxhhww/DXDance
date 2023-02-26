@@ -53,10 +53,7 @@ namespace Windows {
 
 		m_filepath = Tool::StrUtil::WStringToUTF8(m_filepathW);
 		/* Extract filename from filepath */
-		m_filename.clear();
-		for (auto it = m_filepath.rbegin(); it != m_filepath.rend() && *it != '\\' && *it != '/'; ++it)
-			m_filename += *it;
-		std::reverse(m_filename.begin(), m_filename.end());
+		m_filename = Tool::StrUtil::RemoveBasePath(m_filepath);
 	}
 
 	bool FileDialog::HasSucceeded() const

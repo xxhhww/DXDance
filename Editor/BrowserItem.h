@@ -12,6 +12,11 @@ namespace App {
 		* 构造函数
 		*/
 		BrowserItem(const std::string& name, const std::string& path, bool isDirectory);
+
+		/*
+		* 传播新的路径
+		*/
+		virtual void PropagatePath(const std::string& parentPath) = 0;
 	public:
 		std::string name;			// 项目名称
 		std::string path;			// 项目路径

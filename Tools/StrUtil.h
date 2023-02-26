@@ -2,6 +2,15 @@
 #include <string>
 
 namespace Tool {
+	enum class FileType {
+		TEXTURE	,
+		MODEL	,
+		AUDIO	,
+		SHADER	,
+		MATERIAL,
+		UNSUPPORT,
+	};
+
 	class StrUtil {
 	public:
 		/*
@@ -15,9 +24,19 @@ namespace Tool {
 		static std::string	WStringToUTF8(const std::wstring& source);
 
 		/*
+		* 去除文件后缀
+		*/
+		static std::string	RemoveExtension(const std::string& path);
+
+		/*
 		* 获得文件/路径的扩展名
 		*/
 		static std::string	GetFileExtension(const std::string& path);
+
+		/*
+		* 获得文件类型
+		*/
+		static FileType		GetFileType(const std::string& path);
 
 		/*
 		* 获得路径的最后一个层级

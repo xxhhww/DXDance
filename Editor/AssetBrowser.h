@@ -30,6 +30,16 @@ namespace App {
 
 	private:
 		/*
+		* 递归函数，读取并注册项目路径下的全部资产
+		*/
+		void LoadAssets(std::filesystem::directory_entry entry);
+
+		/*
+		* 递归函数，将路径下的全部资产注销
+		*/
+		void UnloadAssets(std::filesystem::directory_entry entry);
+
+		/*
 		* 递归函数，处理项目路径下的文件夹或者目录
 		*/
 		void BuildVirtualFs(FolderItem* root, std::filesystem::directory_entry entry, bool isEngineItem = false);

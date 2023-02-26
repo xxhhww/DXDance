@@ -25,7 +25,7 @@ namespace Core {
 	template<typename TAsset>
 	TAsset* IAssetManger<TAsset>::GetResource(int64_t id) {
 		auto it = std::find_if(mAssets.begin(), mAssets.end(),
-			[&id](const std::pair<int64_t, std::unique_ptr<TAsset>>& pair) {
+			[&id](std::pair<const int64_t, std::unique_ptr<TAsset>>& pair) {
 				if (pair.first == id) {
 					return true;
 				}
@@ -41,7 +41,7 @@ namespace Core {
 	template<typename TAsset>
 	TAsset* IAssetManger<TAsset>::GetResource(const std::string& name) {
 		auto it = std::find_if(mAssets.begin(), mAssets.end(),
-			[&name](const std::pair<int64_t, std::unique_ptr<TAsset>>& pair) {
+			[&name](std::pair<const int64_t, std::unique_ptr<TAsset>>& pair) {
 				if (pair.second->GetName() == name) {
 					return true;
 				}
@@ -52,5 +52,29 @@ namespace Core {
 			return (*it).second.get();
 		}
 		return nullptr;
+	}
+
+	template<typename TAsset>
+	void IAssetManger<TAsset>::UnRegisterResource(int64_t id) {
+		if (!IsRegistered(id)) {
+			return;
+		}
+		auto it = mAssets.at(id);
+		mAssets.erase(it);
+	}
+
+	template<typename TAsset>
+	void IAssetManger<TAsset>::UnRegisterResource(const std::string& name) {
+		auto it = std::find_if(mAssets.begin(), mAssets.end(),
+			[&name](std::pair<const int64_t, std::unique_ptr<TAsset>>& pair) {
+				if (pair.second->GetName() == name) {
+					return true;
+				}
+				return false;
+			});
+
+		if (it != mAssets.end()) {
+			mAssets.erase(it);
+		}
 	}
 }

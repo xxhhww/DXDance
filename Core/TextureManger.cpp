@@ -4,30 +4,15 @@
 #include "TextureLoader.h"
 
 namespace Core {
-	void Texture::Serialize(Tool::OutputMemoryStream& blob) const {
+	TextureManger::TextureManger(const std::string & assetPath, const std::string & enginePath)
+	: IAssetManger<Texture>(assetPath, enginePath) {}
 
-	}
-
-	void Texture::Deserialize(const Tool::InputMemoryStream& blob) {
-
-	}
-
-	/*
-	* 通过用户的操作来注册资源
-	*/
 	void TextureManger::RegisterResource(Texture* target) {
-		Tool::OutputMemoryStream oStream;
-		target->Serialize(oStream);
+		mAssets.emplace(target->GetUID(), target);
 
-		std::string abPath = mAssetPath + "/" + target->GetName();
-		std::ofstream oFile(abPath + ".meta", std::ios::binary | std::ios::out);
-		oFile.write((const char*)oStream.Data(), oStream.Size());
+		int i = 32;
 	}
 
-	/*
-	* 通过指定的路径(必须是项目路径或者引擎路径)来解析并管理资源.
-	* 其他路径的资源由AssetLoader解析，并通过RegisterResource()方法来注册进管理类.
-	*/
 	Texture* TextureManger::LoadResource(const std::string& path) {
 		std::string name = Tool::StrUtil::RemoveBasePath(path);
 
@@ -41,7 +26,7 @@ namespace Core {
 
 		TextureLoader::Create(abPath, *texture);
 
-		mAssets.emplace(texture->GetID(), texture);
+		mAssets.emplace(texture->GetUID(), texture);
 
 		return texture;
 	}

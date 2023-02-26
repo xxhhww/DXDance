@@ -25,7 +25,7 @@ namespace Tool {
 			if (!IsKeyExisting(p_key))
 				return static_cast<T>(0);
 
-			return static_cast<T>(std::atoi(m_data[p_key].c_str()));
+			return static_cast<T>(std::atoll(m_data[p_key].c_str()));
 		}
 		else if constexpr (std::is_floating_point<T>::value)
 		{

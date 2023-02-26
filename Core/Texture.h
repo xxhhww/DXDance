@@ -14,11 +14,6 @@ namespace Core {
 		inline Texture() = default;
 
 		/*
-		* 构造函数，用于资产在编辑器运行时创建的情景，需要提供资产名称
-		*/
-		inline Texture(const std::string& name) : IAsset(name) {}
-
-		/*
 		* 默认析构函数
 		*/
 		inline ~Texture() = default;
@@ -27,7 +22,7 @@ namespace Core {
 			m_metadata.format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		}
 
-		void Serialize(Tool::OutputMemoryStream& blob) const	override;
-		void Deserialize(const Tool::InputMemoryStream& blob)	override;
+		void Serialize(Tool::OutputMemoryStream& blob) const	override {}
+		void Deserialize(const Tool::InputMemoryStream& blob)	override {}
 	};
 }
