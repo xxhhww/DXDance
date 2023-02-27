@@ -6,6 +6,7 @@ namespace Tool {
 		TEXTURE	,
 		MODEL	,
 		AUDIO	,
+		SCECNE	,
 		SHADER	,
 		MATERIAL,
 		UNSUPPORT,

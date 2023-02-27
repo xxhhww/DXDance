@@ -77,4 +77,13 @@ namespace Core {
 			mAssets.erase(it);
 		}
 	}
+
+	template<typename TAsset>
+	void IAssetManger<TAsset>::RenameResource(const std::string& oldName, const std::string& newName) {
+		for (auto& pair : mAssets) {
+			if (pair.second->GetName() == oldName) {
+				pair.second->SetName(newName);
+			}
+		}
+	}
 }

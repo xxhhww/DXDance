@@ -40,6 +40,12 @@
     <Filter Include="源文件\Panels\AssetBrowser">
       <UniqueIdentifier>{fd3db230-dadd-4358-957d-7d880a4ef313}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Panels\Hierarchy">
+      <UniqueIdentifier>{3288826f-8212-4866-bc65-046e976f1988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Panels\Hierarchy">
+      <UniqueIdentifier>{68396275-776c-4a6b-9b97-ca9314e15da3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">

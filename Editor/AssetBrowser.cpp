@@ -75,12 +75,17 @@ namespace App {
 		std::string filename = entry.path().filename().string();
 		std::string metaname = filename + ".meta";
 		std::string metapath = filepath + ".meta";
+		Tool::FileType fileType = Tool::StrUtil::GetFileType(filename);
 
+		// 非法文件
+		if (fileType == Tool::FileType::UNSUPPORT) {
+			return;
+		}
 		if (!std::filesystem::exists(metapath)) {
 			return;
 		}
 
-		switch (Tool::StrUtil::GetFileType(filename))
+		switch (fileType)
 		{
 		case Tool::FileType::TEXTURE	:
 		{
@@ -274,15 +279,45 @@ namespace App {
 		else {
 			assert(root != nullptr);
 			
+			// 非法文件
 			Tool::FileType fileType = Tool::StrUtil::GetFileType(path);
+			std::string metapath = path + ".meta";
 			if (fileType == Tool::FileType::UNSUPPORT) {
+				return;
+			}
+			if (!std::filesystem::exists(metapath)) {
 				return;
 			}
 
 			auto& leafNode = root->CreateBrowserItem<FileItem>(name, path);
 
-			// 引擎文件和普通文件均可拖动
+			// 为引擎文件和普通文件添加拖动功能
 			leafNode.CreatePlugin<UI::DDSource<BrowserItem*>>("File", name, &leafNode);
+
+			// 添加PopupMenu
+			auto& contextualMenu = leafNode.CreatePlugin<FileItemContextualMenu>(name, path, isEngineItem);
+			contextualMenu.BuildPopupContextItem();
+
+			contextualMenu.itemDeledEvent += [this, &leafNode]() {
+				// 将资产从资产管理器中注销
+				UnloadAssets(std::filesystem::directory_entry(leafNode.path));
+
+				// 删除磁盘中的文件
+				std::filesystem::remove(leafNode.path);
+				std::filesystem::remove(leafNode.path + ".meta");
+
+				// 为leafNode设置销毁标记，在下一帧绘制开始时销毁它
+				leafNode.Destory();
+			};
+
+			contextualMenu.itemRenamedEvent += [this, &leafNode, root](const std::string& newName) {
+				// 更新Key
+				root->UpdateKey(leafNode.name, newName);
+
+				// 更新treeNode
+				leafNode.name = newName;
+				leafNode.path = Tool::StrUtil::GetBasePath(leafNode.path) + '\\' + newName;
+			};
 		}
 	}
 

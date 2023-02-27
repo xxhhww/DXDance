@@ -51,6 +51,9 @@ namespace Tool {
         else if (extension == "wav" || extension == "mp3") {
             return FileType::AUDIO;
         }
+        else if (extension == "scene") {
+            return FileType::SCECNE;
+        }
         else if (extension == "shader") {
             return FileType::SHADER;
         }
