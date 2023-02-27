@@ -43,12 +43,6 @@
     <Filter Include="源文件\Asset\Loader">
       <UniqueIdentifier>{4260cf03-8f30-4d39-8ba2-ab99984c851f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\JobSystem">
-      <UniqueIdentifier>{3585208b-0675-4f5d-888a-e2ffd273e1d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\JobSystem">
-      <UniqueIdentifier>{38d8ad3e-4354-41c5-9145-e935bff2dc03}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServiceLocator.h">
@@ -69,6 +63,9 @@
     <ClInclude Include="TextureLoader.h">
       <Filter>头文件\Asset\Loader</Filter>
     </ClInclude>
+    <ClInclude Include="Metatype.h">
+      <Filter>头文件\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp">
@@ -84,6 +81,9 @@
   <ItemGroup>
     <None Include="IAssetManger.inl">
       <Filter>头文件\AssetManger</Filter>
+    </None>
+    <None Include="Metatype.inl">
+      <Filter>头文件\ECS</Filter>
     </None>
   </ItemGroup>
 </Project>

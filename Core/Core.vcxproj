@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="IAsset.h" />
     <ClInclude Include="IAssetManger.h" />
+    <ClInclude Include="Metatype.h" />
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoader.h" />
@@ -148,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="IAssetManger.inl" />
+    <None Include="Metatype.inl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
