@@ -6,7 +6,7 @@ namespace Core {
 	static constexpr size_t MetatypeHashHelper::Build() {
 		// 提取原生类型
 		using sanitizedType = std::remove_const_t<std::remove_reference_t<Comp>>;
-		return hashFnvla(FuncSignature<sanitizedType>());
+		return HashFnvla(FuncSignature<sanitizedType>());
 	}
 
 	template<typename ...Comps>

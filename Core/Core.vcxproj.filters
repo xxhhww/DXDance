@@ -66,6 +66,12 @@
     <ClInclude Include="Metatype.h">
       <Filter>头文件\ECS</Filter>
     </ClInclude>
+    <ClInclude Include="Archetype.h">
+      <Filter>头文件\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>头文件\ECS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp">
@@ -76,6 +82,12 @@
     </ClCompile>
     <ClCompile Include="TextureLoader.cpp">
       <Filter>源文件\Asset\Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="Archetype.cpp">
+      <Filter>源文件\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>源文件\ECS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

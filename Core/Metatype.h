@@ -27,7 +27,7 @@ namespace Core {
 		/*
 		* 编译期函数，对字符串做哈希操作
 		*/
-		inline constexpr uint64_t hashFnvla(const char* key) {
+		inline constexpr uint64_t HashFnvla(const char* key) {
 			uint64_t hash = 0xcbf29ce484222325;
 			uint64_t prime = 0x100000001b3;
 
@@ -64,6 +64,20 @@ namespace Core {
 				reinterpret_cast<T*>(ptr)->~T();
 			};
 			return metatype;
+		}
+
+		/*
+		* 编译期函数，计算参数包中组件的总字节大小
+		*/
+		template<typename ...Comps>
+		static constexpr size_t CalByteSize() {
+			const size_t sizeArray[] = { Metatype::build<Comps>().size... };
+			size_t nums = sizeof(sizeArray) / sizeof(size_t);
+			size_t result = 0u;
+			for (size_t i = 0; i < nums; i++) {
+				result += sizeArray[i];
+			}
+			return result;
 		}
 	public:
 		size_t hash{ 0u };		// 组件哈希值

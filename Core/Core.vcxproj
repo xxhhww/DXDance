@@ -134,6 +134,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Archetype.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="IAsset.h" />
     <ClInclude Include="IAssetManger.h" />
     <ClInclude Include="Metatype.h" />
@@ -143,6 +145,8 @@
     <ClInclude Include="TextureManger.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Archetype.cpp" />
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureManger.cpp" />
