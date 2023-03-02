@@ -31,11 +31,8 @@ namespace Core {
 		this->byteSize = compsByteSize;
 	}
 
-	/*
-	* 判断该原型是否具有对应的组件
-	*/
 	bool ArchetypeHeader::HasMetatype(size_t hash) const {
-		size_t entityHashID = MetatypeHashHelper::Build<Entity::ID>();
+		constexpr size_t entityHashID = MetatypeHashHelper::Build<Entity::ID>();
 		if (hash == entityHashID) {
 			return true;
 		}
@@ -50,6 +47,10 @@ namespace Core {
 	}
 
 	Archetype::~Archetype() {
-
+		while (chunkListHead->header.next != nullptr) {
+			chunkListHead = chunkListHead->header.next;
+			delete chunkListHead->header.prev;
+		}
+		delete chunkListHead;
 	}
 }

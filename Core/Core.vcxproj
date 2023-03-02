@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -114,7 +114,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\ThirdParty\rapidjson;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,18 +140,25 @@
     <ClInclude Include="IAssetManger.h" />
     <ClInclude Include="Metatype.h" />
     <ClInclude Include="ServiceLocator.h" />
+    <ClInclude Include="TaskProxy.h" />
+    <ClInclude Include="TaskSystem.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureLoader.h" />
     <ClInclude Include="TextureManger.h" />
+    <ClInclude Include="ThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Archetype.cpp" />
+    <ClCompile Include="CoreTest.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="test.cpp" />
+    <ClCompile Include="TaskProxy.cpp" />
+    <ClCompile Include="TaskSystem.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureManger.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Entity.inl" />
     <None Include="IAssetManger.inl" />
     <None Include="Metatype.inl" />
   </ItemGroup>

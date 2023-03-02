@@ -2,13 +2,19 @@
 #include <assert.h>
 
 namespace Core {
-	void Entity::Delete(const Entity& entity) {
+	std::unordered_map<size_t, Metatype>	Entity::sMetatypeMap;
+	std::unordered_map<size_t, Archetype>	Entity::sArchetypeMap;
+	std::vector<Entity::EntityStorage>		Entity::sEntityStorageArray;
+	std::queue<Entity::ID>					Entity::sDeletedEntities;
+
+	void Entity::Delete(Entity& entity) {
 		auto& storage = sEntityStorageArray[entity.mID];
 		DeallocateEntity(storage.pChunk, storage.chunkIndex);
 		storage.isActive = false;
 		storage.pChunk = nullptr;
 		storage.chunkIndex = 0u;
 		sDeletedEntities.push(entity.mID);
+		entity.mID = -1;
 	}
 
 	void Entity::NewArchetype(const Metatype** types, size_t nums, size_t hashVal, size_t compsByteSize) {

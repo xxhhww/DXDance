@@ -24,4 +24,31 @@ namespace Core {
 	static constexpr const char* MetatypeHashHelper::FuncSignature() {
 		return __FUNCSIG__;
 	}
+
+	template<typename Comp>
+	static constexpr Metatype Metatype::Build() {
+		Metatype metatype{};
+		metatype.hash = MetatypeHashHelper::Build<Comp>();
+		metatype.align = alignof(Comp);
+		metatype.size = sizeof(Comp);
+		metatype.constructor = [](void* ptr) {
+			// placement new
+			new(ptr)Comp();
+		};
+		metatype.destructor = [](void* ptr) {
+			reinterpret_cast<Comp*>(ptr)->~Comp();
+		};
+		return metatype;
+	}
+
+	template<typename ...Comps>
+	static constexpr size_t Metatype::CalByteSize() {
+		const size_t sizeArray[] = { Metatype::Build<Comps>().size... };
+		size_t nums = sizeof(sizeArray) / sizeof(size_t);
+		size_t result = 0u;
+		for (size_t i = 0; i < nums; i++) {
+			result += sizeArray[i];
+		}
+		return result;
+	}
 }

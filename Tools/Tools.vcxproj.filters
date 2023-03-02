@@ -55,6 +55,12 @@
     <Filter Include="头文件\UID">
       <UniqueIdentifier>{8d0ef182-b7f8-43e9-8285-d33d72136e77}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Container">
+      <UniqueIdentifier>{c3ea4ad6-742e-4e02-8f5b-6d1b6c0b07df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Container">
+      <UniqueIdentifier>{6d9ef86b-6fba-4a79-a038-58866fe9c2be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -65,6 +71,9 @@
     </None>
     <None Include="MetaFile.inl">
       <Filter>头文件\MetaFile</Filter>
+    </None>
+    <None Include="ConcurrentQueue.inl">
+      <Filter>头文件\Container</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +100,9 @@
     </ClInclude>
     <ClInclude Include="UIDGenerator.h">
       <Filter>头文件\UID</Filter>
+    </ClInclude>
+    <ClInclude Include="ConcurrentQueue.h">
+      <Filter>头文件\Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

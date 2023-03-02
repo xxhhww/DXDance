@@ -129,6 +129,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Clock.h" />
+    <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
@@ -138,6 +139,7 @@
     <ClInclude Include="UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ConcurrentQueue.inl" />
     <None Include="Event.inl" />
     <None Include="MemoryStream.inl" />
     <None Include="MetaFile.inl" />

@@ -43,6 +43,15 @@
     <Filter Include="源文件\Asset\Loader">
       <UniqueIdentifier>{4260cf03-8f30-4d39-8ba2-ab99984c851f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{e2c9e151-24c2-48c3-8a93-43e9e7fba76e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\TaskSystem">
+      <UniqueIdentifier>{c96b00a2-aabf-4bb2-83c5-b296276e6fa9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\TaskSystem">
+      <UniqueIdentifier>{6a19ae51-38b1-4393-b2c4-9a821977dcf4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServiceLocator.h">
@@ -72,11 +81,17 @@
     <ClInclude Include="Entity.h">
       <Filter>头文件\ECS</Filter>
     </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>头文件\TaskSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskSystem.h">
+      <Filter>头文件\TaskSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskProxy.h">
+      <Filter>头文件\TaskSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test.cpp">
-      <Filter>头文件\Interface</Filter>
-    </ClCompile>
     <ClCompile Include="TextureManger.cpp">
       <Filter>源文件\AssetManger</Filter>
     </ClCompile>
@@ -86,8 +101,20 @@
     <ClCompile Include="Archetype.cpp">
       <Filter>源文件\ECS</Filter>
     </ClCompile>
+    <ClCompile Include="CoreTest.cpp">
+      <Filter>源文件\Test</Filter>
+    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>源文件\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>源文件\TaskSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskSystem.cpp">
+      <Filter>源文件\TaskSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskProxy.cpp">
+      <Filter>源文件\TaskSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +122,9 @@
       <Filter>头文件\AssetManger</Filter>
     </None>
     <None Include="Metatype.inl">
+      <Filter>头文件\ECS</Filter>
+    </None>
+    <None Include="Entity.inl">
       <Filter>头文件\ECS</Filter>
     </None>
   </ItemGroup>

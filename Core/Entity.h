@@ -1,58 +1,79 @@
 #pragma once
 #include "Archetype.h"
-#include <algorithm>
+#include "TaskProxy.h"
 #include <queue>
+#include <algorithm>
 
 namespace Core {
+
+	/*
+	* 组件数组
+	*/
 	template<typename Comp>
 	struct ComponentArray {
 	public:
-		inline ComponentArray() = default;
-		inline ComponentArray(void* data, Chunk* chunk) : data(reinterpret_cast<Comp*>(data)), ownChunk(chunk) {}
+		ComponentArray() = default;
+		ComponentArray(void* data, Chunk* chunk);
 
-		inline const Comp& operator[](size_t index) const {
-			return data[index];
-		}
+		const Comp& operator[](size_t index) const;
+		Comp& operator[](size_t index);
 
-		inline Comp& operator[](size_t index) {
-			return data[index];
-		}
+		Comp* Begin();
+		Comp* End();
 
-		inline Comp* Begin() { return data; }
-		inline Comp* End() { return data + ownChunk->header.validCount; }
+		const Comp* CBegin() const;
+		const Comp* CEnd() const;
 
-		inline const Comp* CBegin() const { return data; }
-		inline const Comp* CEnd() const { return data; }
+		uint32_t Size() const;
 
-		inline uint32_t Size() const { return ownChunk->header.validCount; }
-
-		/*
-		* 构造ComponentArray
-		*/
-		inline static auto Build(Chunk* chunk) {
-			// 提取原生类型
-			using sanitizedType = std::remove_const_t<std::remove_reference_t<Comp>>;
-			if constexpr (std::is_same<sanitizedType, Entity::ID>::value) {
-				return ComponentArray<sanitizedType>((void*)(chunk->storage), chunk);
-			}
-			else {
-				constexpr size_t hashVal = MetatypeHashHelper::Build<sanitizedType>();
-				for (const auto& pair : chunk->header.pOwnArcheType->header.pairArray) {
-					if (pair.pMetatype->hash == hashVal) {
-						return ComponentArray<sanitizedType>((void*)(chunk->storage + pair.chunkOffset), chunk);
-					}
-				}
-			}
-			return ComponentArray<sanitizedType>();
-		}
 	public:
 		Comp*	data{ nullptr };
 		Chunk*	ownChunk{ nullptr };
 	};
 
 	/*
-	* 实体
+	* 组件数组帮助类
 	*/
+	template<typename Comp>
+	struct ComponentArrayBuildHelper {
+		/*
+		* 构造ComponentArray
+		*/
+		static auto Build(Chunk* chunk);
+	};
+
+	template<typename F>
+	struct Processor : public Processor<decltype(&F::operator())> {};
+
+	/*
+	* ClassType	:	lambda所对应的匿名类
+	* ReturnType:	lambda返回值
+	* ...Args	:	lambda参数列表
+	*/
+	template<typename ClassType, typename ReturnType, typename ...Args>
+	struct Processor<ReturnType(ClassType::*)(Args...) const> {
+		static constexpr int sArity				= sizeof...(Args);								// lambda参数个数;
+		static constexpr size_t sHashArray[]	= { MetatypeHashHelper::Build<Args>()... };		// lambda参数所对应的反射对象的哈希值
+		TaskProxy proxy;	// 任务代理
+		
+		/*
+		* 添加任务
+		*/
+		void AddTask(Chunk* chunk, ClassType& lambda) {
+			auto tup = std::make_tuple(ComponentArrayBuildHelper<Args>::Build(chunk)...);
+			for (int32_t i = chunk->header.validCount - 1; i >= 0; i--) {
+				proxy.AddTask(std::bind(lambda, std::get<decltype(ComponentArrayBuildHelper<Args>::Build(chunk))>(tup)[i]...));
+			}
+		}
+
+		/*
+		* 运行任务
+		*/
+		void RunAllTask() {
+			proxy.RunAllTask();
+		}
+	};
+
 	class Entity {
 	public:
 		/*
@@ -61,7 +82,7 @@ namespace Core {
 		using ID = int32_t;
 
 		/*
-		* 实体的数据索引信息与杂项信息的存储
+		* 数据索引与杂项信息
 		*/
 		struct EntityStorage {
 		public:
@@ -71,94 +92,36 @@ namespace Core {
 			uint32_t	chunkIndex{ 0u };	// 实体在Chunk中的索引
 
 			bool operator==(const EntityStorage& other) const {
-				return pChunk == other.pChunk && chunkIndex == other.chunkIndex;
+				return pChunk == other.pChunk && chunkIndex == other.chunkIndex && version == other.version;
 			}
 			bool operator!=(const EntityStorage& other) const {
 				return !(other == *this);
 			}
 		};
+
 	public:
 		/*
-		* 添加组件
+		* 测试使用的构造函数
 		*/
-		template<typename Comp>
-		Comp& AddComponent() {
-			const Metatype* joinedType = SolveMetatype<Comp>();
-			Archetype& srcArchetype = *(sEntityStorageArray[mID].pChunk->header.ownArchetype);
-
-			// 构造新的compslist
-			const Metatype* tempTypes[32];
-			uint32_t len = 0;
-			for (const auto& pair : srcArchetype.header.pairArray) {
-				// 组件已存在
-				if (joinedType == pair.metatype) return;
-				tempTypes[len] = pair.metatype;
-				len++;
-			}
-			tempTypes[len] = joinedType;
-			len++;
-
-			// 计算新的hashVal
-			size_t hashVal = (srcArchetype.hash ^ joinedType->hash);
-			if (sArchetypeMap.find(hashVal) == sArchetypeMap.end()) {
-				SortByAddress<Metatype>(tempTypes, len);
-				size_t compsByteSize = srcArchetype.header.byteSize + joinedType->size;
-				NewArchetype(tempTypes, len, hashVal, compsByteSize);
-			}
-			Archetype& dstArchetype = sArchetypeMap[hashVal];
-
-			// 获得dstChunk与srcChunk
-			Chunk* pDstChunk = GetFreeChunk(dstArchetype);
-			int dstIndex = AllocateEntity(pDstChunk, *this);
-			Chunk* pSrcChunk = sEntityStorageArray[mID].pChunk;
-			int srcIndex = sEntityStorageArray[mID].chunkIndex;
-
-			// 构造复制信息表
-			for (const auto& srcPair : srcArchetype.header.pairArray) {
-				const Metatype* srcType = srcPair.metatype;
-				for (const auto& dstPair : dstArchetype.header.pairArray) {
-					const Metatype* dstType = dstPair.metatype;
-					if (srcType == dstType) {
-						// 完成数据复制操作
-						void* srcPtr = (void*)(pSrcChunk->storage + srcPair.chunkOffset + srcType->size * srcIndex);
-						void* dstPtr = (void*)(pDstChunk->storage + dstPair.chunkOffset + dstType->size * dstIndex);
-						memcpy(dstPtr, srcPtr, srcType->size);
-					}
-					if (dstType == joinedType) {
-						// 完成新组件的初始化操作
-						dstType->constructor((void*)(pDstChunk->storage + dstPair.chunkOffset + dstType->size * dstIndex));
-					}
-				}
-			}
-
-			// 将实体数据从srcChunk中删除
-			DeallocateEntity(pSrcChunk, srcIndex);
-
-			// 更新Entity的EntityStorage
-			sEntityStorageArray[mID].pChunk = pDstChunk;
-			sEntityStorageArray[mID].chunkIndex = dstIndex;
-
-			return GetComponent<Comp>();
-		}
+		inline Entity(int32_t id = -1) : mID(id) {}
 
 		/*
 		* 添加组件
 		*/
 		template<typename Comp>
-		Comp& AddComponent(Comp& comps) {
-			AddComponent<Comp>();
-			GetComponent<Comp>() = comps;
-		}
+		Comp& AddComponent();
+
+		/*
+		* 添加组件
+		*/
+		template<typename Comp>
+		Comp& AddComponent(Comp& comp);
 
 		/*
 		* 获得组件
 		*/
 		template<typename Comp>
-		Comp& GetComponent() {
-			const EntityStorage& storage = sEntityStorageArray[mID];
-			ComponentArray<Comp> comps = ComponentArray<Comp>::Build(storage.pChunk);
-			return comps[storage.chunkIndex];
-		}
+		Comp& GetComponent();
 
 		/*
 		* 删除组件
@@ -167,95 +130,33 @@ namespace Core {
 		void DelComponent();
 
 		/*
-		* 创建一个新的Entity
+		* 创建新的Entity
 		*/
 		template<typename ...Comps>
-		static Entity Create() {
-			if constexpr (sizeof...(Comps) != 0) {
-				constexpr size_t hashVal = MetatypeHashHelper::BuildArray<Comps...>();
-				if (sArchetypeMap.find(hashVal) == sArchetypeMap.end()) {
-					// 从参数包中解算出Metatypes，并对其排序
-					const Metatype* types[] = { SolveMetatype<Comps>()... };
-					size_t nums = sizeof(types) / sizeof(Metatype*);
-					// 在编译期计算参数包的总字节大小
-					constexpr size_t compsByteSize = Metatype::calByteSize<Comps...>() + sizeof(Entity::ID);
-					SortByAddress<Metatype>(types, nums);
-					// 创建并存储新的Archetype
-					NewArchetype(types, nums, hashVal, compsByteSize);
-				}
-
-				Archetype& archetype = sArchetypeMap[hashVal];
-				Entity entity;
-				if (sDeletedEntities.empty()) {
-					entity.mID = (int32_t)sEntityStorageArray.size();
-					EntityStorage storage;
-					storage.pChunk = nullptr;
-					storage.chunkIndex = 0u;
-					storage.version = 0u;
-					sEntityStorageArray.push_back(std::move(storage));
-				}
-				else {
-					entity.mID = sDeletedEntities.front();
-					sDeletedEntities.pop();
-					sEntityStorageArray[entity.mID].pChunk = nullptr;
-					sEntityStorageArray[entity.mID].version++;
-					sEntityStorageArray[entity.mID].chunkIndex = 0u;
-				}
-
-				// 为Entity分配实际的存储空间
-				Chunk* chunk = GetFreeChunk(archetype);
-				int index = AllocateEntity(chunk, entity);
-				sEntityStorageArray[entity.mID].pChunk = chunk;
-				sEntityStorageArray[entity.mID].chunkIndex = index;
-
-				// 对存储空间进行初始化
-				for (const auto& pair : archetype.header.pairArray) {
-					const Metatype* type = pair.metatype;
-					type->constructor((void*)(chunk->storage + pair.chunkOffset + type->size * index));
-				}
-				return entity;
-			}
-			return Entity{};
-		}
-
+		static Entity Create();
 
 		/*
 		* 删除目标Entity
 		*/
-		static void Delete(const Entity& entity);
+		static void Delete(Entity& entity);
 
 		/*
 		* 遍历
 		*/
 		template<typename F>
-		static void Foreach(F&& func);
-
+		static void Foreach(F&& task);
 	private:
 		/*
-		* 解算组件反射类
+		* 解算组件反射
 		*/
 		template<typename Comp>
-		static const Metatype* SolveMetatype() {
-			// 编译期计算Hash值
-			constexpr size_t nameHash = MetatypeHashHelper::build<Comp>();
-			if (sMetatypeMap.find(nameHash) == sMetatypeMap.end()) {
-				// 编译期计算Metatype
-				constexpr Metatype metatype = Metatype::build<Comp>();
-				sMetatypeMap[nameHash] = std::move(metatype);
-			}
-			return &sMetatypeMap[nameHash];
-		}
+		static const Metatype* SolveMetatype();
 
 		/*
 		* 按地址顺序进行排序
 		*/
 		template<typename T>
-		static void SortByAddress(const T** pointerArray, size_t nums) {
-			std::sort(pointerArray, pointerArray + nums,
-				[](const T* a, const T* b) {
-					return a < b;
-				});
-		}
+		static void SortByAddress(const T** pointerArray, size_t nums);
 
 		/*
 		* 新建一个Archetype
@@ -287,7 +188,7 @@ namespace Core {
 		*/
 		static void DeallocateEntity(Chunk* pChunk, uint32_t chunkIndex);
 	private:
-		Entity::ID	mID{ -1 };
+		Entity::ID mID{ -1 };
 
 	private:
 		static std::unordered_map<size_t, Metatype>		sMetatypeMap;			// 存储所有的组件反射类对象
@@ -296,3 +197,5 @@ namespace Core {
 		static std::queue<Entity::ID>					sDeletedEntities;		// 实体池
 	};
 }
+
+#include "Entity.inl"
