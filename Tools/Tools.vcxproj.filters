@@ -104,6 +104,9 @@
     <ClInclude Include="ConcurrentQueue.h">
       <Filter>头文件\Container</Filter>
     </ClInclude>
+    <ClInclude Include="IJsonable.h">
+      <Filter>头文件\Interface</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
