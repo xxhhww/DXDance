@@ -86,10 +86,12 @@ namespace Core {
 		*/
 		struct EntityStorage {
 		public:
-			uint32_t	version{ 0u };		// 实体版本号
-			bool		isActive{ false };	// 是否被激活
-			Chunk*		pChunk{ nullptr };	// 指向实体数据所在的Chunk
-			uint32_t	chunkIndex{ 0u };	// 实体在Chunk中的索引
+			uint32_t				version{ 0u };		// 实体版本号
+			bool					isActive{ false };	// 是否被激活
+			Chunk*					pChunk{ nullptr };	// 指向实体数据所在的Chunk
+			uint32_t				chunkIndex{ 0u };	// 实体在Chunk中的索引
+			int32_t					parentID{ -1u };	// 父实体ID
+			std::vector<int32_t>	childs;				// 子实体ID数组
 
 			bool operator==(const EntityStorage& other) const {
 				return pChunk == other.pChunk && chunkIndex == other.chunkIndex && version == other.version;
@@ -130,6 +132,16 @@ namespace Core {
 		void DelComponent();
 
 		/*
+		* 添加父节点
+		*/
+		void AttachParent(Entity& parent);
+
+		/*
+		* 移除父节点
+		*/
+		void DetachParent();
+
+		/*
 		* 创建新的Entity
 		*/
 		template<typename ...Comps>
@@ -145,6 +157,12 @@ namespace Core {
 		*/
 		template<typename F>
 		static void Foreach(F&& task);
+
+		/*
+		* 返回ID
+		*/
+		inline const auto& GetID() const { return mID; }
+
 	private:
 		/*
 		* 解算组件反射

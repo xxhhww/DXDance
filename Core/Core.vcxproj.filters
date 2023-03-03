@@ -102,6 +102,15 @@
     <ClInclude Include="IComponent.h">
       <Filter>头文件\ECS\Components</Filter>
     </ClInclude>
+    <ClInclude Include="IInspectorItem.h">
+      <Filter>头文件\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>头文件\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>头文件\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureManger.cpp">
@@ -130,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="Actor.cpp">
       <Filter>源文件\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>源文件\ECS\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>源文件\ECS\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -22,7 +22,24 @@ namespace Core {
 			m_metadata.format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		}
 
-		void Serialize(Tool::OutputMemoryStream& blob) const	override {}
-		void Deserialize(const Tool::InputMemoryStream& blob)	override {}
+		/*
+		* 序列化为二进制数据
+		*/
+		virtual void SerializeBinary(Tool::OutputMemoryStream& blob) const {}
+
+		/*
+		* 反序列化二进制数据
+		*/
+		virtual void DeserializeBinary(const Tool::InputMemoryStream& blob) {}
+
+		/*
+		* 序列化为Json数据
+		*/
+		virtual void SerializeJson(rapidjson::Document& doc) const {}
+
+		/*
+		* 反序列化Json数据
+		*/
+		virtual void DeserializeJson(const rapidjson::Document& doc) {}
 	};
 }

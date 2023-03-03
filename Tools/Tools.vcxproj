@@ -132,7 +132,6 @@
     <ClInclude Include="Clock.h" />
     <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="Event.h" />
-    <ClInclude Include="IJsonable.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />

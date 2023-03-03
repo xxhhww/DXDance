@@ -8,10 +8,6 @@ namespace Core {
 	*/
 	class IInspectorItem : public Tool::ISerializable {
 	public:
-
-	private:
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override {}
-		void DeserializeBinary(const Tool::InputMemoryStream& blob) override {}
 	};
 
 }

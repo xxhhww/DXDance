@@ -7,8 +7,42 @@ namespace Core {
 	std::vector<Entity::EntityStorage>		Entity::sEntityStorageArray;
 	std::queue<Entity::ID>					Entity::sDeletedEntities;
 
+	void Entity::AttachParent(Entity& parent) {
+		auto& parentStorage = sEntityStorageArray[parent.mID];
+		auto& myStorage = sEntityStorageArray[mID];
+
+		if (parentStorage.isActive && myStorage.isActive) {
+			parentStorage.childs.emplace_back(mID);
+			myStorage.parentID = parent.mID;
+		}
+	}
+
+	void Entity::DetachParent() {
+		auto& myStorage = sEntityStorageArray[mID];
+		auto& parentStorage = sEntityStorageArray[myStorage.parentID];
+
+		if (myStorage.isActive && parentStorage.isActive) {
+			parentStorage.childs.erase(
+				std::remove_if(parentStorage.childs.begin(), parentStorage.childs.end(),
+					[this](int32_t id) {
+						return id == mID;
+					})
+			);
+			myStorage.parentID = -1;
+		}
+	}
+
+
 	void Entity::Delete(Entity& entity) {
 		auto& storage = sEntityStorageArray[entity.mID];
+
+		for (auto& id : storage.childs) {
+			Entity child{ id };
+			Entity::Delete(child);
+		}
+		storage.childs.clear();
+		entity.DetachParent();
+
 		DeallocateEntity(storage.pChunk, storage.chunkIndex);
 		storage.isActive = false;
 		storage.pChunk = nullptr;
