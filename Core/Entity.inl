@@ -122,6 +122,13 @@ namespace Core {
 	}
 
 	template<typename Comp>
+	inline const Comp& Entity::GetComponent() const {
+		const EntityStorage& storage = sEntityStorageArray.at(mID);
+		ComponentArray<Comp> comps = ComponentArrayBuildHelper<Comp>::Build(storage.pChunk);
+		return comps[storage.chunkIndex];
+	}
+
+	template<typename Comp>
 	void Entity::DelComponent() {
 		const Metatype* deletedType = SolveMetatype<Comp>();
 		Archetype& srcArchetype = *(sEntityStorageArray[mID].pChunk->header.ownArchetype);
@@ -177,6 +184,13 @@ namespace Core {
 		// ¸üÐÂEntityµÄEntityStorage
 		sEntityStorageArray[mID].pChunk = pDstChunk;
 		sEntityStorageArray[mID].chunkIndex = dstIndex;
+	}
+
+	template<typename Comp>
+	bool Entity::HasComponent() const {
+		const EntityStorage& storage = sEntityStorageArray[mID];
+		ComponentArray<Comp> comps = ComponentArrayBuildHelper<Comp>::Build(storage.pChunk);
+		return comps.data != nullptr;
 	}
 
 	template<typename ...Comps>

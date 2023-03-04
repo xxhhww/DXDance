@@ -38,12 +38,12 @@ namespace Core {
 		/*
 		* 序列化为二进制数据
 		*/
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override {}
+		void SerializeBinary(Tool::OutputMemoryStream& blob) const override;
 
 		/*
 		* 反序列化二进制数据
 		*/
-		void DeserializeBinary(const Tool::InputMemoryStream& blob) override {}
+		void DeserializeBinary(Tool::InputMemoryStream& blob) override;
 
 		/*
 		* 序列化为Json数据
@@ -56,7 +56,7 @@ namespace Core {
 		void DeserializeJson(const rapidjson::Document& doc) override;
 
 	private:
-		bool								mPlaying{ false };	// play模式
-		std::vector<std::unique_ptr<Actor>> mActors;			// 场景物体
+		int64_t								mActorIncID;	// 物体自增ID
+		std::vector<std::unique_ptr<Actor>> mActors;		// 场景物体
 	};
 }

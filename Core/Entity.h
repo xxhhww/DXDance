@@ -126,10 +126,22 @@ namespace Core {
 		Comp& GetComponent();
 
 		/*
+		* 获得组件(const)
+		*/
+		template<typename Comp>
+		const Comp& GetComponent() const;
+
+		/*
 		* 删除组件
 		*/
 		template<typename Comp>
 		void DelComponent();
+
+		/*
+		* 拥有组件
+		*/
+		template<typename Comp>
+		bool HasComponent() const;
 
 		/*
 		* 添加父节点
@@ -157,12 +169,6 @@ namespace Core {
 		*/
 		template<typename F>
 		static void Foreach(F&& task);
-
-		/*
-		* 返回ID
-		*/
-		inline const auto& GetID() const { return mID; }
-
 	private:
 		/*
 		* 解算组件反射
@@ -206,7 +212,7 @@ namespace Core {
 		*/
 		static void DeallocateEntity(Chunk* pChunk, uint32_t chunkIndex);
 	private:
-		Entity::ID mID{ -1 };
+		Entity::ID mID{ -1 };	// 实体的ID不需要持久化存储
 
 	private:
 		static std::unordered_map<size_t, Metatype>		sMetatypeMap;			// 存储所有的组件反射类对象

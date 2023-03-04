@@ -8,6 +8,7 @@ namespace Core {
 	*/
 	class IInspectorItem : public Tool::ISerializable {
 	public:
+		virtual ~IInspectorItem() = default;
 	};
 
 }

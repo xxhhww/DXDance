@@ -17,11 +17,32 @@ namespace Core {
 		mIsStatic = isStatic;
 	}
 
-	void Transform::SerializeJson(rapidjson::Document& doc) const {
+	void Transform::SerializeBinary(Tool::OutputMemoryStream& blob) const {
+		blob.Write(mLocalPosition);
+		blob.Write(mLocalRotation);
+		blob.Write(mLocalScale);
+		blob.Write(mLocalMatrix);
 
+		blob.Write(mWorldPosition);
+		blob.Write(mWorldRotation);
+		blob.Write(mWorldScale);
+		blob.Write(mWorldMatrix);
+
+		blob.Write(mIsStatic);
 	}
 
-	void Transform::DeserializeJson(const rapidjson::Document& doc) {
+	void Transform::DeserializeBinary(Tool::InputMemoryStream& blob) {
+		blob.Read(mLocalPosition);
+		blob.Read(mLocalRotation);
+		blob.Read(mLocalScale);
+		blob.Read(mLocalMatrix);
 
+		blob.Read(mWorldPosition);
+		blob.Read(mWorldRotation);
+		blob.Read(mWorldScale);
+		blob.Read(mWorldMatrix);
+
+		blob.Read(mIsStatic);
 	}
+
 }

@@ -18,7 +18,7 @@ namespace Tool {
 		/*
 		* 反序列化二进制数据
 		*/
-		virtual void DeserializeBinary(const InputMemoryStream& blob) = 0;
+		virtual void DeserializeBinary(InputMemoryStream& blob) = 0;
 
 		/*
 		* 序列化为Json数据

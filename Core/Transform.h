@@ -29,6 +29,9 @@ namespace Core {
 		*/
 		void SetStatic(bool isStatic);
 
+		/*
+		* Get方法
+		*/
 		inline const auto& GetLocalPosition() const { return mLocalPosition; }
 		inline const auto& GetLocalRotation() const { return mLocalRotation; }
 		inline const auto& GetLocalScale() const { return mLocalScale; }
@@ -42,9 +45,15 @@ namespace Core {
 		inline const auto& IsStatic() const { return mIsStatic; }
 
 	public:
-		void SerializeJson(rapidjson::Document& doc) const override;
+		/*
+		* 序列化为二进制数据
+		*/
+		void SerializeBinary(Tool::OutputMemoryStream& blob) const override;
 
-		void DeserializeJson(const rapidjson::Document& doc) override;
+		/*
+		* 反序列化二进制数据
+		*/
+		void DeserializeBinary(Tool::InputMemoryStream& blob) override;
 
 	private:
 		// 在Gui界面操作时，local数据可读写，world数据仅可读

@@ -58,6 +58,12 @@
     <Filter Include="源文件\ECS\Components">
       <UniqueIdentifier>{4fb906b8-4d4b-4225-909d-ccf86dbe01a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\SceneManger">
+      <UniqueIdentifier>{65bb13a7-f640-4cf5-a3e3-a1caec7e26f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\SceneManger">
+      <UniqueIdentifier>{32727e6b-fbb3-48ac-b2a4-749f01471e03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServiceLocator.h">
@@ -111,6 +117,12 @@
     <ClInclude Include="Camera.h">
       <Filter>头文件\ECS\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>头文件\SceneManger</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManger.h">
+      <Filter>头文件\SceneManger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureManger.cpp">
@@ -145,6 +157,12 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>源文件\ECS\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>源文件\SceneManger</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManger.cpp">
+      <Filter>源文件\SceneManger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
