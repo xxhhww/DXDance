@@ -7,9 +7,28 @@ namespace Core {
 	std::vector<Entity::EntityStorage>		Entity::sEntityStorageArray;
 	std::queue<Entity::ID>					Entity::sDeletedEntities;
 
+	void Entity::ForeachComp(std::function<void(IComponent*)>&& lambda) const {
+		const auto& storage = sEntityStorageArray[mID];
+		Chunk* chunk = storage.pChunk;
+
+		for (const auto& pair : chunk->header.ownArchetype->header.pairArray) {
+			// Ìø¹ýEntityID
+			const Metatype* metatype = pair.metatype;
+			if (metatype->hash == MetatypeHashHelper::Build<Entity::ID>()) {
+				continue;
+			}
+			void* data = chunk->storage + pair.chunkOffset + metatype->size * storage.chunkIndex;
+			lambda((IComponent*)data);
+		}
+	}
+
 	void Entity::AttachParent(Entity& parent) {
 		auto& parentStorage = sEntityStorageArray[parent.mID];
 		auto& myStorage = sEntityStorageArray[mID];
+
+		if (parent.mID == myStorage.parentID) {
+			return;
+		}
 
 		if (parentStorage.isActive && myStorage.isActive) {
 			parentStorage.childs.emplace_back(mID);
@@ -19,6 +38,8 @@ namespace Core {
 
 	void Entity::DetachParent() {
 		auto& myStorage = sEntityStorageArray[mID];
+		if (myStorage.parentID == -1) return;
+
 		auto& parentStorage = sEntityStorageArray[myStorage.parentID];
 
 		if (myStorage.isActive && parentStorage.isActive) {

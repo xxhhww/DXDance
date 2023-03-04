@@ -22,9 +22,6 @@
     <Filter Include="源文件\MemoryStream">
       <UniqueIdentifier>{0e94fd0c-b128-481a-b743-1690cd169cd1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Interface">
-      <UniqueIdentifier>{002ca075-e61d-44d4-be7d-97a161fbeb36}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Time">
       <UniqueIdentifier>{806c7db8-d433-47c8-856e-a77126f6c43c}</UniqueIdentifier>
     </Filter>
@@ -61,6 +58,12 @@
     <Filter Include="源文件\Container">
       <UniqueIdentifier>{6d9ef86b-6fba-4a79-a038-58866fe9c2be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Serializable">
+      <UniqueIdentifier>{002ca075-e61d-44d4-be7d-97a161fbeb36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Serializable">
+      <UniqueIdentifier>{2dbf3607-2168-44fd-9b1b-ae71b2c8357b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -87,7 +90,7 @@
       <Filter>头文件\MemoryStream</Filter>
     </ClInclude>
     <ClInclude Include="ISerializable.h">
-      <Filter>头文件\Interface</Filter>
+      <Filter>头文件\Serializable</Filter>
     </ClInclude>
     <ClInclude Include="Clock.h">
       <Filter>头文件\Time</Filter>
@@ -103,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="ConcurrentQueue.h">
       <Filter>头文件\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializeHepler.h">
+      <Filter>头文件\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonHelper.h">
+      <Filter>头文件\Serializable</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +132,9 @@
     </ClCompile>
     <ClCompile Include="UIDGenerator.cpp">
       <Filter>源文件\UID</Filter>
+    </ClCompile>
+    <ClCompile Include="SerializeHepler.cpp">
+      <Filter>源文件\Serializable</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

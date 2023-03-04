@@ -46,14 +46,14 @@ namespace Core {
 
 	public:
 		/*
-		* 序列化为二进制数据
+		* 序列化为Json数据
 		*/
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override;
+		void SerializeJson(Tool::JsonWriter& writer) const override;
 
 		/*
-		* 反序列化二进制数据
+		* 反序列化Json数据
 		*/
-		void DeserializeBinary(Tool::InputMemoryStream& blob) override;
+		void DeserializeJson(const Tool::JsonReader& reader) override;
 
 	private:
 		// 在Gui界面操作时，local数据可读写，world数据仅可读

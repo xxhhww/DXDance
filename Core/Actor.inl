@@ -18,6 +18,12 @@ namespace Core {
 	}
 
 	template<typename Comp>
+	const Comp& Actor::GetComponent() const {
+		return mEntity.GetComponent<Comp>();
+	}
+
+
+	template<typename Comp>
 	void Actor::DelComponent() {
 		mEntity.DelComponent<Comp>();
 	}

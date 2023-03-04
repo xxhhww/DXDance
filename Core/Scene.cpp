@@ -24,41 +24,42 @@ namespace Core {
 		return it == mActors.end() ? nullptr : (*it).get();
 	}
 
-	void Scene::SerializeBinary(Tool::OutputMemoryStream& blob) const {
-		blob.Write(mActorIncID);
-		blob.Write(mActors.size());
-		for (const auto& actor : mActors) {
-			actor->SerializeBinary(blob);
+	void Scene::SerializeJson(Tool::JsonWriter& writer) const {
+		writer.StartObject();
+
+		writer.Key("ActorIncID");
+		writer.Int64(mActorIncID);
+
+		writer.Key("Actors");
+		writer.StartArray();
+		for (auto& item : mActors) {
+			item->SerializeJson(writer);
 		}
+		writer.EndArray();
+
+		writer.EndObject();
 	}
 
-	void Scene::DeserializeBinary(Tool::InputMemoryStream& blob) {
-		blob.Read(mActorIncID);
+	void Scene::DeserializeJson(const Tool::JsonReader& reader) {
+		assert(reader.HasMember("Actors") && reader["Actors"].IsArray());
 
-		size_t actorSize{ 0u };
-		blob.Read(actorSize);
-		
-		// 读取所有Actor的数据
-		for (size_t i = 0; i < actorSize; i++) {
+		const Tool::JsonReader& childReader = reader["Actors"];
+		for (size_t i = 0; i < childReader.Size(); i++) {
+			assert(childReader[i].IsObject());
+			// 创建一个默认的Actor，然后序列化
 			Actor* actor = CreateActor("");
-			actor->DeserializeBinary(blob);
-			mActorIncID = mActorIncID >= actor->GetID() ? mActorIncID : actor->GetID();
+			actor->DeserializeJson(childReader[i]);
 		}
-		++mActorIncID;
 
-		// 设置Actor的层级关系
+		// 设置父子层级
 		for (auto& actor : mActors) {
-			int64_t parentID = actor->GetParentID();
-			Actor* parent = FindActorByID(parentID);
-			actor->AttachParent(*parent);
+			Actor* parent = FindActorByID(actor->GetParentID());
+			if (parent != nullptr) {
+				actor->AttachParent(*parent);
+			}
 		}
-	}
 
-	void Scene::SerializeJson(rapidjson::Document& doc) const {
-
-	}
-
-	void Scene::DeserializeJson(const rapidjson::Document& doc) {
-
+		assert(reader.HasMember("ActorIncID") && reader["ActorIncID"].IsInt64());
+		mActorIncID = reader["ActorIncID"].GetInt64();
 	}
 }

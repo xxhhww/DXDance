@@ -5,7 +5,7 @@
 #include <algorithm>
 
 namespace Core {
-
+	class IComponent;
 	/*
 	* 组件数组
 	*/
@@ -90,7 +90,7 @@ namespace Core {
 			bool					isActive{ false };	// 是否被激活
 			Chunk*					pChunk{ nullptr };	// 指向实体数据所在的Chunk
 			uint32_t				chunkIndex{ 0u };	// 实体在Chunk中的索引
-			int32_t					parentID{ -1u };	// 父实体ID
+			int32_t					parentID{ -1 };	// 父实体ID
 			std::vector<int32_t>	childs;				// 子实体ID数组
 
 			bool operator==(const EntityStorage& other) const {
@@ -144,6 +144,11 @@ namespace Core {
 		bool HasComponent() const;
 
 		/*
+		* 遍历组件
+		*/
+		void ForeachComp(std::function<void(IComponent*)>&& lambda) const;
+
+		/*
 		* 添加父节点
 		*/
 		void AttachParent(Entity& parent);
@@ -165,7 +170,7 @@ namespace Core {
 		static void Delete(Entity& entity);
 
 		/*
-		* 遍历
+		* 遍历目标组件集合
 		*/
 		template<typename F>
 		static void Foreach(F&& task);

@@ -17,7 +17,9 @@ namespace Core {
 		/*
 		* 析构函数
 		*/
-		~Scene() = default;
+		~Scene() {
+			int i = 32;
+		}
 
 		/*
 		* 创建Actor(提供的名称应该是独特的)
@@ -36,27 +38,17 @@ namespace Core {
 
 	public:
 		/*
-		* 序列化为二进制数据
-		*/
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override;
-
-		/*
-		* 反序列化二进制数据
-		*/
-		void DeserializeBinary(Tool::InputMemoryStream& blob) override;
-
-		/*
 		* 序列化为Json数据
 		*/
-		void SerializeJson(rapidjson::Document& doc) const override;
+		void SerializeJson(Tool::JsonWriter& writer) const override;
 
 		/*
 		* 反序列化Json数据
 		*/
-		void DeserializeJson(const rapidjson::Document& doc) override;
+		void DeserializeJson(const Tool::JsonReader& reader) override;
 
 	private:
-		int64_t								mActorIncID;	// 物体自增ID
-		std::vector<std::unique_ptr<Actor>> mActors;		// 场景物体
+		int64_t								mActorIncID{ 0 };	// 物体自增ID
+		std::vector<std::unique_ptr<Actor>> mActors;			// 场景物体
 	};
 }

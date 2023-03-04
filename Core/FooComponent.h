@@ -9,27 +9,35 @@ namespace Core {
 	*/
 	class FooComponent : public IComponent {
 	public:
-
 		/*
-		* 序列化为二进制数据
+		* 序列化为Json数据
 		*/
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override {
-			blob.Write(a);
-			blob.Write(b);
-			blob.Write(c);
-			blob.Write(d);
-			blob.Write(e);
+		void SerializeJson(Tool::JsonWriter& writer) const override {
+			using namespace Tool;
+
+			writer.StartObject();
+
+			SerializeHelper::SerializeString(writer, "Typename", std::string(typeid(FooComponent).name()));
+			SerializeHelper::SerializeInt32(writer, "A", a);
+			SerializeHelper::SerializeFloat(writer, "B", b);
+			SerializeHelper::SerializeVector2(writer, "C", c);
+			SerializeHelper::SerializeVector3(writer, "D", d);
+			SerializeHelper::SerializeVector4(writer, "E", e);
+
+			writer.EndObject();
 		}
 
 		/*
-		* 反序列化二进制数据
+		* 反序列化Json数据
 		*/
-		void DeserializeBinary(Tool::InputMemoryStream& blob) override {
-			blob.Read(a);
-			blob.Read(b);
-			blob.Read(c);
-			blob.Read(d);
-			blob.Read(e);
+		void DeserializeJson(const Tool::JsonReader& reader) override {
+			using namespace Tool;
+
+			SerializeHelper::DeserializeInt32(reader, "A", a);
+			SerializeHelper::DeserializeFloat(reader, "B", b);
+			SerializeHelper::DeserializeVector2(reader, "C", c);
+			SerializeHelper::DeserializeVector3(reader, "D", d);
+			SerializeHelper::DeserializeVector4(reader, "E", e);
 		}
 
 	public:

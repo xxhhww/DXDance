@@ -17,32 +17,56 @@ namespace Core {
 		mIsStatic = isStatic;
 	}
 
-	void Transform::SerializeBinary(Tool::OutputMemoryStream& blob) const {
-		blob.Write(mLocalPosition);
-		blob.Write(mLocalRotation);
-		blob.Write(mLocalScale);
-		blob.Write(mLocalMatrix);
+	// 在Gui界面操作时，local数据可读写，world数据仅可读
 
-		blob.Write(mWorldPosition);
-		blob.Write(mWorldRotation);
-		blob.Write(mWorldScale);
-		blob.Write(mWorldMatrix);
+	Math::Vector3		mLocalPosition;		// 相对于父节点的位置
+	Math::Quaternion	mLocalRotation;		// 相对于父节点的旋转
+	Math::Vector3		mLocalScale;		// 相对于父节点的缩放
+	Math::Matrix4		mLocalMatrix;		// 相对于父节点的变换
 
-		blob.Write(mIsStatic);
+	Math::Vector3		mWorldPosition;		// 相对于世界原点的位置
+	Math::Quaternion	mWorldRotation;		// 相对于世界原点的旋转
+	Math::Vector3		mWorldScale;		// 相对于世界原点的缩放
+	Math::Matrix4		mWorldMatrix;		// 相对于世界原点的变换
+
+	bool				mIsStatic{ false };	// 是否为静态物体
+
+	void Transform::SerializeJson(Tool::JsonWriter& writer) const {
+		using namespace Tool;
+
+		writer.StartObject();
+
+		SerializeHelper::SerializeString(writer, "Typename", std::string(typeid(Transform).name()));
+		SerializeHelper::SerializeVector3(writer, "LocalPosition", mLocalPosition);
+		SerializeHelper::SerializeQuaternion(writer, "LocalRotation", mLocalRotation);
+		SerializeHelper::SerializeVector3(writer, "LocalScale", mLocalScale);
+		SerializeHelper::SerializeMatrix(writer, "LocalMatrix", mLocalMatrix);
+
+		SerializeHelper::SerializeVector3(writer, "WorldPosition", mWorldPosition);
+		SerializeHelper::SerializeQuaternion(writer, "WorldRotation", mWorldRotation);
+		SerializeHelper::SerializeVector3(writer, "WorldScale", mWorldScale);
+		SerializeHelper::SerializeMatrix(writer, "WorldMatrix", mWorldMatrix);
+
+		SerializeHelper::SerializeBool(writer, "Static", mIsStatic);
+
+		writer.EndObject();
 	}
 
-	void Transform::DeserializeBinary(Tool::InputMemoryStream& blob) {
-		blob.Read(mLocalPosition);
-		blob.Read(mLocalRotation);
-		blob.Read(mLocalScale);
-		blob.Read(mLocalMatrix);
+	void Transform::DeserializeJson(const Tool::JsonReader& reader) {
+		using namespace Tool;
 
-		blob.Read(mWorldPosition);
-		blob.Read(mWorldRotation);
-		blob.Read(mWorldScale);
-		blob.Read(mWorldMatrix);
+		// Typename由Actor解析
+		SerializeHelper::DeserializeVector3(reader, "LocalPosition", mLocalPosition);
+		SerializeHelper::DeserializeQuaternion(reader, "LocalRotation", mLocalRotation);
+		SerializeHelper::DeserializeVector3(reader, "LocalScale", mLocalScale);
+		SerializeHelper::DeserializeMatrix(reader, "LocalMatrix", mLocalMatrix);
 
-		blob.Read(mIsStatic);
+		SerializeHelper::DeserializeVector3(reader, "WorldPosition", mWorldPosition);
+		SerializeHelper::DeserializeQuaternion(reader, "WorldRotation", mWorldRotation);
+		SerializeHelper::DeserializeVector3(reader, "WorldScale", mWorldScale);
+		SerializeHelper::DeserializeMatrix(reader, "WorldMatrix", mWorldMatrix);
+
+		SerializeHelper::DeserializeBool(reader, "Static", mIsStatic);
 	}
 
 }

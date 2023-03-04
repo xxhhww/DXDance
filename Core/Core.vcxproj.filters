@@ -114,14 +114,14 @@
     <ClInclude Include="Transform.h">
       <Filter>头文件\ECS\Components</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>头文件\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>头文件\SceneManger</Filter>
     </ClInclude>
     <ClInclude Include="SceneManger.h">
       <Filter>头文件\SceneManger</Filter>
+    </ClInclude>
+    <ClInclude Include="FooComponent.h">
+      <Filter>头文件\ECS\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -155,9 +155,6 @@
     <ClCompile Include="Transform.cpp">
       <Filter>源文件\ECS\Components</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>源文件\ECS\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>源文件\SceneManger</Filter>
     </ClCompile>
@@ -174,6 +171,15 @@
     </None>
     <None Include="Entity.inl">
       <Filter>头文件\ECS</Filter>
+    </None>
+    <None Include="Actor.inl">
+      <Filter>头文件\ECS</Filter>
+    </None>
+    <None Include="TestRapidjson.json">
+      <Filter>源文件\Test</Filter>
+    </None>
+    <None Include="TestScenejson.json">
+      <Filter>源文件\Test</Filter>
     </None>
   </ItemGroup>
 </Project>

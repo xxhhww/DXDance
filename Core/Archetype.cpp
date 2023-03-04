@@ -47,6 +47,10 @@ namespace Core {
 	}
 
 	Archetype::~Archetype() {
+		if (chunkListHead == nullptr) {
+			return;
+		}
+
 		while (chunkListHead->header.next != nullptr) {
 			chunkListHead = chunkListHead->header.next;
 			delete chunkListHead->header.prev;

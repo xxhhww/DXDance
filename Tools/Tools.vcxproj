@@ -102,10 +102,10 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>..\ThirdParty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\ThirdParty\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,8 +133,10 @@
     <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
+    <ClInclude Include="JsonHelper.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />
+    <ClInclude Include="SerializeHepler.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
     <ClInclude Include="UIDGenerator.h" />
@@ -149,9 +151,15 @@
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="MetaFile.cpp" />
+    <ClCompile Include="SerializeHepler.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />
     <ClCompile Include="UIDGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Math\Math.vcxproj">
+      <Project>{49ef35ec-4e53-4b6e-b6aa-7e0fc4239c11}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,13 +6,17 @@ namespace Core {
 	Actor::Actor(int64_t actorID, const std::string& name) 
 	: mActorID(actorID)
 	, mName(name) 
-	, mEntity(Entity::Create()) {}
+	, mEntity(Entity::Create<Transform>()) {}
 
 	Actor::~Actor() {
 		Entity::Delete(mEntity);
 	}
 
 	void Actor::AttachParent(Actor& parent) {
+		if (mParent == &parent) {
+			return;
+		}
+
 		// Attach实体
 		mEntity.AttachParent(parent.mEntity);
 
@@ -23,6 +27,10 @@ namespace Core {
 	}
 
 	void Actor::DetachParent() {
+		if (mParentID == -1) {
+			return;
+		}
+
 		// Detach实体
 		mEntity.DetachParent();
 
@@ -55,33 +63,44 @@ namespace Core {
 		}
 	}
 
-	void Actor::SerializeBinary(Tool::OutputMemoryStream& blob) const {
-		blob.Write(mActorID);
-		blob.Write(mName);
-		blob.Write(mActive);
-		blob.Write(mDestoryed);
-		blob.Write(mParentID);
+	void Actor::SerializeJson(Tool::JsonWriter& writer) const {
+		using namespace Tool;
 
-		// 序列化组件数据
-		if(HasComponent<Transform>())
+		writer.StartObject();
+
+		SerializeHelper::SerializeInt64(writer, "ID", mActorID);
+		SerializeHelper::SerializeString(writer, "Name", mName);
+		SerializeHelper::SerializeBool(writer, "Active", mActive);
+		SerializeHelper::SerializeBool(writer, "Destoryed", mDestoryed);
+		SerializeHelper::SerializeInt64(writer, "ParentID", mParentID);
+
+		writer.Key("Components");
+		writer.StartArray();
+		mEntity.ForeachComp([&](IComponent* comp) {
+			comp->SerializeJson(writer);
+		});
+		writer.EndArray();
+
+		writer.EndObject();
 	}
 
-	void Actor::DeserializeBinary(Tool::InputMemoryStream& blob) {
-		blob.Read(mActorID);
-		blob.Read(mName);
-		blob.Read(mActive);
-		blob.Read(mDestoryed);
-		blob.Read(mParentID);
+	void Actor::DeserializeJson(const Tool::JsonReader& reader) {
+		using namespace Tool;
 
-		// 反序列化组件数据
+		SerializeHelper::DeserializeInt64(reader, "ID", mActorID);
+		SerializeHelper::DeserializeString(reader, "Name", mName);
+		SerializeHelper::DeserializeBool(reader, "Active", mActive);
+		SerializeHelper::DeserializeBool(reader, "Destoryed", mDestoryed);
+		SerializeHelper::DeserializeInt64(reader, "ParentID", mParentID);
 
-	}
-
-	void Actor::SerializeJson(rapidjson::Document& doc) const {
-
-	}
-
-	void Actor::DeserializeJson(const rapidjson::Document& doc) {
-
+		assert(reader.HasMember("Components") && reader["Components"].IsArray());
+		const Tool::JsonReader& ary = reader["Components"];
+		for (size_t i = 0; i < ary.Size(); i++) {
+			std::string compname;
+			SerializeHelper::DeserializeString(ary[i], "Typename", compname);
+			if		(compname == typeid(Transform).name())		{ GetComponent<Transform>().DeserializeJson(ary[i]); }
+			else if (compname == typeid(FooComponent).name())	{ AddComponent<FooComponent>().DeserializeJson(ary[i]); }
+			else { assert(false); }
+		}
 	}
 }

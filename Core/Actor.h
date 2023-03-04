@@ -38,6 +38,12 @@ namespace Core {
 		Comp& GetComponent();
 
 		/*
+		* 获得组件
+		*/
+		template<typename Comp>
+		const Comp& GetComponent() const;
+
+		/*
 		* 删除组件
 		*/
 		template<typename Comp>
@@ -86,24 +92,14 @@ namespace Core {
 		inline Actor*	   GetParent()		const { return mParent; }
 	public:
 		/*
-		* 序列化为二进制数据
-		*/
-		void SerializeBinary(Tool::OutputMemoryStream& blob) const override;
-
-		/*
-		* 反序列化二进制数据
-		*/
-		void DeserializeBinary(Tool::InputMemoryStream& blob) override;
-
-		/*
 		* 序列化为Json数据
 		*/
-		void SerializeJson(rapidjson::Document& doc) const override;
+		void SerializeJson(Tool::JsonWriter& writer) const override;
 
 		/*
 		* 反序列化Json数据
 		*/
-		void DeserializeJson(const rapidjson::Document& doc) override;
+		void DeserializeJson(const Tool::JsonReader& reader) override;
 
 	private:
 		int64_t				mActorID{ -1 };		// 物体ID(与Entity的ID不同，ActorID需要持久化存储)
