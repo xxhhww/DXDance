@@ -123,6 +123,9 @@
     <ClInclude Include="FooComponent.h">
       <Filter>头文件\ECS\Components</Filter>
     </ClInclude>
+    <ClInclude Include="AssetPathDataBase.h">
+      <Filter>头文件\AssetManger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureManger.cpp">
@@ -160,6 +163,15 @@
     </ClCompile>
     <ClCompile Include="SceneManger.cpp">
       <Filter>源文件\SceneManger</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetPathDataBase.cpp">
+      <Filter>源文件\AssetManger</Filter>
+    </ClCompile>
+    <ClCompile Include="IAssetManger.cpp">
+      <Filter>源文件\AssetManger</Filter>
+    </ClCompile>
+    <ClCompile Include="IAsset.cpp">
+      <Filter>源文件\Asset</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

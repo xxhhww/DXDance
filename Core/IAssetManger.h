@@ -1,14 +1,12 @@
 #pragma once
-#include <unordered_map>
-#include <string>
-#include <memory>
+#include "AssetPathDataBase.h"
 
 namespace Core {
+	class IAsset;
+
 	/*
-	* 资产管理接口类，其子模板必须是IAsset的子类 
-	* 该类及其子类并不从外部解析资产，资产的解析工作由AssetLoader来完成
+	* 资产管理接口类
 	*/
-	template<typename TAsset>
 	class IAssetManger {
 	public:
 		/*
@@ -17,9 +15,9 @@ namespace Core {
 		IAssetManger(const std::string& assetPath, const std::string& enginePath);
 
 		/*
-		* 通过id判断资产是否存在
+		* 析构函数
 		*/
-		bool IsRegistered(int64_t id);
+		virtual ~IAssetManger();
 
 		/*
 		* 通过name判断资产是否存在
@@ -27,40 +25,33 @@ namespace Core {
 		bool IsRegistered(const std::string& name);
 		
 		/*
-		* 通过id获取资产指针
+		* 资产引用计数加一
 		*/
-		TAsset* GetResource(int64_t id);
+		IAsset* UseResource(int64_t id);
 
 		/*
-		* 通过name获取资产指针
+		* 资产引用计数加一
 		*/
-		TAsset* GetResource(const std::string& name);
+		IAsset* UseResource(const std::string& path);
 
 		/*
-		* 通过用户的操作来注册资源
+		* 资产引用计数减一
 		*/
-		virtual void RegisterResource(TAsset* target) = 0;
-
-		/*
-		* 通过id注销资源
-		*/
-		void UnRegisterResource(int64_t id);
-
-		/*
-		* 通过name注销资源
-		*/
-		void UnRegisterResource(const std::string& name);
+		void UnUseResource(IAsset* asset);
 
 		/*
 		* 更改资源名称
 		*/
 		void RenameResource(const std::string& oldName, const std::string& newName);
 
+		/*
+		* 更改资源路径
+		*/
+		void RepathResource(const std::string& oldPath, const std::string& newPath);
+
 	protected:
-		std::unordered_map<int64_t, std::unique_ptr<TAsset>> mAssets;
-		std::string mAssetPath{ "" };
-		std::string mEnginePath{ "" };
+		std::unordered_map<std::string, IAsset*> mAssets;	// 名称-资产Map
+		std::string mAssetPath;		// 资产文件路径
+		std::string mEnginePath;	// 引擎文件路径
 	};
 }
-
-#include "IAssetManger.inl"

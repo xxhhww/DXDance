@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Archetype.h" />
+    <ClInclude Include="AssetPathDataBase.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="FooComponent.h" />
     <ClInclude Include="IAsset.h" />
@@ -157,8 +158,11 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Archetype.cpp" />
+    <ClCompile Include="AssetPathDataBase.cpp" />
     <ClCompile Include="CoreTest.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="IAsset.cpp" />
+    <ClCompile Include="IAssetManger.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
     <ClCompile Include="TaskProxy.cpp" />
