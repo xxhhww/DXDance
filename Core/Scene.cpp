@@ -1,6 +1,41 @@
 #include "Scene.h"
 
 namespace Core {
+	void Scene::Load(const std::string& path, bool aSync) {
+		std::ifstream inputStream;
+		inputStream.open(path);
+		if (!inputStream.is_open()) {
+			assert(false);
+		}
+
+		std::string jsonData((std::istreambuf_iterator<char>(inputStream)), std::istreambuf_iterator<char>());
+		inputStream.close();
+
+		rapidjson::Document doc;
+		if (doc.Parse(jsonData.c_str()).HasParseError()) {
+			assert(false);
+		}
+
+		const rapidjson::Value& rootObj = doc.GetObj();
+		this->DeserializeJson(rootObj);
+	}
+
+	void Scene::Unload(const std::string& path) {
+		rapidjson::StringBuffer buf;
+		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+
+		this->SerializeJson(writer);
+
+		std::ofstream outputStream;
+		outputStream.open(path);
+		if (!outputStream.is_open()) {
+			assert(false);
+		}
+
+		outputStream << buf.GetString() << std::endl;
+		outputStream.close();
+	}
+
 	Actor* Scene::CreateActor(const std::string& name) {
 		mActors.emplace_back(std::make_unique<Actor>(++mActorIncID, name));
 		return mActors.back().get();

@@ -1,6 +1,7 @@
 #pragma once
 #include "IAsset.h"
-#include "ThirdParty/include/DirectXTex/DirectXTex.h"
+#include "IAssetManger.h"
+#include "DirectXTex/DirectXTex.h"
 
 namespace Core {
 	/*
@@ -9,17 +10,30 @@ namespace Core {
 	class Texture : public IAsset, public DirectX::ScratchImage {
 	public:
 		/*
-		* 默认构造函数，用于资产从文件中读取的情景
+		* 构造函数
 		*/
-		inline Texture() = default;
+		Texture(IAssetManger<Texture>* manger);
 
 		/*
 		* 默认析构函数
 		*/
-		inline ~Texture() = default;
+		~Texture() = default;
+
+		/*
+		* 加载
+		*/
+		void Load(const std::string& path, bool aSync = false) override;
+
+		/*
+		* 卸载
+		*/
+		void Unload(const std::string& path) override;
 
 		inline void RemoveSRGB() {
 			m_metadata.format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		}
+
+	private:
+		IAssetManger<Texture>* mManger{ nullptr };
 	};
 }

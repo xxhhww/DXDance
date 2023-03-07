@@ -126,6 +126,9 @@
     <ClInclude Include="AssetPathDataBase.h">
       <Filter>头文件\AssetManger</Filter>
     </ClInclude>
+    <ClInclude Include="AssetMangerHub.h">
+      <Filter>头文件\AssetManger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TextureManger.cpp">
@@ -167,17 +170,14 @@
     <ClCompile Include="AssetPathDataBase.cpp">
       <Filter>源文件\AssetManger</Filter>
     </ClCompile>
-    <ClCompile Include="IAssetManger.cpp">
-      <Filter>源文件\AssetManger</Filter>
-    </ClCompile>
-    <ClCompile Include="IAsset.cpp">
+    <ClCompile Include="Texture.cpp">
       <Filter>源文件\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetMangerHub.cpp">
+      <Filter>源文件\AssetManger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="IAssetManger.inl">
-      <Filter>头文件\AssetManger</Filter>
-    </None>
     <None Include="Metatype.inl">
       <Filter>头文件\ECS</Filter>
     </None>
@@ -193,5 +193,9 @@
     <None Include="TestScenejson.json">
       <Filter>源文件\Test</Filter>
     </None>
+    <None Include="IAssetManger.inl">
+      <Filter>头文件\AssetManger</Filter>
+    </None>
+    <None Include="TestDeserializeSceneOutput.json" />
   </ItemGroup>
 </Project>

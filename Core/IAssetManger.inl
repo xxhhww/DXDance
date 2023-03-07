@@ -1,27 +1,39 @@
 #pragma once
 #include "IAssetManger.h"
-#include "AssetPathDataBase.h"
-#include "ServiceLocator.h"
 #include "Tools/StrUtil.h"
 
 namespace Core {
+
 	template<typename TAsset>
-	IAssetManger<TAsset>::IAssetManger(const std::string& path, const std::string& enginePath) {}
+	IAssetManger<TAsset>::IAssetManger(AssetPathDataBase* dataBase, const std::string& assetPath, const std::string& enginePath, bool enableUnload)
+	: mPathDataBase(dataBase)
+	, mAssetPath(assetPath)
+	, mEnginePath(enginePath)
+	, mEnableUnload(enableUnload) {}
 
 	template<typename TAsset>
 	IAssetManger<TAsset>::~IAssetManger() {
-
+		for (auto& pair : mAssets) {
+			TAsset* asset = pair.second;
+			asset->Unload(mPathDataBase->GetPath(asset->GetUID()));
+			delete asset;
+		}
+		mAssets.clear();
 	}
 
 	template<typename TAsset>
-	bool IAssetManger<TAsset>::IsRegistered(const std::string& name) {
-		return mAssets.find(name) != mAssets.end();
+	void IAssetManger<TAsset>::SetEnableUnload(bool enableUnload) {
+		mEnableUnload = enableUnload;
+	}
+
+	template<typename TAsset>
+	bool IAssetManger<TAsset>::IsRegistered(const std::string& path) {
+		return mAssets.find(path) != mAssets.end();
 	}
 
 	template<typename TAsset>
 	TAsset* IAssetManger<TAsset>::UseResource(int64_t id) {
-		std::string path = CORESERVICE(AssetPathDataBase).GetPath(id);
-
+		std::string path = mPathDataBase.GetPath(id);
 		if (path.empty()) {
 			return nullptr;
 		}
@@ -31,38 +43,45 @@ namespace Core {
 
 	template<typename TAsset>
 	TAsset* IAssetManger<TAsset>::UseResource(const std::string& path) {
-		// 获得资源名称
-		std::string assetname = Tool::StrUtil::RemoveBasePath(path);
+		// 资源未注册
+		if (!IsRegistered(path)) {
+			TAsset* newAsset = new TAsset(this);
 
-		// 资产未注册
-		if (!IsRegistered(assetname)) {
-			mAssets[assetname] = new TAsset(this);
+			mAssets[path] = new TAsset(this);
 		}
 
-		if (IsRegistered(assetname)) {
-			IAsset* asset = mAssets.at(assetname);
+		TAsset* asset = mAssets.at(assetname);
 
-			// 资源已被加载
-			if (asset->GetStatus() == AssetStatus::Loaded) {
-				return asset;
-			}
+		// 加载
+		asset->Load(path);
 
-			// 资源存在，但是未加载
-			asset.
-		}
+		asset->IncRefCount();
+
+		return asset;
 	}
+
 
 	template<typename TAsset>
 	void IAssetManger<TAsset>::UnUseResource(TAsset* asset) {
+		uint32_t refCount = asset->DecRefCount();
 
+		if (refCount == 0 && mEnableUnload) {
+			asset->UnLoad(mPathDataBase->GetPath(asset->GetUID()));
+		}
 	}
 
 	template<typename TAsset>
-	void IAssetManger<TAsset>::RenameResource(const std::string& oldName, const std::string& newName) {
-		for (auto& pair : mAssets) {
-			if (pair.second->GetName() == oldName) {
-				pair.second->SetName(newName);
-			}
-		}
+	void IAssetManger<TAsset>::RepathResource(const std::string& oldPath, const std::string& newPath) {
+		return;
 	}
+
+	template<typename TAsset>
+	std::string IAssetManger<TAsset>::GetRealPath(const std::string& path) {
+		// 如果相对路径以 ':' 开头，则是引擎文件
+		if (Tool::StrUtil::StartWith(path, ":")) {
+			return mEnginePath + '\\' + path.substr(1);
+		}
+		return mAssetPath + '\\' + path;
+	}
+
 }

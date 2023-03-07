@@ -23,6 +23,15 @@ namespace Core {
 		return mPathMap.at(id);
 	}
 
+	int64_t AssetPathDataBase::GetID(const std::string& path) {
+		for (const auto& pair : mPathMap) {
+			if (pair.second == path) {
+				return pair.first;
+			}
+		}
+		return -1;
+	}
+
 	void AssetPathDataBase::PathChanged(int64_t id, const std::string& newPath) {
 		auto it = mPathMap.find(id);
 
@@ -36,6 +45,8 @@ namespace Core {
 		}
 
 		mPathMap.at(id) = newPath;
+
+		SaveToDisk();
 	}
 
 	void AssetPathDataBase::LoadFromDisk() {

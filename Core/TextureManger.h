@@ -8,11 +8,6 @@ namespace Core {
 		/*
 		* 构造函数
 		*/
-		TextureManger(const std::string& assetPath, const std::string& enginePath);
-
-		/*
-		* 通过用户的操作来注册资源，将指针交给智能指针管理
-		*/
-		void RegisterResource(Texture* target) override;
+		TextureManger(AssetPathDataBase* dataBase, bool enableUnload);
 	};
 }

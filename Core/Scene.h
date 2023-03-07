@@ -5,7 +5,7 @@
 namespace Core {
 
 	/*
-	* Scene(场景)是资产管理的顶层组件，它负责管理与该场景相关的Actor(场景物体，也即二级ECS组件)
+	* Scene是资产管理的顶层组件，它负责管理与该场景相关的Actor
 	*/
 	class Scene : public IAsset {
 	public:
@@ -17,9 +17,18 @@ namespace Core {
 		/*
 		* 析构函数
 		*/
-		~Scene() {
-			int i = 32;
-		}
+		~Scene() = default;
+
+		/*
+		* 加载
+		*/
+		void Load(const std::string& path, bool aSync = false);
+
+		/*
+		* 卸载
+		*/
+		void Unload(const std::string& path);
+
 
 		/*
 		* 创建Actor(提供的名称应该是独特的)
@@ -40,12 +49,12 @@ namespace Core {
 		/*
 		* 序列化为Json数据
 		*/
-		void SerializeJson(Tool::JsonWriter& writer) const override;
+		void SerializeJson(Tool::JsonWriter& writer) const;
 
 		/*
 		* 反序列化Json数据
 		*/
-		void DeserializeJson(const Tool::JsonReader& reader) override;
+		void DeserializeJson(const Tool::JsonReader& reader);
 
 	private:
 		int64_t								mActorIncID{ 0 };	// 物体自增ID

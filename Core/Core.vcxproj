@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Archetype.h" />
+    <ClInclude Include="AssetMangerHub.h" />
     <ClInclude Include="AssetPathDataBase.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="FooComponent.h" />
@@ -158,21 +159,23 @@
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Archetype.cpp" />
+    <ClCompile Include="AssetMangerHub.cpp" />
     <ClCompile Include="AssetPathDataBase.cpp" />
     <ClCompile Include="CoreTest.cpp" />
     <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="IAsset.cpp" />
-    <ClCompile Include="IAssetManger.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
     <ClCompile Include="TaskProxy.cpp" />
     <ClCompile Include="TaskSystem.cpp" />
+    <None Include="IAssetManger.inl" />
+    <None Include="TestDeserializeSceneOutput.json" />
     <None Include="TestRapidjson.json">
       <FileType>Document</FileType>
     </None>
     <None Include="TestScenejson.json">
       <FileType>Document</FileType>
     </None>
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureLoader.cpp" />
     <ClCompile Include="TextureManger.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
@@ -181,7 +184,6 @@
   <ItemGroup>
     <None Include="Actor.inl" />
     <None Include="Entity.inl" />
-    <None Include="IAssetManger.inl" />
     <None Include="Metatype.inl" />
   </ItemGroup>
   <ItemGroup>

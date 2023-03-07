@@ -27,6 +27,11 @@ namespace Core {
 		std::string GetPath(int64_t id);
 
 		/*
+		* 通过路径获取ID
+		*/
+		int64_t GetID(const std::string& path);
+
+		/*
 		* 路径改变
 		*/
 		void PathChanged(int64_t id, const std::string& newPath);

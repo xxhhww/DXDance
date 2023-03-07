@@ -1,15 +1,8 @@
 #include "TextureManger.h"
-#include <fstream>
-#include "Tools/StrUtil.h"
-#include "TextureLoader.h"
 
 namespace Core {
-	TextureManger::TextureManger(const std::string & assetPath, const std::string & enginePath)
-	: IAssetManger<Texture>(assetPath, enginePath) {}
+	TextureManger::TextureManger(AssetPathDataBase* dataBase, bool enableUnload)
+	: IAssetManger<Texture>(dataBase, enableUnload) {}
 
-	void TextureManger::RegisterResource(Texture* target) {
-		mAssets.emplace(target->GetUID(), target);
 
-		int i = 32;
-	}
 }
