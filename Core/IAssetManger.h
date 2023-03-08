@@ -47,6 +47,8 @@ namespace Core {
 
 		/*
 		* 更改资源的相对路径
+		* @Param oldPath: 旧的相对路径
+		* @Param newPath: 新的相对路径
 		*/
 		void RepathResource(const std::string& oldPath, const std::string& newPath);
 

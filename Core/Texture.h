@@ -22,12 +22,12 @@ namespace Core {
 		/*
 		* ╪сть
 		*/
-		void Load(const std::string& path, bool aSync = false) override;
+		void Load(bool aSync = false) override;
 
 		/*
 		* п╤ть
 		*/
-		void Unload(const std::string& path) override;
+		void Unload() override;
 
 		inline void RemoveSRGB() {
 			m_metadata.format = DXGI_FORMAT_B8G8R8A8_UNORM;

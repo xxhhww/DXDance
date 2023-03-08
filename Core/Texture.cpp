@@ -5,11 +5,11 @@ namespace Core {
 	Texture::Texture(IAssetManger<Texture>* manger)
 	: mManger(manger) {}
 	
-	void Texture::Load(const std::string& path, bool aSync) {
-		TextureLoader::Create(path, *this);
+	void Texture::Load(bool aSync) {
+		TextureLoader::Create(mManger->GetRealPath(mPath), *this);
 	}
 
-	void Texture::Unload(const std::string& path) {
+	void Texture::Unload() {
 		DirectX::ScratchImage::Release();
 	}
 }

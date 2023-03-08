@@ -46,11 +46,13 @@ namespace Core {
 		// ×ÊÔ´Î´×¢²á
 		if (!IsRegistered(path)) {
 			TAsset* newAsset = new TAsset(this);
+			newAsset->SetPath(path);
+			newAsset->SetUID(mPathDataBase->GetID(path));
 
 			mAssets[path] = new TAsset(this);
 		}
 
-		TAsset* asset = mAssets.at(assetname);
+		TAsset* asset = mAssets.at(path);
 
 		// ¼ÓÔØ
 		asset->Load(path);
@@ -72,7 +74,19 @@ namespace Core {
 
 	template<typename TAsset>
 	void IAssetManger<TAsset>::RepathResource(const std::string& oldPath, const std::string& newPath) {
-		return;
+		if (oldPath == newPath) {
+			return;
+		}
+
+		auto it = mAssets.find(oldPath);
+		if (it == mAssets.end()) {
+			return;
+		}
+
+		TAsset* asset = *it;
+		asset->SetPath(newPath);
+
+		mPathDataBase->PathChanged(asset->GetUID(), newPath);
 	}
 
 	template<typename TAsset>

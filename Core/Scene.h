@@ -22,12 +22,12 @@ namespace Core {
 		/*
 		* ╪сть
 		*/
-		void Load(const std::string& path, bool aSync = false);
+		void Load(bool aSync = false);
 
 		/*
 		* п╤ть
 		*/
-		void Unload(const std::string& path);
+		void Unload();
 
 
 		/*
