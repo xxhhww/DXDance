@@ -6,12 +6,9 @@
 namespace Core {
 	AssetPathDataBase::AssetPathDataBase(const std::string& tablePath)
 	: mTablePath(tablePath) {
-		LoadFromDisk();
 	}
 
-	AssetPathDataBase::~AssetPathDataBase() {
-		SaveToDisk();
-	}
+	AssetPathDataBase::~AssetPathDataBase() {}
 
 	std::string AssetPathDataBase::GetPath(int64_t id) {
 		auto it = mPathMap.find(id);
@@ -23,7 +20,7 @@ namespace Core {
 		return mPathMap.at(id);
 	}
 
-	int64_t AssetPathDataBase::GetID(const std::string& path) {
+	int64_t AssetPathDataBase::GetUID(const std::string& path) {
 		for (const auto& pair : mPathMap) {
 			if (pair.second == path) {
 				return pair.first;
@@ -32,21 +29,21 @@ namespace Core {
 		return -1;
 	}
 
-	void AssetPathDataBase::PathChanged(int64_t id, const std::string& newPath) {
+	void AssetPathDataBase::SetPath(int64_t id, const std::string& path) {
 		auto it = mPathMap.find(id);
 
 		if (it == mPathMap.end()) {
-			mPathMap[id] = newPath;
+			mPathMap[id] = path;
 			return;
 		}
 
-		if (mPathMap.at(id) == newPath) {
+		if (mPathMap.at(id) == path) {
 			return;
 		}
 
-		mPathMap.at(id) = newPath;
+		mPathMap.at(id) = path;
 
-		SaveToDisk();
+		// SaveToDisk();
 	}
 
 	void AssetPathDataBase::LoadFromDisk() {

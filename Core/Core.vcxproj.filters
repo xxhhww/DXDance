@@ -69,20 +69,11 @@
     <ClInclude Include="ServiceLocator.h">
       <Filter>头文件\Global</Filter>
     </ClInclude>
-    <ClInclude Include="TextureManger.h">
-      <Filter>头文件\AssetManger</Filter>
-    </ClInclude>
     <ClInclude Include="IAssetManger.h">
       <Filter>头文件\AssetManger</Filter>
     </ClInclude>
     <ClInclude Include="IAsset.h">
       <Filter>头文件\Asset</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>头文件\Asset</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureLoader.h">
-      <Filter>头文件\Asset\Loader</Filter>
     </ClInclude>
     <ClInclude Include="Metatype.h">
       <Filter>头文件\ECS</Filter>
@@ -128,12 +119,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TextureManger.cpp">
-      <Filter>源文件\AssetManger</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureLoader.cpp">
-      <Filter>源文件\Asset\Loader</Filter>
-    </ClCompile>
     <ClCompile Include="Archetype.cpp">
       <Filter>源文件\ECS</Filter>
     </ClCompile>
@@ -166,9 +151,6 @@
     </ClCompile>
     <ClCompile Include="AssetPathDataBase.cpp">
       <Filter>源文件\AssetManger</Filter>
-    </ClCompile>
-    <ClCompile Include="Texture.cpp">
-      <Filter>源文件\Asset</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

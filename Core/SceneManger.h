@@ -14,7 +14,7 @@ namespace Core {
 		/*
 		* 构造函数
 		*/
-		SceneManger() = default;
+		SceneManger(AssetPathDataBase* dataBase, const std::string& assetPath, const std::string& enginePath, bool enableUnload = true);
 
 		/*
 		* 析构函数
@@ -33,9 +33,9 @@ namespace Core {
 
 		/*
 		* 从磁盘中读取目标场景
-		* @Param abPath: 场景文件的绝对路径
+		* @Param path: 场景文件的相对路径
 		*/
-		void LoadSceneFromDisk(const std::string& abPath);
+		void LoadSceneFromDisk(const std::string& path);
 
 	private:
 		Scene* mCurrScene{ nullptr };	// 当前正在使用的场景

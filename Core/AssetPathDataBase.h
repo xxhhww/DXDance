@@ -29,12 +29,12 @@ namespace Core {
 		/*
 		* 通过路径获取ID
 		*/
-		int64_t GetID(const std::string& path);
+		int64_t GetUID(const std::string& path);
 
 		/*
-		* 路径改变
+		* 设置ID对应的路径
 		*/
-		void PathChanged(int64_t id, const std::string& newPath);
+		void SetPath(int64_t id, const std::string& path);
 
 		/*
 		* 从磁盘中读取路径表

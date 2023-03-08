@@ -149,9 +149,6 @@
     <ClInclude Include="ServiceLocator.h" />
     <ClInclude Include="TaskProxy.h" />
     <ClInclude Include="TaskSystem.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureLoader.h" />
-    <ClInclude Include="TextureManger.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
@@ -173,9 +170,6 @@
     <None Include="TestScenejson.json">
       <FileType>Document</FileType>
     </None>
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureLoader.cpp" />
-    <ClCompile Include="TextureManger.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>

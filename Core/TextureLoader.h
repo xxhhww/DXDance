@@ -3,6 +3,7 @@
 #include <wincodec.h>
 #include <wrl.h>
 
+
 using namespace Microsoft;
 
 namespace Core {

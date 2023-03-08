@@ -1,5 +1,6 @@
 #pragma once
 #include "IAsset.h"
+#include "IAssetManger.h"
 #include "Actor.h"
 
 namespace Core {
@@ -12,7 +13,7 @@ namespace Core {
 		/*
 		* 构造函数
 		*/
-		Scene() = default;
+		Scene(IAssetManger<Scene>* manger);
 
 		/*
 		* 析构函数
@@ -57,6 +58,7 @@ namespace Core {
 		void DeserializeJson(const Tool::JsonReader& reader);
 
 	private:
+		IAssetManger<Scene>*				mManger{ nullptr };	// 管理器
 		int64_t								mActorIncID{ 0 };	// 物体自增ID
 		std::vector<std::unique_ptr<Actor>> mActors;			// 场景物体
 	};

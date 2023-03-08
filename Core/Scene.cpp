@@ -1,9 +1,12 @@
 #include "Scene.h"
 
 namespace Core {
-	void Scene::Load(const std::string& path, bool aSync) {
+	Scene::Scene(IAssetManger<Scene>* manger)
+	: mManger(manger) {}
+
+	void Scene::Load(bool aSync) {
 		std::ifstream inputStream;
-		inputStream.open(path);
+		inputStream.open(mManger->GetRealPath(mPath));
 		if (!inputStream.is_open()) {
 			assert(false);
 		}
@@ -20,14 +23,14 @@ namespace Core {
 		this->DeserializeJson(rootObj);
 	}
 
-	void Scene::Unload(const std::string& path) {
+	void Scene::Unload() {
 		rapidjson::StringBuffer buf;
 		rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
 		this->SerializeJson(writer);
 
 		std::ofstream outputStream;
-		outputStream.open(path);
+		outputStream.open(mManger->GetRealPath(mPath));
 		if (!outputStream.is_open()) {
 			assert(false);
 		}

@@ -64,6 +64,9 @@
     <Filter Include="源文件\Serializable">
       <UniqueIdentifier>{2dbf3607-2168-44fd-9b1b-ae71b2c8357b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Assert">
+      <UniqueIdentifier>{2917d81b-b547-42ac-a5c6-767623f84f31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -112,6 +115,9 @@
     </ClInclude>
     <ClInclude Include="JsonHelper.h">
       <Filter>头文件\Serializable</Filter>
+    </ClInclude>
+    <ClInclude Include="Assert.h">
+      <Filter>头文件\Assert</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

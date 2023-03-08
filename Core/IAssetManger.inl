@@ -15,7 +15,7 @@ namespace Core {
 	IAssetManger<TAsset>::~IAssetManger() {
 		for (auto& pair : mAssets) {
 			TAsset* asset = pair.second;
-			asset->Unload(mPathDataBase->GetPath(asset->GetUID()));
+			asset->Unload();
 			delete asset;
 		}
 		mAssets.clear();
@@ -47,16 +47,17 @@ namespace Core {
 		if (!IsRegistered(path)) {
 			TAsset* newAsset = new TAsset(this);
 			newAsset->SetPath(path);
-			newAsset->SetUID(mPathDataBase->GetID(path));
+			newAsset->SetUID(mPathDataBase->GetUID(path));
 
-			mAssets[path] = new TAsset(this);
+			mAssets[path] = newAsset;
 		}
 
 		TAsset* asset = mAssets.at(path);
 
 		// 加载
-		asset->Load(path);
+		asset->Load();
 
+		// 添加引用计数
 		asset->IncRefCount();
 
 		return asset;
@@ -64,11 +65,11 @@ namespace Core {
 
 
 	template<typename TAsset>
-	void IAssetManger<TAsset>::UnUseResource(TAsset* asset) {
+	void IAssetManger<TAsset>::UnuseResource(TAsset* asset) {
 		uint32_t refCount = asset->DecRefCount();
 
 		if (refCount == 0 && mEnableUnload) {
-			asset->UnLoad(mPathDataBase->GetPath(asset->GetUID()));
+			asset->Unload();
 		}
 	}
 
@@ -86,16 +87,20 @@ namespace Core {
 		TAsset* asset = *it;
 		asset->SetPath(newPath);
 
-		mPathDataBase->PathChanged(asset->GetUID(), newPath);
+		mPathDataBase->SetPath(asset->GetUID(), newPath);
 	}
 
 	template<typename TAsset>
 	std::string IAssetManger<TAsset>::GetRealPath(const std::string& path) {
-		// 如果相对路径以 ':' 开头，则是引擎文件
-		if (Tool::StrUtil::StartWith(path, ":")) {
-			return mEnginePath + '\\' + path.substr(1);
+		// 如果相对路径以 "Engine" 开头，则是引擎文件
+		if (Tool::StrUtil::StartWith(path, "Engine")) {
+			return mEnginePath + '\\' + path;
 		}
-		return mAssetPath + '\\' + path;
+		else if (Tool::StrUtil::StartWith(path, "Assets")) {
+			return mAssetPath + '\\' + path;
+		}
+		
+		return path;
 	}
 
 }

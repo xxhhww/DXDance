@@ -43,7 +43,7 @@ namespace Core {
 		/*
 		* 资产引用计数减一，当资源引用计数为0并且支持资源卸载时，卸载资源
 		*/
-		void UnUseResource(TAsset* asset);
+		void UnuseResource(TAsset* asset);
 
 		/*
 		* 更改资源的相对路径
