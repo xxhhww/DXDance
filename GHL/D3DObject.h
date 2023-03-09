@@ -8,7 +8,7 @@ namespace GHL {
 	class D3DObject {
 	public:
         /*
-        * 设置Object的调试名称
+        * 设置D3DObject的调试名称
         */
         virtual void SetDebugName(const std::string& name) = 0;
 
