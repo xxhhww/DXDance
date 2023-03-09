@@ -1,5 +1,6 @@
 #pragma once
 #include <assert.h>
+#include <comdef.h>
 #include <sstream>
 
 template< typename... Args >

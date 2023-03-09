@@ -24,10 +24,58 @@
     <ClInclude Include="pbh.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Adapter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AdapterContainer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RootParameter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorTableRange.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RootSignature.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Fence.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DescriptorHeap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
-      <Filter>资源文件</Filter>
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Adapter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AdapterContainer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RootParameter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorTableRange.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignature.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Fence.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

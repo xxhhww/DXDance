@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,12 +129,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Adapter.h" />
+    <ClInclude Include="AdapterContainer.h" />
     <ClInclude Include="D3DObject.h" />
+    <ClInclude Include="DescriptorHeap.h" />
+    <ClInclude Include="DescriptorTableRange.h" />
+    <ClInclude Include="Device.h" />
     <ClInclude Include="Display.h" />
+    <ClInclude Include="Fence.h" />
     <ClInclude Include="pbh.h" />
+    <ClInclude Include="RootParameter.h" />
+    <ClInclude Include="RootSignature.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Adapter.cpp" />
+    <ClCompile Include="AdapterContainer.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
+    <ClCompile Include="DescriptorTableRange.cpp" />
+    <ClCompile Include="Device.cpp" />
     <ClCompile Include="Display.cpp" />
+    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="RootParameter.cpp" />
+    <ClCompile Include="RootSignature.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tools\Tools.vcxproj">
+      <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
