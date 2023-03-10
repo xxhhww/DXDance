@@ -129,6 +129,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="DWParam.h" />
     <ClInclude Include="Adapter.h" />
     <ClInclude Include="AdapterContainer.h" />
     <ClInclude Include="D3DObject.h" />
@@ -138,6 +140,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="Fence.h" />
+    <ClInclude Include="Heap.h" />
     <ClInclude Include="pbh.h" />
     <ClInclude Include="ResourceBarrierBatch.h" />
     <ClInclude Include="RootParameter.h" />
@@ -146,12 +149,14 @@
   <ItemGroup>
     <ClCompile Include="Adapter.cpp" />
     <ClCompile Include="AdapterContainer.cpp" />
+    <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DebugLayer.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorTableRange.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="Heap.cpp" />
     <ClCompile Include="ResourceBarrierBatch.cpp" />
     <ClCompile Include="RootParameter.cpp" />
     <ClCompile Include="RootSignature.cpp" />
