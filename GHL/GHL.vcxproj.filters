@@ -104,5 +104,8 @@
     <ClCompile Include="Heap.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="pbh.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

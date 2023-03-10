@@ -157,6 +157,7 @@
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Heap.cpp" />
+    <ClCompile Include="pbh.cpp" />
     <ClCompile Include="ResourceBarrierBatch.cpp" />
     <ClCompile Include="RootParameter.cpp" />
     <ClCompile Include="RootSignature.cpp" />
