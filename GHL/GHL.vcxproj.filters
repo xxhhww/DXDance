@@ -48,6 +48,12 @@
     <ClInclude Include="DescriptorHeap.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DebugLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceBarrierBatch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -75,6 +81,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorHeap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugLayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceBarrierBatch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

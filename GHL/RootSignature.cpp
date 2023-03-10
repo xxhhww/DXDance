@@ -30,6 +30,7 @@ namespace GHL {
 	}
 
 	void RootSignature::Compile() {
+		// 两个DIRECTLY_INDEXED标识符分别启用HLSL中的ResourceDescriptorHeap 与 SamplerDescriptorHeap
 		mDesc.Desc_1_1.Flags =
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED |

@@ -25,6 +25,7 @@ namespace GHL {
 		*/
 		operator D3D12_CPU_DESCRIPTOR_HANDLE const() const { return mCpuHandle; }
 		operator D3D12_GPU_DESCRIPTOR_HANDLE const() const { return mGpuHandle; }
+
 	private:
 		size_t mHeapIndex{ 0u };	// 描述符在堆上的索引
 		D3D12_CPU_DESCRIPTOR_HANDLE mCpuHandle{ D3D12_GPU_VIRTUAL_ADDRESS_NULL };
@@ -39,13 +40,6 @@ namespace GHL {
 		DescriptorHeap(const Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint64_t capacity);
 		~DescriptorHeap() = default;
 
-		
-		inline const auto& GetHeapType()       const { return mType; }
-		inline const auto& GetIncrementSize()  const { return mIncrementSize; }
-		inline const auto& GetHeapDesc()       const { return mDesc; }
-		inline const auto& GetCapacity()       const { return mCapacity; }
-		inline const auto  D3DDescriptorHeap() const { return mHeap.Get(); }
-
 		/*
 		* 分配一个描述符
 		*/
@@ -57,9 +51,19 @@ namespace GHL {
 		void Deallocate(uint64_t heapIndex);
 
 		/*
+		* Get方法
+		*/
+		inline const auto& GetHeapType()       const { return mType; }
+		inline const auto& GetIncrementSize()  const { return mIncrementSize; }
+		inline const auto& GetHeapDesc()       const { return mDesc; }
+		inline const auto& GetCapacity()       const { return mCapacity; }
+		inline const auto  D3DDescriptorHeap() const { return mHeap.Get(); }
+
+		/*
 		* 设置描述符堆的调试名称
 		*/
 		void SetDebugName(const std::string& name) override;
+
 	private:
 		const Device* mDevice{ nullptr };
 		D3D12_DESCRIPTOR_HEAP_TYPE mType;
@@ -73,5 +77,4 @@ namespace GHL {
 		D3D12_CPU_DESCRIPTOR_HANDLE mStartCpuHandle{ D3D12_GPU_VIRTUAL_ADDRESS_NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE mStartGpuHandle{ D3D12_GPU_VIRTUAL_ADDRESS_NULL };
 	};
-
 }
