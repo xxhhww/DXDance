@@ -67,6 +67,9 @@
     <Filter Include="头文件\Assert">
       <UniqueIdentifier>{2917d81b-b547-42ac-a5c6-767623f84f31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\EnumUtil">
+      <UniqueIdentifier>{05f6e996-00e3-4356-9a5f-8e925cd80c63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -79,6 +82,9 @@
       <Filter>头文件\MetaFile</Filter>
     </None>
     <None Include="ConcurrentQueue.inl">
+      <Filter>头文件\Container</Filter>
+    </None>
+    <None Include="Pool.inl">
       <Filter>头文件\Container</Filter>
     </None>
   </ItemGroup>
@@ -118,6 +124,12 @@
     </ClInclude>
     <ClInclude Include="Assert.h">
       <Filter>头文件\Assert</Filter>
+    </ClInclude>
+    <ClInclude Include="EnumUtil.h">
+      <Filter>头文件\EnumUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="Pool.h">
+      <Filter>头文件\Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

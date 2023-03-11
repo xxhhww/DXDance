@@ -26,6 +26,8 @@
 #include <dxgidebug.h>
 #endif
 
+#include "Tools/EnumUtil.h"
+
 //linker
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -39,9 +41,33 @@
 namespace GHL {
 
 	/*
+	* 资源状态
+	*/
+	enum class EResourceState : uint64_t {
+		Common = 0,
+		VertexAndConstantBuffer = 0x1,
+		IndexBuffer = 0x2,
+		RenderTarget = 0x4,
+		UnorderedAccess = 0x8,
+		DepthWrite = 0x10,
+		DepthRead = 0x20,
+		NonPixelShaderResource = 0x40,
+		PixelShaderResource = 0x80,
+		AllShaderResource = PixelShaderResource | NonPixelShaderResource,
+		IndirectArgument = 0x100,
+		CopyDest = 0x200,
+		CopySource = 0x400,
+		RaytracingAccelerationStructure = 0x800,
+		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource,
+	};
+	ENABLE_BITMASK_OPERATORS(EResourceState);
+
+	D3D12_RESOURCE_STATES GetResourceStates(EResourceState state);
+
+	/*
 	* 资源类型
 	*/
-	enum class EResourceUsage {
+	enum class EResourceUsage : uint8_t {
 		Upload,
 		ReadBack,
 		Default
@@ -50,9 +76,31 @@ namespace GHL {
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage);
 
 	/*
+	* 资源的视图类型
+	*/
+	enum class EResourceBindFlag : uint32_t {
+		None = 0,
+		ShaderResource  = 1 << 0,
+		RenderTarget    = 1 << 1,
+		DepthStencil    = 1 << 2,
+		UnorderedAccess = 1 << 3
+	};
+	ENABLE_BITMASK_OPERATORS(EResourceBindFlag);
+
+	/*
+	* Buffer杂项标记
+	*/
+	enum class EBufferMiscFlag : uint32_t {
+		None,
+		ConstantBuffer   = 1 << 0,
+		IndirectArgs     = 1 << 1,
+		AccelerateStruct = 1 << 2
+	};
+
+	/*
 	* Query类型
 	*/
-	enum class EQueryType {
+	enum class EQueryType : uint8_t {
 		Timestamp,
 		CopyTimestamp
 	};

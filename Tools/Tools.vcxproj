@@ -132,11 +132,13 @@
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Clock.h" />
     <ClInclude Include="ConcurrentQueue.h" />
+    <ClInclude Include="EnumUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="JsonHelper.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />
+    <ClInclude Include="Pool.h" />
     <ClInclude Include="SerializeHepler.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
@@ -147,6 +149,7 @@
     <None Include="Event.inl" />
     <None Include="MemoryStream.inl" />
     <None Include="MetaFile.inl" />
+    <None Include="Pool.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Clock.cpp" />
