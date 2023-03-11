@@ -47,9 +47,15 @@ namespace GHL {
 		Default
 	};
 
-	/*
-	* 
-	*/
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage);
 
+	/*
+	* Query¿‡–Õ
+	*/
+	enum class EQueryType {
+		Timestamp,
+		CopyTimestamp
+	};
+
+	D3D12_QUERY_HEAP_TYPE GetD3DQueryType(EQueryType queryType);
 }

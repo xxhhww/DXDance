@@ -10,8 +10,13 @@ namespace GHL {
 	*/
 	class Heap : public D3DObject {
 	public:
-		Heap(const Device* device, EResourceUsage usage);
+		Heap(const Device* device, size_t size, EResourceUsage usage);
+		Heap(const Heap& other) = delete;
+		Heap(Heap&& other) = default;
 		~Heap() = default;
+
+		Heap& operator=(const Heap& other) = delete;
+		Heap& operator=(Heap&& other) = default;
 
 		/*
 		* Get·½·¨
@@ -27,6 +32,7 @@ namespace GHL {
 
 	private:
 		const Device* mDevice{ nullptr };
+		size_t mAlighnedSize;
 		D3D12_HEAP_TYPE mType;
 		D3D12_HEAP_DESC mDesc{};
 		Microsoft::WRL::ComPtr<ID3D12Heap> mHeap;

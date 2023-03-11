@@ -142,9 +142,14 @@
     <ClInclude Include="Fence.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="pbh.h" />
+    <ClInclude Include="QueryHeap.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceBarrierBatch.h" />
     <ClInclude Include="RootParameter.h" />
     <ClInclude Include="RootSignature.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="ShaderDesc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Adapter.cpp" />
@@ -158,9 +163,13 @@
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="pbh.cpp" />
+    <ClCompile Include="QueryHeap.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceBarrierBatch.cpp" />
     <ClCompile Include="RootParameter.cpp" />
     <ClCompile Include="RootSignature.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShaderCompiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
