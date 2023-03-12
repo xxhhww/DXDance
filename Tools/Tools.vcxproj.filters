@@ -70,6 +70,9 @@
     <Filter Include="头文件\EnumUtil">
       <UniqueIdentifier>{05f6e996-00e3-4356-9a5f-8e925cd80c63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{8e3f47aa-4475-4f4b-9469-965fd54c98ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -85,6 +88,9 @@
       <Filter>头文件\Container</Filter>
     </None>
     <None Include="Pool.inl">
+      <Filter>头文件\Container</Filter>
+    </None>
+    <None Include="SegregatedPool.inl">
       <Filter>头文件\Container</Filter>
     </None>
   </ItemGroup>
@@ -131,6 +137,9 @@
     <ClInclude Include="Pool.h">
       <Filter>头文件\Container</Filter>
     </ClInclude>
+    <ClInclude Include="SegregatedPool.h">
+      <Filter>头文件\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -153,6 +162,9 @@
     </ClCompile>
     <ClCompile Include="SerializeHepler.cpp">
       <Filter>源文件\Serializable</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolTest.cpp">
+      <Filter>源文件\Test</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

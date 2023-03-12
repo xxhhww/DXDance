@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -139,6 +139,7 @@
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />
     <ClInclude Include="Pool.h" />
+    <ClInclude Include="SegregatedPool.h" />
     <ClInclude Include="SerializeHepler.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
@@ -150,6 +151,7 @@
     <None Include="MemoryStream.inl" />
     <None Include="MetaFile.inl" />
     <None Include="Pool.inl" />
+    <None Include="SegregatedPool.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Clock.cpp" />
@@ -158,6 +160,7 @@
     <ClCompile Include="SerializeHepler.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />
+    <ClCompile Include="ToolTest.cpp" />
     <ClCompile Include="UIDGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>

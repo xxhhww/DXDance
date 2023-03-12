@@ -218,30 +218,11 @@ void TestDeserializeScene() {
     oStream.close();
 }
 
-class Base {
-public:
-    inline static int64_t sMember;
-};
-
-class A : public Base {
-public:
-};
-
-class B : public Base {
-public:
-};
-
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     // TestECS();
     // TestRapidJson();
     // TestSerializeScene();
     TestDeserializeScene();
-
-    A a;
-    a.sMember = 3;
-
-    B b;
-    int64_t member = b.sMember;
 
     return 0;
 }
