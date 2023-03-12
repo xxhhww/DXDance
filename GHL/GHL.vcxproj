@@ -130,7 +130,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CommandAllocator.h" />
+    <ClInclude Include="CommandList.h" />
+    <ClInclude Include="CommandListAllocator.h" />
     <ClInclude Include="CommandQueue.h" />
+    <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="DWParam.h" />
     <ClInclude Include="Adapter.h" />
     <ClInclude Include="AdapterContainer.h" />
@@ -141,6 +145,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="Display.h" />
     <ClInclude Include="Fence.h" />
+    <ClInclude Include="GpuDevice.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="pbh.h" />
     <ClInclude Include="QueryHeap.h" />
@@ -158,13 +163,18 @@
     <ClCompile Include="Adapter.cpp" />
     <ClCompile Include="AdapterContainer.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CommandAllocator.cpp" />
+    <ClCompile Include="CommandList.cpp" />
+    <ClCompile Include="CommandListAllocator.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DebugLayer.cpp" />
+    <ClCompile Include="DescriptorAllocator.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="DescriptorTableRange.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Display.cpp" />
     <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="GpuDevice.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="pbh.cpp" />
     <ClCompile Include="QueryHeap.cpp" />

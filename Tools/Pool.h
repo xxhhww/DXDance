@@ -14,7 +14,7 @@ namespace Tool {
 	};
 
 	/*
-	* 模板特化(UserDataType为void时使用该特化模板)
+	* 特化模板 <void>
 	*/
 	template<>
 	struct PoolSlot<void> {
@@ -38,7 +38,7 @@ namespace Tool {
 
 	private:
 		std::vector<std::unique_ptr<Slot>> mSlots;
-		std::queue<uint64_t>  mRetiredIDs;
+		std::queue<uint64_t>               mRetiredIDs;
 	};
 
 }

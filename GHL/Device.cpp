@@ -1,5 +1,6 @@
 #include "Device.h"
 #include "Tools/Assert.h"
+#include "Tools/StrUtil.h"
 
 namespace GHL {
 	Device::Device(const Adapter& adapter, bool aftermathEnabled) 
@@ -23,4 +24,8 @@ namespace GHL {
 	void Device::EnableAftermath(bool enable) {
         HRASSERT(mDevice->SetStablePowerState(enable));
 	}
+
+    void Device::SetDebugName(const std::string& name) {
+        HRASSERT(mDevice->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
+    }
 }

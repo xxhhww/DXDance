@@ -28,6 +28,12 @@ namespace GHL {
 		inline const auto& GetMinimumHeapSize()     const { return mMinimumHeapSize; }
 		inline const auto& GetHeapAlignment()       const { return mHeapAlignment; }
 		inline const auto& GetNodeMask()            const { return mNodeMask; }
+
+		/*
+		* ÉèÖÃµ÷ÊÔÃû³Æ
+		*/
+		void SetDebugName(const std::string& name) override;
+
 	private:
 		Microsoft::WRL::ComPtr<ID3D12Device5> mDevice;
 

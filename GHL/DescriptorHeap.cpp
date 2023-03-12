@@ -40,7 +40,7 @@ namespace GHL {
 		return DescriptorHandle{
 			D3D12_CPU_DESCRIPTOR_HANDLE{ mStartCpuHandle.ptr + mIncrementSize * targetIndex },
 			D3D12_GPU_DESCRIPTOR_HANDLE{ mStartGpuHandle.ptr + mIncrementSize * targetIndex },
-			targetIndex
+			targetIndex | ( mType << 32 )
 		};
 	}
 

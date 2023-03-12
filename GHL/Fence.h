@@ -31,6 +31,11 @@ namespace GHL {
 		inline const auto ExpectedValue()  const { return mExpectedValue; }
 		inline const auto CompletedValue() const { return mFence->GetCompletedValue(); }
 
+		/*
+		* ÉèÖÃµ÷ÊÔÃû³Æ
+		*/
+		void SetDebugName(const std::string& name) override;
+	
 	private:
 		const Device* mDevice{ nullptr };
 		Microsoft::WRL::ComPtr<ID3D12Fence> mFence;

@@ -16,7 +16,8 @@ namespace GHL {
 		/*
 		* Get·½·¨
 		*/
-		const auto& GetHeapIndex() const { return mHeapIndex; }
+		const auto& GetHeapIndex() const { return mHeapIndex & 0x0000FFFF; }
+		const auto& GetHeapType()  const { return mHeapIndex >> 32; }
 		const auto& GetCpuHandle() const { return mCpuHandle; }
 		const auto& GetGpuHandle() const { return mGpuHandle; }
 

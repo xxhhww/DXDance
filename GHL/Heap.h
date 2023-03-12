@@ -21,7 +21,7 @@ namespace GHL {
 		/*
 		* Get·½·¨
 		*/
-		inline const auto& GetHeapType() const { return mType; }
+		inline const auto& GetUsage()    const { return mUsage; }
 		inline const auto& GetHeapDesc() const { return mDesc; }
 		inline const auto  D3DHeap()     const { return mHeap.Get(); }
 	
@@ -33,7 +33,7 @@ namespace GHL {
 	private:
 		const Device* mDevice{ nullptr };
 		size_t mAlighnedSize;
-		D3D12_HEAP_TYPE mType;
+		EResourceUsage mUsage;
 		D3D12_HEAP_DESC mDesc{};
 		Microsoft::WRL::ComPtr<ID3D12Heap> mHeap;
 	};

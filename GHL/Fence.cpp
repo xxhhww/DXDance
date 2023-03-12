@@ -1,5 +1,6 @@
 #include "Fence.h"
 #include "Tools/Assert.h"
+#include "Tools/StrUtil.h"
 
 namespace GHL {
 	Fence::Fence(const Device* device) 
@@ -17,5 +18,9 @@ namespace GHL {
 
 	void Fence::SetCompletionEvent(uint64_t value, HANDLE eventHandle) {
 		HRASSERT(mFence->SetEventOnCompletion(value, eventHandle));
+	}
+
+	void Fence::SetDebugName(const std::string& name) {
+		HRASSERT(mFence->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
 	}
 }

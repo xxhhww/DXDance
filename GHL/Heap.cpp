@@ -7,7 +7,7 @@ namespace GHL {
 	Heap::Heap(const Device* device, size_t size, EResourceUsage usage)
 	: mDevice(device)
 	, mAlighnedSize(Math::AlignUp(size, mDevice->GetHeapAlignment()))
-	, mType(GetD3DHeapType(usage)) {
+	, mUsage(usage) {
 		
 		mDesc.Flags = D3D12_HEAP_FLAG_NONE;
 		mDesc.Alignment = mDevice->GetHeapAlignment();
@@ -15,7 +15,7 @@ namespace GHL {
 
 		mDesc.Properties.CreationNodeMask = mDevice->GetNodeMask();
 		mDesc.Properties.VisibleNodeMask = mDevice->GetNodeMask();
-		mDesc.Properties.Type = mType;
+		mDesc.Properties.Type = GetD3DHeapType(mUsage);
 
 		HRASSERT(mDevice->D3DDevice()->CreateHeap(&mDesc, IID_PPV_ARGS(&mHeap)));
 	}
