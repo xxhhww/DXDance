@@ -3,8 +3,8 @@
 
 namespace GHL {
 
-	Resource::Resource(const Device* device)
-	: mDevice(device) {}
+	Resource::Resource(GpuDevice* gpuDevice)
+	: mGpuDevice(gpuDevice) {}
 
 	void Resource::SetDebugName(const std::string& name) {
 		mResource->SetName(Tool::StrUtil::UTF8ToWString(name).c_str());

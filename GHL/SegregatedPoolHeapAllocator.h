@@ -37,7 +37,7 @@ namespace GHL {
 
 		~SegregatedPoolHeapAllocator() = default;
 
-		Allocation Allocate(EResourceUsage usage, size_t heapSize);
+		[[nodiscard]] Allocation Allocate(EResourceUsage usage, size_t heapSize);
 
 		void Deallocate(Allocation& allocation);
 

@@ -44,21 +44,26 @@ namespace GHL {
 	* 资源状态
 	*/
 	enum class EResourceState : uint64_t {
-		Common = 0,
-		VertexAndConstantBuffer = 0x1,
-		IndexBuffer = 0x2,
-		RenderTarget = 0x4,
-		UnorderedAccess = 0x8,
-		DepthWrite = 0x10,
-		DepthRead = 0x20,
-		NonPixelShaderResource = 0x40,
-		PixelShaderResource = 0x80,
-		AllShaderResource = PixelShaderResource | NonPixelShaderResource,
-		IndirectArgument = 0x100,
-		CopyDest = 0x200,
-		CopySource = 0x400,
-		RaytracingAccelerationStructure = 0x800,
-		GenericRead = VertexAndConstantBuffer | IndexBuffer | DepthRead | NonPixelShaderResource | PixelShaderResource | IndirectArgument | CopySource,
+		Common                          = 1 << 0,
+		UnorderedAccess                 = 1 << 1,
+		PixelShaderAccess               = 1 << 2,
+		NonPixelShaderAccess            = 1 << 3,
+		StreamOut                       = 1 << 4,
+		IndirectArgument                = 1 << 5,
+		CopyDestination                 = 1 << 6,
+		CopySource                      = 1 << 7,
+		GenericRead                     = 1 << 8,
+		RaytracingAccelerationStructure = 1 << 9,
+		Predication                     = 1 << 10,
+		RenderTarget                    = 1 << 11,
+		ResolveDestination              = 1 << 12,
+		ResolveSource                   = 1 << 13,
+		Present                         = 1 << 14,
+		DepthRead                       = 1 << 15,
+		DepthWrite                      = 1 << 16,
+		ConstantBuffer                  = 1 << 18,
+
+		AnyShaderAccess = PixelShaderAccess | NonPixelShaderAccess
 	};
 	ENABLE_BITMASK_OPERATORS(EResourceState);
 
@@ -76,15 +81,34 @@ namespace GHL {
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage);
 
 	/*
-	* 资源的视图类型
+	* 纹理类型
+	*/
+	enum class ETextureDimension {
+		Texture1D,
+		Texture2D,
+		Texture3D,
+	};
+
+	D3D12_RESOURCE_DIMENSION GetD3DTextureDimension(ETextureDimension dimension);
+
+	/*
+	* 纹理杂项标记
+	*/
+	enum class ETextureMiscFlag : uint32_t {
+		None,
+		CubeTexture = 1 << 0
+	};
+	ENABLE_BITMASK_OPERATORS(ETextureMiscFlag);
+
+	/*
+	* 资源绑定的视图类型
 	*/
 	enum class EResourceBindFlag : uint32_t {
 		None = 0,
-		ConstantBuffer  = 1 << 0,
-		ShaderResource  = 1 << 1,
+		ShaderResource  = 1 << 0,
+		UnorderedAccess = 1 << 1,
 		RenderTarget    = 1 << 2,
-		DepthStencil    = 1 << 3,
-		UnorderedAccess = 1 << 4
+		DepthStencil    = 1 << 3
 	};
 	ENABLE_BITMASK_OPERATORS(EResourceBindFlag);
 
@@ -92,10 +116,12 @@ namespace GHL {
 	* Buffer杂项标记
 	*/
 	enum class EBufferMiscFlag : uint32_t {
-		None,
-		ConstantBuffer   = 1 << 0,
-		IndirectArgs     = 1 << 1,
-		AccelerateStruct = 1 << 2
+		None = 0,
+		RawBuffer        = 1 << 0,
+		StructuredBuffer = 1 << 1,
+		ConstantBuffer   = 1 << 2,
+		IndirectArgs     = 1 << 3,
+		AccelerateStruct = 1 << 4
 	};
 	ENABLE_BITMASK_OPERATORS(EBufferMiscFlag);
 
@@ -108,4 +134,9 @@ namespace GHL {
 	};
 
 	D3D12_QUERY_HEAP_TYPE GetD3DQueryType(EQueryType queryType);
+
+	/*
+	* 获得类型的步幅
+	*/
+	uint32_t GetFormatStride(DXGI_FORMAT format);
 }

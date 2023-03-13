@@ -96,10 +96,16 @@
     <ClInclude Include="CommandAllocator.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CommandListAllocator.h">
+    <ClInclude Include="PoolCommandListAllocator.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CommandList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BuddyResourceAllocation.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -173,10 +179,16 @@
     <ClCompile Include="CommandAllocator.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CommandListAllocator.cpp">
+    <ClCompile Include="PoolCommandListAllocator.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CommandList.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BuddyResourceAllocation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

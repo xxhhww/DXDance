@@ -11,6 +11,14 @@ namespace GHL {
 		HRASSERT(mDevice->D3DDevice()->CreateCommandList(mDevice->GetNodeMask(), mType, mAllocator, nullptr, IID_PPV_ARGS(&mCommandList)));
 	}
 
+	void CommandList::Reset() {
+		HRASSERT(mCommandList->Reset(mAllocator, nullptr));
+	}
+
+	void CommandList::Close() {
+		HRASSERT(mCommandList->Close());
+	}
+
 	void CommandList::SetDebugName(const std::string& name) {
 		HRASSERT(mCommandList->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
 	}

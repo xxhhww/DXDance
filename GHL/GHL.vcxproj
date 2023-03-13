@@ -129,10 +129,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BuddyResourceAllocation.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CommandAllocator.h" />
     <ClInclude Include="CommandList.h" />
-    <ClInclude Include="CommandListAllocator.h" />
+    <ClInclude Include="PoolCommandListAllocator.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="DescriptorAllocator.h" />
     <ClInclude Include="DWParam.h" />
@@ -158,14 +159,16 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="ShaderDesc.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Adapter.cpp" />
     <ClCompile Include="AdapterContainer.cpp" />
+    <ClCompile Include="BuddyResourceAllocation.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="CommandList.cpp" />
-    <ClCompile Include="CommandListAllocator.cpp" />
+    <ClCompile Include="PoolCommandListAllocator.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DebugLayer.cpp" />
     <ClCompile Include="DescriptorAllocator.cpp" />
@@ -185,6 +188,7 @@
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tools\Tools.vcxproj">

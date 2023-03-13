@@ -5,6 +5,7 @@
 #include "Fence.h"
 #include "RootSignature.h"
 #include "AdapterContainer.h"
+#include "PoolCommandListAllocator.h"
 
 namespace GHL {
 	/*
@@ -21,6 +22,7 @@ namespace GHL {
 
 		DescriptorAllocator         descriptorAllocator;  // 描述符分配器
 		SegregatedPoolHeapAllocator heapAllocator;        // 堆分配器
+		PoolCommandListAllocator    commandListAllocator; // 命令列表分配器
 
 		GraphicsQueue               graphicsQueue;        // 图形引擎
 		Fence                       graphicsFence;        // 图形引擎围栏

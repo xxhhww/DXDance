@@ -12,7 +12,7 @@ namespace GHL {
 		DescriptorAllocator(const Device* device, std::vector<uint64_t> capacity);
 		~DescriptorAllocator() = default;
 
-		DescriptorHandle Allocate(D3D12_DESCRIPTOR_HEAP_TYPE type);
+		[[nodiscard]] DescriptorHandle Allocate(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
 		void Deallocate(DescriptorHandle& handle);
 

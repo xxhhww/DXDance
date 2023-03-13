@@ -12,6 +12,16 @@ namespace GHL {
 		inline const auto  D3DCommandList() const { return mCommandList.Get(); }
 
 		/*
+		* 重置命令列表
+		*/
+		void Reset();
+
+		/*
+		* 关闭命令列表
+		*/
+		void Close();
+
+		/*
 		* 设置调试名称
 		*/
 		void SetDebugName(const std::string& name) override;
