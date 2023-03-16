@@ -24,6 +24,12 @@ namespace GHL {
 		* 获取硬件适配器
 		*/
 		const Adapter& GetHardwareAdapter(int32_t idx) const;
+
+		/*
+		* 获取高性能硬件适配器
+		*/
+		const Adapter& GetHighPerformanceAdapter() const;
+
 	private:
 		Microsoft::WRL::ComPtr<IDXGIFactory2> mDXGIFactory;
 		std::unique_ptr<Adapter> mWARPAdapter;

@@ -6,8 +6,8 @@
 namespace GHL {
 
 	struct ShaderMacro {
-		std::wstring name;
-		std::wstring value;
+		std::string name;
+		std::string value;
 	};
 
 	enum class EShaderStage {
@@ -19,7 +19,6 @@ namespace GHL {
 		CS,
 		MS,
 		AS,
-		Count
 	};
 
 	enum class EShaderModel {
@@ -32,19 +31,15 @@ namespace GHL {
 		SM_6_6
 	};
 
-	enum class EShaderCompilerFlag {
-		ShaderCompilerFlag_None = 0,
-		ShaderCompilerFlag_Debug = 1 << 0,
-		ShaderCompilerFlag_DisableOptimization = 1 << 1
-	};
-
 	struct ShaderDesc {
-		EShaderStage stage = EShaderStage::Count;
+		EShaderStage stage = EShaderStage::VS;
 		EShaderModel model = EShaderModel::SM_6_6;
-		std::string file{ "" };
+		std::string path{ "" };
 		std::string entryPoint{ "" };
 		std::vector<ShaderMacro> macros{};
-		EShaderCompilerFlag flags = EShaderCompilerFlag::ShaderCompilerFlag_None;
+		bool debugBuild{ true };
+		bool separatePDB{ false };
 	};
 
+	std::string GenProfileString(EShaderStage stage, EShaderModel model);
 }

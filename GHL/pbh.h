@@ -139,4 +139,14 @@ namespace GHL {
 	* 获得类型的步幅
 	*/
 	uint32_t GetFormatStride(DXGI_FORMAT format);
+
+	/*
+	* 色域
+	*/
+	enum class ColorSpace : uint8_t
+	{
+		Rec709, Rec2020
+	};
+	DXGI_COLOR_SPACE_TYPE GetD3DColorSpace(ColorSpace space);
+	ColorSpace GetColorSpace(DXGI_COLOR_SPACE_TYPE space);
 }

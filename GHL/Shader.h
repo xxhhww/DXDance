@@ -4,23 +4,28 @@
 
 namespace GHL {
 
+	struct CompiledBinary {
+		uint8_t* Data = nullptr;
+		uint64_t Size = 0;
+	};
+
 	class Shader {
 	public:
+        Shader(const Microsoft::WRL::ComPtr<IDxcBlob>& blob, const Microsoft::WRL::ComPtr<IDxcBlob>& pdbBlob, const std::string& entryPoint, EShaderStage stage);
+        ~Shader() = default;
 
-		/*
-		* Get方法
-		*/
-		inline const auto& GetShaderDesc() const { return mDesc; }
-		inline const auto  GetPointer()    const { return (void*)mBlob.data(); }
-		inline const auto  GetLength()     const { return mBlob.size(); }
+        /*
+        * Get方法
+        */
 
-		/*
-		* 重载
-		*/
-		inline operator D3D12_SHADER_BYTECODE() const { return { GetPointer(), GetLength() }; }
 
-	private:
-		ShaderDesc mDesc{};
-		std::vector<uint8_t> mBlob;
+    private:
+        std::string  mEntryPoint;
+        EShaderStage mStage;
+        Microsoft::WRL::ComPtr<IDxcBlob> mBlob;
+        Microsoft::WRL::ComPtr<IDxcBlob> mPDBBlob;
+        CompiledBinary mBinary;
+        CompiledBinary mPDBBinary;
 	};
+
 }

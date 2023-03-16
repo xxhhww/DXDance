@@ -149,4 +149,21 @@ namespace GHL {
 		return 16u;
 	}
 
+	DXGI_COLOR_SPACE_TYPE GetD3DColorSpace(ColorSpace space) {
+		switch (space) {
+		case ColorSpace::Rec709: return DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+		case ColorSpace::Rec2020: return DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+		default: ASSERT_FORMAT(false, "Unsupported DXGI COLOR SPACE"); return {};
+		}
+	}
+
+	ColorSpace GetColorSpace(DXGI_COLOR_SPACE_TYPE space) {
+		switch (space) {
+		case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709: return ColorSpace::Rec709;
+		case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020: return ColorSpace::Rec2020;
+		default:
+			ASSERT_FORMAT(false, "Unsupported ColorSpace");
+			return ColorSpace::Rec709;
+		}
+	}
 }

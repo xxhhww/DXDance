@@ -19,6 +19,7 @@ namespace GHL {
 		~Display() = default;
 
 	public:
+		ColorSpace colorSpace;
 		Math::Vector2 redPrimary;
 		Math::Vector2 greenPrimary;
 		Math::Vector2 bluePrimary;

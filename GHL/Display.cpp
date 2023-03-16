@@ -2,6 +2,7 @@
 
 namespace GHL {
 	Display::Display(const DXGI_OUTPUT_DESC1& output) {
+        colorSpace = GetColorSpace(output.ColorSpace);
         redPrimary = { output.RedPrimary[0], output.RedPrimary[1] };
         greenPrimary = { output.GreenPrimary[0], output.GreenPrimary[1] };
         bluePrimary = { output.BluePrimary[0], output.BluePrimary[1] };

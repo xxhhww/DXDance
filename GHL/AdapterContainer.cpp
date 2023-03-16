@@ -28,4 +28,8 @@ namespace GHL {
         idx = std::clamp(idx, 0, (int32_t)mHardwareAdapters.size());
         return mHardwareAdapters.at(idx);
 	}
+
+    const Adapter& AdapterContainer::GetHighPerformanceAdapter() const {
+
+    }
 }
