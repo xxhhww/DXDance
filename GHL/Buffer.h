@@ -4,7 +4,7 @@
 #include "DescriptorHeap.h"
 
 namespace GHL {
-
+	/*
 	class GpuDevice;
 
 	class Buffer : public Resource {
@@ -31,5 +31,5 @@ namespace GHL {
 		DescriptorHandle mSRDescriptor;
 		DescriptorHandle mUADescriptor;
 	};
-
+	*/
 }

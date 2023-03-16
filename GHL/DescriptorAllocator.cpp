@@ -25,7 +25,7 @@ namespace GHL {
 			return DescriptorHandle{
 				D3D12_CPU_DESCRIPTOR_HANDLE{ D3D12_GPU_VIRTUAL_ADDRESS_NULL },
 				D3D12_GPU_DESCRIPTOR_HANDLE{ D3D12_GPU_VIRTUAL_ADDRESS_NULL },
-				-1 };
+				0 };
 		}
 	}
 

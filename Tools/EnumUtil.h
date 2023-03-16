@@ -92,7 +92,6 @@ static const bool enable = true;     \
 template<typename Enum>
 inline constexpr bool HasAllFlags(Enum value, Enum flags)
 {
-    static_assert(std::is_enum_v<Enum>());
     using T = std::underlying_type_t<Enum>;
     return (((T)value) & (T)flags) == ((T)flags);
 }
@@ -100,7 +99,6 @@ inline constexpr bool HasAllFlags(Enum value, Enum flags)
 template<typename Enum>
 inline constexpr bool HasAnyFlag(Enum value, Enum flags)
 {
-    static_assert(std::is_enum_v<Enum>());
     using T = std::underlying_type_t<Enum>;
     return (((T)value) & (T)flags) != 0;
 }

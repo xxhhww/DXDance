@@ -10,10 +10,10 @@ namespace GHL {
         maxLuminance = output.MaxLuminance;
         maxFullFrameLuminance = output.MaxFullFrameLuminance;
         supportHDR = false;
-        rectOrigin = { output.DesktopCoordinates.left, output.DesktopCoordinates.top };
+        rectOrigin = { (float)output.DesktopCoordinates.left, (float)output.DesktopCoordinates.top };
         rectSize = {
-            output.DesktopCoordinates.right - output.DesktopCoordinates.left,
-            output.DesktopCoordinates.bottom - output.DesktopCoordinates.top
+            (float)output.DesktopCoordinates.right - (float)output.DesktopCoordinates.left,
+            (float)output.DesktopCoordinates.bottom - (float)output.DesktopCoordinates.top
         };
 	}
 

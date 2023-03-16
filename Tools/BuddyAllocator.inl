@@ -38,7 +38,7 @@ namespace Tool {
 	template<typename BlockUserDataType>
 	void BuddyAllocator<BlockUserDataType>::Deallocate(typename BuddyAllocator<BlockUserDataType>::Block* block) {
 		size_t offset = block->offset;
-		uint32_t order = SizeToUnitSize(UnitSizeToOrder(block->size));
+		uint32_t order = UnitSizeToOrder(SizeToUnitSize(block->size));
 
 		DeallocateInternal(offset, order);
 

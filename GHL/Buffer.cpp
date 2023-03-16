@@ -1,10 +1,9 @@
 #include "Buffer.h"
-#include "GpuDevice.h"
 #include "Tools/Assert.h"
 #include "Math/Helper.h"
 
 namespace GHL {
-
+	/*
 	Buffer::Buffer(GpuDevice* gpuDevice, const BufferDesc& bufferDesc)
 	: Resource(gpuDevice)
 	, mBufferDesc(bufferDesc) {
@@ -183,5 +182,5 @@ namespace GHL {
 			mBufferDesc.stride == sizeof(uint16_t) ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT
 		};
 	}
-
+	*/
 }

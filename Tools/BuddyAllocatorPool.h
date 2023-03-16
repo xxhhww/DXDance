@@ -5,7 +5,7 @@ namespace Tool {
 
 	template<typename BucketUserDataType, typename BlockUserDataType>
 	struct BuddyPoolBucket {
-		BuddyPoolBucket(uint64_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
+		BuddyPoolBucket(uint32_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
 
 		uint32_t                          bucketIndex;
 		size_t                            bucketSize;
@@ -16,7 +16,7 @@ namespace Tool {
 
 	template<typename BucketUserDataType>
 	struct BuddyPoolBucket<BucketUserDataType, void> {
-		BuddyPoolBucket(uint64_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
+		BuddyPoolBucket(uint32_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
 
 		uint32_t                     bucketIndex;
 		size_t                       bucketSize;
@@ -27,7 +27,7 @@ namespace Tool {
 
 	template<typename BlockUserDataType>
 	struct BuddyPoolBucket<void, BlockUserDataType> {
-		BuddyPoolBucket(uint64_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
+		BuddyPoolBucket(uint32_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
 
 		uint32_t                          bucketIndex;
 		size_t                            bucketSize;
@@ -36,7 +36,7 @@ namespace Tool {
 
 	template<>
 	struct BuddyPoolBucket<void, void> {
-		BuddyPoolBucket(uint64_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
+		BuddyPoolBucket(uint32_t index, size_t minBlockSize, size_t maxBlockSize) : bucketIndex(index), bucketSize(maxBlockSize), pool(minBlockSize, maxBlockSize) {}
 
 		uint32_t                     bucketIndex;
 		size_t                       bucketSize;
