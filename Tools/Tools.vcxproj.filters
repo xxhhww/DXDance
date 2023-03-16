@@ -93,6 +93,9 @@
     <None Include="SegregatedPool.inl">
       <Filter>头文件\Container</Filter>
     </None>
+    <None Include="BuddyPool.inl">
+      <Filter>头文件\Container</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Event.h">
@@ -140,6 +143,12 @@
     <ClInclude Include="SegregatedPool.h">
       <Filter>头文件\Container</Filter>
     </ClInclude>
+    <ClInclude Include="BuddyPool.h">
+      <Filter>头文件\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="BuddyPoolAllocator.h">
+      <Filter>头文件\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -165,6 +174,9 @@
     </ClCompile>
     <ClCompile Include="ToolTest.cpp">
       <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="BuddyPoolAllocator.inl">
+      <Filter>头文件\Container</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

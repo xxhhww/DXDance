@@ -130,6 +130,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Assert.h" />
+    <ClInclude Include="BuddyPool.h" />
+    <ClInclude Include="BuddyPoolAllocator.h" />
     <ClInclude Include="Clock.h" />
     <ClInclude Include="ConcurrentQueue.h" />
     <ClInclude Include="EnumUtil.h" />
@@ -146,6 +148,7 @@
     <ClInclude Include="UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BuddyPool.inl" />
     <None Include="ConcurrentQueue.inl" />
     <None Include="Event.inl" />
     <None Include="MemoryStream.inl" />
@@ -154,6 +157,7 @@
     <None Include="SegregatedPool.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BuddyPoolAllocator.inl" />
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="MetaFile.cpp" />
