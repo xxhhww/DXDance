@@ -9,7 +9,7 @@ inline void print_assertion(Args&&... args) {
     ss.precision(10);
     ss << std::endl;
     (ss << ... << args) << std::endl;
-    OutputDebugString(ss.str().c_str());
+    OutputDebugStringA(ss.str().c_str());
     abort();
 }
 

@@ -23,12 +23,12 @@ namespace Tool {
 	};
 
 	template<typename BlockUserDataType = void>
-	class BuddyPool {
+	class BuddyAllocator {
 	public:
 		using Block = BuddyBlock<BlockUserDataType>;
 
 	public:
-		BuddyPool(size_t minBlockSize, size_t maxBlockSize);
+		BuddyAllocator(size_t minBlockSize, size_t maxBlockSize);
 
 		Block& Allocate(size_t size);
 
@@ -43,4 +43,4 @@ namespace Tool {
 
 }
 
-#include "BuddyPool.inl"
+#include "BuddyAllocator.inl"
