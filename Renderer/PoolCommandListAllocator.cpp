@@ -1,7 +1,7 @@
 #include "PoolCommandListAllocator.h"
 #include "Tools/Assert.h"
 
-namespace GHL {
+namespace Renderer {
 
 	PoolCommandListAllocator::PoolCommandListAllocator(const Device* device)
 	: mDevice(device) {}

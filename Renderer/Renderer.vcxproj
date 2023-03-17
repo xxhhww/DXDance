@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{ee8df10c-9bea-4b8d-9921-68e186f813cf}</ProjectGuid>
-    <RootNamespace>GHL</RootNamespace>
+    <ProjectGuid>{caf78c56-cae7-43c5-aace-fb6489240994}</ProjectGuid>
+    <RootNamespace>Renderer</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -105,7 +105,6 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,67 +128,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
-    <ClInclude Include="CommandAllocator.h" />
-    <ClInclude Include="CommandList.h" />
-    <ClInclude Include="PipelineState.h" />
-    <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="DWParam.h" />
-    <ClInclude Include="Adapter.h" />
-    <ClInclude Include="AdapterContainer.h" />
-    <ClInclude Include="D3DObject.h" />
-    <ClInclude Include="DebugLayer.h" />
-    <ClInclude Include="DescriptorHeap.h" />
-    <ClInclude Include="DescriptorTableRange.h" />
-    <ClInclude Include="Device.h" />
-    <ClInclude Include="Display.h" />
-    <ClInclude Include="Fence.h" />
-    <ClInclude Include="Heap.h" />
-    <ClInclude Include="pbh.h" />
-    <ClInclude Include="QueryHeap.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="ResourceBarrierBatch.h" />
-    <ClInclude Include="ResourceDesc.h" />
-    <ClInclude Include="RootParameter.h" />
-    <ClInclude Include="RootSignature.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderCompiler.h" />
-    <ClInclude Include="ShaderDesc.h" />
-    <ClInclude Include="SwapChain.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Adapter.cpp" />
-    <ClCompile Include="AdapterContainer.cpp" />
-    <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="CommandAllocator.cpp" />
-    <ClCompile Include="CommandList.cpp" />
-    <ClCompile Include="PipelineState.cpp" />
-    <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="DebugLayer.cpp" />
-    <ClCompile Include="DescriptorHeap.cpp" />
-    <ClCompile Include="DescriptorTableRange.cpp" />
-    <ClCompile Include="Device.cpp" />
-    <ClCompile Include="Display.cpp" />
-    <ClCompile Include="Fence.cpp" />
-    <ClCompile Include="Heap.cpp" />
-    <ClCompile Include="pbh.cpp" />
-    <ClCompile Include="QueryHeap.cpp" />
-    <ClCompile Include="Resource.cpp" />
-    <ClCompile Include="ResourceBarrierBatch.cpp" />
-    <ClCompile Include="RootParameter.cpp" />
-    <ClCompile Include="RootSignature.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShaderCompiler.cpp" />
-    <ClCompile Include="ShaderDesc.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ProjectReference Include="..\GHL\GHL.vcxproj">
+      <Project>{ee8df10c-9bea-4b8d-9921-68e186f813cf}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Math\Math.vcxproj">
+      <Project>{49ef35ec-4e53-4b6e-b6aa-7e0fc4239c11}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="StreamTextureSystem.png" />
+    <ClInclude Include="BuddyResourceAllocation.h" />
+    <ClInclude Include="DescriptorAllocator.h" />
+    <ClInclude Include="GpuDevice.h" />
+    <ClInclude Include="PoolCommandListAllocator.h" />
+    <ClInclude Include="SegregatedPoolHeapAllocator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BuddyResourceAllocation.cpp" />
+    <ClCompile Include="DescriptorAllocator.cpp" />
+    <ClCompile Include="GpuDevice.cpp" />
+    <ClCompile Include="PoolCommandListAllocator.cpp" />
+    <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

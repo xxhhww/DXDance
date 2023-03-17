@@ -1,7 +1,6 @@
 #include "ShaderCompiler.h"
 #include "Tools/Assert.h"
 #include "Tools/StrUtil.h"
-#include <filesystem>
 
 namespace GHL {
     CustomIncludeHandler::CustomIncludeHandler(const std::filesystem::path& rootPath, IDxcLibrary* library)
@@ -104,8 +103,12 @@ namespace GHL {
         std::vector<DxcDefine> defines;
         for (auto& macro : desc.macros) {
             DxcDefine dxcDefine;
-            dxcDefine.Name = Tool::StrUtil::UTF8ToWString(macro.name).c_str();
-            dxcDefine.Value = Tool::StrUtil::UTF8ToWString(macro.value).c_str();
+            ZeroMemory(&dxcDefine, sizeof(dxcDefine));
+            std::wstring name = Tool::StrUtil::UTF8ToWString(macro.name);
+            std::wstring value = Tool::StrUtil::UTF8ToWString(macro.value);
+
+            wmemcpy((wchar_t*)dxcDefine.Name, name.c_str(), name.size());
+            wmemcpy((wchar_t*)dxcDefine.Value, value.c_str(), value.size());
             defines.emplace_back(std::move(dxcDefine));
         }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Shader.h"
+#include <filesystem>
 
 namespace GHL {
     class CustomIncludeHandler : public IDxcIncludeHandler {

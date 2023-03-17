@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tools", "Tools\Tools.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core.vcxproj", "{CC73A8F3-16A6-44D9-A924-34D75EF88BBC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Editor", "Editor\Editor.vcxproj", "{2270EFEA-254D-4767-8461-B72ADF1DAFBA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Application", "Editor\Editor.vcxproj", "{2270EFEA-254D-4767-8461-B72ADF1DAFBA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UI", "UI\UI.vcxproj", "{F3015252-DC64-4F6D-B5D9-07F6BCDBD611}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Windows", "Windows\Windows.vcxproj", "{D9BABB68-ACEE-428F-BEFE-C0E72FEB0779}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GHL", "GHL\GHL.vcxproj", "{EE8DF10C-9BEA-4B8D-9921-68E186F813CF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Renderer", "Renderer\Renderer.vcxproj", "{CAF78C56-CAE7-43C5-AACE-FB6489240994}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +83,14 @@ Global
 		{EE8DF10C-9BEA-4B8D-9921-68E186F813CF}.Release|x64.Build.0 = Release|x64
 		{EE8DF10C-9BEA-4B8D-9921-68E186F813CF}.Release|x86.ActiveCfg = Release|Win32
 		{EE8DF10C-9BEA-4B8D-9921-68E186F813CF}.Release|x86.Build.0 = Release|Win32
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Debug|x64.ActiveCfg = Debug|x64
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Debug|x64.Build.0 = Debug|x64
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Debug|x86.ActiveCfg = Debug|Win32
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Debug|x86.Build.0 = Debug|Win32
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Release|x64.ActiveCfg = Release|x64
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Release|x64.Build.0 = Release|x64
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Release|x86.ActiveCfg = Release|Win32
+		{CAF78C56-CAE7-43C5-AACE-FB6489240994}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
