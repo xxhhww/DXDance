@@ -3,89 +3,127 @@
 
 namespace Renderer {
 
-	PoolCommandListAllocator::PoolCommandListAllocator(const Device* device)
-	: mDevice(device) {}
+	PoolCommandListAllocator::PoolCommandListAllocator(const GHL::Device* device, RingFrameTracker* ringFrameTracker)
+	: mDevice(device)
+	, mFrameTracker(ringFrameTracker) {
+		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+			CleanUpPendingDeallocation(frameIndex);
+		});
 
-	PoolCommandListAllocator::Allocation PoolCommandListAllocator::GetGraphicsCommandList() {
-		auto& slot = mGraphicsPool.Allocate();
-		auto& slotUserData = slot.userData;
+		mPendingDeallocations.resize(mFrameTracker->GetMaxSize());
+	}
 
-		if (!slotUserData.index) {
-			// 新的索引
-			mGraphicsCommandAllocators.emplace_back(new CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_DIRECT));
-			mGraphicsCommandLists.emplace_back(new CommandList(mDevice, mGraphicsCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_DIRECT));
-			slotUserData.index = mGraphicsCommandLists.size() - 1;
+	CommandListWrap PoolCommandListAllocator::AllocateGraphicsCommandList() {
+		auto* slot = mGraphicsPool.Allocate();
+		if (!slot->userData.commandListIndex) {
+			mGraphicsCommandAllocators.emplace_back(new GHL::CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_DIRECT));
+			mGraphicsCommandLists.emplace_back(new GHL::CommandList(mDevice, mGraphicsCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_DIRECT));
+
+			slot->userData.commandListIndex = mGraphicsCommandLists.size() - 1;
+
+			Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_DIRECT };
+			return CommandListWrap{
+				mGraphicsCommandLists.back().get(),
+				[this, deallocation]() {
+					mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+				}
+			};
 		}
-		else {
-			// 旧的索引，使用之前需要重置命令分配器与命令列表
-			mGraphicsCommandAllocators.at(*slotUserData.index)->Reset();
-			mGraphicsCommandLists.at(*slotUserData.index)->Reset();
-		}
 
-		return Allocation{
-			slot,
-			mGraphicsCommandLists.at(*slotUserData.index).get()
+		auto* commandList = mGraphicsCommandLists.at(*slot->userData.commandListIndex).get();
+		auto* commandListAllocator = mGraphicsCommandAllocators.at(*slot->userData.commandListIndex).get();
+		commandListAllocator->Reset();
+		commandList->Reset();
+
+		Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_DIRECT };
+		return CommandListWrap{
+			commandList,
+			[this, deallocation]() {
+				mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+			}
 		};
 	}
 
-	PoolCommandListAllocator::Allocation PoolCommandListAllocator::GetComputeCommandList() {
-		auto& slot = mComputePool.Allocate();
-		auto& slotUserData = slot.userData;
+	CommandListWrap PoolCommandListAllocator::AllocateComputeCommandList() {
+		auto* slot = mComputePool.Allocate();
+		if (!slot->userData.commandListIndex) {
+			mComputeCommandAllocators.emplace_back(new GHL::CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE));
+			mComputeCommandLists.emplace_back(new GHL::CommandList(mDevice, mComputeCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_COMPUTE));
 
-		if (!slotUserData.index) {
-			// 新的索引
-			mComputeCommandAllocators.emplace_back(new CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_COMPUTE));
-			mComputeCommandLists.emplace_back(new CommandList(mDevice, mComputeCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_COMPUTE));
-			slotUserData.index = mComputeCommandLists.size() - 1;
-		}
-		else {
-			// 旧的索引，使用之前需要重置命令分配器与命令列表
-			mComputeCommandAllocators.at(*slotUserData.index)->Reset();
-			mComputeCommandLists.at(*slotUserData.index)->Reset();
+			slot->userData.commandListIndex = mComputeCommandLists.size() - 1;
+
+			Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_COMPUTE };
+			return CommandListWrap{
+				mComputeCommandLists.back().get(),
+				[this, deallocation]() {
+					mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+				}
+			};
 		}
 
-		return Allocation{
-			slot,
-			mComputeCommandLists.at(*slotUserData.index).get()
+		auto* commandList = mComputeCommandLists.at(*slot->userData.commandListIndex).get();
+		auto* commandListAllocator = mComputeCommandAllocators.at(*slot->userData.commandListIndex).get();
+		commandListAllocator->Reset();
+		commandList->Reset();
+
+		Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_COMPUTE };
+		return CommandListWrap{
+			commandList,
+			[this, deallocation]() {
+				mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+			}
 		};
 	}
 
-	PoolCommandListAllocator::Allocation PoolCommandListAllocator::GetCopyCommandList() {
-		auto& slot = mCopyPool.Allocate();
-		auto& slotUserData = slot.userData;
+	CommandListWrap PoolCommandListAllocator::AllocateCopyCommandList() {
+		auto* slot = mCopyPool.Allocate();
+		if (!slot->userData.commandListIndex) {
+			mCopyCommandAllocators.emplace_back(new GHL::CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_COPY));
+			mCopyCommandLists.emplace_back(new GHL::CommandList(mDevice, mCopyCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_COPY));
 
-		if (!slotUserData.index) {
-			// 新的索引
-			mCopyCommandAllocators.emplace_back(new CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_COPY));
-			mCopyCommandLists.emplace_back(new CommandList(mDevice, mCopyCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_COPY));
-			slotUserData.index = mCopyCommandLists.size() - 1;
-		}
-		else {
-			// 旧的索引，使用之前需要重置命令分配器与命令列表
-			mCopyCommandAllocators.at(*slotUserData.index)->Reset();
-			mCopyCommandLists.at(*slotUserData.index)->Reset();
+			slot->userData.commandListIndex = mCopyCommandLists.size() - 1;
+
+			Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_COPY };
+			return CommandListWrap{
+				mCopyCommandLists.back().get(),
+				[this, deallocation]() {
+					mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+				}
+			};
 		}
 
-		return Allocation{
-			slot,
-			mCopyCommandLists.at(*slotUserData.index).get()
+		auto* commandList = mCopyCommandLists.at(*slot->userData.commandListIndex).get();
+		auto* commandListAllocator = mCopyCommandAllocators.at(*slot->userData.commandListIndex).get();
+		commandListAllocator->Reset();
+		commandList->Reset();
+
+		Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_COPY };
+		return CommandListWrap{
+			commandList,
+			[this, deallocation]() {
+				mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(deallocation);
+			}
 		};
 	}
 
-	void PoolCommandListAllocator::RetireCommandList(PoolCommandListAllocator::Allocation& allocation) {
-		switch (allocation.commandList->GetListType()) {
-		case D3D12_COMMAND_LIST_TYPE_DIRECT:
-			mGraphicsPool.Deallocate(allocation.poolAllocation);
-			break;
-		case D3D12_COMMAND_LIST_TYPE_COMPUTE:
-			mComputePool.Deallocate(allocation.poolAllocation);
-			break;
-		case D3D12_COMMAND_LIST_TYPE_COPY:
-			mCopyPool.Deallocate(allocation.poolAllocation);
-			break;
-		default:
-			ASSERT_FORMAT(false, "Unsupported Command List Type");
-			break;
+	void PoolCommandListAllocator::CleanUpPendingDeallocation(uint8_t frameIndex) {
+		for (const auto& deallocation : mPendingDeallocations[frameIndex]) {
+			switch (deallocation.listType) {
+			case D3D12_COMMAND_LIST_TYPE_DIRECT:
+				mGraphicsPool.Deallocate(deallocation.slot);
+				break;
+			case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+				mComputePool.Deallocate(deallocation.slot);
+				break;
+			case D3D12_COMMAND_LIST_TYPE_COPY:
+				mCopyPool.Deallocate(deallocation.slot);
+				break;
+			default:
+				ASSERT_FORMAT(false, "Unsupport COMMAND LIST TYPE");
+				break;
+			}
 		}
+		mPendingDeallocations[frameIndex].clear();
 	}
+
 }

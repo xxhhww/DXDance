@@ -20,7 +20,8 @@ namespace Tool {
 		}
 
 		return Allocation{
-			*mBuckets.at(bucketIndex).get(),
+			
+			mBuckets.at(bucketIndex).get(),
 			mBuckets.at(bucketIndex)->pool.Allocate()
 		};
 	}

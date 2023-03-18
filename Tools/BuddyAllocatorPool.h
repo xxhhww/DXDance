@@ -96,7 +96,6 @@ namespace Tool {
 		std::vector<std::unique_ptr<Bucket>> mBuckets;
 	};
 
-
 }
 
 #include "BuddyAllocatorPool.inl"

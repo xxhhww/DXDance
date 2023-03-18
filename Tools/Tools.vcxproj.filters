@@ -73,6 +73,9 @@
     <Filter Include="源文件\Test">
       <UniqueIdentifier>{8e3f47aa-4475-4f4b-9469-965fd54c98ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Wrap">
+      <UniqueIdentifier>{14530df2-adc0-4895-9c1e-735451ea4199}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="BuddyAllocatorPool.h">
       <Filter>头文件\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="Wrap.h">
+      <Filter>头文件\Wrap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

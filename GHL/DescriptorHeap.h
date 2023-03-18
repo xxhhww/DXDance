@@ -45,12 +45,7 @@ namespace GHL {
 		/*
 		* 分配一个描述符
 		*/
-		DescriptorHandle Allocate();
-
-		/*
-		* 回收一个描述符
-		*/
-		void Deallocate(uint64_t heapIndex);
+		DescriptorHandle Allocate(uint64_t heapIndex);
 
 		/*
 		* Get方法
@@ -74,8 +69,6 @@ namespace GHL {
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
 
 		uint64_t mCapacity{ 0u };	// 容量
-		uint64_t mCurrIndex{ 0u };	// 当前使用的索引
-		std::priority_queue<uint64_t> mRetiredIndices;	// 不使用的索引
 		D3D12_CPU_DESCRIPTOR_HANDLE mStartCpuHandle{ D3D12_GPU_VIRTUAL_ADDRESS_NULL };
 		D3D12_GPU_DESCRIPTOR_HANDLE mStartGpuHandle{ D3D12_GPU_VIRTUAL_ADDRESS_NULL };
 	};

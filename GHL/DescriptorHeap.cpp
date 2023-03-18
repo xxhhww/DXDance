@@ -26,26 +26,20 @@ namespace GHL {
 		mStartGpuHandle = mHeap->GetGPUDescriptorHandleForHeapStart();
 	}
 
-	DescriptorHandle DescriptorHeap::Allocate() {
-		uint64_t targetIndex{ 0u };
-		if (mRetiredIndices.empty()) {
-			targetIndex = mCurrIndex++;
-		}
-		else {
-			targetIndex = mRetiredIndices.top();
-			mRetiredIndices.pop();
+	DescriptorHandle DescriptorHeap::Allocate(uint64_t heapIndex) {
+		if (mType == D3D12_DESCRIPTOR_HEAP_TYPE_RTV || mType == D3D12_DESCRIPTOR_HEAP_TYPE_DSV) {
+			return DescriptorHandle{
+				D3D12_CPU_DESCRIPTOR_HANDLE{ mStartCpuHandle.ptr + mIncrementSize * heapIndex },
+				D3D12_GPU_DESCRIPTOR_HANDLE{ D3D12_GPU_VIRTUAL_ADDRESS_NULL },
+				heapIndex | ( (uint64_t)mType << 32 )
+			};
 		}
 
-		// TODO RT DS ²»Ê¹ÓÃGpuHandle
 		return DescriptorHandle{
-			D3D12_CPU_DESCRIPTOR_HANDLE{ mStartCpuHandle.ptr + mIncrementSize * targetIndex },
-			D3D12_GPU_DESCRIPTOR_HANDLE{ mStartGpuHandle.ptr + mIncrementSize * targetIndex },
-			targetIndex | ( (uint64_t)mType << 32 )
+			D3D12_CPU_DESCRIPTOR_HANDLE{ mStartCpuHandle.ptr + mIncrementSize * heapIndex },
+			D3D12_GPU_DESCRIPTOR_HANDLE{ mStartGpuHandle.ptr + mIncrementSize * heapIndex },
+			heapIndex | ( (uint64_t)mType << 32 )
 		};
-	}
-
-	void DescriptorHeap::Deallocate(uint64_t heapIndex) {
-		mRetiredIndices.push(heapIndex);
 	}
 
 	void DescriptorHeap::SetDebugName(const std::string& name) {

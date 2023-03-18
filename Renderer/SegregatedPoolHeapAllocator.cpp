@@ -34,8 +34,8 @@ namespace GHL {
 		auto poolAllocation = pool->Allocate(heapSize);
 		auto& bucket = poolAllocation.bucket;
 		auto& slot = poolAllocation.slot;
-		auto& bucketUserData = bucket.userData;
-		auto& slotUserData = slot.userData;
+		auto& bucketUserData = bucket->userData;
+		auto& slotUserData = slot->userData;
 
 		if (!bucketUserData.heapListIndex) {
 			array->emplace_back();
@@ -45,7 +45,7 @@ namespace GHL {
 		auto& heapPtrArray = array->at(*bucketUserData.heapListIndex);
 
 		if (!slotUserData.heapIndex) {
-			heapPtrArray.emplace_back(new Heap(mDevice, bucket.bucketSize, usage));
+			heapPtrArray.emplace_back(new Heap(mDevice, bucket->bucketSize, usage));
 			slotUserData.heapIndex = heapPtrArray.size() - 1;
 		}
 

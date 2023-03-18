@@ -146,6 +146,7 @@
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
     <ClInclude Include="UIDGenerator.h" />
+    <ClInclude Include="Wrap.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BuddyAllocator.inl" />

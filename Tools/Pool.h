@@ -32,9 +32,9 @@ namespace Tool {
 		using Slot = PoolSlot<SlotUserDataType>;
 
 	public:
-		Slot& Allocate();
+		Slot* Allocate();
 
-		void Deallocate(Slot& slot);
+		void Deallocate(Slot* slot);
 
 	private:
 		std::vector<std::unique_ptr<Slot>> mSlots;

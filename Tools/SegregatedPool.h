@@ -66,10 +66,10 @@ namespace Tool {
 
 		struct Allocation {
 		public:
-			Allocation(Bucket& bucket, typename Pool<SlotUserDataType>::Slot& slot) : bucket(bucket), slot(slot) {}
+			Allocation(Bucket* bucket, typename Pool<SlotUserDataType>::Slot* slot) : bucket(bucket), slot(slot) {}
 
-			Bucket& bucket;
-			typename Pool<SlotUserDataType>::Slot& slot;
+			Bucket* bucket;
+			typename Pool<SlotUserDataType>::Slot* slot;
 		};
 
 	public:

@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,18 +140,30 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BuddyResourceAllocation.h" />
-    <ClInclude Include="DescriptorAllocator.h" />
+    <ClInclude Include="BuddyHeapAllocator.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="BufferDesc.h" />
+    <ClInclude Include="LinearAllocator.h" />
+    <ClInclude Include="PoolDescriptorAllocator.h" />
     <ClInclude Include="GpuDevice.h" />
     <ClInclude Include="PoolCommandListAllocator.h" />
+    <ClInclude Include="ResourceAllocator.h" />
+    <ClInclude Include="RingFrameTracker.h" />
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureDesc.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BuddyResourceAllocation.cpp" />
-    <ClCompile Include="DescriptorAllocator.cpp" />
+    <ClCompile Include="BuddyHeapAllocator.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="LinearAllocator.cpp" />
+    <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="GpuDevice.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />
+    <ClCompile Include="ResourceAllocator.cpp" />
+    <ClCompile Include="RingFrameTracker.cpp" />
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

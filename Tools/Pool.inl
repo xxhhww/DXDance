@@ -4,10 +4,10 @@
 namespace Tool {
 
 	template<typename SlotUserDataType>
-	typename Pool<SlotUserDataType>::Slot& Pool<SlotUserDataType>::Allocate() {
+	typename Pool<SlotUserDataType>::Slot* Pool<SlotUserDataType>::Allocate() {
 		if (mRetiredIDs.empty()) {
 			mSlots.emplace_back(new Slot(mSlots.size()));
-			return *mSlots.back().get();
+			return mSlots.back().get();
 		}
 
 		uint64_t id = mRetiredIDs.front();
@@ -16,8 +16,8 @@ namespace Tool {
 	}
 
 	template<typename SlotUserDataType>
-	void Pool<SlotUserDataType>::Deallocate(typename Pool<SlotUserDataType>::Slot& slot) {
-		mRetiredIDs.push(slot.id);
+	void Pool<SlotUserDataType>::Deallocate(typename Pool<SlotUserDataType>::Slot* slot) {
+		mRetiredIDs.push(slot->id);
 	}
 
 }

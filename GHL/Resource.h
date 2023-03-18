@@ -27,6 +27,16 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 
+		/*
+		* Ω‚À„D3D12_RESOURCE_DESC
+		*/
+		virtual void ResolveResourceDesc() = 0;
+
+		/*
+		* ¥¥Ω®√Ë ˆ∑˚
+		*/
+		virtual void CreateDescriptor() = 0;
+
 	protected:
 		D3D12_RESOURCE_DESC mResourceDesc{};
 		Microsoft::WRL::ComPtr<ID3D12Resource> mResource;

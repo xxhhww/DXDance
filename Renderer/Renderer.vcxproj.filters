@@ -31,39 +31,81 @@
     <Filter Include="源文件\Uploader">
       <UniqueIdentifier>{a4ff8c97-87b4-47b7-9af6-0afd76d577b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Resource">
+      <UniqueIdentifier>{405a055a-098c-450f-b518-f8fc6637105f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Resource">
+      <UniqueIdentifier>{aec3f8f6-d3cd-4327-acf2-e460e515cb5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GpuDevice.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorAllocator.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="BuddyHeapAllocator.h">
+      <Filter>头文件\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="BuddyResourceAllocation.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="PoolDescriptorAllocator.h">
+      <Filter>头文件\Allocator</Filter>
     </ClInclude>
     <ClInclude Include="PoolCommandListAllocator.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Allocator</Filter>
     </ClInclude>
     <ClInclude Include="SegregatedPoolHeapAllocator.h">
-      <Filter>头文件</Filter>
+      <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="RingFrameTracker.h">
+      <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferDesc.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDesc.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceAllocator.h">
+      <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearAllocator.h">
+      <Filter>头文件\Allocator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GpuDevice.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BuddyResourceAllocation.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="BuddyHeapAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="DescriptorAllocator.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="PoolDescriptorAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="PoolCommandListAllocator.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="RingFrameTracker.cpp">
+      <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
