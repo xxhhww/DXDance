@@ -6,6 +6,7 @@
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 #include "PoolCommandListAllocator.h"
+#include "LinearBufferAllocator.h"
 
 namespace Renderer {
 
@@ -32,12 +33,12 @@ namespace Renderer {
 
 		GHL::Fence            renderFrameFence; // 渲染帧围栏
 
-		// 以下是一些分配器，这些分配器对资源的重利用都高度依赖renderFrameFence的值
+		// 以下是一些分配器，这些分配器对资源的重用都依赖于renderFrameFence的值
 
 		BuddyHeapAllocator        heapAllocator;        // 堆分配器
 		PoolCommandListAllocator  commandListAllocator; // 命令列表分配器
 		PoolDescriptorAllocator   descriptorAllocator;  // 描述符分配器
-
+		LinearBufferAllocator     uploadAllocator;      // 上传堆资源分配器
 	};
 
 }

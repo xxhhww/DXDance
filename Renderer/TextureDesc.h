@@ -13,14 +13,13 @@ namespace Renderer {
 		uint32_t               depth         = 1u;                                // 当纹理维度是三维时，启用depth标记
 		uint32_t               arraySize     = 1u;
 		uint32_t               mipLevals     = 1u;
-		uint32_t               sampleCount   = 1u;
+		uint32_t               sampleCount   = 1u;                                // (待弃用)
 		DXGI_FORMAT            format        = DXGI_FORMAT_UNKNOWN;
-		GHL::EResourceUsage    usage         = GHL::EResourceUsage::Default;
+		GHL::EResourceUsage    usage         = GHL::EResourceUsage::Default;      // 纹理需要在Default堆上进行创建
 		GHL::ETextureMiscFlag  miscFlag      = GHL::ETextureMiscFlag::None;
 		GHL::EResourceState    initialState  = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
-		bool                   placed        = false;                             // 是否使用placed的方式创建纹理
-		bool                   reserved      = false;                             // 是否使用reserved的方式创建纹理
+		bool                   reserved      = false;                             // 是否使用保留方式创建纹理资源
 	};
 
 	/*

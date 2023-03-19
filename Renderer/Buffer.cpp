@@ -6,7 +6,7 @@ namespace Renderer {
 
 	Buffer::Buffer(
 		const GHL::Device* device,
-		BufferDesc bufferDesc,
+		const BufferDesc& bufferDesc,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator
 		) 
@@ -40,10 +40,8 @@ namespace Renderer {
 			ASSERT_FORMAT(false, "Unsupport Resource Usage");
 		}
 
-		// 上传资源与回读资源默认使用Committed方式创建
-		if (mBufferDesc.usage == GHL::EResourceUsage::Upload ||
-			mBufferDesc.usage == GHL::EResourceUsage::ReadBack ||
-			(mBufferDesc.usage == GHL::EResourceUsage::Default && heapAllocator == nullptr)) {
+		// HeapAllocator为空时，使用Committed方式创建资源
+		if (mHeapAllocator == nullptr) {
 			// 以默认方式创建该Buffer
 			HRASSERT(mDevice->D3DDevice()->CreateCommittedResource(
 				&heapProperties,
@@ -70,14 +68,18 @@ namespace Renderer {
 		}
 
 		CreateDescriptor();
+
 	}
 
 	Buffer::Buffer(
 		const GHL::Device* device,
-		BufferDesc bufferDesc,
-		PoolDescriptorAllocator* descriptor,
+		const BufferDesc& bufferDesc,
+		PoolDescriptorAllocator* descriptorAllocator,
 		const GHL::Heap* heap,
-		size_t heapOffset) {
+		size_t heapOffset) 
+	: mDevice(device)
+	, mBufferDesc(bufferDesc)
+	, mDescriptorAllocator(descriptorAllocator) {
 
 		ResolveResourceDesc();
 
@@ -109,10 +111,17 @@ namespace Renderer {
 			nullptr,
 			IID_PPV_ARGS(&mResource)
 		));
+
+		CreateDescriptor();
+
 	}
 
 	Buffer::~Buffer() {
-		// TODO
+		if (mHeapAllocation) {
+			mHeapAllocator->Deallocate(mHeapAllocation);
+			mHeapAllocation = nullptr;
+		}
+		UnMap();
 	}
 
 	uint8_t* Buffer::Map() {
@@ -161,6 +170,10 @@ namespace Renderer {
 	}
 
 	void Buffer::CreateDescriptor() {
+		if (mDescriptorAllocator == nullptr) {
+			return;
+		}
+
 		// 创建描述符
 		if (HasAllFlags(mBufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)) {
 			// UAView

@@ -25,17 +25,17 @@
     <Filter Include="源文件\Renderer">
       <UniqueIdentifier>{56b156e3-2002-4f43-b381-b2c4a2752d85}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Uploader">
-      <UniqueIdentifier>{d9b62673-acb2-440c-9d9e-c72b46d3b996}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Uploader">
-      <UniqueIdentifier>{a4ff8c97-87b4-47b7-9af6-0afd76d577b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Resource">
       <UniqueIdentifier>{405a055a-098c-450f-b518-f8fc6637105f}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\Resource">
       <UniqueIdentifier>{aec3f8f6-d3cd-4327-acf2-e460e515cb5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Renderer\Uploader">
+      <UniqueIdentifier>{d9b62673-acb2-440c-9d9e-c72b46d3b996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\Uploader">
+      <UniqueIdentifier>{a4ff8c97-87b4-47b7-9af6-0afd76d577b0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -72,8 +72,20 @@
     <ClInclude Include="ResourceAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="LinearAllocator.h">
+    <ClInclude Include="LinearBufferAllocator.h">
       <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderScene.h">
+      <Filter>头文件\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>头文件\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadList.h">
+      <Filter>头文件\Renderer\Uploader</Filter>
+    </ClInclude>
+    <ClInclude Include="Uploader.h">
+      <Filter>头文件\Renderer\Uploader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -104,8 +116,20 @@
     <ClCompile Include="ResourceAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="LinearAllocator.cpp">
+    <ClCompile Include="LinearBufferAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderScene.cpp">
+      <Filter>源文件\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>源文件\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Uploader.cpp">
+      <Filter>源文件\Renderer\Uploader</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadList.cpp">
+      <Filter>源文件\Renderer\Uploader</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

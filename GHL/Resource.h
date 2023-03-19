@@ -21,6 +21,7 @@ namespace GHL {
 		inline const auto& GetResourceDesc()   const { return mResourceDesc; }
 		inline const auto& GetInitialStates()  const { return mInitialStates; }
 		inline const auto& GetExpectedStates() const { return mExpectedStates; }
+		inline const auto& GetGpuAddress()     const { return mResource->GetGPUVirtualAddress(); }
 
 		/*
 		* ÉèÖÃµ÷ÊÔÃû³Æ

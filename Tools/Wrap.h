@@ -23,7 +23,7 @@ namespace Tool {
 		}
 
 		T* operator->() { return mWrapResource; }
-		T* Get() { return mWrapResource; }
+		T* Get() const { return mWrapResource; }
 
 	private:
 		T* mWrapResource{ nullptr };
