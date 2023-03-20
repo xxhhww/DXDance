@@ -36,6 +36,11 @@ namespace Tool {
 
 		void Deallocate(Slot* slot);
 
+		/*
+		* 获取被分配且正在使用的Slot的个数
+		*/
+		size_t AllocatedSize();
+
 	private:
 		std::vector<std::unique_ptr<Slot>> mSlots;
 		std::queue<uint64_t>               mRetiredIDs;

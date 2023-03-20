@@ -141,6 +141,7 @@
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />
     <ClInclude Include="Pool.h" />
+    <ClInclude Include="Ring.h" />
     <ClInclude Include="SegregatedPool.h" />
     <ClInclude Include="SerializeHepler.h" />
     <ClInclude Include="StrUtil.h" />
@@ -162,6 +163,7 @@
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="MetaFile.cpp" />
+    <ClCompile Include="Ring.cpp" />
     <ClCompile Include="SerializeHepler.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />

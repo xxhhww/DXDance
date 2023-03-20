@@ -155,6 +155,9 @@
     <ClInclude Include="Wrap.h">
       <Filter>头文件\Wrap</Filter>
     </ClInclude>
+    <ClInclude Include="Ring.h">
+      <Filter>头文件\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StrUtil.cpp">
@@ -183,6 +186,9 @@
     </ClCompile>
     <ClCompile Include="BuddyAllocatorPool.inl">
       <Filter>头文件\Container</Filter>
+    </ClCompile>
+    <ClCompile Include="Ring.cpp">
+      <Filter>源文件\Container</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

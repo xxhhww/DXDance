@@ -20,4 +20,9 @@ namespace Tool {
 		mRetiredIDs.push(slot->id);
 	}
 
+	template<typename SlotUserDataType>
+	size_t Pool<SlotUserDataType>::AllocatedSize() {
+		return mSlots.size() - mRetiredIDs.size();
+	}
+
 }
