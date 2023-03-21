@@ -37,6 +37,12 @@
     <Filter Include="源文件\Renderer\Uploader">
       <UniqueIdentifier>{a4ff8c97-87b4-47b7-9af6-0afd76d577b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Manger">
+      <UniqueIdentifier>{a2954feb-6283-4118-9ffd-3a72fa95b638}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Manger">
+      <UniqueIdentifier>{d8ae3728-5dd9-4a9e-9853-7b87eefb335c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GpuDevice.h">
@@ -87,11 +93,11 @@
     <ClInclude Include="PipelineStateAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="ShaderManger.h">
-      <Filter>头文件\Allocator</Filter>
-    </ClInclude>
     <ClInclude Include="RootSignatureAllocator.h">
       <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManger.h">
+      <Filter>头文件\Manger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -137,11 +143,11 @@
     <ClCompile Include="PipelineStateAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="ShaderManger.cpp">
-      <Filter>源文件\Allocator</Filter>
-    </ClCompile>
     <ClCompile Include="RootSignatureAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManger.cpp">
+      <Filter>源文件\Manger</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

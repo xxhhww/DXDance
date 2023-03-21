@@ -14,10 +14,12 @@ namespace GHL {
         Shader(const Microsoft::WRL::ComPtr<IDxcBlob>& blob, const Microsoft::WRL::ComPtr<IDxcBlob>& pdbBlob, const std::string& entryPoint, EShaderStage stage);
         ~Shader() = default;
 
-        /*
-        * Get·½·¨
-        */
+        inline const auto* GetBlob() const { return mBlob.Get(); }
+        inline const auto* GetPDBBlob() const { return mPDBBlob.Get(); }
+        inline const auto& GetBinary() const { return mBinary; }
+        inline const auto& GetPDBBinary() const { return mPDBBinary; }
 
+        inline D3D12_SHADER_BYTECODE D3DBytecode() const { return { mBlob->GetBufferPointer(), mBlob->GetBufferSize() }; }
 
     private:
         std::string  mEntryPoint;
@@ -26,6 +28,7 @@ namespace GHL {
         Microsoft::WRL::ComPtr<IDxcBlob> mPDBBlob;
         CompiledBinary mBinary;
         CompiledBinary mPDBBinary;
+
 	};
 
 }
