@@ -12,7 +12,7 @@ namespace Renderer {
 		DXGI_FORMAT            format        = DXGI_FORMAT_UNKNOWN;          // 缓冲元素的格式
 		GHL::EResourceUsage    usage         = GHL::EResourceUsage::Upload;  // 资源类型
 		GHL::EBufferMiscFlag   miscFlag      = GHL::EBufferMiscFlag::None;   // 缓冲的杂项标记
-		GHL::EResourceState    initalState   = GHL::EResourceState::Common;  // 所有初始的状态
+		GHL::EResourceState    initialState  = GHL::EResourceState::Common;  // 所有初始的状态
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;  // 所有期望的状态
 	};
 

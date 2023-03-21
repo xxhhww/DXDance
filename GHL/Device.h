@@ -22,12 +22,12 @@ namespace GHL {
 		/*
 		* Get方法
 		*/
-		inline const auto  D3DDevice() const { return mDevice.Get(); }
+		inline const auto  D3DDevice()             const { return mDevice.Get(); }
 		inline const auto& SupportUniversalHeaps() const { return mSupportUniversalHeaps; }
-		inline const auto& IsAftermathEnabled()     const { return mMinimumHeapSize; }
-		inline const auto& GetMinimumHeapSize()     const { return mMinimumHeapSize; }
-		inline const auto& GetHeapAlignment()       const { return mHeapAlignment; }
-		inline const auto& GetNodeMask()            const { return mNodeMask; }
+		inline const auto& IsAftermathEnabled()    const { return mMinimumHeapSize; }
+		inline const auto& GetMinimumHeapSize()    const { return mMinimumHeapSize; }
+		inline const auto& GetHeapAlignment()      const { return mHeapAlignment; }
+		inline const auto& GetNodeMask()           const { return mNodeMask; }
 
 		/*
 		* 设置调试名称
@@ -35,7 +35,7 @@ namespace GHL {
 		void SetDebugName(const std::string& name) override;
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D12Device5> mDevice;
+		Microsoft::WRL::ComPtr<ID3D12Device8> mDevice;
 
 		bool mSupportUniversalHeaps{ false };
 		bool mAftermathEnabled{ false };

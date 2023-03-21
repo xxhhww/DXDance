@@ -19,6 +19,7 @@ namespace Renderer {
 		GHL::ETextureMiscFlag  miscFlag      = GHL::ETextureMiscFlag::None;
 		GHL::EResourceState    initialState  = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
+		D3D12_CLEAR_VALUE      clearVaule    = D3D12_CLEAR_VALUE{};
 		bool                   reserved      = false;                             // 是否使用保留方式创建纹理资源
 	};
 

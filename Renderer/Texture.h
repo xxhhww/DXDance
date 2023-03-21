@@ -53,6 +53,16 @@ namespace Renderer {
 		*/
 		void CreateDescriptor() override;
 
+		// ==============================...流式纹理...==============================
+		// 方法
+
+		/*
+		* Get方法
+		*/
+		inline const auto& GetTileShape()     const { return mTileShape; }
+		inline const auto& GetNumTilesTotal() const { return mNumTilesTotal; }
+		inline const auto& GetTilings()       const { return mTiling; }
+
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		TextureDesc mTextureDesc{};
@@ -60,10 +70,23 @@ namespace Renderer {
 
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		DescriptorHandleWrap mSRDescriptor;
-		DescriptorHandleWrap mUADescriptor;
+		DescriptorHandleWrap mDSDescriptor;
+		DescriptorHandleWrap mRTDescriptor;
+		std::vector<DescriptorHandleWrap> mUADescriptors;
 
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		std::vector<BuddyHeapAllocator::Allocation*> mHeapAllocations;
+
+		// ==============================...流式纹理...==============================
+		// 变量
+
+		D3D12_PACKED_MIP_INFO mPackedMipInfo; // last n mips may be packed into a single tile
+		D3D12_TILE_SHAPE mTileShape;          // e.g. a 64K tile may contain 128x128 texels @ 4B/pixel
+		UINT mNumTilesTotal;
+		std::vector<D3D12_SUBRESOURCE_TILING> mTiling;
+
+		Microsoft::WRL::ComPtr<ID3D12Resource2> mFeedbackResource;
+		D3D12_RESOURCE_DESC1 mFeedbackDesc{};
 
 	};
 

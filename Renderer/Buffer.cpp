@@ -144,6 +144,9 @@ namespace Renderer {
 	}
 
 	void Buffer::ResolveResourceDesc() {
+		mInitialStates = GHL::GetResourceStates(mBufferDesc.initialState);
+		mExpectedStates = GHL::GetResourceStates(mBufferDesc.initialState | mBufferDesc.expectedState);
+
 		if (HasAllFlags(mBufferDesc.miscFlag, GHL::EBufferMiscFlag::ConstantBuffer)) {
 			// ConstantBuffer需要字节对齐
 			mBufferDesc.size = Math::AlignUp(mBufferDesc.size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
@@ -159,6 +162,7 @@ namespace Renderer {
 		mResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 		mResourceDesc.SampleDesc.Count = 1u;
 		mResourceDesc.SampleDesc.Quality = 0u;
+		mResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 		if (HasAllFlags(mBufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)) {
 			mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
@@ -167,6 +171,8 @@ namespace Renderer {
 			!HasAllFlags(mBufferDesc.expectedState, GHL::EResourceState::NonPixelShaderAccess)) {
 			mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 		}
+
+
 	}
 
 	void Buffer::CreateDescriptor() {

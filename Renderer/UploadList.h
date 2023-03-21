@@ -40,13 +40,13 @@ namespace Renderer {
 
 		inline const auto IsDataUploadTask() const { return mDataUploadTask != nullptr; }
 
-		inline const auto GetExpectedFenceValue() const { return mCopyFenceValue; }
+		inline const auto GetExpectedFenceValue() const { return mExpectedFenceValue; }
 
 		void ExecuteCompletedCallBacks();
 
 	private:
 		std::atomic<UploadList::State> mUploadState{ State::Free };
-		uint64_t mCopyFenceValue;
+		uint64_t mExpectedFenceValue{ 0u };
 
 		UpdateTileMapTask mUpdateTileMapTask{ nullptr };
 		DataUploadTask mDataUploadTask{ nullptr };

@@ -75,9 +75,6 @@
     <ClInclude Include="LinearBufferAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="RenderScene.h">
-      <Filter>头文件\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>头文件\Renderer</Filter>
     </ClInclude>
@@ -86,6 +83,15 @@
     </ClInclude>
     <ClInclude Include="Uploader.h">
       <Filter>头文件\Renderer\Uploader</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineStateAllocator.h">
+      <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManger.h">
+      <Filter>头文件\Allocator</Filter>
+    </ClInclude>
+    <ClInclude Include="RootSignatureAllocator.h">
+      <Filter>头文件\Allocator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -119,9 +125,6 @@
     <ClCompile Include="LinearBufferAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="RenderScene.cpp">
-      <Filter>源文件\Renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>源文件\Renderer</Filter>
     </ClCompile>
@@ -130,6 +133,15 @@
     </ClCompile>
     <ClCompile Include="UploadList.cpp">
       <Filter>源文件\Renderer\Uploader</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineStateAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManger.cpp">
+      <Filter>源文件\Allocator</Filter>
+    </ClCompile>
+    <ClCompile Include="RootSignatureAllocator.cpp">
+      <Filter>源文件\Allocator</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

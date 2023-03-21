@@ -28,7 +28,7 @@ namespace Renderer {
 	}
 
 	void UploadList::SetExpectedFenceValue(uint64_t fenceValue) {
-		mCopyFenceValue = fenceValue;
+		mExpectedFenceValue = fenceValue;
 	}
 
 	void UploadList::ExecuteCompletedCallBacks() {

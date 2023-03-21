@@ -27,6 +27,7 @@
 #endif
 
 #include "Tools/EnumUtil.h"
+#include "d3dx12.h"
 
 //linker
 #pragma comment(lib, "dxguid.lib")

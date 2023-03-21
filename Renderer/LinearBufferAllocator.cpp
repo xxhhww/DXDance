@@ -9,7 +9,7 @@ namespace Renderer {
 		mStandardBufferDesc.size = mStandardBufferSize;
 		mStandardBufferDesc.stride = 1u;
 		mStandardBufferDesc.usage = GHL::EResourceUsage::Default;
-		mStandardBufferDesc.initalState = GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::Common | GHL::EResourceState::GenericRead;
+		mStandardBufferDesc.initalState = GHL::EResourceState::GenericRead;
 		mStandardBufferDesc.expectedState = mStandardBufferDesc.initalState;
 
 		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
