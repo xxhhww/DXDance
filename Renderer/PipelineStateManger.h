@@ -77,13 +77,15 @@ namespace Renderer {
 
     class ShaderManger;
 
-    class PipelineStateAllocator {
+    class PipelineStateManger {
     public:
         using GraphicsStateConfigurator = std::function<void(GraphicsStateProxy&)>;
         using ComputeStateConfigurator  = std::function<void(ComputeStateProxy&)>;
         using RootSignatureConfigurator = std::function<void(RootSignatureProxy&)>;
 
-        PipelineStateAllocator(const GHL::Device* device, ShaderManger* shaderManger);
+    public:
+        PipelineStateManger(const GHL::Device* device, ShaderManger* shaderManger);
+        ~PipelineStateManger() = default;
 
         void CreateGraphicsPSO(const std::string& name, const GraphicsStateConfigurator& configurator);
         
@@ -91,8 +93,8 @@ namespace Renderer {
 
         void CreateRootSignature(const std::string& name, const RootSignatureConfigurator& configurator);
         
-        inline const auto* GetD3DPipelineState(const std::string& name) const { return mPipelineStateMap.at(name).get()->D3DPipelineState(); }
-        inline const auto* GetD3DRootSignature(const std::string& name) const { return mRootSignatureMap.at(name).get()->D3DRootSignature(); }
+        inline auto* GetD3DPipelineState(const std::string& name) const { return mPipelineStateMap.at(name).get()->D3DPipelineState(); }
+        inline auto* GetD3DRootSignature(const std::string& name) const { return mRootSignatureMap.at(name).get()->D3DRootSignature(); }
 
     private:
         const GHL::Device* mDevice{ nullptr };

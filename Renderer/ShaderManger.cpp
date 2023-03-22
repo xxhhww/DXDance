@@ -8,11 +8,18 @@ namespace Renderer {
 	, mSeparatePDBFiles(separatePDBFiles) 
 	, mCompiler() {}
 
+	ShaderManger::~ShaderManger() {
+		for (const auto& pair : mCompiledFileMap) {
+			delete pair.second;
+		}
+		mCompiledFileMap.clear();
+	}
+
 	GHL::Shader* ShaderManger::GetShader(const std::string& relativePath, GHL::EShaderStage stage) {
 		if (mCompiledFileMap.find(relativePath) == mCompiledFileMap.end()) {
 			CompileAndCacheShader(relativePath, stage);
 		}
-		auto& shaders = mCompiledFileMap.at(relativePath).shaders;
+		auto& shaders = mCompiledFileMap.at(relativePath)->shaders;
 		
 		if (shaders.find(stage) == shaders.end()) {
 			CompileAndCacheShader(relativePath, stage);
@@ -26,13 +33,32 @@ namespace Renderer {
 	}
 
 	void ShaderManger::Repath(const std::string& oldPath, const std::string& newPath) {
+		auto it = mCompiledFileMap.find(oldPath);
 
+		if (it == mCompiledFileMap.end()) {
+			return;
+		}
+
+		auto* targetFile = it->second;
+		targetFile->path = newPath;
+
+		mCompiledFileMap.erase(it);
+
+		mCompiledFileMap[newPath] = targetFile;
 	}
 
 	void ShaderManger::Recompile(const std::string& relativePath, GHL::EShaderStage stage) {
 		if (mCompiledFileMap.find(relativePath) == mCompiledFileMap.end()) {
 			return;
 		}
+
+		auto& shaders = mCompiledFileMap.at(relativePath)->shaders;
+		if (shaders.find(stage) == shaders.end()) {
+			return;
+		}
+
+		shaders.at(stage) = nullptr;
+		
 
 		CompileAndCacheShader(relativePath, stage);
 	}
@@ -51,17 +77,33 @@ namespace Renderer {
 			return nullptr;
 		}
 
-		// Associate shader with a file it was loaded from and its entry point name
-		CompiledFile& compiledFile = mCompiledFileMap[relativePath];
-		compiledFile.shaders[stage] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
-
-
-		for (auto& shaderFilePath : compilationResult.CompiledFileRelativePaths) {
-			// Associate every file that took place in compilation with the root file that has shader's entry point
-			compiledFile.includedFilePaths.insert(shaderFilePath);
+		if (mCompiledFileMap.find(relativePath) == mCompiledFileMap.end()) {
+			mCompiledFileMap[relativePath] = new CompiledFile();
 		}
 
-		return compiledFile.shaders[stage].get();
+		CompiledFile* compiledFile = mCompiledFileMap[relativePath];
+		compiledFile->shaders[stage] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
+
+
+		for (auto& includedFilePath : compilationResult.CompiledFileRelativePaths) {
+			if (compiledFile->includedFilePaths.find(includedFilePath) == compiledFile->includedFilePaths.end()) {
+				compiledFile->includedFilePaths.insert(includedFilePath);
+			}
+		}
+
+		return compiledFile->shaders[stage].get();
+	}
+
+	void ShaderManger::Delete(const std::string& relativePath) {
+		auto it = mCompiledFileMap.find(relativePath);
+
+		if (it == mCompiledFileMap.end()) {
+			return;
+		}
+
+		delete it->second;
+
+		mCompiledFileMap.erase(it);
 	}
 
 }

@@ -10,7 +10,8 @@ namespace Renderer {
 	class ShaderManger {
 	public:
 		ShaderManger(const std::string& projectPath, bool buildDebugShaders = true, bool separatePDBFiles = false);
-		~ShaderManger() = default;
+		
+		~ShaderManger();
 
 		/*
 		* @Param relativePath: 相对路径(Assets/... 或者 Engine/...)
@@ -19,7 +20,7 @@ namespace Renderer {
 		GHL::Shader* GetShader(const std::string& relativePath, GHL::EShaderStage stage);
 
 		/*
-		* 重定位
+		* 重定位(只有用户的着色器资产会发生重定位)
 		*/
 		void Repath(const std::string& oldPath, const std::string& newPath);
 
@@ -27,6 +28,11 @@ namespace Renderer {
 		* 重编译
 		*/
 		void Recompile(const std::string& relativePath, GHL::EShaderStage stage);
+
+		/*
+		* 删除着色器
+		*/
+		void Delete(const std::string& relativePath);
 
 	private:
 		/*
@@ -48,7 +54,7 @@ namespace Renderer {
 
 		GHL::ShaderCompiler mCompiler;
 
-		std::unordered_map<std::string, CompiledFile> mCompiledFileMap;
+		std::unordered_map<std::string, CompiledFile*> mCompiledFileMap;
 
 	};
 

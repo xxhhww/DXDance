@@ -143,15 +143,15 @@
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="BufferDesc.h" />
+    <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
-    <ClInclude Include="PipelineStateAllocator.h" />
+    <ClInclude Include="PipelineStateManger.h" />
     <ClInclude Include="PoolDescriptorAllocator.h" />
     <ClInclude Include="GpuDevice.h" />
     <ClInclude Include="PoolCommandListAllocator.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ResourceAllocator.h" />
     <ClInclude Include="RingFrameTracker.h" />
-    <ClInclude Include="RootSignatureAllocator.h" />
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
     <ClInclude Include="ShaderManger.h" />
     <ClInclude Include="Texture.h" />
@@ -162,15 +162,15 @@
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
-    <ClCompile Include="PipelineStateAllocator.cpp" />
+    <ClCompile Include="PipelineStateManger.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="GpuDevice.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ResourceAllocator.cpp" />
     <ClCompile Include="RingFrameTracker.cpp" />
-    <ClCompile Include="RootSignatureAllocator.cpp" />
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="ShaderManger.cpp" />
     <ClCompile Include="Texture.cpp" />

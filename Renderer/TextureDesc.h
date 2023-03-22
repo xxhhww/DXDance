@@ -27,9 +27,22 @@ namespace Renderer {
 	* 纹理子资源描述
 	*/
 	struct TextureSubResourceDesc {
+	public:
+
+		bool operator==(const TextureSubResourceDesc& other) const {
+			return firstSlice == other.firstSlice && sliceCount == other.sliceCount && firstMip == other.firstMip && other.mipCount == other.mipCount;
+		}
+
 		uint32_t firstSlice = 0u;
 		uint32_t sliceCount = -1; // -1 表示全部
 		uint32_t firstMip   = 0u;
 		uint32_t mipCount   = -1; // -1 表示全部
+	};
+
+	struct TextureSubResourceDescHashFunc {
+	public:
+		std::size_t operator()(const TextureSubResourceDesc& desc) const {
+			return std::hash<uint32_t>()(desc.firstSlice) ^ std::hash<uint32_t>()(desc.sliceCount) ^ std::hash<uint32_t>()(desc.firstMip) ^ std::hash<uint32_t>()(desc.mipCount);
+		}
 	};
 }

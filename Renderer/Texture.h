@@ -40,8 +40,12 @@ namespace Renderer {
 		* Get方法
 		*/
 		inline const auto& GetTextureDesc()  const { return mTextureDesc; }
-		inline const auto* GetSRDescriptor() const { return mSRDescriptor.Get(); }
-		inline const auto* GetUADescriptor() const { return mUADescriptor.Get(); }
+		
+		const GHL::DescriptorHandle* GetDSDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
+		const GHL::DescriptorHandle* GetSRDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
+
+		const GHL::DescriptorHandle* GetRTDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
+		const GHL::DescriptorHandle* GetUADescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
 
 		/*
 		* 解算D3D12_RESOURCE_DESC
@@ -51,7 +55,7 @@ namespace Renderer {
 		/*
 		* 创建描述符
 		*/
-		void CreateDescriptor() override;
+		void CreateDescriptor() override {}
 
 		// ==============================...流式纹理...==============================
 		// 方法
@@ -69,13 +73,16 @@ namespace Renderer {
 		uint8_t mBackBufferCount;
 
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
-		DescriptorHandleWrap mSRDescriptor;
-		DescriptorHandleWrap mDSDescriptor;
-		DescriptorHandleWrap mRTDescriptor;
-		std::vector<DescriptorHandleWrap> mUADescriptors;
+
+		std::unordered_map<int, int> ss;
+
+		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mSRDescriptors;
+		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mDSDescriptors;
+		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mRTDescriptors;
+		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mUADescriptors;
 
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
-		std::vector<BuddyHeapAllocator::Allocation*> mHeapAllocations;
+		BuddyHeapAllocator::Allocation* mHeapAllocation;
 
 		// ==============================...流式纹理...==============================
 		// 变量

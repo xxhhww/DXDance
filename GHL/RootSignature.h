@@ -36,7 +36,7 @@ namespace GHL {
 		*/
 		void Compile();
 
-		inline const auto* D3DRootSignature() const { return mSignature.Get(); }
+		inline auto* D3DRootSignature() const { return mSignature.Get(); }
 
 		/*
 		* ÉèÖÃµ÷ÊÔÃû³Æ

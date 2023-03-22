@@ -90,13 +90,13 @@
     <ClInclude Include="Uploader.h">
       <Filter>头文件\Renderer\Uploader</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineStateAllocator.h">
-      <Filter>头文件\Allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="RootSignatureAllocator.h">
-      <Filter>头文件\Allocator</Filter>
-    </ClInclude>
     <ClInclude Include="ShaderManger.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineStateManger.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUProfiler.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
   </ItemGroup>
@@ -140,13 +140,13 @@
     <ClCompile Include="UploadList.cpp">
       <Filter>源文件\Renderer\Uploader</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineStateAllocator.cpp">
-      <Filter>源文件\Allocator</Filter>
-    </ClCompile>
-    <ClCompile Include="RootSignatureAllocator.cpp">
-      <Filter>源文件\Allocator</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderManger.cpp">
+      <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineStateManger.cpp">
+      <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUProfiler.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
   </ItemGroup>

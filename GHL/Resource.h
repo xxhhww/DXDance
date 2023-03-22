@@ -42,8 +42,8 @@ namespace GHL {
 		D3D12_RESOURCE_DESC mResourceDesc{};
 		Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
 		size_t mResourceSizeInBytes{ 0u }; // 总字节大小
-		D3D12_RESOURCE_STATES mInitialStates = D3D12_RESOURCE_STATE_COMMON;
-		D3D12_RESOURCE_STATES mExpectedStates = D3D12_RESOURCE_STATE_COMMON;
+		EResourceState mInitialStates = EResourceState::Common;
+		EResourceState mExpectedStates = EResourceState::Common;
 	};
 
 }
