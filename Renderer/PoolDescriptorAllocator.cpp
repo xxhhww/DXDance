@@ -11,7 +11,7 @@ namespace Renderer {
 	, mRTDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, capacity.at(2))
 	, mDSDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, capacity.at(3)) {
 
-		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
 			CleanUpPendingDeallocation(frameIndex);
 		});
 

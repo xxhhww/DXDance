@@ -156,6 +156,7 @@
     <ClInclude Include="ShaderManger.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureDesc.h" />
+    <ClInclude Include="TileUpdateManger.h" />
     <ClInclude Include="Uploader.h" />
     <ClInclude Include="UploadList.h" />
   </ItemGroup>
@@ -174,6 +175,7 @@
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="ShaderManger.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TileUpdateManger.cpp" />
     <ClCompile Include="Uploader.cpp" />
     <ClCompile Include="UploadList.cpp" />
   </ItemGroup>

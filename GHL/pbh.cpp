@@ -53,14 +53,25 @@ namespace GHL {
 		}
 	}
 
-	D3D12_QUERY_HEAP_TYPE GetD3DQueryType(EQueryType queryType) {
+	D3D12_QUERY_TYPE GetD3DQueryType(EQueryHeapType queryType) {
 		switch (queryType) {
-		case GHL::EQueryType::Timestamp:
+		case GHL::EQueryHeapType::Timestamp:
+		case GHL::EQueryHeapType::CopyTimestamp:
+			return D3D12_QUERY_TYPE_TIMESTAMP;
+		default:
+			ASSERT_FORMAT(false, "Unsupported Query Type");
+			return D3D12_QUERY_TYPE_TIMESTAMP;
+		}
+	}
+
+	D3D12_QUERY_HEAP_TYPE GetD3DQueryHeapType(EQueryHeapType queryType) {
+		switch (queryType) {
+		case GHL::EQueryHeapType::Timestamp:
 			return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
-		case GHL::EQueryType::CopyTimestamp:
+		case GHL::EQueryHeapType::CopyTimestamp:
 			return D3D12_QUERY_HEAP_TYPE_COPY_QUEUE_TIMESTAMP;
 		default:
-			ASSERT_FORMAT(false, "Unsupported Heap Type");
+			ASSERT_FORMAT(false, "Unsupported Query Heap Type");
 			return D3D12_QUERY_HEAP_TYPE_TIMESTAMP;
 		}
 	}

@@ -99,6 +99,9 @@
     <ClInclude Include="GPUProfiler.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
+    <ClInclude Include="TileUpdateManger.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GpuDevice.cpp">
@@ -147,6 +150,9 @@
       <Filter>源文件\Manger</Filter>
     </ClCompile>
     <ClCompile Include="GPUProfiler.cpp">
+      <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="TileUpdateManger.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
   </ItemGroup>

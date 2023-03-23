@@ -3,18 +3,19 @@
 #include "Tools/StrUtil.h"
 
 namespace GHL {
-	QueryHeap::QueryHeap(const Device* device, uint64_t size, EQueryType queryType)
+	QueryHeap::QueryHeap(const Device* device, uint64_t size, EQueryHeapType queryHeapType)
 	: mDevice(device)
 	, mSize(size)
-	, mType(GetD3DQueryType(queryType)) {
+	, mQueryType(GetD3DQueryType(queryHeapType))
+	, mQueryHeapType(GetD3DQueryHeapType(queryHeapType)) {
 
         mDesc.Count = size;
-		mDesc.Type = mType;
+		mDesc.Type = mQueryHeapType;
 		mDesc.NodeMask = device->GetNodeMask();
         HRASSERT(device->D3DDevice()->CreateQueryHeap(&mDesc, IID_PPV_ARGS(&mHeap)));
 	}
 
 	void QueryHeap::SetDebugName(const std::string& name) {
-		mHeap->SetName(Tool::StrUtil::UTF8ToWString(name).c_str());
+		HRASSERT(mHeap->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
 	}
 }

@@ -19,6 +19,7 @@ namespace Renderer {
 			size_t   size;       // 该FrameAttribute的长度
 		};
 
+		using NewFramePushedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
 		using FrameCompletedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
 
 		static const size_t Invalid = static_cast<size_t>(-1);
@@ -40,9 +41,14 @@ namespace Renderer {
 		void PopCompletedFrame(uint64_t completedValue);
 
 		/*
+		* 
+		*/
+		void AddNewFramePushedCallBack(const NewFramePushedCallBack& callBack);
+
+		/*
 		* 设置渲染帧被GPU完成时的回调函数
 		*/
-		void AddCompletedCallBack(const FrameCompletedCallBack& callBack);
+		void AddFrameCompletedCallBack(const FrameCompletedCallBack& callBack);
 
 
 		bool IsFull() const;
@@ -69,6 +75,8 @@ namespace Renderer {
 		size_t mTail{ 0u };
 		size_t mMaxSize{ 0u };
 		size_t mUsedSize{ 0u };
+
+		std::vector<NewFramePushedCallBack> mNewFramePushedCallBacks;
 		std::vector<FrameCompletedCallBack> mCompletedCallBacks;
 	};
 

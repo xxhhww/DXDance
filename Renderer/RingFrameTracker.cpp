@@ -6,6 +6,12 @@ namespace Renderer {
 
 	void RingFrameTracker::PushCurrentFrame(uint64_t expectedValue) {
         mFrameAttributes.emplace_back(expectedValue, Allocate(1u), 1u);
+        
+        // 调用NewFrame回调函数
+        const auto& newestFrameTail = mFrameAttributes.back();
+        for (const auto& callBack : mNewFramePushedCallBacks) {
+            callBack(newestFrameTail.frameIndex);
+        }
 	}
 
 	void RingFrameTracker::PopCompletedFrame(uint64_t completedValue) {
@@ -23,7 +29,11 @@ namespace Renderer {
         }
 	}
 
-    void RingFrameTracker::AddCompletedCallBack(const FrameCompletedCallBack& callBack) {
+    void RingFrameTracker::AddNewFramePushedCallBack(const NewFramePushedCallBack& callBack) {
+        mNewFramePushedCallBacks.push_back(callBack);
+    }
+
+    void RingFrameTracker::AddFrameCompletedCallBack(const FrameCompletedCallBack& callBack) {
         mCompletedCallBacks.push_back(callBack);
     }
 

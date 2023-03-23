@@ -7,7 +7,7 @@ namespace Renderer {
 	, mMinBlockSize(mDevice->GetHeapAlignment())       // 最小块: 64KB
 	, mMaxBlockSize(mDevice->GetHeapAlignment() * 512) // 最大快: 32MB = 64KB * 512
 	, mBuddyHeapPool(mMinBlockSize, mMaxBlockSize) {
-		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
 			CleanUpPendingDeallocation(frameIndex);
 		});
 

@@ -6,7 +6,7 @@ namespace Renderer {
 	PoolCommandListAllocator::PoolCommandListAllocator(const GHL::Device* device, RingFrameTracker* ringFrameTracker)
 	: mDevice(device)
 	, mFrameTracker(ringFrameTracker) {
-		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
 			CleanUpPendingDeallocation(frameIndex);
 		});
 

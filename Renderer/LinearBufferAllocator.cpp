@@ -9,10 +9,10 @@ namespace Renderer {
 		mStandardBufferDesc.size = mStandardBufferSize;
 		mStandardBufferDesc.stride = 1u;
 		mStandardBufferDesc.usage = GHL::EResourceUsage::Default;
-		mStandardBufferDesc.initalState = GHL::EResourceState::GenericRead;
-		mStandardBufferDesc.expectedState = mStandardBufferDesc.initalState;
+		mStandardBufferDesc.initialState = GHL::EResourceState::GenericRead;
+		mStandardBufferDesc.expectedState = mStandardBufferDesc.initialState;
 
-		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
 			CleanUpPendingDeallocation(frameIndex);
 		});
 

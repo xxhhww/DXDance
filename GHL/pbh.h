@@ -127,14 +127,16 @@ namespace GHL {
 	ENABLE_BITMASK_OPERATORS(EBufferMiscFlag);
 
 	/*
-	* Query类型
+	* QueryHeapType
 	*/
-	enum class EQueryType : uint8_t {
+	enum class EQueryHeapType : uint8_t {
 		Timestamp,
 		CopyTimestamp
 	};
 
-	D3D12_QUERY_HEAP_TYPE GetD3DQueryType(EQueryType queryType);
+	D3D12_QUERY_TYPE GetD3DQueryType(EQueryHeapType queryType);
+
+	D3D12_QUERY_HEAP_TYPE GetD3DQueryHeapType(EQueryHeapType queryType);
 
 	/*
 	* 获得类型的步幅

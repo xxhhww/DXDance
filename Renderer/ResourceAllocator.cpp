@@ -12,7 +12,7 @@ namespace Renderer {
 	, mHeapAllocator(heapAllocator)
 	, mDescriptorAllocator(descriptorAllocator) {
 
-		mFrameTracker->AddCompletedCallBack([this](const size_t& frameIndex) {
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
 			CleanUpPendingDeallocation(frameIndex);
 		});
 
