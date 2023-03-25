@@ -14,6 +14,13 @@ namespace Renderer {
 		*/
 		struct FrameQueryData {
 		public:
+			FrameQueryData() {
+				queryStarted = false;
+				queryFinished = false;
+				name = "";
+				frequency = 0u;
+			}
+
 			bool queryStarted  { false };
 			bool queryFinished { false };
 
@@ -27,7 +34,12 @@ namespace Renderer {
 		*/
 		struct CompletedQueryData {
 		public:
-			float durationMs{ 0u };
+			CompletedQueryData() {
+				durationMs = 0.0f;
+				name = "";
+			}
+
+			float durationMs{ 0.0f };
 
 			std::string name{ "" };
 		};

@@ -76,6 +76,9 @@
     <Filter Include="头文件\Wrap">
       <UniqueIdentifier>{14530df2-adc0-4895-9c1e-735451ea4199}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\VisitorHelper">
+      <UniqueIdentifier>{32eb03da-222b-4c05-a9fd-07136f0aba1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -157,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="Ring.h">
       <Filter>头文件\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="VisitorHelper.h">
+      <Filter>头文件\VisitorHelper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

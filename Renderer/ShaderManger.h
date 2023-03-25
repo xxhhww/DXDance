@@ -1,61 +1,36 @@
 #pragma once
-#include "GHL/Shader.h"
+#include "Shader.h"
 #include "GHL/ShaderCompiler.h"
-#include <unordered_map>
-#include <unordered_set>
-#include <memory>
+#include "GHL/RootSignature.h"
 
 namespace Renderer {
 
 	class ShaderManger {
 	public:
-		ShaderManger(const std::string& projectPath, bool buildDebugShaders = true, bool separatePDBFiles = false);
-		
-		~ShaderManger();
+		using GraphicsStateConfigurator = std::function<void(GraphicsStateProxy&)>;
+		using ComputeStateConfigurator = std::function<void(ComputeStateProxy&)>;
 
-		/*
-		* @Param relativePath: 相对路径(Assets/... 或者 Engine/...)
-		* @Param stage: 着色器类型(VS...)
-		*/
-		GHL::Shader* GetShader(const std::string& relativePath, GHL::EShaderStage stage);
+	public:
+		ShaderManger(const GHL::Device* device);
+		~ShaderManger() = default;
 
-		/*
-		* 重定位(只有用户的着色器资产会发生重定位)
-		*/
-		void Repath(const std::string& oldPath, const std::string& newPath);
+		void CreateGraphicsShader(const std::string& name, const GraphicsStateConfigurator& configurator);
 
-		/*
-		* 重编译
-		*/
-		void Recompile(const std::string& relativePath, GHL::EShaderStage stage);
+		void CreateComputeShader(const std::string& name, const ComputeStateConfigurator& configurator);
 
-		/*
-		* 删除着色器
-		*/
-		void Delete(const std::string& relativePath);
+		inline const auto* GetDevice()               const { return mDevice; }
+		inline const auto& GetCompiler()             const { return mCompiler; }
+
+		inline auto* GetBaseD3DRootSignature() const { return mBaseRootSignature->D3DRootSignature(); }
 
 	private:
-		/*
-		* 编译并缓存着色器
-		*/
-		GHL::Shader* CompileAndCacheShader(const std::string& relativePath, GHL::EShaderStage stage);
-
-	private:
-		struct CompiledFile {
-			std::string path; // 文件路径
-			std::unordered_map<GHL::EShaderStage, std::unique_ptr<GHL::Shader>> shaders; // 着色器文件编译出的Shader
-			std::unordered_set<std::string> includedFilePaths; // Include文件
-		};
-
-	private:
-		const std::string mProjectPath;
-		bool mBuildDebugShaders{ true };
-		bool mSeparatePDBFiles{ false };
+		const GHL::Device* mDevice{ nullptr };
 
 		GHL::ShaderCompiler mCompiler;
 
-		std::unordered_map<std::string, CompiledFile*> mCompiledFileMap;
+		std::unique_ptr<GHL::RootSignature> mBaseRootSignature;
 
+		std::unordered_map<std::string, std::unique_ptr<Renderer::IShader>> mShaders;
 	};
 
 }

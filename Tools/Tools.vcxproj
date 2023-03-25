@@ -147,6 +147,7 @@
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
     <ClInclude Include="UIDGenerator.h" />
+    <ClInclude Include="VisitorHelper.h" />
     <ClInclude Include="Wrap.h" />
   </ItemGroup>
   <ItemGroup>

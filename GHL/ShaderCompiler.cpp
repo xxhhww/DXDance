@@ -69,13 +69,13 @@ namespace GHL {
         HRASSERT(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(mCompiler.GetAddressOf())));
     }
 
-    ShaderCompiler::ShaderCompilationResult ShaderCompiler::CompileShader(const ShaderDesc& desc) {
+    ShaderCompiler::ShaderCompilationResult ShaderCompiler::CompileShader(const ShaderDesc& desc) const {
         BlobCompilationResult blobCompilationResult = CompileBlob(desc);
         ShaderCompilationResult shaderCompilationResult{ Shader{ blobCompilationResult.Blob, blobCompilationResult.PDBBlob, desc.entryPoint, desc.stage }, blobCompilationResult.CompiledFileRelativePaths };
         return shaderCompilationResult;
     }
 
-    ShaderCompiler::BlobCompilationResult ShaderCompiler::CompileBlob(const ShaderDesc& desc) {
+    ShaderCompiler::BlobCompilationResult ShaderCompiler::CompileBlob(const ShaderDesc& desc) const {
         ASSERT_FORMAT(std::filesystem::exists(desc.path), "Shader file ", desc.path.c_str(), " doesn't exist");
 
         std::wstring wPath = Tool::StrUtil::UTF8ToWString(desc.path);

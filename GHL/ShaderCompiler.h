@@ -39,7 +39,7 @@ namespace GHL {
         ShaderCompiler();
         ~ShaderCompiler() = default;
 
-        ShaderCompilationResult CompileShader(const ShaderDesc& desc);
+        ShaderCompilationResult CompileShader(const ShaderDesc& desc) const;
 
     private:
         struct BlobCompilationResult {
@@ -49,7 +49,7 @@ namespace GHL {
             std::string DebugName;
         };
 
-        BlobCompilationResult CompileBlob(const ShaderDesc& desc);
+        BlobCompilationResult CompileBlob(const ShaderDesc& desc) const;
 
         Microsoft::WRL::ComPtr<IDxcLibrary> mLibrary;
         Microsoft::WRL::ComPtr<IDxcCompiler2> mCompiler;

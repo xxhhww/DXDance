@@ -24,12 +24,12 @@ namespace GHL {
         }
 	}
 
-	const Adapter& AdapterContainer::GetHardwareAdapter(int32_t idx) const {
+	const Adapter* AdapterContainer::GetHardwareAdapter(int32_t idx) const {
         idx = std::clamp(idx, 0, (int32_t)mHardwareAdapters.size());
-        return mHardwareAdapters.at(idx);
+        return &mHardwareAdapters.at(idx);
 	}
 
-    const Adapter& AdapterContainer::GetHighPerformanceAdapter() const {
-        return mHardwareAdapters.at(0);
+    const Adapter* AdapterContainer::GetHighPerformanceAdapter() const {
+        return &mHardwareAdapters.at(0);
     }
 }

@@ -16,7 +16,7 @@ namespace Renderer {
 
 			uint64_t fenceValue; // 该FrameAttribute所代表的渲染帧所期望达到的围栏值
 			size_t   frameIndex; // 该FrameAttribute所代表的帧索引
-			size_t   size;       // 该FrameAttribute的长度
+			size_t   size;       // 该FrameAttribute的长度(可弃用)
 		};
 
 		using NewFramePushedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
@@ -41,12 +41,12 @@ namespace Renderer {
 		void PopCompletedFrame(uint64_t completedValue);
 
 		/*
-		* 
+		* 设置新的渲染帧开始录制命令时调用回调函数
 		*/
 		void AddNewFramePushedCallBack(const NewFramePushedCallBack& callBack);
 
 		/*
-		* 设置渲染帧被GPU完成时的回调函数
+		* 设置渲染帧被GPU完成时调用的回调函数
 		*/
 		void AddFrameCompletedCallBack(const FrameCompletedCallBack& callBack);
 

@@ -43,6 +43,12 @@
     <Filter Include="源文件\Manger">
       <UniqueIdentifier>{d8ae3728-5dd9-4a9e-9853-7b87eefb335c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\RenderGraph">
+      <UniqueIdentifier>{85499a4a-2dd1-4d14-bf3f-25a5393cf526}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\RenderGraph">
+      <UniqueIdentifier>{d87516bd-85da-4a84-9907-ef7ede062a5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GpuDevice.h">
@@ -81,7 +87,7 @@
     <ClInclude Include="LinearBufferAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="RenderEngine.h">
       <Filter>头文件\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="UploadList.h">
@@ -93,14 +99,26 @@
     <ClInclude Include="ShaderManger.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineStateManger.h">
-      <Filter>头文件\Manger</Filter>
-    </ClInclude>
     <ClInclude Include="GPUProfiler.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
     <ClInclude Include="TileUpdateManger.h">
       <Filter>头文件\Manger</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraphBuilder.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,7 +152,7 @@
     <ClCompile Include="LinearBufferAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="RenderEngine.cpp">
       <Filter>源文件\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Uploader.cpp">
@@ -146,14 +164,26 @@
     <ClCompile Include="ShaderManger.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineStateManger.cpp">
-      <Filter>源文件\Manger</Filter>
-    </ClCompile>
     <ClCompile Include="GPUProfiler.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
     <ClCompile Include="TileUpdateManger.cpp">
       <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraphBuilder.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

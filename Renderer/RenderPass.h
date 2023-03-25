@@ -2,8 +2,10 @@
 
 namespace Renderer {
 
-	class TileUpdateManger {
+	class RenderPass {
+	public:
 
+	private:
 	};
 
 }
