@@ -117,7 +117,10 @@
     <ClInclude Include="RenderGraphBuilder.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPass.h">
+    <ClInclude Include="RenderGraphPass.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraphResource.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
@@ -182,8 +185,13 @@
     <ClCompile Include="RenderGraphBuilder.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
+    <ClCompile Include="RenderGraphPass.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RenderGraph.inl">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </None>
   </ItemGroup>
 </Project>
