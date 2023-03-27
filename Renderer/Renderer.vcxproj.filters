@@ -188,6 +188,9 @@
     <ClCompile Include="RenderGraphPass.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
+    <ClCompile Include="RenderGraphResource.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="RenderGraph.inl">

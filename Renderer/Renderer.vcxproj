@@ -178,6 +178,7 @@
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderGraphBuilder.cpp" />
     <ClCompile Include="RenderGraphPass.cpp" />
+    <ClCompile Include="RenderGraphResource.cpp" />
     <ClCompile Include="ResourceAllocator.cpp" />
     <ClCompile Include="RingFrameTracker.cpp" />
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />

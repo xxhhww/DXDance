@@ -3,20 +3,6 @@
 
 namespace Renderer {
 
-	/*
-	* 纹理描述
-	*/
-	struct RGTextureDesc {
-
-	};
-
-	/*
-	* 缓冲描述
-	*/
-	struct RGBufferDesc {
-
-	};
-
 	class RenderGraphBuilder {
 	public:
 		RenderGraphBuilder(RenderGraph::PassNode* passNode, RenderGraph* renderGraph);
@@ -65,12 +51,12 @@ namespace Renderer {
 		/*
 		* 定义一个纹理复制的操作
 		*/
-		void CopyTexture(const std::string& src, const std::string& dst, const TextureSubResourceDesc& srcDesc = {}, const TextureSubResourceDesc& dstDesc = {});
+		void CopyTexture(const std::string& src, const std::string& dst);
 
 		/*
 		* 定义一个缓冲复制的操作
 		*/
-		void CopyBuffer(const std::string& src, const std::string dst, const BufferSubResourceDesc& srcDesc = {}, const BufferSubResourceDesc& dstDesc = {});
+		void CopyBuffer(const std::string& src, const std::string dst);
 
 		/*
 		* 设置Pass所属的GPU引擎(默认为图形引擎)

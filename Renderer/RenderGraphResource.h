@@ -1,63 +1,90 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <variant>
 
 #include "Buffer.h"
 #include "Texture.h"
 
 namespace Renderer {
 
-	template<typename ResourceType>
-	struct RGResourceTraits;
-
-	template<>
-	struct RGResourceTraits<Buffer>
-	{
-		using Resource = Buffer;
-		using ResourceDesc = BufferDesc;
-	};
-
-	template<>
-	struct RGResourceTraits<Texture> {
-		using Resource = Texture;
-		using ResourceDesc = TextureDesc;
+	/*
+	* 纹理描述
+	*/
+	struct RGTextureDesc {
+		GHL::ETextureDimension dimension = GHL::ETextureDimension::Texture2D;
+		uint32_t               width = 0u;
+		uint32_t               height = 0u;
+		uint32_t               depth = 1u;
+		uint32_t               arraySize = 1u;
+		uint32_t               mipLevals = 1u;
+		uint32_t               sampleCount = 1u;
+		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
+		GHL::EResourceUsage    usage = GHL::EResourceUsage::Default;
+		GHL::ETextureMiscFlag  miscFlag = GHL::ETextureMiscFlag::None;
+		D3D12_CLEAR_VALUE      clearValue{};
 	};
 
 	/*
-	* 渲染图谱中管理的资源
+	* 缓冲描述
 	*/
-	template<typename ResourceType>
+	struct RGBufferDesc {
+		uint32_t               stride = 1u;
+		size_t                 size = 0u;
+		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
+		GHL::EResourceUsage    usage = GHL::EResourceUsage::Upload;
+		GHL::EBufferMiscFlag   miscFlag = GHL::EBufferMiscFlag::None;
+	};
+
+	using RGResourceDesc = std::variant<RGTextureDesc, RGBufferDesc>;
+
 	class RenderGraphResource {
 	public:
 		using ResourceUsageTimeline = std::pair<uint64_t, uint64_t>;
-		using Resource = RGResourceTraits<ResourceType>::Resource;
-		using ResourceDesc = RGResourceTraits<ResourceType>::ResourceDesc;
 
 	public:
-		RenderGraphResource(size_t resID, const ResourceDesc& desc, bool imported = false)
-		: mResID(resID)
-		, mResourceDesc(desc)
-		, mImoprted(imported) {}
+		RenderGraphResource(const std::string& name, const RGBufferDesc& desc, bool imported = false)
+		: mResName(name)
+		, mImported(imported)
+		, mResourceDesc(desc) {}
 
-		RenderGraphResource(size_t resID, Resource* resource, bool imported = true)
-		: mResID(resID)
-		, mResource(resource)
-		, mImoprted(imported) {}
+		RenderGraphResource(const std::string& name, const RGTextureDesc& desc, bool imported = false)
+		: mResName(name)
+		, mImported(imported)
+		, mResourceDesc(desc) {}
+
+		RenderGraphResource(const std::string& name, Texture* importedTexture, bool imported = true)
+		: mResName(name)
+		, mImported(imported) 
+		, mTexture(importedTexture) {}
+
+		RenderGraphResource(const std::string& name, Buffer* importedBuffer, bool imported = true)
+		: mResName(name)
+		, mImported(imported) 
+		, mBuffer(importedBuffer) {}
 
 		~RenderGraphResource() = default;
 
+		void ApplyInitialStates(GHL::EResourceState initialState);
+
+		void ApplyExpectedStates(GHL::EResourceState expectedState);
+
+		void StartTimeline(uint64_t nodeExecutionIndex);
+
+		void UpdateTimeline(uint64_t nodeExecutionIndex);
+
 	private:
-		size_t mResID{ 0u };             // 资源ID
+		std::string mResName;            // 资源名称
 		bool mImported{ false };         // 资源是否来自于外部导入
 		ResourceUsageTimeline mTimeline; // 资源的生命周期
 
-		Resource* mResource{ nullptr };
-		ResourceDesc mResourceDesc{};
+		Texture* mTexture{ nullptr };
+		Buffer*  mBuffer{ nullptr };
+
+		RGResourceDesc mResourceDesc{};
+
+		GHL::EResourceState mInitialStates;
+		GHL::EResourceState mExpectedStates;
 	};
-
-	using RGTexture = RenderGraphResource<Texture>;
-	using RGBuffer  = RenderGraphResource<Buffer>;
-
-	using RGResourceID = uint64_t;
 
 }

@@ -46,11 +46,11 @@ namespace Renderer {
 
 	}
 
-	void RenderGraphBuilder::CopyTexture(const std::string& src, const std::string& dst, const TextureSubResourceDesc& srcDesc, const TextureSubResourceDesc& dstDesc) {
+	void RenderGraphBuilder::CopyTexture(const std::string& src, const std::string& dst) {
 
 	}
 
-	void RenderGraphBuilder::CopyBuffer(const std::string& src, const std::string dst, const BufferSubResourceDesc& srcDesc, const BufferSubResourceDesc& dstDesc) {
+	void RenderGraphBuilder::CopyBuffer(const std::string& src, const std::string dst) {
 
 	}
 
