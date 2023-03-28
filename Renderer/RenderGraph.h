@@ -2,6 +2,7 @@
 
 #include "RingFrameTracker.h"
 #include "RenderGraphResource.h"
+#include "RenderGraphPass.h"
 
 #include <memory>
 #include <unordered_map>
@@ -10,9 +11,6 @@
 #include <string>
 
 namespace Renderer {
-
-	class RenderGraphPass;
-
 	/*
 	* Pass的目标GPU队列
 	*/
@@ -20,19 +18,17 @@ namespace Renderer {
 		General = 0, // 通用的图形引擎
 		Compute = 1, // 异步计算引擎
 		Copy    = 2, // 异步复制引擎
-		Count   = 3
+		Count
 	};
 
 	class RenderGraph {
 	public:
 
-		struct PassNode {
+		/*
+		* Graph中的顶点
+		*/
+		struct GraphNode {
 		public:
-			/*
-			* 设置资源的期望状态，由RenderGraphBuilder调用
-			*/
-			void SetExpectedState(const std::string& name, GHL::EResourceState expectedState);
-
 			/*
 			* 添加读依赖
 			*/
@@ -49,28 +45,39 @@ namespace Renderer {
 			void SetExecutionQueue(PassExecutionQueue queueIndex);
 
 		public:
-			RenderGraphPass* pass{ nullptr };    // 该PassNode的内部执行方法
+			RenderGraphPass* pass{ nullptr };
 			uint8_t executionQueueIndex;
 
-			std::unordered_map<std::string, GHL::EResourceState> expectedStateMap; // 该PassNode所使用的资源，及其期望状态
-
-			// 该PassNode的读写依赖，用于构造有向图
+			// 节点之间的读写依赖，用于构造GraphEdge与DAG
 
 			std::unordered_set<std::string> readDependency;
 			std::unordered_set<std::string> writeDependency;
 
-			// 以下参数在RenderGraph构造时写入
+			uint64_t globalExecutionIndex{ 0u };
+			uint64_t dependencyLevelIndex{ 0u };
+			uint64_t localToQueueExecutionIndex{ 0u };
 
-			uint64_t globalExecutionIndex{ 0u }; // 该PassNode的全局执行顺序
-			uint64_t dependencyLevelIndex{ 0u }; // 该PassNode所在的依赖级别
-			uint64_t localToDependencyLevelExecutionIndex{ 0u };  // 该PassNode在DependencyLevel内的顺序
-			uint64_t localToQueueExecutionIndex{ 0u }; // 该PassNode在其对应的Queue上的顺序
+			bool requireSyncSignal{ false }; // 该节点是否需要发送Signal命令来通知等待该节点的其他节点(一般是跨队列的节点)
 
-			bool syncSignalRequired{ false }; // 需要设置同步信号，以通知其他同步等待的PassNode
-
-			std::vector<PassNode*> nodesToSyncWith; // 执行该PassNode前需要同步等待的其他PassNode
+			std::vector<GraphNode*> nodesToSyncWait; // 该节点运行前需要同步等待的其他节点
 		};
 
+		/*
+		* Graph中的边
+		*/
+		struct GraphEdge {
+		public:
+			GraphEdge(uint64_t producerNodeIndex, uint64_t consumerNodeIndex, bool crossQueue);
+			~GraphEdge() = default;
+
+			uint64_t producerNodeIndex{ 0u }; // 该边的生产者节点的索引
+			uint64_t consumerNodeIndex{ 0u }; // 该边的消费者节点的索引
+			bool crossQueue{ false };         // 该边是否跨队列
+		};
+
+		/*
+		* 依赖层级
+		*/
 		class DependencyLevel {
 		public:
 			DependencyLevel();
@@ -78,16 +85,16 @@ namespace Renderer {
 
 			void SetLevel(uint64_t level);
 
-			void AddNode(PassNode* passNode);
+			void AddNode(GraphNode* passNode);
 
-			inline auto&       GetPassNodes()       { return mPassNodes; }
-			inline const auto& GetPassNodes() const { return mPassNodes; }
-			inline const auto& GetNodeSize() const  { return mPassNodes.size(); }
+			inline auto&       GetGraphNodes()       { return mGraphNodes; }
+			inline const auto& GetGraphNodes() const { return mGraphNodes; }
+			inline const auto& GetNodeSize()   const { return mGraphNodes.size(); }
 
 		private:
 			uint64_t mLevelIndex{ 0u };
-			std::vector<PassNode*> mPassNodes;
-			std::vector<std::vector<PassNode*>> mPassNodesPerQueue; // 每一个GPU队列上的Pass
+			std::vector<GraphNode*> mGraphNodes;
+			std::vector<std::vector<GraphNode*>> mGraphNodesPerQueue; // 每一个GPU队列上的Pass
 		};
 
 	public:
@@ -123,7 +130,7 @@ namespace Renderer {
 	private:
 
 		/*
-		* 构建邻接表
+		* 构建邻接表，并添加由资源读写依赖产生的GraphEdge
 		*/
 		void BuildAdjacencyList();
 
@@ -143,24 +150,28 @@ namespace Renderer {
 		void BuildDependencyLevels();
 
 		/*
-		* 遍历所有的依赖层级，计算资源的生命周期，构建SSIS
+		* 剔除冗余依赖
 		*/
-		void TraverseDependencyLevels();
+		void CullRedundantDependencies();
 
 	private:
 		RingFrameTracker* mFrameTracker{ nullptr };
 
-		bool mBuilded{ false };
+		bool mCompiled{ false };
 		std::vector<std::unique_ptr<RenderGraphPass>> mRenderGraphPasses;
-		std::vector<std::unique_ptr<PassNode>> mPassNodes;
-		std::vector<PassNode*> mSortedPassNodes; // 拓扑排序后的PassNodes
+		
+		std::vector<std::unique_ptr<GraphNode>> mGraphNodes;
+		std::vector<GraphEdge> mGraphEdges;
+
+		std::vector<uint64_t> mSortedGraphNodes; // 拓扑排序后的结果
 
 		std::unordered_map<std::string, std::unique_ptr<RenderGraphResource>> mResources;
 		std::unordered_map<std::string, RenderGraphResource*> mImportedResources;
 		
-		std::vector<std::vector<uint64_t>> mAdjacencyLists; // PassNode的邻接表
-		std::vector<DependencyLevel> mDependencyList;
-		std::vector<uint64_t> mPassCountPerQueue; // 记录每一个Queue上需要执行的Pass个数
+		std::vector<std::vector<uint64_t>> mAdjacencyLists; // GraphNodes的邻接表
+
+		std::vector<DependencyLevel> mDependencyList; // 依赖层级
+		std::vector<std::vector<uint64_t>> mGraphNodesPerQueue;
 	};
 
 }

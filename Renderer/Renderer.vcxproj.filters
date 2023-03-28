@@ -49,11 +49,11 @@
     <Filter Include="源文件\Renderer\RenderGraph">
       <UniqueIdentifier>{d87516bd-85da-4a84-9907-ef7ede062a5f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{702e69b4-0e7c-476d-99e3-10a7b7b5829a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GpuDevice.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="BuddyHeapAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
@@ -125,9 +125,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GpuDevice.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="BuddyHeapAllocator.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
@@ -190,6 +187,9 @@
     </ClCompile>
     <ClCompile Include="RenderGraphResource.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RendererTest.cpp">
+      <Filter>源文件\Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

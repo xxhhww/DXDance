@@ -15,12 +15,11 @@ namespace Tool {
 
 				uint64_t newBucketIndex = mBuckets.size();
 				size_t newBucketSize = std::powf(mCardinality, newBucketIndex + 1);
-				mBuckets.emplace_back(new Bucket(newBucketIndex, newBucketSize));
+				mBuckets.emplace_back(std::make_unique<Bucket>(newBucketIndex, newBucketSize));
 			}
 		}
 
 		return Allocation{
-			
 			mBuckets.at(bucketIndex).get(),
 			mBuckets.at(bucketIndex)->pool.Allocate()
 		};

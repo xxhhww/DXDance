@@ -34,9 +34,9 @@ namespace Renderer {
 		}
 
 		uint32_t firstSlice = 0u;
-		uint32_t sliceCount = -1; // -1 表示全部
+		uint32_t sliceCount = static_cast<uint32_t>(-1); // -1 表示全部
 		uint32_t firstMip   = 0u;
-		uint32_t mipCount   = -1; // -1 表示全部
+		uint32_t mipCount   = static_cast<uint32_t>(-1); // -1 表示全部
 	};
 
 	struct TextureSubResourceDescHashFunc {

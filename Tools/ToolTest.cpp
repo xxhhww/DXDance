@@ -12,7 +12,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     SegregatedPool<int64_t, int64_t> segPool(2);
 
     auto alloc1 = segPool.Allocate(1);
-    alloc1.bucket.userData = 32;
+    alloc1.bucket->userData = 32;
     auto alloc2 = segPool.Allocate(1);
     auto alloc3 = segPool.Allocate(7);
     auto alloc4 = segPool.Allocate(7);

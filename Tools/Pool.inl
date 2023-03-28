@@ -12,7 +12,7 @@ namespace Tool {
 
 		uint64_t id = mRetiredIDs.front();
 		mRetiredIDs.pop();
-		return *mSlots.at(id).get();
+		return mSlots.at(id).get();
 	}
 
 	template<typename SlotUserDataType>

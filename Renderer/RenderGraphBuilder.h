@@ -5,7 +5,7 @@ namespace Renderer {
 
 	class RenderGraphBuilder {
 	public:
-		RenderGraphBuilder(RenderGraph::PassNode* passNode, RenderGraph* renderGraph);
+		RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraph* renderGraph);
 		~RenderGraphBuilder() = default;
 
 		/*
@@ -64,7 +64,7 @@ namespace Renderer {
 		void SetPassExecutionQueue(PassExecutionQueue queueIndex = PassExecutionQueue::General);
 
 	private:
-		RenderGraph::PassNode* mPassNode{ nullptr };
+		RenderGraph::GraphNode* mGraphNode{ nullptr };
 		RenderGraph* mRenderGraph{ nullptr };
 	};
 
