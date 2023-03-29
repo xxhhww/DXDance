@@ -2,12 +2,15 @@
 
 namespace Renderer {
 
-	RenderGraphBuilder::RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraph* renderGraph) 
+	RenderGraphBuilder::RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraphResourceStorage* resourceStorage)
 	: mGraphNode(graphNode)
-	, mRenderGraph(renderGraph) {}
+	, mResourceStorage(resourceStorage) {}
 
 	void RenderGraphBuilder::NewRenderTarget(const std::string& name, const RGTextureDesc& desc) {
 		mGraphNode->AddWriteDependency(name);
+		mGraphNode->SetExpectedStates(name, GHL::EResourceState::RenderTarget);
+
+
 	}
 
 	void RenderGraphBuilder::NewDepthStencil(const std::string& name, const RGTextureDesc& desc) {

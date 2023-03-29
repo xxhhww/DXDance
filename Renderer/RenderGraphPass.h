@@ -16,6 +16,9 @@ namespace Renderer {
 		RenderGraphPass(const std::string& name, SetupFunc&& setup, ExecuteFunc&& execute);
 		~RenderGraphPass() = default;
 
+		void SetUp(RenderGraphBuilder& builder);
+		void Execute();
+
 	private:
 		std::string mName;
 		SetupFunc   mSetup;

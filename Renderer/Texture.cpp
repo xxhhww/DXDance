@@ -179,7 +179,6 @@ namespace Renderer {
 
 		D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
 		mResourceSizeInBytes = allocInfo.SizeInBytes;
-
 	}
 
 	const GHL::DescriptorHandle* Texture::GetDSDescriptor(const TextureSubResourceDesc& subDesc) {

@@ -1,4 +1,5 @@
 #include "RenderGraphPass.h"
+#include "RenderGraphBuilder.h"
 
 namespace Renderer {
 
@@ -6,5 +7,14 @@ namespace Renderer {
 	: mName(name)
 	, mSetup(std::forward<SetupFunc>(setup))
 	, mExecute(std::forward<ExecuteFunc>(execute)) {}
+
+
+	void RenderGraphPass::SetUp(RenderGraphBuilder& builder) {
+		mSetup(builder);
+	}
+
+	void RenderGraphPass::Execute() {
+		mExecute();
+	}
 
 }

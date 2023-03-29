@@ -1,8 +1,8 @@
 #pragma once
 
 #include "RingFrameTracker.h"
-#include "RenderGraphResource.h"
 #include "RenderGraphPass.h"
+#include "RenderGraphResourceStorage.h"
 
 #include <memory>
 #include <unordered_map>
@@ -40,6 +40,11 @@ namespace Renderer {
 			void AddWriteDependency(const std::string& name);
 
 			/*
+			* 设定对资源的状态期望
+			*/
+			void SetExpectedStates(const std::string& name, GHL::EResourceState state);
+
+			/*
 			* 设定PassNode所属的GPU引擎队列
 			*/
 			void SetExecutionQueue(PassExecutionQueue queueIndex);
@@ -48,11 +53,14 @@ namespace Renderer {
 			RenderGraphPass* pass{ nullptr };
 			uint8_t executionQueueIndex;
 
+			std::unordered_map<std::string, GHL::EResourceState> expectedStatesMap; // 该节点对资源的期待状态
+
 			// 节点之间的读写依赖，用于构造GraphEdge与DAG
 
 			std::unordered_set<std::string> readDependency;
 			std::unordered_set<std::string> writeDependency;
 
+			uint64_t nodeIndex{ 0u };
 			uint64_t globalExecutionIndex{ 0u };
 			uint64_t dependencyLevelIndex{ 0u };
 			uint64_t localToQueueExecutionIndex{ 0u };
@@ -164,14 +172,13 @@ namespace Renderer {
 		std::vector<GraphEdge> mGraphEdges;
 
 		std::vector<uint64_t> mSortedGraphNodes; // 拓扑排序后的结果
-
-		std::unordered_map<std::string, std::unique_ptr<RenderGraphResource>> mResources;
-		std::unordered_map<std::string, RenderGraphResource*> mImportedResources;
 		
 		std::vector<std::vector<uint64_t>> mAdjacencyLists; // GraphNodes的邻接表
 
 		std::vector<DependencyLevel> mDependencyList; // 依赖层级
 		std::vector<std::vector<uint64_t>> mGraphNodesPerQueue;
+
+		RenderGraphResourceStorage mResourceStorage; // 存储管线资源
 	};
 
 }

@@ -1,11 +1,12 @@
 #pragma once
 #include "RenderGraph.h"
+#include "RenderGraphResourceStorage.h"
 
 namespace Renderer {
 
 	class RenderGraphBuilder {
 	public:
-		RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraph* renderGraph);
+		RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraphResourceStorage* resourceStorage);
 		~RenderGraphBuilder() = default;
 
 		/*
@@ -65,7 +66,7 @@ namespace Renderer {
 
 	private:
 		RenderGraph::GraphNode* mGraphNode{ nullptr };
-		RenderGraph* mRenderGraph{ nullptr };
+		RenderGraphResourceStorage* mResourceStorage{ nullptr };
 	};
 
 }

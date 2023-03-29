@@ -1,4 +1,5 @@
 #include "RenderGraph.h"
+#include "RenderGraphBuilder.h"
 #include <sstream>
 
 namespace Renderer {
@@ -20,6 +21,15 @@ namespace Renderer {
 			return;
 		}
 		writeDependency.insert(name);
+	}
+
+	void RenderGraph::GraphNode::SetExpectedStates(const std::string& name, GHL::EResourceState states) {
+		if (expectedStatesMap.find(name) == expectedStatesMap.end()) {
+			expectedStatesMap[name] = states;
+		}
+		else {
+			expectedStatesMap[name] |= states;
+		}
 	}
 
 	void RenderGraph::GraphNode::SetExecutionQueue(PassExecutionQueue queueIndex) {
@@ -46,10 +56,23 @@ namespace Renderer {
 	}
 
 	void RenderGraph::Build() {
+		if (mCompiled) {
+			return;
+		}
+
+		// SetUp
+		for (auto& graphNode : mGraphNodes) {
+			RenderGraphBuilder builder{ graphNode.get(), this };
+			graphNode->pass->SetUp(builder);
+		}
+
 		BuildAdjacencyList();
 		TopologicalSort();
 		BuildDependencyLevels();
 		CullRedundantDependencies();
+
+
+		mCompiled = true;
 	}
 
 	void RenderGraph::Execute() {
@@ -72,7 +95,8 @@ namespace Renderer {
 			auto& currPassNode = mGraphNodes.at(currIndex);
 
 			// 遍历其他所有的PassNode
-			for (size_t otherIndex = currIndex + 1u; otherIndex < mGraphNodes.size(); otherIndex++) {
+			for (size_t otherIndex = 0; otherIndex < mGraphNodes.size(); otherIndex++) {
+				if (currIndex == otherIndex) continue;
 
 				auto& otherPassNode = mGraphNodes.at(otherIndex);
 
@@ -137,7 +161,7 @@ namespace Renderer {
 				if (longestDistances.at(adjIndex) < longestDistances.at(nodeIndex) + 1u) {
 					longestDistances.at(adjIndex) = longestDistances.at(nodeIndex) + 1u;
 					
-					dependencyLevelCount = std::max(dependencyLevelCount, longestDistances.at(adjIndex));
+					dependencyLevelCount = std::max(dependencyLevelCount, longestDistances.at(adjIndex) + 1u);
 
 				}
 			}
@@ -163,19 +187,26 @@ namespace Renderer {
 			// 向GraphEdge中添加由在Queue上的执行顺序所形成的依赖
 			if (passNode->localToQueueExecutionIndex > 0u) {
 				uint64_t prevNodeIndexOnQueue = mGraphNodesPerQueue.at(passNode->executionQueueIndex).back();
-				mGraphEdges.emplace_back(prevNodeIndexOnQueue, nodeIndex, false);
+
+				auto it = std::find_if(mGraphEdges.begin(), mGraphEdges.end(),
+					[&](const GraphEdge& edge) {
+						if (edge.producerNodeIndex == prevNodeIndexOnQueue && edge.consumerNodeIndex == nodeIndex) {
+							return true;
+						}
+						return false;
+					});
+
+				if (it == mGraphEdges.end()) {
+					mGraphEdges.emplace_back(prevNodeIndexOnQueue, nodeIndex, false);
+				}
 			}
 
 			mGraphNodesPerQueue.at(passNode->executionQueueIndex).push_back(nodeIndex);
 		}
 	}
 
-	/*
-	* 剔除冗余依赖
-	*/
 	void RenderGraph::CullRedundantDependencies() {
 		// 使用节点与依赖边与弗洛伊德算法做冗余剔除
-
 		uint64_t nodeSize = mGraphNodes.size();
 
 		std::vector<std::vector<int64_t>> dist(nodeSize, std::vector<int64_t>(nodeSize, INFINITE));
@@ -198,14 +229,34 @@ namespace Renderer {
 			}
 		}
 
-		for (const auto& edge : mGraphEdges) {
-			if (dist[edge.producerNodeIndex][edge.consumerNodeIndex] != -1) {
-				std::wstringstream wss;
-				wss << edge.producerNodeIndex << " : " << edge.consumerNodeIndex << "\n";
-				OutputDebugStringW(wss.str().c_str());
-			}
-		}
+		// 删除冗余的边
+		mGraphEdges.erase(
+			std::remove_if(mGraphEdges.begin(), mGraphEdges.end(), 
+			[&](const GraphEdge& edge) {
+				if (dist[edge.producerNodeIndex][edge.consumerNodeIndex] != -1) {
+					std::wstringstream wss;
+					wss << edge.producerNodeIndex << " : " << edge.consumerNodeIndex << "\n";
+					OutputDebugStringW(wss.str().c_str());
+					return true;
+				}
+				return false;
+			}),
+			mGraphEdges.end()
+		);
 
+		// 跨队列的边需要额外记录
+		for (const auto& edge : mGraphEdges) {
+			if (!edge.crossQueue) {
+				continue;
+			}
+
+			// 边没有被剔除，并且该边跨队列
+			auto& producerGraphNode = mGraphNodes.at(edge.producerNodeIndex);
+			auto& consumerGraphNode = mGraphNodes.at(edge.consumerNodeIndex);
+
+			producerGraphNode->requireSyncSignal = true;
+			consumerGraphNode->nodesToSyncWait.push_back(producerGraphNode.get());
+		}
 	}
 
 }

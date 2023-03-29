@@ -123,6 +123,12 @@
     <ClInclude Include="RenderGraphResource.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="RenderGraphResourceStorage.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceFormat.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -190,6 +196,12 @@
     </ClCompile>
     <ClCompile Include="RendererTest.cpp">
       <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraphResourceStorage.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceFormat.cpp">
+      <Filter>源文件\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

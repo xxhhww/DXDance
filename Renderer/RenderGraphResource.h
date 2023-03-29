@@ -1,12 +1,12 @@
 #pragma once
+#include "ResourceFormat.h"
 #include <string>
 #include <unordered_map>
-#include <variant>
-
-#include "Buffer.h"
-#include "Texture.h"
 
 namespace Renderer {
+
+	class Buffer;
+	class Texture;
 
 	/*
 	* 纹理描述
@@ -29,7 +29,7 @@ namespace Renderer {
 	* 缓冲描述
 	*/
 	struct RGBufferDesc {
-		uint32_t               stride = 1u;
+		uint32_t               stride = 0u;
 		size_t                 size = 0u;
 		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
 		GHL::EResourceUsage    usage = GHL::EResourceUsage::Upload;
@@ -43,48 +43,31 @@ namespace Renderer {
 		using ResourceUsageTimeline = std::pair<uint64_t, uint64_t>;
 
 	public:
-		RenderGraphResource(const std::string& name, const RGBufferDesc& desc, bool imported = false)
-		: mResName(name)
-		, mImported(imported)
-		, mResourceDesc(desc) {}
-
-		RenderGraphResource(const std::string& name, const RGTextureDesc& desc, bool imported = false)
-		: mResName(name)
-		, mImported(imported)
-		, mResourceDesc(desc) {}
-
-		RenderGraphResource(const std::string& name, Texture* importedTexture, bool imported = true)
-		: mResName(name)
-		, mImported(imported) 
-		, mTexture(importedTexture) {}
-
-		RenderGraphResource(const std::string& name, Buffer* importedBuffer, bool imported = true)
-		: mResName(name)
-		, mImported(imported) 
-		, mBuffer(importedBuffer) {}
-
+		RenderGraphResource(const GHL::Device* device, const std::string& name);
+		RenderGraphResource(const std::string& name, Texture* resource);
+		RenderGraphResource(const std::string& name, Buffer*  resource);
 		~RenderGraphResource() = default;
 
-		void ApplyInitialStates(GHL::EResourceState initialState);
+		void StartTimeline(uint64_t nodeGlobalExecutionIndex);
 
-		void ApplyExpectedStates(GHL::EResourceState expectedState);
+		void UpdateTimeline(uint64_t nodeGlobalExecutionIndex);
 
-		void StartTimeline(uint64_t nodeExecutionIndex);
-
-		void UpdateTimeline(uint64_t nodeExecutionIndex);
+		void SetExpectedStates(uint64_t nodeIndex, GHL::EResourceState states);
 
 	private:
-		std::string mResName;            // 资源名称
-		bool mImported{ false };         // 资源是否来自于外部导入
-		ResourceUsageTimeline mTimeline; // 资源的生命周期
+		const GHL::Device* mDevice{ nullptr };
+		std::string mResName; // 资源名称
 
 		Texture* mTexture{ nullptr };
-		Buffer*  mBuffer{ nullptr };
+		Buffer*  mBuffer { nullptr };
 
-		RGResourceDesc mResourceDesc{};
+		// 以下是资源调度信息
 
-		GHL::EResourceState mInitialStates;
-		GHL::EResourceState mExpectedStates;
+		bool mImported{ false };         // 资源是否来自于外部导入
+		ResourceUsageTimeline mTimeline; // 资源的生命周期
+		ResourceFormat mResourceFormat;
+		uint64_t mHeapOffset{ 0u };
+		std::unordered_map<uint64_t, GHL::EResourceState> mExpectedStatesPerPass; // 各个Pass对该资源的要求
 	};
 
 }
