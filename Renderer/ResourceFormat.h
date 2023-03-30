@@ -77,8 +77,15 @@ namespace Renderer {
 	*/
 	class ResourceFormat {
 	public:
+		ResourceFormat(const GHL::Device* device);
 		ResourceFormat(const GHL::Device* device, const TextureDesc& desc);
 		ResourceFormat(const GHL::Device* device, const BufferDesc& desc);
+
+		void Build();
+
+		void SetTextureDesc(const TextureDesc& desc);
+
+		void SetBufferDesc(const BufferDesc& desc);
 
 		inline const auto& D3DResourceDesc() const { return mD3DResourceDesc; }
 

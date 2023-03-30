@@ -202,6 +202,17 @@ namespace Renderer {
 			}
 
 			mGraphNodesPerQueue.at(passNode->executionQueueIndex).push_back(nodeIndex);
+
+			// 更新资源的生命周期
+			for (const auto& resName : passNode->writeDependency) {
+				auto* resource = mResourceStorage.GetResource(resName);
+				resource->StartTimeline(passNode->globalExecutionIndex);
+			}
+
+			for (const auto& resName : passNode->readDependency) {
+				auto* resource = mResourceStorage.GetResource(resName);
+				resource->UpdateTimeline(passNode->globalExecutionIndex);
+			}
 		}
 	}
 

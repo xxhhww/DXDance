@@ -9,15 +9,14 @@ namespace Renderer {
 
 	class RenderGraphResourceStorage {
 	public:
-		RenderGraphResourceStorage();
+		RenderGraphResourceStorage(const GHL::Device* device);
 		~RenderGraphResourceStorage() = default;
 
-		/*
-		* 声明一个新的资源，并将其返回
-		*/
+		void Build();
+
 		RenderGraphResource* DeclareResource(const std::string& name);
 
-		inline auto* GetResource(const std::string& name) const { return mRenderGraphResources.at(name).get(); }
+		RenderGraphResource* GetResource(const std::string& name) const;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

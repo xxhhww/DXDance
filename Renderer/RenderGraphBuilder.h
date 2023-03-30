@@ -12,27 +12,27 @@ namespace Renderer {
 		/*
 		* 创建一个初始状态为RenderTarget的Texture
 		*/
-		void NewRenderTarget(const std::string& name, const RGTextureDesc& desc);
+		void NewRenderTarget(const std::string& name, const NewTextureProperties& desc);
 
 		/*
 		* 创建一个初始状态为DepthWrite的Texture
 		*/
-		void NewDepthStencil(const std::string& name, const RGTextureDesc& desc);
+		void NewDepthStencil(const std::string& name, const NewTextureProperties& desc);
 
 		/*
 		* 创建一个初始状态为UnorderedAccess的Texture
 		*/
-		void NewTexture(const std::string& name, const RGTextureDesc& desc);
+		void NewTexture(const std::string& name, const NewTextureProperties& desc);
 		
 		/*
 		* 创建一个初始状态为UnorderedAccess的Buffer
 		*/
-		void NewBuffer(const std::string& name, const RGBufferDesc& desc);
+		void NewBuffer(const std::string& name, const NewBufferProperties& desc);
 
-		// 目前，在定义资源操作时先忽略 读写的粒度，在实际录制命令时仍然可以指定 读写的粒度
+		// 目前，在定义资源操作时先忽略读写的粒度，在实际录制命令时仍然可以指定读写的粒度
 
 		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadTexture(const std::string& name);
+		void ReadTexture(const std::string& name, ShaderAccessFlag accessFlag);
 
 		// 定义当前Pass期望该资源状态为UnorderedAccess
 		void WriteTexture(const std::string& name);
@@ -44,7 +44,7 @@ namespace Renderer {
 		void WriteDepthStencil(const std::string& name);
 
 		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadBuffer(const std::string& name);
+		void ReadBuffer(const std::string& name, ShaderAccessFlag accessFlag);
 
 		// 定义当前Pass期望该资源状态为UnorderedAccess
 		void WriteBuffer(const std::string& name);

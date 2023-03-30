@@ -17,6 +17,10 @@ namespace Renderer {
 	, mImported(true)
 	, mBuffer(resource) {}
 
+	void RenderGraphResource::BuildResourceFormat() {
+
+	}
+
 	void RenderGraphResource::StartTimeline(uint64_t nodeGlobalExecutionIndex) {
 		mTimeline.first = mTimeline.second = nodeGlobalExecutionIndex;
 	}
@@ -25,7 +29,20 @@ namespace Renderer {
 		mTimeline.second = nodeGlobalExecutionIndex;
 	}
 
+	void RenderGraphResource::SetNewTextureProperties(const NewTextureProperties& properties) {
+		mNewResourceProperties = properties;
+	}
+
+	void RenderGraphResource::SetNewBufferProperties(const NewBufferProperties& properties) {
+		mNewResourceProperties = properties;
+	}
+
+	void RenderGraphResource::SetInitialStates(GHL::EResourceState states) {
+		mInitialStates |= states;
+	}
+
 	void RenderGraphResource::SetExpectedStates(uint64_t nodeIndex, GHL::EResourceState states) {
+		mExpectedStates |= states;
 		if (mExpectedStatesPerPass.find(nodeIndex) == mExpectedStatesPerPass.end()) {
 			mExpectedStatesPerPass[nodeIndex] = states;
 		}
