@@ -129,6 +129,9 @@
     <ClInclude Include="ResourceFormat.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryAliasingHelper.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -202,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="ResourceFormat.cpp">
       <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryAliasingHelper.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

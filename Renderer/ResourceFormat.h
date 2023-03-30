@@ -77,6 +77,7 @@ namespace Renderer {
 	*/
 	class ResourceFormat {
 	public:
+		ResourceFormat() = default;
 		ResourceFormat(const GHL::Device* device);
 		ResourceFormat(const GHL::Device* device, const TextureDesc& desc);
 		ResourceFormat(const GHL::Device* device, const BufferDesc& desc);

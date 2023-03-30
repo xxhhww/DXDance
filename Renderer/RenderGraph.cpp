@@ -4,8 +4,9 @@
 
 namespace Renderer {
 
-	RenderGraph::RenderGraph(RingFrameTracker* frameTracker)
-	:mFrameTracker(frameTracker) {
+	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker)
+	: mFrameTracker(frameTracker) 
+	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device)) {
 		mGraphNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
 	}
 
@@ -62,7 +63,7 @@ namespace Renderer {
 
 		// SetUp
 		for (auto& graphNode : mGraphNodes) {
-			RenderGraphBuilder builder{ graphNode.get(), this };
+			RenderGraphBuilder builder(graphNode.get(), mResourceStorage.get());
 			graphNode->pass->SetUp(builder);
 		}
 
@@ -71,6 +72,7 @@ namespace Renderer {
 		BuildDependencyLevels();
 		CullRedundantDependencies();
 
+		mResourceStorage->Build();
 
 		mCompiled = true;
 	}
@@ -205,12 +207,12 @@ namespace Renderer {
 
 			// 更新资源的生命周期
 			for (const auto& resName : passNode->writeDependency) {
-				auto* resource = mResourceStorage.GetResource(resName);
+				auto* resource = mResourceStorage->GetResource(resName);
 				resource->StartTimeline(passNode->globalExecutionIndex);
 			}
 
 			for (const auto& resName : passNode->readDependency) {
-				auto* resource = mResourceStorage.GetResource(resName);
+				auto* resource = mResourceStorage->GetResource(resName);
 				resource->UpdateTimeline(passNode->globalExecutionIndex);
 			}
 		}

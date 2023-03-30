@@ -1,11 +1,13 @@
 #include "RenderGraphResource.h"
 
+
 namespace Renderer {
 
 	RenderGraphResource::RenderGraphResource(const GHL::Device* device, const std::string& name)
 	: mDevice(device)
 	, mResName(name)
-	, mImported(false) {}
+	, mImported(false) 
+	, mResourceFormat(device) {}
 
 	RenderGraphResource::RenderGraphResource(const std::string& name, Texture* resource)
 	: mResName(name)

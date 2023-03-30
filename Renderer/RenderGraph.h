@@ -106,7 +106,7 @@ namespace Renderer {
 		};
 
 	public:
-		RenderGraph(RingFrameTracker* frameTracker);
+		RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker);
 		~RenderGraph() = default;
 
 		/*
@@ -178,7 +178,7 @@ namespace Renderer {
 		std::vector<DependencyLevel> mDependencyList; // 依赖层级
 		std::vector<std::vector<uint64_t>> mGraphNodesPerQueue;
 
-		RenderGraphResourceStorage mResourceStorage; // 存储管线资源
+		std::unique_ptr<RenderGraphResourceStorage> mResourceStorage; // 存储管线资源
 	};
 
 }

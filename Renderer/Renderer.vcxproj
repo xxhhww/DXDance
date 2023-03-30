@@ -150,6 +150,7 @@
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="PoolDescriptorAllocator.h" />
     <ClInclude Include="PoolCommandListAllocator.h" />
     <ClInclude Include="RenderEngine.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MemoryAliasingHelper.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />
     <ClCompile Include="RenderEngine.cpp" />

@@ -4,14 +4,14 @@
 using namespace Renderer;
 
 void Test_RenderGraphBuildDAG() {
-    RenderGraph renderGraph(nullptr);
+    RenderGraph renderGraph(nullptr, nullptr);
 
     renderGraph.AddPass(
         "Pass0",
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
-            builder.WriteTexture("Tex_0");
+            builder.NewTexture("Tex_0", NewTextureProperties{});
 
         },
         [=]() {}
@@ -22,8 +22,8 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
-            builder.ReadTexture("Tex_0");
-            builder.WriteTexture("Tex_1");
+            builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
+            builder.NewTexture("Tex_1", NewTextureProperties{});
 
         },
         [=]() {}
@@ -34,8 +34,8 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
-            builder.ReadTexture("Tex_0");
-            builder.ReadTexture("Tex_1");
+            builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
+            builder.ReadTexture("Tex_1", ShaderAccessFlag::PixelShader);
 
         },
         [=]() {}
@@ -46,8 +46,8 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::Compute);
 
-            builder.ReadTexture("Tex_0");
-            builder.WriteTexture("Tex_3");
+            builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
+            builder.NewTexture("Tex_3", NewTextureProperties{});
 
         },
         [=]() {}
@@ -58,9 +58,9 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::Compute);
 
-            builder.ReadTexture("Tex_0");
-            builder.ReadTexture("Tex_1");
-            builder.ReadTexture("Tex_3");
+            builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
+            builder.ReadTexture("Tex_1", ShaderAccessFlag::NonPixelShader);
+            builder.ReadTexture("Tex_3", ShaderAccessFlag::NonPixelShader);
 
         },
         [=]() {}
@@ -71,7 +71,7 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::Compute);
 
-            builder.ReadTexture("Tex_0");
+            builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
 
         },
         [=]() {}
@@ -82,13 +82,15 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::Compute);
 
-            builder.ReadTexture("Tex_1");
+            builder.ReadTexture("Tex_1", ShaderAccessFlag::NonPixelShader);
 
         },
         [=]() {}
         );
 
     renderGraph.Build();
+
+    int i = 32;
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {

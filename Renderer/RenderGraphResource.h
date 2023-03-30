@@ -58,9 +58,14 @@ namespace Renderer {
 		~RenderGraphResource() = default;
 
 		/*
-		* 构建ResourceFormat，获取D3D12Resource 与 显存信息
+		* 构建ResourceFormat，获取D3D12ResourceDesc 与 显存要求
 		*/
 		void BuildResourceFormat();
+
+		/*
+		* 在堆上创建资源
+		*/
+		void BuildPlacedResource();
 
 		void StartTimeline(uint64_t nodeGlobalExecutionIndex);
 
@@ -74,6 +79,13 @@ namespace Renderer {
 
 		void SetExpectedStates(uint64_t nodeIndex, GHL::EResourceState states);
 
+		inline const auto& GetUsageTimeline()  const { return mTimeline; }
+		inline const auto& GetRequiredMemory() const { return mResourceFormat.GetSizeInBytes(); }
+
+	public:
+		size_t heapOffset{ 0u };
+		bool aliased{ false };
+
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		std::string mResName; // 资源名称
@@ -84,10 +96,8 @@ namespace Renderer {
 		// 以下是资源调度信息
 
 		bool mImported{ false };         // 资源是否来自于外部导入
-		bool mAliase{ false };           // 资源是否是别名
 		ResourceUsageTimeline mTimeline; // 资源的生命周期
 		NewResourceProperties mNewResourceProperties;
-		uint64_t mHeapOffset{ 0u };
 		GHL::EResourceState mInitialStates{ GHL::EResourceState::Common };
 		GHL::EResourceState mExpectedStates{ GHL::EResourceState::Common };
 		std::unordered_map<uint64_t, GHL::EResourceState> mExpectedStatesPerPass; // 各个Pass对该资源的要求
