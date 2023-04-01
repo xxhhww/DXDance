@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="源文件\Test">
+      <UniqueIdentifier>{4472b1f7-929b-47f2-a68d-abdbc958ac99}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DObject.h">
@@ -172,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="SwapChain.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GHLTest.cpp">
+      <Filter>源文件\Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -6,24 +6,22 @@ namespace Renderer {
 
 	Texture::Texture(
 		const GHL::Device* device,
-		const TextureDesc& textureDesc,
-		uint8_t backBufferCount,
+		const ResourceFormat& resourceFormat,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator
 	)
 	: mDevice(device)
-	, mTextureDesc(textureDesc)
-	, mBackBufferCount(backBufferCount)
+	, mResourceFormat(resourceFormat)
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator) {
 		
-		ASSERT_FORMAT(mTextureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
 
-		if (mTextureDesc.reserved) {
+		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
+
+		if (textureDesc.supportStream) {
 			ASSERT_FORMAT(mHeapAllocator != nullptr, "Texture Created Reserved, HeapAllocator is nullptr");
 		}
-
-		ResolveResourceDesc();
 
 		D3D12_HEAP_PROPERTIES heapProperties{};
 		heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -33,26 +31,26 @@ namespace Renderer {
 			HRASSERT(mDevice->D3DDevice()->CreateCommittedResource(
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
-				&mResourceDesc,
-				GHL::GetResourceStates(mInitialStates),
-				&mTextureDesc.clearVaule,
+				&mResourceFormat.D3DResourceDesc(),
+				GHL::GetResourceStates(textureDesc.initialState),
+				&textureDesc.clearVaule,
 				IID_PPV_ARGS(&mResource)
 			));
 		}
 		else {
-			if (!mTextureDesc.reserved) {
+			if (!textureDesc.supportStream) {
 				// 以放置方式创建该Buffer
 
 				// 在堆上分配
-				mHeapAllocation = mHeapAllocator->Allocate(mResourceSizeInBytes);
+				mHeapAllocation = mHeapAllocator->Allocate(mResourceFormat.GetSizeInBytes());
 
 				// 以放置方式创建该Buffer
 				HRASSERT(mDevice->D3DDevice()->CreatePlacedResource(
 					mHeapAllocation->heap->D3DHeap(),
 					mHeapAllocation->heapOffset,
-					&mResourceDesc,
-					GHL::GetResourceStates(mInitialStates),
-					&mTextureDesc.clearVaule,
+					&mResourceFormat.D3DResourceDesc(),
+					GHL::GetResourceStates(textureDesc.initialState),
+					&textureDesc.clearVaule,
 					IID_PPV_ARGS(&mResource)
 				));
 			}
@@ -106,29 +104,27 @@ namespace Renderer {
 
 	Texture::Texture(
 		const GHL::Device* device,
-		const TextureDesc& textureDesc,
-		uint8_t backBufferCount,
+		const ResourceFormat& resourceFormat,
 		PoolDescriptorAllocator* descriptorAllocator,
 		const GHL::Heap* heap,
 		size_t heapOffset
 	)
 	: mDevice(device)
-	, mTextureDesc(textureDesc)
-	, mBackBufferCount(backBufferCount)
+	, mResourceFormat(resourceFormat)
 	, mDescriptorAllocator(descriptorAllocator) {
 
-		ASSERT_FORMAT(mTextureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
-		ASSERT_FORMAT(heap->GetUsage() == GHL::EResourceUsage::Default, "Heap Usage Must be Default");
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
 
-		ResolveResourceDesc();
+		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
+		ASSERT_FORMAT(heap->GetUsage() == GHL::EResourceUsage::Default, "Heap Usage Must be Default");
 
 		// 以放置方式创建该Buffer
 		HRASSERT(mDevice->D3DDevice()->CreatePlacedResource(
 			heap->D3DHeap(),
 			heapOffset,
-			&mResourceDesc,
-			GHL::GetResourceStates(mInitialStates),
-			&mTextureDesc.clearVaule,
+			&mResourceFormat.D3DResourceDesc(),
+			GHL::GetResourceStates(textureDesc.initialState),
+			&textureDesc.clearVaule,
 			IID_PPV_ARGS(&mResource)
 		));
 	}
@@ -137,53 +133,12 @@ namespace Renderer {
 
 	}
 
-	void Texture::ResolveResourceDesc() {
-		mInitialStates = mTextureDesc.initialState;
-		mExpectedStates = mTextureDesc.initialState | mTextureDesc.expectedState;
-
-		mResourceDesc.Dimension = GHL::GetD3DTextureDimension(mTextureDesc.dimension);
-		mResourceDesc.Format = mTextureDesc.format;
-		mResourceDesc.MipLevels = mTextureDesc.mipLevals;
-		mResourceDesc.Alignment = 0u;
-		mResourceDesc.DepthOrArraySize = (mTextureDesc.dimension == GHL::ETextureDimension::Texture3D) ? mTextureDesc.depth : mTextureDesc.arraySize;
-		mResourceDesc.Height = mTextureDesc.height;
-		mResourceDesc.Width = mTextureDesc.width;
-		mResourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-		mResourceDesc.SampleDesc.Count = mTextureDesc.sampleCount;
-		mResourceDesc.SampleDesc.Quality = 0u;
-		
-		if (mTextureDesc.reserved) {
-			mResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
-		}
-		else {
-			mResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-		}
-
-		if (HasAllFlags(mExpectedStates, GHL::EResourceState::RenderTarget)) {
-			mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		}
-
-		if (HasAllFlags(mExpectedStates, GHL::EResourceState::DepthRead) ||
-			HasAllFlags(mExpectedStates, GHL::EResourceState::DepthWrite)) {
-			mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-			if (!HasAllFlags(mExpectedStates, GHL::EResourceState::PixelShaderAccess) &&
-				!HasAllFlags(mExpectedStates, GHL::EResourceState::NonPixelShaderAccess)) {
-				mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
-			}
-		}
-
-		if (HasAllFlags(mExpectedStates, GHL::EResourceState::UnorderedAccess)) {
-			mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		}
-
-		D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
-		mResourceSizeInBytes = allocInfo.SizeInBytes;
-	}
-
 	const GHL::DescriptorHandle* Texture::GetDSDescriptor(const TextureSubResourceDesc& subDesc) {
-		ASSERT_FORMAT(HasAllFlags(mExpectedStates, GHL::EResourceState::DepthRead) ||
-			HasAllFlags(mExpectedStates, GHL::EResourceState::DepthWrite), "Unsupport DSDescriptor");
+
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+
+		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::DepthRead) ||
+			HasAllFlags(textureDesc.expectedState, GHL::EResourceState::DepthWrite), "Unsupport DSDescriptor");
 
 		if (mDSDescriptors.find(subDesc) != mDSDescriptors.end()) {
 			return mDSDescriptors.at(subDesc).Get();
@@ -191,10 +146,10 @@ namespace Renderer {
 
 		// DSView
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-		dsvDesc.Format = mTextureDesc.format;
+		dsvDesc.Format = textureDesc.format;
 
-		if (mTextureDesc.dimension == GHL::ETextureDimension::Texture1D) {
-			if (mTextureDesc.arraySize> 1u) {
+		if (textureDesc.dimension == GHL::ETextureDimension::Texture1D) {
+			if (textureDesc.arraySize> 1u) {
 				dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
 				dsvDesc.Texture1DArray.FirstArraySlice = subDesc.firstSlice;
 				dsvDesc.Texture1DArray.ArraySize = subDesc.sliceCount;
@@ -205,9 +160,9 @@ namespace Renderer {
 				dsvDesc.Texture1D.MipSlice = subDesc.firstMip;
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture2D) {
-			if (mTextureDesc.arraySize > 1u) {
-				if (mTextureDesc.sampleCount > 1u) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture2D) {
+			if (textureDesc.arraySize > 1u) {
+				if (textureDesc.sampleCount > 1u) {
 					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
 					dsvDesc.Texture2DMSArray.FirstArraySlice = subDesc.firstSlice;
 					dsvDesc.Texture2DMSArray.ArraySize = subDesc.sliceCount;
@@ -220,7 +175,7 @@ namespace Renderer {
 				}
 			}
 			else {
-				if (mTextureDesc.sampleCount > 1u) {
+				if (textureDesc.sampleCount > 1u) {
 					dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS;
 				}
 				else {
@@ -237,8 +192,11 @@ namespace Renderer {
 	}
 
 	const GHL::DescriptorHandle* Texture::GetSRDescriptor(const TextureSubResourceDesc& subDesc) {
-		ASSERT_FORMAT(HasAllFlags(mExpectedStates, GHL::EResourceState::PixelShaderAccess) ||
-			HasAllFlags(mExpectedStates, GHL::EResourceState::NonPixelShaderAccess), "Unsupport SRDescriptor");
+
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+
+		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::PixelShaderAccess) ||
+			HasAllFlags(textureDesc.expectedState, GHL::EResourceState::NonPixelShaderAccess), "Unsupport SRDescriptor");
 
 		if (mSRDescriptors.find(subDesc) != mSRDescriptors.end()) {
 			return mSRDescriptors.at(subDesc).Get();
@@ -247,11 +205,11 @@ namespace Renderer {
 		// SRView
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = mTextureDesc.format;
+		srvDesc.Format = textureDesc.format;
 
-		if (mTextureDesc.dimension == GHL::ETextureDimension::Texture1D) {
+		if (textureDesc.dimension == GHL::ETextureDimension::Texture1D) {
 
-			if (mTextureDesc.arraySize > 1u) {
+			if (textureDesc.arraySize > 1u) {
 				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
 				srvDesc.Texture1DArray.FirstArraySlice = subDesc.firstSlice;
 				srvDesc.Texture1DArray.ArraySize = subDesc.sliceCount;
@@ -265,13 +223,13 @@ namespace Renderer {
 			}
 
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture2D) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture2D) {
 
-			if (mTextureDesc.arraySize > 1u) {
+			if (textureDesc.arraySize > 1u) {
 
-				if (HasAnyFlag(mTextureDesc.miscFlag, GHL::ETextureMiscFlag::CubeTexture)) {
+				if (HasAnyFlag(textureDesc.miscFlag, GHL::ETextureMiscFlag::CubeTexture)) {
 
-					if (mTextureDesc.arraySize > 6u) {
+					if (textureDesc.arraySize > 6u) {
 						srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
 						srvDesc.TextureCubeArray.First2DArrayFace = subDesc.firstSlice;
 						srvDesc.TextureCubeArray.NumCubes = subDesc.sliceCount / 6u;
@@ -303,7 +261,7 @@ namespace Renderer {
 
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture3D) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture3D) {
 
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 			srvDesc.Texture3D.MostDetailedMip = subDesc.firstMip;
@@ -318,7 +276,10 @@ namespace Renderer {
 	}
 
 	const GHL::DescriptorHandle* Texture::GetRTDescriptor(const TextureSubResourceDesc& subDesc) {
-		ASSERT_FORMAT(HasAllFlags(mExpectedStates, GHL::EResourceState::RenderTarget), "Unsupport RTDescriptor");
+
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+
+		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::RenderTarget), "Unsupport RTDescriptor");
 
 		if (mRTDescriptors.find(subDesc) != mRTDescriptors.end()) {
 			return mRTDescriptors.at(subDesc).Get();
@@ -326,10 +287,10 @@ namespace Renderer {
 
 		// RTView
 		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
-		rtvDesc.Format = mTextureDesc.format;
+		rtvDesc.Format = textureDesc.format;
 
-		if (mTextureDesc.dimension == GHL::ETextureDimension::Texture1D) {
-			if (mTextureDesc.arraySize > 1u) {
+		if (textureDesc.dimension == GHL::ETextureDimension::Texture1D) {
+			if (textureDesc.arraySize > 1u) {
 				rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
 				rtvDesc.Texture1DArray.FirstArraySlice = subDesc.firstSlice;
 				rtvDesc.Texture1DArray.ArraySize = subDesc.sliceCount;
@@ -340,9 +301,9 @@ namespace Renderer {
 				rtvDesc.Texture1D.MipSlice = subDesc.firstMip;
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture2D) {
-			if (mTextureDesc.arraySize > 1u) {
-				if (mTextureDesc.sampleCount > 1u) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture2D) {
+			if (textureDesc.arraySize > 1u) {
+				if (textureDesc.sampleCount > 1u) {
 					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
 					rtvDesc.Texture2DMSArray.FirstArraySlice = subDesc.firstSlice;
 					rtvDesc.Texture2DMSArray.ArraySize = subDesc.sliceCount;
@@ -355,7 +316,7 @@ namespace Renderer {
 				}
 			}
 			else {
-				if (mTextureDesc.sampleCount > 1u) {
+				if (textureDesc.sampleCount > 1u) {
 					rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS;
 				}
 				else {
@@ -364,7 +325,7 @@ namespace Renderer {
 				}
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture3D) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture3D) {
 			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE3D;
 			rtvDesc.Texture3D.MipSlice = subDesc.firstMip;
 			rtvDesc.Texture3D.FirstWSlice = subDesc.firstSlice;
@@ -378,7 +339,10 @@ namespace Renderer {
 	}
 
 	const GHL::DescriptorHandle* Texture::GetUADescriptor(const TextureSubResourceDesc& subDesc) {
-		ASSERT_FORMAT(HasAllFlags(mExpectedStates, GHL::EResourceState::UnorderedAccess), "Unsupport UADescriptor");
+
+		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+
+		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::UnorderedAccess), "Unsupport UADescriptor");
 
 		if (mUADescriptors.find(subDesc) != mUADescriptors.end()) {
 			return mUADescriptors.at(subDesc).Get();
@@ -386,10 +350,10 @@ namespace Renderer {
 
 		// UAView
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
-		uavDesc.Format = mTextureDesc.format;
+		uavDesc.Format = textureDesc.format;
 
-		if (mTextureDesc.dimension == GHL::ETextureDimension::Texture1D) {
-			if (mTextureDesc.arraySize > 1u) {
+		if (textureDesc.dimension == GHL::ETextureDimension::Texture1D) {
+			if (textureDesc.arraySize > 1u) {
 				uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
 				uavDesc.Texture1DArray.FirstArraySlice = subDesc.firstSlice;
 				uavDesc.Texture1DArray.ArraySize = subDesc.sliceCount;
@@ -400,8 +364,8 @@ namespace Renderer {
 				uavDesc.Texture1D.MipSlice = subDesc.firstMip;
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture2D) {
-			if (mTextureDesc.arraySize > 1u) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture2D) {
+			if (textureDesc.arraySize > 1u) {
 				uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
 				uavDesc.Texture2DArray.FirstArraySlice = subDesc.firstSlice;
 				uavDesc.Texture2DArray.ArraySize = subDesc.sliceCount;
@@ -412,7 +376,7 @@ namespace Renderer {
 				uavDesc.Texture2D.MipSlice = subDesc.firstMip;
 			}
 		}
-		else if (mTextureDesc.dimension == GHL::ETextureDimension::Texture3D) {
+		else if (textureDesc.dimension == GHL::ETextureDimension::Texture3D) {
 			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 			uavDesc.Texture3D.MipSlice = subDesc.firstMip;
 			uavDesc.Texture3D.FirstWSlice = subDesc.firstSlice;

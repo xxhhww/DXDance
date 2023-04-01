@@ -20,6 +20,8 @@ namespace GHL {
 	, mWidth(width)
 	, mHeight(height) {
 
+		HRASSERT(CreateDXGIFactory2(0, IID_PPV_ARGS(&mDXGIFactory)));
+
 		mDesc.Width = mWidth;
 		mDesc.Height = mHeight;
 		mDesc.Format = GetBackBufferFormat();
@@ -56,11 +58,10 @@ namespace GHL {
 		HRASSERT(mDXGIFactory->CreateSwapChainForHwnd(mCommandQueue, mWindowHandle, &mDesc, nullptr, nullptr, &tempSwapChain1));
 		HRASSERT(tempSwapChain1.As(&mSwapChain));
 
-		mBackBuffers.clear();
 		for (size_t i = 0; i < mDesc.BufferCount; i++) {
 			HRASSERT(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffers.at(i))));
 			std::string debugName = "BackBuffer" + std::to_string(i);
-			mBackBuffers.back()->SetName(Tool::StrUtil::UTF8ToWString(debugName).c_str());
+			mBackBuffers.at(i)->SetName(Tool::StrUtil::UTF8ToWString(debugName).c_str());
 		}
 
 	}

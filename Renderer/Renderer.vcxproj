@@ -142,6 +142,9 @@
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Windows\Windows.vcxproj">
+      <Project>{d9babb68-acee-428f-befe-c0e72feb0779}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h" />

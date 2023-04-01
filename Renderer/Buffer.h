@@ -2,9 +2,9 @@
 #include "GHL/Resource.h"
 #include "GHL/Heap.h"
 
+#include "ResourceFormat.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
-#include "BufferDesc.h"
 
 namespace Renderer {
 
@@ -16,7 +16,7 @@ namespace Renderer {
 		*/
 		Buffer(
 			const GHL::Device* device,
-			const BufferDesc& bufferDesc,
+			const ResourceFormat& resourceFormat,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator);
 
@@ -25,7 +25,7 @@ namespace Renderer {
 		*/
 		Buffer(
 			const GHL::Device* device,
-			const BufferDesc& bufferDesc,
+			const ResourceFormat& resourceFormat,
 			PoolDescriptorAllocator* descriptorAllocator,
 			const GHL::Heap* heap,
 			size_t heapOffset
@@ -44,26 +44,19 @@ namespace Renderer {
 		void UnMap();
 
 		/*
-		* 解算D3D12_RESOURCE_DESC
-		*/
-		void ResolveResourceDesc() override;
-
-		/*
 		* 创建描述符
 		*/
 		void CreateDescriptor() override;
 
-		/*
-		* Get方法
-		*/
-		inline const auto& GetBufferDesc()   const { return mBufferDesc; }
-		inline const auto* GetSRDescriptor() const { return mSRDescriptor.Get(); }
-		inline const auto* GetUADescriptor() const { return mUADescriptor.Get(); }
+		inline const auto* GetDevice()         const { return mDevice; }
+		inline const auto& GetResourceFormat() const { return mResourceFormat; }
+		inline const auto* GetSRDescriptor()   const { return mSRDescriptor.Get(); }
+		inline const auto* GetUADescriptor()   const { return mUADescriptor.Get(); }
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
 
-		BufferDesc mBufferDesc{};
+		ResourceFormat mResourceFormat;
 
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		DescriptorHandleWrap mSRDescriptor;

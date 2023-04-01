@@ -7,7 +7,7 @@ namespace GHL {
 	: mAftermathEnabled(aftermathEnabled)
 	, mMinimumHeapSize(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT) 
 	, mHeapAlignment(D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT) {
-        D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_2;
+        D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_1;
         HRASSERT(D3D12CreateDevice(adapter.DXGIAdapter(), featureLevel, IID_PPV_ARGS(&mDevice)));
 
         D3D12_FEATURE_DATA_D3D12_OPTIONS featureSupport{};
@@ -18,7 +18,7 @@ namespace GHL {
         default: mSupportUniversalHeaps = true; break;
         }
 
-        EnableAftermath(mAftermathEnabled);
+        // EnableAftermath(mAftermathEnabled);
 	}
 
 	void Device::EnableAftermath(bool enable) {

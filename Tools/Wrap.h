@@ -19,7 +19,9 @@ namespace Tool {
 		Wrap& operator=(Wrap&& other) = default;
 
 		~Wrap() {
-			mDeletedCallBack();
+			if (mDeletedCallBack != nullptr) {
+				mDeletedCallBack();
+			}
 		}
 
 		T* operator->() { return mWrapResource; }

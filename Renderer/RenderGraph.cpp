@@ -1,12 +1,15 @@
+#include "GHL/Device.h"
 #include "RenderGraph.h"
 #include "RenderGraphBuilder.h"
+#include "RenderGraphResource.h"
+
 #include <sstream>
 
 namespace Renderer {
 
-	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker)
+	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator)
 	: mFrameTracker(frameTracker) 
-	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device)) {
+	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) {
 		mGraphNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
 	}
 

@@ -1,4 +1,7 @@
 #include "RenderGraphBuilder.h"
+#include "RenderGraphResource.h"
+#include "RenderGraphResourceStorage.h"
+
 #include "Tools/Assert.h"
 
 namespace Renderer {
@@ -14,7 +17,7 @@ namespace Renderer {
 
 		// 为资源添加信息
 		auto* resource = mResourceStorage->DeclareResource(name);
-		resource->SetNewTextureProperties(desc);
+		resource->newResourceProperties = desc;
 		resource->SetInitialStates(GHL::EResourceState::RenderTarget);
 		resource->SetExpectedStates(mGraphNode->nodeIndex, GHL::EResourceState::RenderTarget);
 	}
@@ -24,7 +27,7 @@ namespace Renderer {
 		mGraphNode->SetExpectedStates(name, GHL::EResourceState::DepthWrite);
 
 		auto* resource = mResourceStorage->DeclareResource(name);
-		resource->SetNewTextureProperties(desc);
+		resource->newResourceProperties = desc;
 		resource->SetInitialStates(GHL::EResourceState::DepthWrite);
 		resource->SetExpectedStates(mGraphNode->nodeIndex, GHL::EResourceState::DepthWrite);
 	}
@@ -34,7 +37,7 @@ namespace Renderer {
 		mGraphNode->SetExpectedStates(name, GHL::EResourceState::UnorderedAccess);
 
 		auto* resource = mResourceStorage->DeclareResource(name);
-		resource->SetNewTextureProperties(desc);
+		resource->newResourceProperties = desc;
 		resource->SetInitialStates(GHL::EResourceState::UnorderedAccess);
 		resource->SetExpectedStates(mGraphNode->nodeIndex, GHL::EResourceState::UnorderedAccess);
 	}
@@ -44,12 +47,12 @@ namespace Renderer {
 		mGraphNode->SetExpectedStates(name, GHL::EResourceState::UnorderedAccess);
 
 		auto* resource = mResourceStorage->DeclareResource(name);
-		resource->SetNewBufferProperties(desc);
+		resource->newResourceProperties = desc;
 		resource->SetInitialStates(GHL::EResourceState::UnorderedAccess);
 		resource->SetExpectedStates(mGraphNode->nodeIndex, GHL::EResourceState::UnorderedAccess);
 	}
 
-	void RenderGraphBuilder::ReadTexture(const std::string& name, ShaderAccessFlag accessFlag) {
+	void RenderGraphBuilder::ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag) {
 		mGraphNode->AddReadDependency(name);
 		GHL::EResourceState expectedStates;
 		if (mGraphNode->executionQueueIndex == std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::General)) {
@@ -103,7 +106,7 @@ namespace Renderer {
 		resource->SetExpectedStates(mGraphNode->nodeIndex, GHL::EResourceState::DepthWrite);
 	}
 
-	void RenderGraphBuilder::ReadBuffer(const std::string& name, ShaderAccessFlag accessFlag) {
+	void RenderGraphBuilder::ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag) {
 		mGraphNode->AddReadDependency(name);
 		GHL::EResourceState expectedStates;
 		if (mGraphNode->executionQueueIndex == std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::General)) {

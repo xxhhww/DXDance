@@ -32,7 +32,7 @@ namespace Windows {
 		/*
 		* 指定窗口创建时是否最大化，只在窗口模式时有效
 		*/
-		bool maximized = true;
+		bool maximized = false;
 
 		/*
 		* 指定窗口初始化时是否可见，只在窗口模式时有效

@@ -3,6 +3,12 @@
 #include <string>
 #include <unordered_map>
 
+namespace GHL {
+
+	class Heap;
+
+}
+
 namespace Renderer {
 
 	class Buffer;
@@ -51,6 +57,15 @@ namespace Renderer {
 	public:
 		using ResourceUsageTimeline = std::pair<uint64_t, uint64_t>;
 
+		/*
+		* Pass对该资源的请求信息
+		*/
+		struct PassRequestedInfo {
+		public:
+			GHL::EResourceState expectedStates{ GHL::EResourceState::Common };
+			bool needAliased{ false };
+		};
+
 	public:
 		RenderGraphResource(const GHL::Device* device, const std::string& name);
 		RenderGraphResource(const std::string& name, Texture* resource);
@@ -62,47 +77,44 @@ namespace Renderer {
 		*/
 		void BuildResourceFormat();
 
-		/*
-		* 在堆上创建资源
-		*/
-		void BuildPlacedResource();
-
 		void StartTimeline(uint64_t nodeGlobalExecutionIndex);
 
 		void UpdateTimeline(uint64_t nodeGlobalExecutionIndex);
-
-		void SetNewTextureProperties(const NewTextureProperties& properties);
-
-		void SetNewBufferProperties(const NewBufferProperties& properties);
 
 		void SetInitialStates(GHL::EResourceState states);
 
 		void SetExpectedStates(uint64_t nodeIndex, GHL::EResourceState states);
 
+		/*
+		* 为使用该资源的第一个Pass(也就是创建该资源的Pass)设置needAliased标识符
+		*/
+		void SetAliasedForFirstPass();
+
 		inline const auto& GetUsageTimeline()  const { return mTimeline; }
-		inline const auto& GetRequiredMemory() const { return mResourceFormat.GetSizeInBytes(); }
+		inline const auto& GetRequiredMemory() const { return resourceFormat.GetSizeInBytes(); }
 
 	public:
-		size_t heapOffset{ 0u };
 		bool aliased{ false };
+		bool imported{ false };
+
+		GHL::Heap* heap{ nullptr };
+		size_t heapOffset{ 0u };
+
+		Texture* texture{ nullptr };
+		Buffer*  buffer { nullptr };
+		NewResourceProperties newResourceProperties;
+		ResourceFormat resourceFormat;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		std::string mResName; // 资源名称
 
-		Texture* mTexture{ nullptr };
-		Buffer*  mBuffer { nullptr };
-
 		// 以下是资源调度信息
 
-		bool mImported{ false };         // 资源是否来自于外部导入
 		ResourceUsageTimeline mTimeline; // 资源的生命周期
-		NewResourceProperties mNewResourceProperties;
 		GHL::EResourceState mInitialStates{ GHL::EResourceState::Common };
 		GHL::EResourceState mExpectedStates{ GHL::EResourceState::Common };
-		std::unordered_map<uint64_t, GHL::EResourceState> mExpectedStatesPerPass; // 各个Pass对该资源的要求
-
-		ResourceFormat mResourceFormat;
+		std::unordered_map<uint64_t, PassRequestedInfo> mRequestedInfoPerPass; // 各个Pass对该资源的要求
 	};
 
 }

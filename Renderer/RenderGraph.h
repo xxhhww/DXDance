@@ -1,16 +1,25 @@
 #pragma once
-
-#include "RingFrameTracker.h"
-#include "RenderGraphPass.h"
+#include "GHL/pbh.h"
 #include "RenderGraphResourceStorage.h"
-
+#include "RenderGraphPass.h"
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <stack>
 #include <string>
 
+namespace GHL {
+	class Device;
+}
+
 namespace Renderer {
+
+	class Buffer;
+	class Texture;
+	class RenderGraphPass;
+	class RingFrameTracker;
+	class PoolDescriptorAllocator;
+
 	/*
 	* Pass的目标GPU队列
 	*/
@@ -106,7 +115,7 @@ namespace Renderer {
 		};
 
 	public:
-		RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker);
+		RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator);
 		~RenderGraph() = default;
 
 		/*

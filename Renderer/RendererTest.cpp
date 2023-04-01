@@ -1,17 +1,28 @@
+#include "RenderEngine.h"
 #include "RenderGraph.h"
 #include "RenderGraphBuilder.h"
 
-using namespace Renderer;
+#include "Windows/Window.h"
+#include "Windows/InputManger.h"
 
-void Test_RenderGraphBuildDAG() {
-    RenderGraph renderGraph(nullptr, nullptr);
+#include "GHL/DebugLayer.h"
+
+using namespace Renderer;
+using namespace Windows;
+
+void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
+    RenderGraph& renderGraph = *renderEngine.mRenderGraph.get();
 
     renderGraph.AddPass(
         "Pass0",
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
-            builder.NewTexture("Tex_0", NewTextureProperties{});
+            NewTextureProperties properties{};
+            properties.width = 1920u;
+            properties.height = 1080u;
+            properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            builder.NewTexture("Tex_0", properties);
 
         },
         [=]() {}
@@ -23,7 +34,12 @@ void Test_RenderGraphBuildDAG() {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
-            builder.NewTexture("Tex_1", NewTextureProperties{});
+
+            NewTextureProperties properties{};
+            properties.width = 1920u;
+            properties.height = 1080u;
+            properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            builder.NewTexture("Tex_1", properties);
 
         },
         [=]() {}
@@ -34,8 +50,11 @@ void Test_RenderGraphBuildDAG() {
         [=](RenderGraphBuilder& builder) {
             builder.SetPassExecutionQueue(PassExecutionQueue::General);
 
+            NewTextureProperties properties{};
+            properties.width = 1920u;
+            properties.height = 1080u;
+            properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
             builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
-            builder.ReadTexture("Tex_1", ShaderAccessFlag::PixelShader);
 
         },
         [=]() {}
@@ -89,14 +108,34 @@ void Test_RenderGraphBuildDAG() {
         );
 
     renderGraph.Build();
-
-    int i = 32;
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
-    Test_RenderGraphBuildDAG();
 
-    int64_t i = 32;
+    WindowSetting setting{};
+    setting.fullscreen = false;
+    Window window{ setting };
+    InputManger inputManger{ &window };
+
+    RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
+    Test_RenderGraphBuildDAG(renderEngine);
+
+    bool done = false;
+    while (!done) {
+        // Poll and handle messages (inputs, window resize, etc.)
+        // See the WndProc() function below for our to dispatch events to the Win32 backend.
+        MSG msg;
+        while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) {
+                done = true;
+            }
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
+        if (done) {
+            break;
+        }
+    }
 
     return 0;
 }

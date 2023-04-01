@@ -20,9 +20,9 @@ namespace Renderer {
 		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
 		GHL::EResourceUsage    usage = GHL::EResourceUsage::Default;	// 纹理默认在Default堆上进行创建
 		GHL::ETextureMiscFlag  miscFlag = GHL::ETextureMiscFlag::None;
+		D3D12_CLEAR_VALUE      clearVaule = D3D12_CLEAR_VALUE{};
 		GHL::EResourceState    initialState = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
-		D3D12_CLEAR_VALUE      clearVaule = D3D12_CLEAR_VALUE{};
 		bool                   supportStream = false;	// 是否使用支持纹理流
 	};
 
@@ -88,7 +88,7 @@ namespace Renderer {
 
 		void SetBufferDesc(const BufferDesc& desc);
 
-		inline const auto& D3DResourceDesc() const { return mD3DResourceDesc; }
+		inline const auto& D3DResourceDesc() const { return mResourceDesc; }
 
 		inline const auto& GetAlignment()           const { return mAlignment; }
 		inline const auto& GetSizeInBytes()         const { return mSizeInBytes; }
@@ -103,7 +103,7 @@ namespace Renderer {
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
-		D3D12_RESOURCE_DESC mD3DResourceDesc{};
+		D3D12_RESOURCE_DESC mResourceDesc{};
 
 		ResourceDescVariant mResourceDescVariant{};
 		size_t mAlignment{ 0u };

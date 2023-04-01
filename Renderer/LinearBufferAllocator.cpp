@@ -58,7 +58,7 @@ namespace Renderer {
 		}
 
 		// 不存在可重用的LinearBuffer，创建新的LinearBuffer
-		mBufferPool.emplace_back(std::make_unique<Buffer>(mDevice, mStandardBufferDesc, nullptr, nullptr));
+		mBufferPool.emplace_back(std::make_unique<Buffer>(mDevice, ResourceFormat(mDevice, mStandardBufferDesc), nullptr, nullptr));
 		mCurrLinearBuffer = mBufferPool.back().get();
 		mCurrOffset = 0u;
 	}

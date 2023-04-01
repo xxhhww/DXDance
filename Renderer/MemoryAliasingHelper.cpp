@@ -1,11 +1,11 @@
 #include "MemoryAliasingHelper.h"
+#include "RenderGraphResource.h"
 #include "RenderGraphResourceStorage.h"
 #include <algorithm>
 
 namespace Renderer {
 
-	MemoryAliasingHelper::MemoryAliasingHelper(RenderGraphResourceStorage* storage)
-	: mResourceStorage(storage) {}
+	MemoryAliasingHelper::MemoryAliasingHelper() {}
 
 	void MemoryAliasingHelper::AddResource(RenderGraphResource* resource) {
 		mNonAliasedResources.emplace(resource);
@@ -74,17 +74,13 @@ namespace Renderer {
 			// Now we need to adjust it to be relative to the heap start.
 			resource->heapOffset = mCurrBucketHeapOffset + mostFittingMemoryRegion.Offset;
 
-			/*
-			PipelineResourceSchedulingInfo::PassInfo* firstPassInfo = GetFirstPassInfo(nextSchedulingInfoIt);
-			firstPassInfo->NeedsAliasingBarrier = true;
+			resource->SetAliasedForFirstPass();
 
 			// We aliased something with the first resource in the current memory bucket
 			// so it's no longer a single occupant of this memory region, therefore it now
 			// needs an aliasing barrier. If the first resource is a single resource on this
 			// memory region then this code branch will never be hit and we will avoid a barrier for it.
-			firstPassInfo = GetFirstPassInfo(mAlreadyAliasedAllocations.front());
-			firstPassInfo->NeedsAliasingBarrier = true;
-			*/
+			mAlreadyAliasedResources.front()->SetAliasedForFirstPass();
 
 			mAlreadyAliasedResources.push_back(resource);
 		}

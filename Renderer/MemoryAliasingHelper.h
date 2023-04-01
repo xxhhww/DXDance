@@ -5,14 +5,13 @@
 namespace Renderer {
 
 	class RenderGraphResource;
-	class RenderGraphResourceStorage;
 
 	/*
 	* 帮助管线资源做显存布局
 	*/
 	class MemoryAliasingHelper {
 	public:
-		MemoryAliasingHelper(RenderGraphResourceStorage* storage);
+		MemoryAliasingHelper();
 		~MemoryAliasingHelper() = default;
 
 		void AddResource(RenderGraphResource* resource);
@@ -45,7 +44,6 @@ namespace Renderer {
 		static bool Sort(RenderGraphResource* a, RenderGraphResource* b);
 
 	private:
-		RenderGraphResourceStorage* mResourceStorage{ nullptr };
 		std::multiset<RenderGraphResource*, decltype(&MemoryAliasingHelper::Sort)> mNonAliasedResources;
 		
 		size_t mCurrBucketHeapOffset{ 0u };

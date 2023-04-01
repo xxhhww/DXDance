@@ -16,6 +16,8 @@
 #include "ShaderManger.h"
 #include "TileUpdateManger.h"
 
+#include "RenderGraph.h"
+
 #include "Tools/Event.h"
 
 #include <memory>
@@ -28,7 +30,7 @@ namespace Renderer {
 	*/
 	class RenderEngine {
 	public:
-		RenderEngine();
+		RenderEngine(HWND windowHandle, uint64_t width, uint64_t height);
 		RenderEngine(const RenderEngine& other) = delete;
 		RenderEngine(RenderEngine&& other) = default;
 
@@ -39,11 +41,11 @@ namespace Renderer {
 
 		void Render();
 
-	private:
+	public:
 		// ==========================...GPU设备...==========================
 		
 		std::unique_ptr<GHL::AdapterContainer> mAdapterContainer; // 适配器容器
-		GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
+		const GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
 		
 		std::unique_ptr<GHL::Device> mDevice;
 
@@ -51,15 +53,15 @@ namespace Renderer {
 		std::unique_ptr<GHL::ComputeQueue>     mComputeQueue;  // 计算引擎
 		std::unique_ptr<GHL::CopyQueue>        mCopyQueue;     // 复制引擎
 
-		std::unique_ptr<GHL::SwapChain> mSwapChain; // 交换链
+		std::unique_ptr<GHL::SwapChain> mSwapChain; // 交换链(RenderEngine好像不需要交换链，它最后是输出一张图片来给上层模块使用)
 		std::vector<ID3D12Resource*> mBackBuffers;  // 后缓冲
 
 		std::unique_ptr<GHL::Fence> mRenderFrameFence; // 渲染帧围栏
 
 		// ==========================...帧状态跟踪器、池化分配器与管理器...==========================
 
-		Tool::Event<> mPreRenderEvent;  // 渲染帧开始前触发该事件
-		Tool::Event<> mPostRenderEvent; // 渲染帧结束后触发该事件
+		//Tool::Event<> mPreRenderEvent;  // 渲染帧开始前触发该事件
+		//Tool::Event<> mPostRenderEvent; // 渲染帧结束后触发该事件
 		
 		std::unique_ptr<RingFrameTracker> mFrameTracker; // 帧状态跟踪器(每帧开始时压入新的帧状态 每帧结束时检测帧状态队列中的完成情况)
 
@@ -73,7 +75,7 @@ namespace Renderer {
 		std::unique_ptr<TileUpdateManger> mTileUpdateManger; // 流式纹理管理器
 
 		// ==========================...RenderGraph...==========================
-
+		std::unique_ptr<RenderGraph> mRenderGraph;
 	};
 
 }

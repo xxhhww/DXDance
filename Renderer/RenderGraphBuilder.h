@@ -1,8 +1,12 @@
 #pragma once
 #include "RenderGraph.h"
-#include "RenderGraphResourceStorage.h"
+#include "RenderGraphResource.h"
 
 namespace Renderer {
+
+	class  RenderGraphResourceStorage;
+	struct NewTextureProperties;
+	struct NewBufferProperties;
 
 	class RenderGraphBuilder {
 	public:
@@ -32,7 +36,7 @@ namespace Renderer {
 		// 目前，在定义资源操作时先忽略读写的粒度，在实际录制命令时仍然可以指定读写的粒度
 
 		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadTexture(const std::string& name, ShaderAccessFlag accessFlag);
+		void ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag);
 
 		// 定义当前Pass期望该资源状态为UnorderedAccess
 		void WriteTexture(const std::string& name);
@@ -44,7 +48,7 @@ namespace Renderer {
 		void WriteDepthStencil(const std::string& name);
 
 		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadBuffer(const std::string& name, ShaderAccessFlag accessFlag);
+		void ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag);
 
 		// 定义当前Pass期望该资源状态为UnorderedAccess
 		void WriteBuffer(const std::string& name);

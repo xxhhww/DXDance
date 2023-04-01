@@ -1,5 +1,4 @@
 #pragma once
-#include "RenderGraphResource.h"
 #include "MemoryAliasingHelper.h"
 
 #include "GHL/Heap.h"
@@ -9,9 +8,12 @@
 
 namespace Renderer {
 
+	class RenderGraphResource;
+	class PoolDescriptorAllocator;
+
 	class RenderGraphResourceStorage {
 	public:
-		RenderGraphResourceStorage(const GHL::Device* device);
+		RenderGraphResourceStorage(const GHL::Device* device, PoolDescriptorAllocator* descriptorAllocator);
 		~RenderGraphResourceStorage() = default;
 
 		void Build();
@@ -22,6 +24,7 @@ namespace Renderer {
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
+		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		std::unique_ptr<GHL::Heap> mHeap;
 
 		MemoryAliasingHelper mAliasingHelper;

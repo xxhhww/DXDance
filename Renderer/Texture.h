@@ -2,7 +2,7 @@
 #include "GHL/Device.h"
 #include "GHL/Resource.h"
 
-#include "TextureDesc.h"
+#include "ResourceFormat.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 #include "Buffer.h"
@@ -19,16 +19,14 @@ namespace Renderer {
 		*/
 		Texture(
 			const GHL::Device* device,
-			const TextureDesc& textureDesc,
-			uint8_t backBufferCount,
+			const ResourceFormat& resourceFormat,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator
 		);
 
 		Texture(
 			const GHL::Device* device,
-			const TextureDesc& textureDesc,
-			uint8_t backBufferCount,
+			const ResourceFormat& resourceFormat,
 			PoolDescriptorAllocator* descriptorAllocator,
 			const GHL::Heap* heap,
 			size_t heapOffset
@@ -36,10 +34,8 @@ namespace Renderer {
 
 		~Texture();
 
-		/*
-		* Get方法
-		*/
-		inline const auto& GetTextureDesc()  const { return mTextureDesc; }
+		inline const auto* GetDevice()          const { return mDevice; }
+		inline const auto& GetResourceFormat()  const { return mResourceFormat; }
 		
 		const GHL::DescriptorHandle* GetDSDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
 		const GHL::DescriptorHandle* GetSRDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
@@ -48,33 +44,22 @@ namespace Renderer {
 		const GHL::DescriptorHandle* GetUADescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
 
 		/*
-		* 解算D3D12_RESOURCE_DESC
-		*/
-		void ResolveResourceDesc() override;
-
-		/*
 		* 创建描述符
 		*/
 		void CreateDescriptor() override {}
 
 		// ==============================...流式纹理...==============================
-		// 方法
 
-		/*
-		* Get方法
-		*/
 		inline const auto& GetTileShape()     const { return mTileShape; }
 		inline const auto& GetNumTilesTotal() const { return mNumTilesTotal; }
 		inline const auto& GetTilings()       const { return mTiling; }
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
-		TextureDesc mTextureDesc{};
-		uint8_t mBackBufferCount;
+
+		ResourceFormat mResourceFormat{};
 
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
-
-		std::unordered_map<int, int> ss;
 
 		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mSRDescriptors;
 		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mDSDescriptors;

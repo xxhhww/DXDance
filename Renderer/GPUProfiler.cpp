@@ -32,7 +32,7 @@ namespace Renderer {
 
 		// 为每一个帧创建readbackBuffer
 		for (size_t i = 0; i < mFrameTracker->GetMaxSize(); i++) {
-			mReadbackBuffers[i] = std::make_unique<Buffer>(mDevice, readbackBufferDesc, nullptr, nullptr);
+			mReadbackBuffers[i] = std::make_unique<Buffer>(mDevice, ResourceFormat{ mDevice, readbackBufferDesc }, nullptr, nullptr);
 		}
 
 		mCompletedQueryDatas.resize(smMaxProfilesPerFrame);
