@@ -159,8 +159,11 @@
     <ClInclude Include="RenderEngine.h" />
     <ClInclude Include="RenderGraph.h" />
     <ClInclude Include="RenderGraphBuilder.h" />
+    <ClInclude Include="RenderGraphItem.h" />
     <ClInclude Include="RenderGraphPass.h" />
     <ClInclude Include="RenderGraphResource.h" />
+    <ClInclude Include="RenderGraphResourceID.h" />
+    <ClInclude Include="RenderGraphResourceProperties.h" />
     <ClInclude Include="RenderGraphResourceStorage.h" />
     <ClInclude Include="ResourceAllocator.h" />
     <ClInclude Include="ResourceFormat.h" />
@@ -187,8 +190,10 @@
     <ClCompile Include="RendererTest.cpp" />
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderGraphBuilder.cpp" />
+    <ClCompile Include="RenderGraphItem.cpp" />
     <ClCompile Include="RenderGraphPass.cpp" />
     <ClCompile Include="RenderGraphResource.cpp" />
+    <ClCompile Include="RenderGraphResourceID.cpp" />
     <ClCompile Include="RenderGraphResourceStorage.cpp" />
     <ClCompile Include="ResourceAllocator.cpp" />
     <ClCompile Include="ResourceFormat.cpp" />

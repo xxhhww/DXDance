@@ -6,19 +6,18 @@
 namespace Renderer {
 
 	RenderGraphResource::RenderGraphResource(const GHL::Device* device, const std::string& name)
-	: mDevice(device)
-	, mResName(name)
+	: resourceID(RenderGraphResourceID::FindOrCreateResourceID(name))
 	, imported(false)
 	, resourceFormat(device) {}
 
 	RenderGraphResource::RenderGraphResource(const std::string& name, Texture* resource)
-	: mResName(name)
+	: resourceID(RenderGraphResourceID::FindOrCreateResourceID(name))
 	, imported(true)
 	, texture(resource) 
 	, resourceFormat(texture->GetResourceFormat()) {}
 
 	RenderGraphResource::RenderGraphResource(const std::string& name, Buffer* resource)
-	: mResName(name)
+	: resourceID(RenderGraphResourceID::FindOrCreateResourceID(name))
 	, imported(true)
 	, buffer(resource) 
 	, resourceFormat(buffer->GetResourceFormat()) {}
@@ -42,8 +41,8 @@ namespace Renderer {
 				desc.usage = properties.usage;
 				desc.miscFlag = properties.miscFlag;
 				desc.clearVaule = properties.clearValue;
-				desc.initialState = mInitialStates;
-				desc.expectedState = mExpectedStates;
+				desc.initialState = initialStates;
+				desc.expectedState = expectedStates;
 				desc.supportStream = false;
 
 				resourceFormat.SetTextureDesc(desc);
@@ -55,8 +54,8 @@ namespace Renderer {
 				desc.format = properties.format;
 				desc.usage = properties.usage;
 				desc.miscFlag = properties.miscFlag;
-				desc.initialState = mInitialStates;
-				desc.expectedState = mExpectedStates;
+				desc.initialState = initialStates;
+				desc.expectedState = expectedStates;
 
 				resourceFormat.SetBufferDesc(desc);
 			})
@@ -65,33 +64,21 @@ namespace Renderer {
 		resourceFormat.Build();
 	}
 
-	void RenderGraphResource::StartTimeline(uint64_t nodeGlobalExecutionIndex) {
-		mTimeline.first = mTimeline.second = nodeGlobalExecutionIndex;
-	}
-
-	void RenderGraphResource::UpdateTimeline(uint64_t nodeGlobalExecutionIndex) {
-		mTimeline.second = nodeGlobalExecutionIndex;
-	}
-
-	void RenderGraphResource::SetInitialStates(GHL::EResourceState states) {
-		mInitialStates |= states;
-	}
-
-	void RenderGraphResource::SetExpectedStates(uint64_t nodeIndex, GHL::EResourceState states) {
-		mExpectedStates |= states;
-		if (mRequestedInfoPerPass.find(nodeIndex) == mRequestedInfoPerPass.end()) {
-			mRequestedInfoPerPass[nodeIndex].expectedStates = states;
+	void RenderGraphResource::SetSubresourceRequestedInfo(uint64_t passNodeIndex, uint32_t subresourceIndex, GHL::EResourceState subresourceExpectedStates) {
+		if (requestedInfoPerPass.find(passNodeIndex) == requestedInfoPerPass.end()) {
+			requestedInfoPerPass[passNodeIndex] = PassRequestedInfo{};
 		}
-		else {
-			mRequestedInfoPerPass[nodeIndex].expectedStates |= states;
+
+		auto& passRequestedInfo = requestedInfoPerPass.at(passNodeIndex);
+		auto& subresourceRequestedInfos = passRequestedInfo.subresourceRequestedInfos;
+
+		if (subresourceRequestedInfos.empty()) {
+			subresourceRequestedInfos.resize(resourceFormat.SubresourceCount());
 		}
-	}
 
-	void RenderGraphResource::SetAliasedForFirstPass() {
-		auto& firstPassInfo = mRequestedInfoPerPass.begin()->second;
-		firstPassInfo.needAliased = true;
+		subresourceRequestedInfos.at(subresourceIndex).expectedStates |= subresourceExpectedStates;
 
-		aliased = true;
+		expectedStates |= subresourceExpectedStates;
 	}
 
 }

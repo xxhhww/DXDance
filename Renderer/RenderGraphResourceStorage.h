@@ -1,14 +1,21 @@
 #pragma once
-#include "MemoryAliasingHelper.h"
-
-#include "GHL/Heap.h"
-
+#include "RenderGraphResourceID.h"
 #include <memory>
 #include <functional>
 
+namespace GHL {
+
+	class Device;
+	class Heap;
+
+}
+
 namespace Renderer {
 
+	class Texture;
+	class Buffer;
 	class RenderGraphResource;
+	class MemoryAliasingHelper;
 	class PoolDescriptorAllocator;
 
 	class RenderGraphResourceStorage {
@@ -16,20 +23,32 @@ namespace Renderer {
 		RenderGraphResourceStorage(const GHL::Device* device, PoolDescriptorAllocator* descriptorAllocator);
 		~RenderGraphResourceStorage() = default;
 
-		void Build();
+		void BuildAliasing();
+
+		/*
+		* Import External Texture Pipeline Resource
+		*/
+		RenderGraphResource* ImportResource(const std::string& name, Texture* resource);
+
+		/*
+		* Import External Buffer Pipeline Resource
+		*/
+		RenderGraphResource* ImportResource(const std::string& name, Buffer* resource);
 
 		RenderGraphResource* DeclareResource(const std::string& name);
 
-		RenderGraphResource* GetResource(const std::string& name) const;
+		RenderGraphResource* GetResourceByName(const std::string& name) const;
+		
+		RenderGraphResource* GetResourceByID(const RenderGraphResourceID& resourceID) const;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
-		std::unique_ptr<GHL::Heap> mHeap;
 
-		MemoryAliasingHelper mAliasingHelper;
+		std::unique_ptr<GHL::Heap> mHeap;
+		std::unique_ptr<MemoryAliasingHelper> mAliasingHelper;
 		// 自定义智能指针的删除操作。对于Imported的资源，不进行Delete
-		std::unordered_map<std::string, std::unique_ptr<RenderGraphResource, std::function<void(RenderGraphResource*)>>> mRenderGraphResources;
+		std::unordered_map<RenderGraphResourceID, std::unique_ptr<RenderGraphResource, std::function<void(RenderGraphResource*)>>> mRenderGraphResources;
 	};
 
 }

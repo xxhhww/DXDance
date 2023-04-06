@@ -1,24 +1,28 @@
 #include "RenderGraphResourceStorage.h"
 #include "RenderGraphResource.h"
-#include "Tools/Assert.h"
-#include "Tools/VisitorHelper.h"
+#include "MemoryAliasingHelper.h"
+
 #include "Texture.h"
 #include "Buffer.h"
+
+#include "Tools/Assert.h"
+#include "Tools/VisitorHelper.h"
 
 namespace Renderer {
 
 	RenderGraphResourceStorage::RenderGraphResourceStorage(const GHL::Device* device, PoolDescriptorAllocator* descriptorAllocator)
 	: mDevice(device)
-	, mDescriptorAllocator(descriptorAllocator) {}
+	, mDescriptorAllocator(descriptorAllocator) 
+	, mAliasingHelper(std::make_unique<MemoryAliasingHelper>()) {}
 
-	void RenderGraphResourceStorage::Build() {
+	void RenderGraphResourceStorage::BuildAliasing() {
 		for (auto& pair : mRenderGraphResources) {
 			pair.second->BuildResourceFormat();
-			mAliasingHelper.AddResource(pair.second.get());
+			mAliasingHelper->AddResource(pair.second.get());
 		}
 
 		// 构建资源别名
-		size_t totalHeapSize = mAliasingHelper.BuildAliasing();
+		size_t totalHeapSize = mAliasingHelper->BuildAliasing();
 
 		// 创建默认堆
 		mHeap = std::make_unique<GHL::Heap>(mDevice, totalHeapSize, GHL::EResourceUsage::Default);
@@ -38,15 +42,41 @@ namespace Renderer {
 		}
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::DeclareResource(const std::string& name) {
-		ASSERT_FORMAT(mRenderGraphResources.find(name) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
-		mRenderGraphResources[name] = std::make_unique<RenderGraphResource>(mDevice, name);
-		return mRenderGraphResources.at(name).get();
+	RenderGraphResource* RenderGraphResourceStorage::ImportResource(const std::string& name, Texture* resource) {
+
+		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
+		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
+		mRenderGraphResources[resourceID] = std::make_unique<RenderGraphResource>(name, resource);
+		return mRenderGraphResources.at(resourceID).get();
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::GetResource(const std::string& name) const {
-		ASSERT_FORMAT(mRenderGraphResources.find(name) != mRenderGraphResources.end(), "Resource: ", name, " is not Declared!");
-		return mRenderGraphResources.at(name).get();
+	RenderGraphResource* RenderGraphResourceStorage::ImportResource(const std::string& name, Buffer* resource) {
+
+		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
+		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
+		mRenderGraphResources[resourceID] = std::make_unique<RenderGraphResource>(name, resource);
+		return mRenderGraphResources.at(resourceID).get();
+	}
+
+	RenderGraphResource* RenderGraphResourceStorage::DeclareResource(const std::string& name) {
+
+		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
+		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
+		mRenderGraphResources[resourceID] = std::make_unique<RenderGraphResource>(mDevice, name);
+		return mRenderGraphResources.at(resourceID).get();
+	}
+
+	RenderGraphResource* RenderGraphResourceStorage::GetResourceByName(const std::string& name) const {
+
+		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
+		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) != mRenderGraphResources.end(), "Resource: ", name, " is not Declared!");
+		return mRenderGraphResources.at(resourceID).get();
+	}
+
+	RenderGraphResource* RenderGraphResourceStorage::GetResourceByID(const RenderGraphResourceID& resourceID) const {
+
+		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) != mRenderGraphResources.end(), "Resource is not Declared!");
+		return mRenderGraphResources.at(resourceID).get();
 	}
 
 }

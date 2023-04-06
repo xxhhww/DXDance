@@ -1,7 +1,4 @@
 #pragma once
-#include "GHL/pbh.h"
-#include "RenderGraphResourceStorage.h"
-#include "RenderGraphPass.h"
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -9,7 +6,9 @@
 #include <string>
 
 namespace GHL {
+
 	class Device;
+
 }
 
 namespace Renderer {
@@ -19,101 +18,12 @@ namespace Renderer {
 	class RenderGraphPass;
 	class RingFrameTracker;
 	class PoolDescriptorAllocator;
-
-	/*
-	* Pass的目标GPU队列
-	*/
-	enum class PassExecutionQueue : uint8_t {
-		General = 0, // 通用的图形引擎
-		Compute = 1, // 异步计算引擎
-		Copy    = 2, // 异步复制引擎
-		Count
-	};
+	class RenderGraphResourceStorage;
+	class RenderGraphPass;
+	class PassNode;
+	class DependencyLevel;
 
 	class RenderGraph {
-	public:
-
-		/*
-		* Graph中的顶点
-		*/
-		struct GraphNode {
-		public:
-			/*
-			* 添加读依赖
-			*/
-			void AddReadDependency(const std::string& name);
-
-			/*
-			* 添加写依赖
-			*/
-			void AddWriteDependency(const std::string& name);
-
-			/*
-			* 设定对资源的状态期望
-			*/
-			void SetExpectedStates(const std::string& name, GHL::EResourceState state);
-
-			/*
-			* 设定PassNode所属的GPU引擎队列
-			*/
-			void SetExecutionQueue(PassExecutionQueue queueIndex);
-
-		public:
-			RenderGraphPass* pass{ nullptr };
-			uint8_t executionQueueIndex;
-
-			std::unordered_map<std::string, GHL::EResourceState> expectedStatesMap; // 该节点对资源的期待状态
-
-			// 节点之间的读写依赖，用于构造GraphEdge与DAG
-
-			std::unordered_set<std::string> readDependency;
-			std::unordered_set<std::string> writeDependency;
-
-			uint64_t nodeIndex{ 0u };
-			uint64_t globalExecutionIndex{ 0u };
-			uint64_t dependencyLevelIndex{ 0u };
-			uint64_t localToQueueExecutionIndex{ 0u };
-
-			bool requireSyncSignal{ false }; // 该节点是否需要发送Signal命令来通知等待该节点的其他节点(一般是跨队列的节点)
-
-			std::vector<GraphNode*> nodesToSyncWait; // 该节点运行前需要同步等待的其他节点
-		};
-
-		/*
-		* Graph中的边
-		*/
-		struct GraphEdge {
-		public:
-			GraphEdge(uint64_t producerNodeIndex, uint64_t consumerNodeIndex, bool crossQueue);
-			~GraphEdge() = default;
-
-			uint64_t producerNodeIndex{ 0u }; // 该边的生产者节点的索引
-			uint64_t consumerNodeIndex{ 0u }; // 该边的消费者节点的索引
-			bool crossQueue{ false };         // 该边是否跨队列
-		};
-
-		/*
-		* 依赖层级
-		*/
-		class DependencyLevel {
-		public:
-			DependencyLevel();
-			~DependencyLevel() = default;
-
-			void SetLevel(uint64_t level);
-
-			void AddNode(GraphNode* passNode);
-
-			inline auto&       GetGraphNodes()       { return mGraphNodes; }
-			inline const auto& GetGraphNodes() const { return mGraphNodes; }
-			inline const auto& GetNodeSize()   const { return mGraphNodes.size(); }
-
-		private:
-			uint64_t mLevelIndex{ 0u };
-			std::vector<GraphNode*> mGraphNodes;
-			std::vector<std::vector<GraphNode*>> mGraphNodesPerQueue; // 每一个GPU队列上的Pass
-		};
-
 	public:
 		RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator);
 		~RenderGraph() = default;
@@ -137,12 +47,12 @@ namespace Renderer {
 		/*
 		* 从外部导入缓冲资源
 		*/
-		void ImportResource(Buffer* importedBuffer);
+		void ImportResource(const std::string& name, Buffer* importedBuffer);
 
 		/*
 		* 从外部导入纹理资源
 		*/
-		void ImportResource(Texture* importedTexture);
+		void ImportResource(const std::string& name, Texture* importedTexture);
 
 	private:
 
@@ -171,21 +81,32 @@ namespace Renderer {
 		*/
 		void CullRedundantDependencies();
 
+		/*
+		* 构建资源屏障
+		*/
+		void BuildGeneralBarrier();
+
+		/*
+		* 构建资源别名屏障
+		*/
+		void BuildAliasingBarrier();
+
 	private:
 		RingFrameTracker* mFrameTracker{ nullptr };
 
 		bool mCompiled{ false };
-		std::vector<std::unique_ptr<RenderGraphPass>> mRenderGraphPasses;
-		
-		std::vector<std::unique_ptr<GraphNode>> mGraphNodes;
-		std::vector<GraphEdge> mGraphEdges;
 
-		std::vector<uint64_t> mSortedGraphNodes; // 拓扑排序后的结果
+		std::vector<std::unique_ptr<RenderGraphPass>> mRenderGraphPasses;
+
+		std::vector<std::unique_ptr<PassNode>> mPassNodes;
+
+		std::vector<uint64_t> mSortedPassNodes; // 拓扑排序后的结果
+
+		std::vector<std::vector<uint64_t>> mPassNodesPerQueue;
 		
 		std::vector<std::vector<uint64_t>> mAdjacencyLists; // GraphNodes的邻接表
 
-		std::vector<DependencyLevel> mDependencyList; // 依赖层级
-		std::vector<std::vector<uint64_t>> mGraphNodesPerQueue;
+		std::vector<std::unique_ptr<DependencyLevel>> mDependencyLevelList; // 依赖层级
 
 		std::unique_ptr<RenderGraphResourceStorage> mResourceStorage; // 存储管线资源
 	};

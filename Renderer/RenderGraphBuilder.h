@@ -1,16 +1,14 @@
 #pragma once
-#include "RenderGraph.h"
-#include "RenderGraphResource.h"
+#include "RenderGraphResourceProperties.h"
+#include "RenderGraphItem.h"
 
 namespace Renderer {
 
 	class  RenderGraphResourceStorage;
-	struct NewTextureProperties;
-	struct NewBufferProperties;
 
 	class RenderGraphBuilder {
 	public:
-		RenderGraphBuilder(RenderGraph::GraphNode* graphNode, RenderGraphResourceStorage* resourceStorage);
+		RenderGraphBuilder(PassNode* passNode, RenderGraphResourceStorage* resourceStorage);
 		~RenderGraphBuilder() = default;
 
 		/*
@@ -27,36 +25,47 @@ namespace Renderer {
 		* 创建一个初始状态为UnorderedAccess的Texture
 		*/
 		void NewTexture(const std::string& name, const NewTextureProperties& desc);
-		
+
 		/*
-		* 创建一个初始状态为UnorderedAccess的Buffer
+		* 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
 		*/
-		void NewBuffer(const std::string& name, const NewBufferProperties& desc);
+		void ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t firstMip = 0u, uint32_t mipCount = -1);
 
-		// 目前，在定义资源操作时先忽略读写的粒度，在实际录制命令时仍然可以指定读写的粒度
+		/*
+		* 定义当前Pass期望该资源状态为UnorderedAccess
+		*/
+		void WriteTexture(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
 
-		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag);
+		/*
+		* 定义当前Pass期望该资源状态为DepthRead
+		*/
+		void ReadDepthStencil(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
 
-		// 定义当前Pass期望该资源状态为UnorderedAccess
-		void WriteTexture(const std::string& name);
-
-		// 定义当前Pass期望该资源状态为DepthRead
-		void ReadDepthStencil(const std::string& name);
-
-		// 定义当前Pass期望该资源状态为DepthWrite
-		void WriteDepthStencil(const std::string& name);
-
-		// 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
-		void ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag);
-
-		// 定义当前Pass期望该资源状态为UnorderedAccess
-		void WriteBuffer(const std::string& name);
+		/*
+		* 定义当前Pass期望该资源状态为DepthWrite
+		*/
+		void WriteDepthStencil(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
 
 		/*
 		* 定义一个纹理复制的操作
 		*/
 		void CopyTexture(const std::string& src, const std::string& dst);
+
+
+		/*
+		* 创建一个初始状态为UnorderedAccess的Buffer
+		*/
+		void NewBuffer(const std::string& name, const NewBufferProperties& desc);
+
+		/*
+		* 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
+		*/
+		void ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag);
+
+		/*
+		* 定义当前Pass期望该资源状态为UnorderedAccess
+		*/
+		void WriteBuffer(const std::string& name);
 
 		/*
 		* 定义一个缓冲复制的操作
@@ -69,7 +78,7 @@ namespace Renderer {
 		void SetPassExecutionQueue(PassExecutionQueue queueIndex = PassExecutionQueue::General);
 
 	private:
-		RenderGraph::GraphNode* mGraphNode{ nullptr };
+		PassNode* mPassNode{ nullptr };
 		RenderGraphResourceStorage* mResourceStorage{ nullptr };
 	};
 

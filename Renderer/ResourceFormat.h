@@ -96,6 +96,8 @@ namespace Renderer {
 		inline const auto& GetTextureDesc()         const { return std::get<TextureDesc>(mResourceDescVariant); }
 		inline const auto& GetBufferDesc()          const { return std::get<BufferDesc>(mResourceDescVariant); }
 
+		uint32_t SubresourceCount() const;
+
 	private:
 		void ResolveD3DResourceDesc();
 

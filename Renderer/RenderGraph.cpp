@@ -1,7 +1,9 @@
-#include "GHL/Device.h"
 #include "RenderGraph.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphResource.h"
+#include "RenderGraphResourceStorage.h"
+#include "RenderGraphItem.h"
+#include "RenderGraphPass.h"
 
 #include <sstream>
 
@@ -9,55 +11,7 @@ namespace Renderer {
 
 	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator)
 	: mFrameTracker(frameTracker) 
-	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) {
-		mGraphNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
-	}
-
-	void RenderGraph::GraphNode::AddReadDependency(const std::string& name) {
-		if (readDependency.find(name) != readDependency.end()) {
-			return;
-		}
-		readDependency.insert(name);
-	}
-
-	void RenderGraph::GraphNode::AddWriteDependency(const std::string& name) {
-		if (writeDependency.find(name) != writeDependency.end()) {
-			return;
-		}
-		writeDependency.insert(name);
-	}
-
-	void RenderGraph::GraphNode::SetExpectedStates(const std::string& name, GHL::EResourceState states) {
-		if (expectedStatesMap.find(name) == expectedStatesMap.end()) {
-			expectedStatesMap[name] = states;
-		}
-		else {
-			expectedStatesMap[name] |= states;
-		}
-	}
-
-	void RenderGraph::GraphNode::SetExecutionQueue(PassExecutionQueue queueIndex) {
-		executionQueueIndex = std::underlying_type<PassExecutionQueue>::type(queueIndex);
-	}
-
-	RenderGraph::GraphEdge::GraphEdge(uint64_t producerNodeIndex, uint64_t consumerNodeIndex, bool crossQueue)
-	: producerNodeIndex(producerNodeIndex)
-	, consumerNodeIndex(consumerNodeIndex)
-	, crossQueue(crossQueue) {}
-
-	void RenderGraph::DependencyLevel::AddNode(GraphNode* passNode) {
-		mGraphNodes.push_back(passNode);
-
-		mGraphNodesPerQueue.at(passNode->executionQueueIndex).push_back(passNode);
-	}
-
-	RenderGraph::DependencyLevel::DependencyLevel() {
-		mGraphNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
-	}
-
-	void RenderGraph::DependencyLevel::SetLevel(uint64_t level) {
-		mLevelIndex = level;
-	}
+	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) {}
 
 	void RenderGraph::Build() {
 		if (mCompiled) {
@@ -65,17 +19,20 @@ namespace Renderer {
 		}
 
 		// SetUp
-		for (auto& graphNode : mGraphNodes) {
-			RenderGraphBuilder builder(graphNode.get(), mResourceStorage.get());
-			graphNode->pass->SetUp(builder);
+		for (auto& passNode : mPassNodes) {
+			RenderGraphBuilder builder(passNode.get(), mResourceStorage.get());
+			passNode->renderPass->SetUp(builder);
 		}
 
 		BuildAdjacencyList();
+		
 		TopologicalSort();
-		BuildDependencyLevels();
-		CullRedundantDependencies();
 
-		mResourceStorage->Build();
+		BuildDependencyLevels();
+
+		BuildAliasingBarrier();
+
+		BuildGeneralBarrier();
 
 		mCompiled = true;
 	}
@@ -84,36 +41,37 @@ namespace Renderer {
 
 	}
 
-	void RenderGraph::ImportResource(Buffer* importedBuffer) {
-
+	void RenderGraph::ImportResource(const std::string& name, Buffer* importedBuffer) {
+		mResourceStorage->ImportResource(name, importedBuffer);
 	}
 
-	void RenderGraph::ImportResource(Texture* importedTexture) {
-
+	void RenderGraph::ImportResource(const std::string& name, Texture* importedTexture) {
+		mResourceStorage->ImportResource(name, importedTexture);
 	}
 
 	void RenderGraph::BuildAdjacencyList() {
-		mAdjacencyLists.resize(mGraphNodes.size());
+		mAdjacencyLists.resize(mPassNodes.size());
 
-		for (size_t currIndex = 0; currIndex < mGraphNodes.size(); currIndex++) {
+		for (size_t currIndex = 0; currIndex < mPassNodes.size(); currIndex++) {
 
-			auto& currPassNode = mGraphNodes.at(currIndex);
+			auto& currPassNode = mPassNodes.at(currIndex);
 
 			// 遍历其他所有的PassNode
-			for (size_t otherIndex = 0; otherIndex < mGraphNodes.size(); otherIndex++) {
+			for (size_t otherIndex = 0; otherIndex < mPassNodes.size(); otherIndex++) {
 				if (currIndex == otherIndex) continue;
 
-				auto& otherPassNode = mGraphNodes.at(otherIndex);
+				auto& otherPassNode = mPassNodes.at(otherIndex);
 
 				// 遍历otherPassNode的所有读资源，判断它是否依赖于currPassNode的写资源
-				for (const auto& readResourceName : otherPassNode->readDependency) {
+				for (const auto& readSubresourceID : otherPassNode->readSubresources) {
 
 					// 发现资源依赖
-					if (currPassNode->writeDependency.find(readResourceName) != currPassNode->writeDependency.end()) {
+					if (currPassNode->writeSubresources.find(readSubresourceID) != currPassNode->writeSubresources.end()) {
 						// 存储邻接表
 						mAdjacencyLists.at(currIndex).push_back(otherIndex);
+						
 						// 存储GraphEdge
-						mGraphEdges.emplace_back(currIndex, otherIndex, currPassNode->executionQueueIndex != otherPassNode->executionQueueIndex);
+						// mGraphEdges.emplace_back(currIndex, otherIndex, currPassNode->executionQueueIndex != otherPassNode->executionQueueIndex);
 					}
 				}
 			}
@@ -122,9 +80,9 @@ namespace Renderer {
 
 	void RenderGraph::TopologicalSort() {
 		std::stack<uint64_t> stack;
-		std::vector<bool> visited(mGraphNodes.size());
+		std::vector<bool> visited(mPassNodes.size());
 
-		for (size_t i = 0; i < mGraphNodes.size(); i++) {
+		for (size_t i = 0; i < mPassNodes.size(); i++) {
 			if (!visited.at(i)) {
 				DepthFirstSearch(i, visited, stack);
 			}
@@ -132,7 +90,7 @@ namespace Renderer {
 
 		while (!stack.empty()) {
 			uint64_t index = stack.top();
-			mSortedGraphNodes.push_back(index);
+			mSortedPassNodes.push_back(index);
 			stack.pop();
 		}
 	}
@@ -152,13 +110,13 @@ namespace Renderer {
 	}
 
 	void RenderGraph::BuildDependencyLevels() {
-		std::vector<uint64_t> longestDistances(mSortedGraphNodes.size(), 0u);
+		std::vector<uint64_t> longestDistances(mSortedPassNodes.size(), 0u);
 
 		uint64_t dependencyLevelCount = 1u;
 
-		for (size_t i = 0u; i < mSortedGraphNodes.size(); i++) {
+		for (size_t i = 0u; i < mSortedPassNodes.size(); i++) {
 
-			uint64_t nodeIndex = mSortedGraphNodes.at(i);
+			uint64_t nodeIndex = mSortedPassNodes.at(i);
 
 			auto& adjacencyList = mAdjacencyLists.at(nodeIndex);
 
@@ -172,25 +130,27 @@ namespace Renderer {
 			}
 		}
 
-		mDependencyList.resize(dependencyLevelCount);
+		for (size_t i = 0; i < dependencyLevelCount; i++) {
+			mDependencyLevelList.emplace_back(std::make_unique<DependencyLevel>());
+			mDependencyLevelList.back()->levelIndex = i;
+		}
 
-		for (size_t i = 0u; i < mSortedGraphNodes.size(); i++) {
+		for (size_t i = 0u; i < mSortedPassNodes.size(); i++) {
 
-			uint64_t nodeIndex = mSortedGraphNodes.at(i);
+			uint64_t passNodeIndex = mSortedPassNodes.at(i);
 
-			auto& passNode = mGraphNodes.at(nodeIndex);
-			auto& passDependencyLevel = longestDistances.at(nodeIndex);
+			auto& passNode = mPassNodes.at(passNodeIndex);
+			auto& passDependencyLevel = longestDistances.at(passNodeIndex);
 
-			auto& dependencyLevel = mDependencyList.at(passDependencyLevel);
-			dependencyLevel.SetLevel(passDependencyLevel);
-			dependencyLevel.AddNode(passNode.get());
+			auto& dependencyLevel = mDependencyLevelList.at(passDependencyLevel);
+			dependencyLevel->passNodesPerQueue.at(passNode->executionQueueIndex).push_back(passNode.get());
 
 			passNode->dependencyLevelIndex = passDependencyLevel;
-			passNode->globalExecutionIndex = i;
-			passNode->localToQueueExecutionIndex = mGraphNodesPerQueue.at(passNode->executionQueueIndex).size();
+			passNode->localToQueueExecutionIndexWithoutBarrier = mPassNodesPerQueue.at(passNode->executionQueueIndex).size();
 
+			/*
 			// 向GraphEdge中添加由在Queue上的执行顺序所形成的依赖
-			if (passNode->localToQueueExecutionIndex > 0u) {
+			if (passNode->localToQueueExecutionIndexWithoutBarrier > 0u) {
 				uint64_t prevNodeIndexOnQueue = mGraphNodesPerQueue.at(passNode->executionQueueIndex).back();
 
 				auto it = std::find_if(mGraphEdges.begin(), mGraphEdges.end(),
@@ -205,9 +165,11 @@ namespace Renderer {
 					mGraphEdges.emplace_back(prevNodeIndexOnQueue, nodeIndex, false);
 				}
 			}
+			*/
 
-			mGraphNodesPerQueue.at(passNode->executionQueueIndex).push_back(nodeIndex);
+			mPassNodesPerQueue.at(passNode->executionQueueIndex).push_back(passNodeIndex);
 
+			/*
 			// 更新资源的生命周期
 			for (const auto& resName : passNode->writeDependency) {
 				auto* resource = mResourceStorage->GetResource(resName);
@@ -218,10 +180,12 @@ namespace Renderer {
 				auto* resource = mResourceStorage->GetResource(resName);
 				resource->UpdateTimeline(passNode->globalExecutionIndex);
 			}
+			*/
 		}
 	}
 
 	void RenderGraph::CullRedundantDependencies() {
+		/*
 		// 使用节点与依赖边与弗洛伊德算法做冗余剔除
 		uint64_t nodeSize = mGraphNodes.size();
 
@@ -273,6 +237,15 @@ namespace Renderer {
 			producerGraphNode->requireSyncSignal = true;
 			consumerGraphNode->nodesToSyncWait.push_back(producerGraphNode.get());
 		}
+		*/
+	}
+
+	void RenderGraph::BuildGeneralBarrier() {
+
+	}
+
+	void RenderGraph::BuildAliasingBarrier() {
+
 	}
 
 }

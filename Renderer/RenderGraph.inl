@@ -6,12 +6,12 @@ namespace Renderer {
 	template<typename ...Args>
 	void RenderGraph::AddPass(Args&&... args) {
 		mRenderGraphPasses.emplace_back(std::make_unique<RenderGraphPass>(std::forward<Args>(args)...));
-		mGraphNodes.emplace_back(std::make_unique<GraphNode>());
+		mPassNodes.emplace_back(std::make_unique<PassNode>());
 
 		auto& renderPass = mRenderGraphPasses.back();
-		auto& graphNode = mGraphNodes.back();
-		graphNode->pass = renderPass.get();
-		graphNode->nodeIndex = mGraphNodes.size() - 1u;
+		auto& passNode = mPassNodes.back();
+		passNode->renderPass = renderPass.get();
+		passNode->passNodeIndex = mPassNodes.size() - 1u;
 	}
 
 

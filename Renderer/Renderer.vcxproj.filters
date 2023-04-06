@@ -132,6 +132,15 @@
     <ClInclude Include="MemoryAliasingHelper.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="RenderGraphItem.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraphResourceID.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraphResourceProperties.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -207,6 +216,12 @@
       <Filter>源文件\Resource</Filter>
     </ClCompile>
     <ClCompile Include="MemoryAliasingHelper.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraphItem.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraphResourceID.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>

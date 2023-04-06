@@ -8,7 +8,7 @@ namespace Renderer {
 	MemoryAliasingHelper::MemoryAliasingHelper() {}
 
 	void MemoryAliasingHelper::AddResource(RenderGraphResource* resource) {
-		mNonAliasedResources.emplace(resource);
+		mNonAliasedResources.insert(resource);
 	}
 
 	size_t MemoryAliasingHelper::BuildAliasing() {

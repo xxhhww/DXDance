@@ -44,7 +44,7 @@ namespace Renderer {
 		static bool Sort(RenderGraphResource* a, RenderGraphResource* b);
 
 	private:
-		std::multiset<RenderGraphResource*, decltype(&MemoryAliasingHelper::Sort)> mNonAliasedResources;
+		std::multiset<RenderGraphResource*> mNonAliasedResources;
 		
 		size_t mCurrBucketHeapOffset{ 0u };
 		size_t mCurrBucketAvailableSize{ 0u };
