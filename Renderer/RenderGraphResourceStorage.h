@@ -41,6 +41,9 @@ namespace Renderer {
 		
 		RenderGraphResource* GetResourceByID(const RenderGraphResourceID& resourceID) const;
 
+		inline auto&       GetResources()       { return mRenderGraphResources; }
+		inline const auto& GetResources() const { return mRenderGraphResources; }
+
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };

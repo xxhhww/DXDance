@@ -22,6 +22,7 @@ namespace Renderer {
 	class RenderGraphPass;
 	class PassNode;
 	class DependencyLevel;
+	class RenderGraphResourceStateTracker;
 
 	class RenderGraph {
 	public:
@@ -57,6 +58,11 @@ namespace Renderer {
 	private:
 
 		/*
+		* Set up Internal Pipeline Resource
+		*/
+		void SetupInternalResource();
+
+		/*
 		* 构建邻接表，并添加由资源读写依赖产生的GraphEdge
 		*/
 		void BuildAdjacencyList();
@@ -84,7 +90,7 @@ namespace Renderer {
 		/*
 		* 构建资源屏障
 		*/
-		void BuildGeneralBarrier();
+		void BuildTransitionBarrier();
 
 		/*
 		* 构建资源别名屏障
@@ -109,6 +115,8 @@ namespace Renderer {
 		std::vector<std::unique_ptr<DependencyLevel>> mDependencyLevelList; // 依赖层级
 
 		std::unique_ptr<RenderGraphResourceStorage> mResourceStorage; // 存储管线资源
+
+		std::unique_ptr<RenderGraphResourceStateTracker> mResourceStateTracker;
 	};
 
 }

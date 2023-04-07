@@ -25,6 +25,10 @@ namespace GHL {
 		return d3dState;
 	}
 
+	bool IsStatesSupportedOnQueue(EResourceState state, GPUQueue queue) {
+		// TODO
+	}
+
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage) {
 		switch (usage) {
 		case GHL::EResourceUsage::Upload:

@@ -167,6 +167,7 @@
     <ClInclude Include="RenderGraphResourceStorage.h" />
     <ClInclude Include="ResourceAllocator.h" />
     <ClInclude Include="ResourceFormat.h" />
+    <ClInclude Include="ResourceStateTracker.h" />
     <ClInclude Include="RingFrameTracker.h" />
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
     <ClInclude Include="Shader.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="RenderGraphResourceStorage.cpp" />
     <ClCompile Include="ResourceAllocator.cpp" />
     <ClCompile Include="ResourceFormat.cpp" />
+    <ClCompile Include="ResourceStateTracker.cpp" />
     <ClCompile Include="RingFrameTracker.cpp" />
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="Shader.cpp" />

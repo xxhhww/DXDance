@@ -70,6 +70,15 @@ namespace GHL {
 
 	D3D12_RESOURCE_STATES GetResourceStates(EResourceState state);
 
+	enum class GPUQueue {
+		Graphics,
+		Compute,
+		Copy,
+		Count = 3
+	};
+
+	bool IsStatesSupportedOnQueue(EResourceState state, GPUQueue queue);
+
 	/*
 	* 资源类型
 	*/

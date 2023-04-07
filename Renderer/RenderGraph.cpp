@@ -4,25 +4,23 @@
 #include "RenderGraphResourceStorage.h"
 #include "RenderGraphItem.h"
 #include "RenderGraphPass.h"
+#include "ResourceStateTracker.h"
 
-#include <sstream>
+#include "Tools/Assert.h"
 
 namespace Renderer {
 
 	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator)
 	: mFrameTracker(frameTracker) 
-	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) {}
+	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
+	, mResourceStateTracker(std::make_unique<RenderGraphResourceStateTracker>()) {}
 
 	void RenderGraph::Build() {
 		if (mCompiled) {
 			return;
 		}
 
-		// SetUp
-		for (auto& passNode : mPassNodes) {
-			RenderGraphBuilder builder(passNode.get(), mResourceStorage.get());
-			passNode->renderPass->SetUp(builder);
-		}
+		SetupInternalResource();
 
 		BuildAdjacencyList();
 		
@@ -30,9 +28,9 @@ namespace Renderer {
 
 		BuildDependencyLevels();
 
-		BuildAliasingBarrier();
+		BuildTransitionBarrier();
 
-		BuildGeneralBarrier();
+		BuildAliasingBarrier();
 
 		mCompiled = true;
 	}
@@ -42,11 +40,27 @@ namespace Renderer {
 	}
 
 	void RenderGraph::ImportResource(const std::string& name, Buffer* importedBuffer) {
-		mResourceStorage->ImportResource(name, importedBuffer);
+		auto* resource = mResourceStorage->ImportResource(name, importedBuffer);
+		mResourceStateTracker->StartTracking(resource);
 	}
 
 	void RenderGraph::ImportResource(const std::string& name, Texture* importedTexture) {
-		mResourceStorage->ImportResource(name, importedTexture);
+		auto* resource = mResourceStorage->ImportResource(name, importedTexture);
+		mResourceStateTracker->StartTracking(resource);
+	}
+
+	void RenderGraph::SetupInternalResource() {
+		// Set up Internal Resource
+		for (auto& passNode : mPassNodes) {
+			RenderGraphBuilder builder(passNode.get(), mResourceStorage.get());
+			passNode->renderPass->SetUp(builder);
+		}
+		// Start Tracking Internal Resource
+		for (auto& pair : mResourceStorage->GetResources()) {
+			if (!pair.second->imported) {
+				mResourceStateTracker->StartTracking(pair.second.get());
+			}
+		}
 	}
 
 	void RenderGraph::BuildAdjacencyList() {
@@ -144,6 +158,7 @@ namespace Renderer {
 
 			auto& dependencyLevel = mDependencyLevelList.at(passDependencyLevel);
 			dependencyLevel->passNodesPerQueue.at(passNode->executionQueueIndex).push_back(passNode.get());
+			dependencyLevel->passNodes.push_back(passNode.get());
 
 			passNode->dependencyLevelIndex = passDependencyLevel;
 			passNode->localToQueueExecutionIndexWithoutBarrier = mPassNodesPerQueue.at(passNode->executionQueueIndex).size();
@@ -240,7 +255,114 @@ namespace Renderer {
 		*/
 	}
 
-	void RenderGraph::BuildGeneralBarrier() {
+	void RenderGraph::BuildTransitionBarrier() {
+		
+		// 转换屏障重布线的几种情况:
+		// 1. 目标资源在当前DL中存在跨队列读取
+		// 2. 该资源转换屏障的前后状态不被目标队列所支持(例如: 计算队列不支持PixelShaderAccess)
+		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
+			auto* currDL = mDependencyLevelList.at(i).get();
+			auto* lastDL = (i == 0) ? nullptr : mDependencyLevelList.at(i - 1u).get();
+
+			std::unordered_set<SubresourceID> visitedSubresourceIDs;
+
+			for (auto* currPassNode : currDL->passNodes) {
+
+				// process read subresource
+				for (auto& readSubresourceID : currPassNode->readSubresources) {
+					if (visitedSubresourceIDs.find(readSubresourceID) != visitedSubresourceIDs.end()) {
+						// 当前DL内，已经有其他节点访问过该子资源了
+						visitedSubresourceIDs.insert(readSubresourceID);
+						continue;
+					}
+
+					// 解算SubresourceID并获得对应的RenderGraphResource
+					auto [resourceID, subresourceIndex, isBuffer] = DecodeSubresourceID(readSubresourceID);
+					auto* resource = mResourceStorage->GetResourceByID(resourceID);
+
+					// 该Resource需求的队列
+					std::unordered_set<uint8_t> queuesRequiredForResource;
+					queuesRequiredForResource.insert(currPassNode->executionQueueIndex);
+
+					GHL::EResourceState expectedStatesInCurrDL{ GHL::EResourceState::Common };
+					bool readByMutipleQueues{ false };
+					bool needReroutingOnAllQueues{ false };
+
+					expectedStatesInCurrDL = resource->GetSubresourceRequestedInfo(currPassNode->passNodeIndex, subresourceIndex);
+
+					// 收集CurrDL中其他所有PassNode对该资源的请求
+					for (auto* otherPassNode : currDL->passNodes) {
+						if (currPassNode == otherPassNode) {
+							continue;
+						}
+
+						// 该DL中的其他PassNode与当前的PassNode发生了读写冲突
+						ASSERT_FORMAT(otherPassNode->writeSubresources.find(readSubresourceID) == otherPassNode->writeSubresources.end(),
+							"A Read Write Conflict Has Occurred");
+
+						if (otherPassNode->readSubresources.find(readSubresourceID) == otherPassNode->readSubresources.end()) {
+							continue;
+						}
+
+						// otherPassNode也读取该Resource
+
+						expectedStatesInCurrDL |= resource->GetSubresourceRequestedInfo(otherPassNode->passNodeIndex, subresourceIndex);
+						
+						if (queuesRequiredForResource.find(otherPassNode->executionQueueIndex) != queuesRequiredForResource.end()) {
+							continue;
+						}
+
+						queuesRequiredForResource.insert(otherPassNode->executionQueueIndex);
+						readByMutipleQueues = true;
+					}
+ 
+					std::optional<GHL::ResourceBarrier> barrier = mResourceStateTracker->TransitionImmediately(resource, expectedStatesInCurrDL, true);
+					if (!barrier) {
+						// 该资源在CurrDL的状态与LastDL不变
+						continue;
+					}
+
+					if (readByMutipleQueues) {
+						// 资源被多队列读取，检测一个是否存在一个队列支持资源的前后状态
+						std::optional<uint8_t> availableQueueIndex{ std::nullopt };
+						availableQueueIndex = FindClosestQueue();
+
+
+						if (!availableQueueIndex) {
+							// 当这些队列都不可用时，需要进行更大范围的重布线
+							needReroutingOnAllQueues = true;
+						}
+						else {
+							// 仅在这些队列内部进行重布线
+						}
+					}
+					else {
+						// 资源仅被一个队列读取
+
+						if (!IsStatesSupportedOnQueue()) {
+							needReroutingOnAllQueues = true;
+						}
+						else {
+
+						}
+						
+					}
+
+
+
+					visitedSubresourceIDs.insert(readSubresourceID);
+				}
+
+				// process write subresource
+				for (auto& writeSubresourceID : currPassNode->writeSubresources) {
+
+
+					visitedSubresourceIDs.insert(writeSubresourceID);
+				}
+
+			}
+
+		}
 
 	}
 

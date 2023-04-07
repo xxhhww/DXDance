@@ -39,7 +39,7 @@ namespace Renderer {
 	}
 
 	DependencyLevel::DependencyLevel() {
-		generalBarrierBatchPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
+		barrierNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
 		passNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
 	}
 

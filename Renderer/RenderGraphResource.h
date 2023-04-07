@@ -58,6 +58,11 @@ namespace Renderer {
 		*/
 		void SetSubresourceRequestedInfo(uint64_t passNodeIndex, uint32_t subresourceIndex, GHL::EResourceState subresourceExpectedStates);
 
+		/*
+		* Get Subresource Requested Info For Target Pass
+		*/
+		GHL::EResourceState GetSubresourceRequestedInfo(uint64_t passNodeIndex, uint32_t subresourceIndex);
+
 	public:
 		RenderGraphResourceID resourceID;
 

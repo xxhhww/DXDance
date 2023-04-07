@@ -27,8 +27,8 @@ namespace Renderer {
 
 	using SubresourceID = uint64_t;
 
-	SubresourceID EncodeSubresourceID(const RenderGraphResourceID& id, uint32_t subresourceIndex);
+	SubresourceID EncodeSubresourceID(const RenderGraphResourceID& id, uint32_t subresourceIndex, bool isBuffer);
 
-	std::pair<RenderGraphResourceID, uint32_t> DecodeSubresourceID(const SubresourceID& subresourceID);
+	std::tuple<RenderGraphResourceID, uint32_t, bool> DecodeSubresourceID(const SubresourceID& subresourceID);
 
 }

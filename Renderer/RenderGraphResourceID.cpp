@@ -18,14 +18,16 @@ namespace Renderer {
 		return RenderGraphResourceID{ id };
 	}
 
-	SubresourceID EncodeSubresourceID(const RenderGraphResourceID& id, uint32_t subresourceIndex) {
-		return (id.GetID() << 32) | subresourceIndex;
+	SubresourceID EncodeSubresourceID(const RenderGraphResourceID& id, uint32_t subresourceIndex, bool isBuffer) {
+		uint64_t resourceTypeFlag = ((uint64_t)isBuffer << 63);
+		return (id.GetID() << 32) | subresourceIndex | resourceTypeFlag;
 	}
 
-	std::pair<RenderGraphResourceID, uint32_t> DecodeSubresourceID(const SubresourceID& subresourceID) {
+	std::tuple<RenderGraphResourceID, uint32_t, bool> DecodeSubresourceID(const SubresourceID& subresourceID) {
 		uint64_t id = subresourceID >> 32;
 		uint32_t subresourceIndex = subresourceID & 0x0000FFFF;
-		return std::make_pair(RenderGraphResourceID{ id }, subresourceIndex);
+		bool isBuffer = (bool)(subresourceID & 0xF0000000);
+		return std::make_tuple(RenderGraphResourceID{ id }, subresourceIndex, isBuffer);
 	}
 
 }

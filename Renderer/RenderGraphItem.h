@@ -7,6 +7,7 @@
 namespace Renderer {
 
 	class RenderGraphPass;
+	class BarrierNode;
 
 	/*
 	* Pass的目标GPU队列
@@ -57,6 +58,23 @@ namespace Renderer {
 		uint64_t localToQueueExecutionIndexWithoutBarrier{ 0u };
 
 		GHL::ResourceBarrierBatch aliasingBarrierBatch; // 资源别名屏障
+
+		std::vector<BarrierNode*> barrierNodesToWait; // PassNode执行前需要跨队列等待的BarrierNode
+	};
+
+	/*
+	* 资源屏障节点，树立在DL之间
+	*/
+	struct BarrierNode {
+	public:
+		bool isRerouted{ false };	// 屏障是否被重新布线
+		std::optional<uint8_t> reroutedIndex{ std::nullopt };	// 如果屏障节点被重新布线，则该值存放目标屏障节点的索引
+
+		uint8_t executionQueueIndex{ 0u };
+		GHL::ResourceBarrierBatch generalBarrierBatch; // 资源屏障
+
+		std::vector<PassNode*> passNodesNeedToWait; // BarrierNode执行前需要跨队列等待的PassNode
+		bool needSignal{ false }; // 是否需要执行Signal操作
 	};
 
 	/*
@@ -70,9 +88,10 @@ namespace Renderer {
 	public:
 		uint64_t levelIndex{ 0u };
 
-		std::vector<GHL::ResourceBarrierBatch> generalBarrierBatchPerQueue;
+		std::vector<std::vector<BarrierNode*>> barrierNodesPerQueue;
 
 		std::vector<std::vector<PassNode*>> passNodesPerQueue;
+		std::vector<PassNode*> passNodes;
 	};
 
 }
