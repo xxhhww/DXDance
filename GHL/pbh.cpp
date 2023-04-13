@@ -21,12 +21,42 @@ namespace GHL {
 		if (HasAllFlags(state, EResourceState::Present)) d3dState |= D3D12_RESOURCE_STATE_PRESENT;
 		if (HasAllFlags(state, EResourceState::DepthRead)) d3dState |= D3D12_RESOURCE_STATE_DEPTH_READ;
 		if (HasAllFlags(state, EResourceState::DepthWrite)) d3dState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
-		if (HasAllFlags(state, EResourceState::ConstantBuffer)) d3dState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		if (HasAllFlags(state, EResourceState::VertexAndConstantBuffer)) d3dState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 		return d3dState;
 	}
 
-	bool IsStatesSupportedOnQueue(EResourceState state, GPUQueue queue) {
-		// TODO
+	bool IsStatesSupportedOnQueue(EResourceState state, EGPUQueue queue) {
+		switch (queue) {
+		case GHL::EGPUQueue::Graphics:
+			return true;	// Graphics 队列支持全部状态
+		case GHL::EGPUQueue::Compute:
+		{
+			EResourceState allowedStates =
+				EResourceState::Common |
+				EResourceState::NonPixelShaderAccess |
+				EResourceState::GenericRead |
+				EResourceState::CopyDestination |
+				EResourceState::CopySource |
+				EResourceState::UnorderedAccess |
+				EResourceState::RaytracingAccelerationStructure |
+				EResourceState::VertexAndConstantBuffer;
+			// 只要拥有除allowedStates以外的状态，就返回false
+			return !HasAnyFlag(state, ~allowedStates);
+		}
+		case GHL::EGPUQueue::Copy:
+		{
+			EResourceState allowedStates =
+				EResourceState::Common |
+				EResourceState::CopyDestination |
+				EResourceState::CopySource;
+			// 只要拥有除allowedStates以外的状态，就返回false
+			return !HasAnyFlag(state, ~allowedStates);
+		}
+		default:
+			ASSERT_FORMAT(false, "Unsupported GPU Queue Type");
+			return false;
+		}
+		return false;
 	}
 
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage) {

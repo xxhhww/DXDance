@@ -150,6 +150,8 @@
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="BufferDesc.h" />
+    <ClInclude Include="DeferredLightPass.h" />
+    <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="Material.h" />
@@ -165,6 +167,7 @@
     <ClInclude Include="RenderGraphResourceID.h" />
     <ClInclude Include="RenderGraphResourceProperties.h" />
     <ClInclude Include="RenderGraphResourceStorage.h" />
+    <ClInclude Include="RenderGraphResourceTracker.h" />
     <ClInclude Include="ResourceAllocator.h" />
     <ClInclude Include="ResourceFormat.h" />
     <ClInclude Include="ResourceStateTracker.h" />
@@ -181,6 +184,8 @@
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="DeferredLightPass.cpp" />
+    <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -196,6 +201,7 @@
     <ClCompile Include="RenderGraphResource.cpp" />
     <ClCompile Include="RenderGraphResourceID.cpp" />
     <ClCompile Include="RenderGraphResourceStorage.cpp" />
+    <ClCompile Include="RenderGraphResourceTracker.cpp" />
     <ClCompile Include="ResourceAllocator.cpp" />
     <ClCompile Include="ResourceFormat.cpp" />
     <ClCompile Include="ResourceStateTracker.cpp" />

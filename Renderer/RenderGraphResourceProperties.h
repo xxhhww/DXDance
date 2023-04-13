@@ -1,5 +1,6 @@
 #pragma once
 #include "GHL/pbh.h"
+#include <variant>
 
 namespace Renderer {
 

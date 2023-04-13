@@ -1,10 +1,11 @@
 #pragma once
+#include "RenderGraphResource.h"
+
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 namespace Renderer {
-
-	class RenderGraphResource;
 
 	/*
 	* 帮助管线资源做显存布局
@@ -31,6 +32,7 @@ namespace Renderer {
 		using MemoryOffset = std::pair<uint64_t, MemoryOffsetType>;
 
 	private:
+		/*
 		void AliasWithAlreadyAliasedAllocations(RenderGraphResource* resource);
 
 		void BuildMemoryRegionForCurrentResource(RenderGraphResource* resource);
@@ -42,9 +44,9 @@ namespace Renderer {
 		void FitAliasableMemoryRegion(const MemoryRegion& nextAliasableRegion, uint64_t nextAllocationSize, MemoryRegion& optimalRegion) const;
 
 		static bool Sort(RenderGraphResource* a, RenderGraphResource* b);
-
+		*/
 	private:
-		std::multiset<RenderGraphResource*> mNonAliasedResources;
+		std::unordered_set<RenderGraphResource*> mNonAliasedResources;
 		
 		size_t mCurrBucketHeapOffset{ 0u };
 		size_t mCurrBucketAvailableSize{ 0u };

@@ -1,22 +1,26 @@
 #pragma once
+#include "GHL/pbh.h"
 #include "GHL/ResourceBarrierBatch.h"
+
 #include "RenderGraphResourceID.h"
+
+#include <unordered_map>
 #include <unordered_set>
 #include <optional>
 
 namespace Renderer {
 
 	class RenderGraphPass;
-	class BarrierNode;
+	class GraphNode;
 
-	/*
-	* Pass的目标GPU队列
-	*/
-	enum class PassExecutionQueue : uint8_t {
-		General = 0,	// 通用的图形引擎
-		Compute = 1,	// 异步计算引擎
-		Copy = 2,		// 异步复制引擎
-		Count
+	struct WaitInfo {
+	public:
+		WaitInfo(bool crossFrame, GraphNode* node) 
+		: crossFrame(crossFrame), nodeToWait(node) {}
+
+	public:
+		bool crossFrame{ false }; // 该等待是否跨帧
+		GraphNode* nodeToWait{ nullptr };
 	};
 
 	/*
@@ -24,17 +28,32 @@ namespace Renderer {
 	*/
 	struct GraphEdge {
 	public:
+		GraphEdge(uint64_t proNode, uint64_t conNode, bool crossQueue, bool crossFrame) 
+		: producerNodeIndex(proNode), consumerNodeIndex(conNode), crossQueue(crossQueue), crossFrame(crossFrame) {}
+
+	public:
 		uint64_t producerNodeIndex{ 0u };
 		uint64_t consumerNodeIndex{ 0u };
 		bool crossQueue{ false };
+		bool crossFrame{ false };
+	};
+
+	struct GraphNode {
+	public:
+		virtual ~GraphNode() = default;
+	public:
+		uint8_t executionQueueIndex{ 0u };
+		uint8_t graphNodeIndex{ 0u };
+
+		bool needSignal{ false };
+		std::vector<WaitInfo> waitInfos;
 	};
 
 	/*
 	* Pass Node In RenderGraph
 	*/
-	struct PassNode {
+	struct PassNode : GraphNode {
 	public:
-		
 		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceIndex);
 		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount);
 		void AddReadDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList);
@@ -43,38 +62,28 @@ namespace Renderer {
 		void AddWriteDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount);
 		void AddWriteDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList);
 
-		void SetExecutionQueue(PassExecutionQueue queue = PassExecutionQueue::General);
+		void SetExecutionQueue(GHL::EGPUQueue queue = GHL::EGPUQueue::Graphics);
 
 	public:
 		RenderGraphPass* renderPass{ nullptr };
-
 		std::unordered_set<SubresourceID> readSubresources;
 		std::unordered_set<SubresourceID> writeSubresources;
 
-		uint8_t executionQueueIndex{ 0u };
-
 		uint64_t passNodeIndex{ 0u };
 		uint64_t dependencyLevelIndex{ 0u };
-		uint64_t localToQueueExecutionIndexWithoutBarrier{ 0u };
 
-		GHL::ResourceBarrierBatch aliasingBarrierBatch; // 资源别名屏障
-
-		std::vector<BarrierNode*> barrierNodesToWait; // PassNode执行前需要跨队列等待的BarrierNode
+		std::unordered_set<SubresourceID> aliasedSubresources;
 	};
 
 	/*
-	* 资源屏障节点，树立在DL之间
+	* 资源状态转换节点
 	*/
-	struct BarrierNode {
+	struct TransitionNode : GraphNode {
 	public:
-		bool isRerouted{ false };	// 屏障是否被重新布线
-		std::optional<uint8_t> reroutedIndex{ std::nullopt };	// 如果屏障节点被重新布线，则该值存放目标屏障节点的索引
+		uint64_t transitionNodeIndex{ 0u };
+		uint64_t dependencyLevelIndex{ 0u };
 
-		uint8_t executionQueueIndex{ 0u };
-		GHL::ResourceBarrierBatch generalBarrierBatch; // 资源屏障
-
-		std::vector<PassNode*> passNodesNeedToWait; // BarrierNode执行前需要跨队列等待的PassNode
-		bool needSignal{ false }; // 是否需要执行Signal操作
+		std::unordered_map<SubresourceID, GHL::EResourceState> expectedSubresourceStatesMap;
 	};
 
 	/*
@@ -88,10 +97,11 @@ namespace Renderer {
 	public:
 		uint64_t levelIndex{ 0u };
 
-		std::vector<std::vector<BarrierNode*>> barrierNodesPerQueue;
+		std::unordered_set<SubresourceID> readSubresources;
+		std::unordered_set<SubresourceID> writeSubresources;
 
+		std::vector<TransitionNode*> transitionNodePerQueue;
 		std::vector<std::vector<PassNode*>> passNodesPerQueue;
-		std::vector<PassNode*> passNodes;
 	};
 
 }

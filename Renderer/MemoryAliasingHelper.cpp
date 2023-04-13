@@ -14,6 +14,13 @@ namespace Renderer {
 	size_t MemoryAliasingHelper::BuildAliasing() {
 		size_t optimalHeapSize{ 0u };
 
+		for (auto& resource : mNonAliasedResources) {
+			resource->heapOffset = optimalHeapSize;
+			uint64_t memorySize = resource->GetRequiredMemory();
+			optimalHeapSize += memorySize;
+		}
+
+		/*
 		while (!mNonAliasedResources.empty()) {
 			auto it = mNonAliasedResources.begin();
 			mCurrBucketAvailableSize = (*it)->GetRequiredMemory();
@@ -28,10 +35,12 @@ namespace Renderer {
 
 			mCurrBucketHeapOffset += mCurrBucketAvailableSize;
 		}
+		*/
 
 		return optimalHeapSize;
 	}
 
+	/*
 	void MemoryAliasingHelper::AliasWithAlreadyAliasedAllocations(RenderGraphResource* resource) {
 		if (mAlreadyAliasedResources.empty() && resource->GetRequiredMemory() <= mCurrBucketAvailableSize) {
 			resource->heapOffset = mCurrBucketHeapOffset;
@@ -144,5 +153,5 @@ namespace Renderer {
 	bool MemoryAliasingHelper::Sort(RenderGraphResource* a, RenderGraphResource* b) {
 		return a->GetRequiredMemory() > b->GetRequiredMemory();
 	}
-
+	*/
 }

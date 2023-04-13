@@ -13,6 +13,17 @@ namespace Renderer {
 		mPendingDeallocations.resize(mFrameTracker->GetMaxSize());
 	}
 
+	CommandListWrap PoolCommandListAllocator::AllocateCommandList(GHL::EGPUQueue queueType) {
+		switch (queueType) {
+		case GHL::EGPUQueue::Graphics:	return AllocateGraphicsCommandList();
+		case GHL::EGPUQueue::Compute:	return AllocateComputeCommandList();
+		case GHL::EGPUQueue::Copy:		return AllocateCopyCommandList();
+		default:
+			ASSERT_FORMAT(false, "Unsupport COMMAND LIST TYPE");
+			break;
+		}
+	}
+
 	CommandListWrap PoolCommandListAllocator::AllocateGraphicsCommandList() {
 		auto* slot = mGraphicsPool.Allocate();
 		if (!slot->userData.commandListIndex) {

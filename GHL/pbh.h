@@ -29,6 +29,9 @@
 #include "Tools/EnumUtil.h"
 #include "d3dx12.h"
 
+#include <unordered_set>
+#include <optional>
+
 //linker
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -45,7 +48,7 @@ namespace GHL {
 	* 资源状态
 	*/
 	enum class EResourceState : uint64_t {
-		Common                          = 1 << 0,
+		Common                          = 0		,
 		UnorderedAccess                 = 1 << 1,
 		PixelShaderAccess               = 1 << 2,
 		NonPixelShaderAccess            = 1 << 3,
@@ -62,7 +65,7 @@ namespace GHL {
 		Present                         = 1 << 14,
 		DepthRead                       = 1 << 15,
 		DepthWrite                      = 1 << 16,
-		ConstantBuffer                  = 1 << 18,
+		VertexAndConstantBuffer         = 1 << 18,
 
 		AnyShaderAccess = PixelShaderAccess | NonPixelShaderAccess
 	};
@@ -70,14 +73,14 @@ namespace GHL {
 
 	D3D12_RESOURCE_STATES GetResourceStates(EResourceState state);
 
-	enum class GPUQueue {
-		Graphics,
-		Compute,
-		Copy,
+	enum class EGPUQueue : uint8_t {
+		Graphics = 0,
+		Compute = 1,
+		Copy = 2,
 		Count = 3
 	};
 
-	bool IsStatesSupportedOnQueue(EResourceState state, GPUQueue queue);
+	bool IsStatesSupportedOnQueue(EResourceState state, EGPUQueue queue);
 
 	/*
 	* 资源类型

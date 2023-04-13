@@ -66,14 +66,14 @@ namespace Renderer {
 		return mRenderGraphResources.at(resourceID).get();
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::GetResourceByName(const std::string& name) const {
+	RenderGraphResource* RenderGraphResourceStorage::GetResourceByName(const std::string& name) {
 
 		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
 		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) != mRenderGraphResources.end(), "Resource: ", name, " is not Declared!");
 		return mRenderGraphResources.at(resourceID).get();
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::GetResourceByID(const RenderGraphResourceID& resourceID) const {
+	RenderGraphResource* RenderGraphResourceStorage::GetResourceByID(const RenderGraphResourceID& resourceID) {
 
 		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) != mRenderGraphResources.end(), "Resource is not Declared!");
 		return mRenderGraphResources.at(resourceID).get();

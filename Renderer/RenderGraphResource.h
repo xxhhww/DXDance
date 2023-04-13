@@ -3,14 +3,11 @@
 #include "RenderGraphResourceID.h"
 #include "RenderGraphResourceProperties.h"
 
+#include "GHL/Heap.h"
+
 #include <string>
 #include <unordered_map>
 
-namespace GHL {
-
-	class Heap;
-
-}
 
 namespace Renderer {
 

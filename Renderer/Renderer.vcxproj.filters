@@ -52,6 +52,12 @@
     <Filter Include="源文件\Test">
       <UniqueIdentifier>{702e69b4-0e7c-476d-99e3-10a7b7b5829a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\RenderPass">
+      <UniqueIdentifier>{d710d21e-c5d8-49f2-ace7-2ad84a1ebec3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\RenderPass">
+      <UniqueIdentifier>{2d48d8fc-12d1-4594-9fb5-a35db837f511}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -144,6 +150,15 @@
     <ClInclude Include="ResourceStateTracker.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="RenderGraphResourceTracker.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="DeferredLightPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -229,6 +244,15 @@
     </ClCompile>
     <ClCompile Include="ResourceStateTracker.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraphResourceTracker.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="DeferredLightPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

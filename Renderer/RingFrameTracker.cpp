@@ -5,6 +5,9 @@ namespace Renderer {
 	RingFrameTracker::RingFrameTracker(size_t maxSize) : mMaxSize(maxSize) {}
 
 	void RingFrameTracker::PushCurrentFrame(uint64_t expectedValue) {
+        if (mRequireFlip) mFirstFrame = false;
+        if (mFirstFrame) mRequireFlip = true;
+
         mFrameAttributes.emplace_back(expectedValue, Allocate(1u), 1u);
         
         // 调用NewFrame回调函数

@@ -1,13 +1,24 @@
 #pragma once
+#include "RenderGraphItem.h"
+#include "RenderGraphPass.h"
+#include "ResourceStateTracker.h"
+#include "RenderGraphResourceStorage.h"
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 #include <stack>
 #include <string>
 
 namespace GHL {
 
 	class Device;
+	class Fence;
+	class CommandQueue;
+	class GraphicsQueue;
+	class ComputeQueue;
+	class CopyQueue;
 
 }
 
@@ -18,11 +29,7 @@ namespace Renderer {
 	class RenderGraphPass;
 	class RingFrameTracker;
 	class PoolDescriptorAllocator;
-	class RenderGraphResourceStorage;
-	class RenderGraphPass;
-	class PassNode;
-	class DependencyLevel;
-	class RenderGraphResourceStateTracker;
+	class PoolCommandListAllocator;
 
 	class RenderGraph {
 	public:
@@ -83,14 +90,14 @@ namespace Renderer {
 		void BuildDependencyLevels();
 
 		/*
-		* 剔除冗余依赖
+		* 构建图的边集
 		*/
-		void CullRedundantDependencies();
+		void BuildRenderGraphEdge();
 
 		/*
-		* 构建资源屏障
+		* 剔除冗余依赖边
 		*/
-		void BuildTransitionBarrier();
+		void CullRedundantGraphEdge();
 
 		/*
 		* 构建资源别名屏障
@@ -99,18 +106,23 @@ namespace Renderer {
 
 	private:
 		RingFrameTracker* mFrameTracker{ nullptr };
+		PoolCommandListAllocator* mCommandListAllocator{ nullptr };
+
+		std::vector<GHL::CommandQueue*> mCommandQueues;
+		std::vector<std::unique_ptr<GHL::Fence>> mFences;
 
 		bool mCompiled{ false };
 
 		std::vector<std::unique_ptr<RenderGraphPass>> mRenderGraphPasses;
 
-		std::vector<std::unique_ptr<PassNode>> mPassNodes;
+		std::vector<GraphEdge> mGraphEdges;
+		std::vector<std::unique_ptr<GraphNode>> mGraphNodes;
+		std::vector<PassNode*> mPassNodes;
+		std::vector<TransitionNode*> mTransitionNodes;
 
 		std::vector<uint64_t> mSortedPassNodes; // 拓扑排序后的结果
-
-		std::vector<std::vector<uint64_t>> mPassNodesPerQueue;
 		
-		std::vector<std::vector<uint64_t>> mAdjacencyLists; // GraphNodes的邻接表
+		std::vector<std::vector<uint64_t>> mAdjacencyLists; // PassNodes的邻接表
 
 		std::vector<std::unique_ptr<DependencyLevel>> mDependencyLevelList; // 依赖层级
 

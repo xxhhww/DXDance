@@ -75,6 +75,10 @@ namespace GHL {
 		*/
 		void AddBarrier(const ResourceBarrier& barrier);
 
+		inline auto Size() const { return mBarriers.size(); }
+
+		inline auto* D3DBarriers() const { return mBarriers.data(); }
+
 		/*
 		* Çå¿Õ×ÊÔ´ÆÁÕÏ
 		*/

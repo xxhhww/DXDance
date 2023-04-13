@@ -75,7 +75,7 @@ namespace Renderer {
 		/*
 		* 设置Pass所属的GPU引擎(默认为图形引擎)
 		*/
-		void SetPassExecutionQueue(PassExecutionQueue queueIndex = PassExecutionQueue::General);
+		void SetPassExecutionQueue(GHL::EGPUQueue queueIndex = GHL::EGPUQueue::Graphics);
 
 	private:
 		PassNode* mPassNode{ nullptr };

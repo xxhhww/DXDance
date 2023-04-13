@@ -29,12 +29,23 @@ namespace Renderer {
 
 	}
 
-	std::optional<GHL::ResourceBarrier> RenderGraphResourceStateTracker::TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, bool tryImplicitly) {
+	void RenderGraphResourceStateTracker::ResetInitialStates() {
+		for (auto& pair : mSubresourceStateMap) {
+			RenderGraphResource* resource = pair.first;
+			SubresourceStateList& statesList = pair.second;
 
+			for (auto& subStates : statesList) {
+				subStates.subresourceStates = resource->initialStates;
+			}
+		}
 	}
 
-	std::optional<GHL::ResourceBarrier> RenderGraphResourceStateTracker::TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, uint32_t subresourceIndex, bool tryImplicitly) {
+	std::optional<GHL::ResourceBarrier> RenderGraphResourceStateTracker::TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, bool tryImplicitly) {
+		return std::nullopt;
+	}
 
+	std::optional<GHL::ResourceBarrier> RenderGraphResourceStateTracker::TransitionImmediately(RenderGraphResource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly) {
+		return std::nullopt;
 	}
 
 }

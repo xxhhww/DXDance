@@ -1,5 +1,6 @@
 #pragma once
 #include "RenderGraphResourceID.h"
+#include "MemoryAliasingHelper.h"
 #include <memory>
 #include <functional>
 
@@ -15,7 +16,6 @@ namespace Renderer {
 	class Texture;
 	class Buffer;
 	class RenderGraphResource;
-	class MemoryAliasingHelper;
 	class PoolDescriptorAllocator;
 
 	class RenderGraphResourceStorage {
@@ -37,9 +37,9 @@ namespace Renderer {
 
 		RenderGraphResource* DeclareResource(const std::string& name);
 
-		RenderGraphResource* GetResourceByName(const std::string& name) const;
+		RenderGraphResource* GetResourceByName(const std::string& name);
 		
-		RenderGraphResource* GetResourceByID(const RenderGraphResourceID& resourceID) const;
+		RenderGraphResource* GetResourceByID(const RenderGraphResourceID& resourceID);
 
 		inline auto&       GetResources()       { return mRenderGraphResources; }
 		inline const auto& GetResources() const { return mRenderGraphResources; }
@@ -51,7 +51,7 @@ namespace Renderer {
 		std::unique_ptr<GHL::Heap> mHeap;
 		std::unique_ptr<MemoryAliasingHelper> mAliasingHelper;
 		// 自定义智能指针的删除操作。对于Imported的资源，不进行Delete
-		std::unordered_map<RenderGraphResourceID, std::unique_ptr<RenderGraphResource, std::function<void(RenderGraphResource*)>>> mRenderGraphResources;
+		std::unordered_map<RenderGraphResourceID, std::unique_ptr<RenderGraphResource>, RenderGraphResourceID::HashFunc> mRenderGraphResources;
 	};
 
 }

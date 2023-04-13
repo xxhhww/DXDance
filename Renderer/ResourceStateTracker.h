@@ -1,13 +1,14 @@
 #pragma once
+#include "RenderGraphResource.h"
+
 #include "GHL/pbh.h"
 #include "GHL/ResourceBarrierBatch.h"
+
 #include <vector>
 #include <unordered_map>
 #include <optional>
 
 namespace Renderer {
-
-	class RenderGraphResource;
 
 	class RenderGraphResourceStateTracker {
 	public:
@@ -23,8 +24,10 @@ namespace Renderer {
 		void StartTracking(RenderGraphResource* resource);
 		void StopTracking(RenderGraphResource* resource);
 
+		void ResetInitialStates();
+
 		std::optional<GHL::ResourceBarrier> TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, bool tryImplicitly = false);
-		std::optional<GHL::ResourceBarrier> TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, uint32_t subresourceIndex, bool tryImplicitly = false);
+		std::optional<GHL::ResourceBarrier> TransitionImmediately(RenderGraphResource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = false);
 
 	private:
 		std::unordered_map<RenderGraphResource*, SubresourceStateList> mSubresourceStateMap;

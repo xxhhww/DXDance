@@ -63,7 +63,7 @@ namespace Renderer {
 	void RenderGraphBuilder::ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t firstMip, uint32_t mipCount) {
 
 		GHL::EResourceState expectedStates;
-		if (mPassNode->executionQueueIndex == std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::General)) {
+		if (mPassNode->executionQueueIndex == std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Graphics)) {
 			// 由图形引擎访问
 			switch (accessFlag) {
 			case Renderer::ShaderAccessFlag::NonPixelShader:
@@ -146,7 +146,7 @@ namespace Renderer {
 	void RenderGraphBuilder::ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag) {
 
 		GHL::EResourceState expectedStates;
-		if (mPassNode->executionQueueIndex == std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::General)) {
+		if (mPassNode->executionQueueIndex == std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Graphics)) {
 			// 由图形引擎访问
 			switch (accessFlag) {
 			case Renderer::ShaderAccessFlag::NonPixelShader:
@@ -188,7 +188,7 @@ namespace Renderer {
 
 	}
 
-	void RenderGraphBuilder::SetPassExecutionQueue(PassExecutionQueue queueIndex) {
+	void RenderGraphBuilder::SetPassExecutionQueue(GHL::EGPUQueue queueIndex) {
 		mPassNode->SetExecutionQueue(queueIndex);
 	}
 

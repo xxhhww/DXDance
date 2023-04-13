@@ -34,13 +34,12 @@ namespace Renderer {
 		}
 	}
 
-	void PassNode::SetExecutionQueue(PassExecutionQueue queue) {
-		executionQueueIndex = std::underlying_type<PassExecutionQueue>::type(queue);
+	void PassNode::SetExecutionQueue(GHL::EGPUQueue queue) {
+		executionQueueIndex = std::underlying_type<GHL::EGPUQueue>::type(queue);
 	}
 
 	DependencyLevel::DependencyLevel() {
-		barrierNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
-		passNodesPerQueue.resize(std::underlying_type<PassExecutionQueue>::type(PassExecutionQueue::Count));
+		passNodesPerQueue.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
 	}
 
 }

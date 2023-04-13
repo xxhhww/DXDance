@@ -33,6 +33,8 @@ namespace Renderer {
 		PoolCommandListAllocator& operator=(PoolCommandListAllocator&& other) = default;
 		~PoolCommandListAllocator() = default;
 
+		CommandListWrap AllocateCommandList(GHL::EGPUQueue queueType);
+
 		CommandListWrap AllocateGraphicsCommandList();
 		CommandListWrap AllocateComputeCommandList();
 		CommandListWrap AllocateCopyCommandList();

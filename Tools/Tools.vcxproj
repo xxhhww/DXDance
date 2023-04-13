@@ -146,6 +146,9 @@
     <ClInclude Include="SerializeHepler.h" />
     <ClInclude Include="StrUtil.h" />
     <ClInclude Include="SystemCall.h" />
+    <ClInclude Include="TaskProxy.h" />
+    <ClInclude Include="TaskSystem.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="UIDGenerator.h" />
     <ClInclude Include="VisitorHelper.h" />
     <ClInclude Include="Wrap.h" />
@@ -168,6 +171,9 @@
     <ClCompile Include="SerializeHepler.cpp" />
     <ClCompile Include="StrUtil.cpp" />
     <ClCompile Include="SystemCall.cpp" />
+    <ClCompile Include="TaskProxy.cpp" />
+    <ClCompile Include="TaskSystem.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="ToolTest.cpp" />
     <ClCompile Include="UIDGenerator.cpp" />
   </ItemGroup>
