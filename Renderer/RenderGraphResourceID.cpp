@@ -3,6 +3,9 @@
 
 namespace Renderer {
 
+	std::unordered_map<std::string, uint64_t> RenderGraphResourceID::mResourceNameToIDs;
+	std::vector<std::string> RenderGraphResourceID::mIDToResourceNames;
+
 	RenderGraphResourceID::RenderGraphResourceID(uint64_t id)
 	: mID(id) {}
 

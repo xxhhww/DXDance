@@ -84,7 +84,7 @@ namespace Renderer {
 	GHL::EResourceState RenderGraphResource::GetSubresourceRequestedInfo(uint64_t passNodeIndex, uint32_t subresourceIndex) {
 		ASSERT_FORMAT(requestedInfoPerPass.find(passNodeIndex) != requestedInfoPerPass.end(), "Pass Node Index Not Exists");
 		auto& subresourceRequestedInfo = requestedInfoPerPass.at(passNodeIndex).subresourceRequestedInfos;
-		ASSERT_FORMAT(subresourceRequestedInfo.size() < subresourceIndex);
+		ASSERT_FORMAT(subresourceIndex < subresourceRequestedInfo.size());
 		return subresourceRequestedInfo.at(subresourceIndex).expectedStates;
 	}
 

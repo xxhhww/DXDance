@@ -19,7 +19,7 @@ namespace Renderer {
 			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, i, GHL::EResourceState::RenderTarget);
 		}
 
-		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals, false);
 	}
 
 	void RenderGraphBuilder::NewDepthStencil(const std::string& name, const NewTextureProperties& desc) {
@@ -31,7 +31,7 @@ namespace Renderer {
 			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, i, GHL::EResourceState::DepthWrite);
 		}
 
-		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals, false);
 
 	}
 
@@ -44,7 +44,7 @@ namespace Renderer {
 			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, i, GHL::EResourceState::UnorderedAccess);
 		}
 
-		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, desc.mipLevals, false);
 
 	}
 
@@ -56,11 +56,11 @@ namespace Renderer {
 		// Buffer Only Has a Subresource
 		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0, GHL::EResourceState::UnorderedAccess);
 
-		mPassNode->AddWriteDependency(resource->resourceID, 0u, 1u);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, 1u, true);
 
 	}
 
-	void RenderGraphBuilder::ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t firstMip, uint32_t mipCount) {
+	void RenderGraphBuilder::ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t mipLevel) {
 
 		GHL::EResourceState expectedStates;
 		if (mPassNode->executionQueueIndex == std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Graphics)) {
@@ -87,55 +87,47 @@ namespace Renderer {
 
 		auto* resource = mResourceStorage->GetResourceByName(name);
 
-		ASSERT_FORMAT((firstMip + mipCount) > resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
+		ASSERT_FORMAT(mipLevel < resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
+		
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, mipLevel, expectedStates);
 
-		for (uint32_t i = 0; i < mipCount; i++) {
-			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, firstMip + i, expectedStates);
-		}
-
-		mPassNode->AddReadDependency(resource->resourceID, firstMip, mipCount);
+		mPassNode->AddReadDependency(resource->resourceID, mipLevel, 1u, false);
 
 	}
 
-	void RenderGraphBuilder::WriteTexture(const std::string& name, uint32_t firstMip, uint32_t mipCount) {
+	void RenderGraphBuilder::WriteTexture(const std::string& name, uint32_t mipLevel) {
 
 		auto* resource = mResourceStorage->GetResourceByName(name);
 
-		ASSERT_FORMAT((firstMip + mipCount) > resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
+		ASSERT_FORMAT(mipLevel < resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
 
-		for (uint32_t i = 0; i < mipCount; i++) {
-			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, firstMip + i, GHL::EResourceState::UnorderedAccess);
-		}
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, mipLevel, GHL::EResourceState::UnorderedAccess);
 
-		mPassNode->AddWriteDependency(resource->resourceID, firstMip, mipCount);
+		mPassNode->AddWriteDependency(resource->resourceID, mipLevel, 1u, false);
 
 	}
 
-	void RenderGraphBuilder::ReadDepthStencil(const std::string& name, uint32_t firstMip, uint32_t mipCount) {
+	void RenderGraphBuilder::ReadDepthStencil(const std::string& name, uint32_t mipLevel) {
 
 		auto* resource = mResourceStorage->GetResourceByName(name);
 
-		ASSERT_FORMAT((firstMip + mipCount) > resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
+		ASSERT_FORMAT(mipLevel < resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
 
-		for (uint32_t i = 0; i < mipCount; i++) {
-			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, firstMip + i, GHL::EResourceState::DepthRead);
-		}
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, mipLevel, GHL::EResourceState::DepthRead);
 
-		mPassNode->AddReadDependency(resource->resourceID, firstMip, mipCount);
+		mPassNode->AddReadDependency(resource->resourceID, mipLevel, 1u, false);
 
 	}
 
-	void RenderGraphBuilder::WriteDepthStencil(const std::string& name, uint32_t firstMip, uint32_t mipCount) {
+	void RenderGraphBuilder::WriteDepthStencil(const std::string& name, uint32_t mipLevel) {
 
 		auto* resource = mResourceStorage->GetResourceByName(name);
 
-		ASSERT_FORMAT((firstMip + mipCount) > resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
+		ASSERT_FORMAT(mipLevel < resource->resourceFormat.SubresourceCount(), "Out Of Subresource Range!");
 
-		for (uint32_t i = 0; i < mipCount; i++) {
-			resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, firstMip + i, GHL::EResourceState::DepthWrite);
-		}
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, mipLevel, GHL::EResourceState::DepthWrite);
 
-		mPassNode->AddWriteDependency(resource->resourceID, firstMip, mipCount);
+		mPassNode->AddWriteDependency(resource->resourceID, mipLevel, 1u, false);
 
 	}
 
@@ -171,7 +163,7 @@ namespace Renderer {
 		auto* resource = mResourceStorage->GetResourceByName(name);
 		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0u, expectedStates);
 
-		mPassNode->AddReadDependency(resource->resourceID, 0u, 1u);
+		mPassNode->AddReadDependency(resource->resourceID, 0u, 1u, true);
 
 	}
 
@@ -180,7 +172,7 @@ namespace Renderer {
 		auto* resource = mResourceStorage->GetResourceByName(name);
 		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0u, GHL::EResourceState::UnorderedAccess);
 
-		mPassNode->AddWriteDependency(resource->resourceID, 0u, 1u);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, 1u, true);
 
 	}
 

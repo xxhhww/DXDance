@@ -29,28 +29,27 @@ namespace Renderer {
 		/*
 		* 定义当前Pass期望该资源状态为PixelAccess / NonPixelAccess / AnyPixelAccess
 		*/
-		void ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t firstMip = 0u, uint32_t mipCount = -1);
+		void ReadTexture(const std::string& name, const ShaderAccessFlag& accessFlag, uint32_t mipLevel = 0u);
 
 		/*
 		* 定义当前Pass期望该资源状态为UnorderedAccess
 		*/
-		void WriteTexture(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
+		void WriteTexture(const std::string& name, uint32_t mipLevel = 0u);
 
 		/*
 		* 定义当前Pass期望该资源状态为DepthRead
 		*/
-		void ReadDepthStencil(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
+		void ReadDepthStencil(const std::string& name, uint32_t mipLevel = 0u);
 
 		/*
 		* 定义当前Pass期望该资源状态为DepthWrite
 		*/
-		void WriteDepthStencil(const std::string& name, uint32_t firstMip = 0u, uint32_t mipCount = -1);
+		void WriteDepthStencil(const std::string& name, uint32_t mipLevel = 0u);
 
 		/*
 		* 定义一个纹理复制的操作
 		*/
 		void CopyTexture(const std::string& src, const std::string& dst);
-
 
 		/*
 		* 创建一个初始状态为UnorderedAccess的Buffer

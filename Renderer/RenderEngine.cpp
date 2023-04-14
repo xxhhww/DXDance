@@ -1,4 +1,7 @@
 #include "RenderEngine.h"
+#include "GBufferPass.h"
+#include "DeferredLightPass.h"
+#include "BackBufferPass.h"
 
 namespace Renderer {
 
@@ -23,9 +26,17 @@ namespace Renderer {
 		mBackBuffers.emplace_back(mSwapChain->D3DBackBuffer(0u));
 		mBackBuffers.emplace_back(mSwapChain->D3DBackBuffer(1u));
 
+		mGBufferPass.AddPass(*mRenderGraph.get());
+		mDeferredLightPass.AddPass(*mRenderGraph.get());
+
+		mRenderGraph->Build();
+	}
+
+	void RenderEngine::Resize(uint64_t width, uint64_t height) {
+
 	}
 
 	void RenderEngine::Render() {
-
+		
 	}
 }

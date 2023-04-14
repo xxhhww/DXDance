@@ -251,6 +251,23 @@ namespace Renderer {
 			auto& dependencyLevel = mDependencyLevelList.at(passDependencyLevel);
 			dependencyLevel->passNodesPerQueue.at(passNode->executionQueueIndex).push_back(passNode);
 
+			for (const auto& readSubresourceID : passNode->readSubresources) {
+				if (dependencyLevel->readSubresources.find(readSubresourceID) != dependencyLevel->readSubresources.end()) continue;
+				if (dependencyLevel->writeSubresources.find(readSubresourceID) != dependencyLevel->writeSubresources.end()) {
+					ASSERT_FORMAT(false, "RW Conflict!");
+				}
+				dependencyLevel->readSubresources.insert(readSubresourceID);
+			}
+			for (const auto& writeSubresourceID : passNode->writeSubresources) {
+				if (dependencyLevel->writeSubresources.find(writeSubresourceID) != dependencyLevel->writeSubresources.end()) {
+					ASSERT_FORMAT(false, "WW Conflict!");
+				}
+				if (dependencyLevel->readSubresources.find(writeSubresourceID) != dependencyLevel->readSubresources.end()) {
+					ASSERT_FORMAT(false, "RW Conflict!");
+				}
+				dependencyLevel->writeSubresources.insert(writeSubresourceID);
+			}
+
 			passNode->dependencyLevelIndex = passDependencyLevel;
 		}
 	}
@@ -289,19 +306,34 @@ namespace Renderer {
 
 		// 构建由读写依赖产生的GraphEdge
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
-			GHL::EResourceState currExpectedStates{ GHL::EResourceState::Common };
-			GHL::EResourceState lastExpectedStates{ GHL::EResourceState::Common };
-			std::unordered_set<uint8_t> currRequiredQueues;
-			std::unordered_set<uint8_t> lastRequiredQueues;
+
 			DependencyLevel* currDL = mDependencyLevelList.at(i).get();
-			DependencyLevel* lastDL = nullptr;
 
 			// 获取子资源在某个DL中被需求的信息
-			auto GetSubresourceRequestion = [](const DependencyLevel* currDl, const SubresourceID& subresourceID, GHL::EResourceState& expectedStates, std::unordered_set<uint8_t>& requiredQueues) {
-			
+			auto GetSubresourceRequestion = [this](DependencyLevel* currDL, const SubresourceID& subresourceID, GHL::EResourceState& expectedStates, std::unordered_set<uint8_t>& requiredQueues) {
+				auto [resourceID, subresourceIndex, isBuffer] = DecodeSubresourceID(subresourceID);
+				auto* resource = mResourceStorage->GetResourceByID(resourceID);
+				
+				for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
+					auto& passNodes = currDL->passNodesPerQueue.at(queueIndex);
+					for (auto& passNode : passNodes) {
+
+						if (passNode->readSubresources.find(subresourceID) == passNode->readSubresources.end()
+							&& passNode->writeSubresources.find(subresourceID) == passNode->writeSubresources.end()) continue;
+						expectedStates |= resource->GetSubresourceRequestedInfo(passNode->executionQueueIndex, subresourceIndex);
+
+						if (requiredQueues.find(passNode->executionQueueIndex) != requiredQueues.end()) continue;
+						requiredQueues.insert(passNode->executionQueueIndex);
+					}
+				}
 			};
 
 			for (const auto& readSubresourceID : currDL->readSubresources) {
+				GHL::EResourceState currExpectedStates{ GHL::EResourceState::Common };
+				GHL::EResourceState lastExpectedStates{ GHL::EResourceState::Common };
+				std::unordered_set<uint8_t> currRequiredQueues;
+				std::unordered_set<uint8_t> lastRequiredQueues;
+				DependencyLevel* lastDL = nullptr;
 
 				GetSubresourceRequestion(currDL, readSubresourceID, currExpectedStates, currRequiredQueues);
 				bool crossFrame{ false }; // 读写依赖是否跨帧
@@ -354,6 +386,12 @@ namespace Renderer {
 			}
 
 			for (const auto& writeSubresourceID : currDL->writeSubresources) {
+				GHL::EResourceState currExpectedStates{ GHL::EResourceState::Common };
+				GHL::EResourceState lastExpectedStates{ GHL::EResourceState::Common };
+				std::unordered_set<uint8_t> currRequiredQueues;
+				std::unordered_set<uint8_t> lastRequiredQueues;
+				DependencyLevel* lastDL = nullptr;
+
 				GetSubresourceRequestion(currDL, writeSubresourceID, currExpectedStates, currRequiredQueues);
 
 				bool crossFrame{ false }; // 读写依赖是否跨帧
@@ -368,9 +406,10 @@ namespace Renderer {
 					lastDL = mDependencyLevelList.at(lastDlIndex).get();
 					GetSubresourceRequestion(lastDL, writeSubresourceID, lastExpectedStates, lastRequiredQueues);
 					if (!lastRequiredQueues.empty()) break;
+					lastDlIndex--;
 				}
 				if (lastRequiredQueues.empty()) {
-					ASSERT_FORMAT(false, "Subresource Never Used!");
+					// ASSERT_FORMAT(false, "Subresource Never Used!");
 				}
 
 				uint8_t targetQueueIndex = *currRequiredQueues.begin();

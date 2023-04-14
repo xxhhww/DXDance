@@ -18,7 +18,7 @@ namespace Renderer {
 		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
 		GHL::EResourceUsage    usage = GHL::EResourceUsage::Default;
 		GHL::ETextureMiscFlag  miscFlag = GHL::ETextureMiscFlag::None;
-		D3D12_CLEAR_VALUE      clearValue{};
+		GHL::ClearValue        clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 	};
 
 	/*

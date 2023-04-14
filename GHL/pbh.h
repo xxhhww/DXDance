@@ -26,11 +26,13 @@
 #include <dxgidebug.h>
 #endif
 
+#include "Math/Vector.h"
 #include "Tools/EnumUtil.h"
 #include "d3dx12.h"
 
 #include <unordered_set>
 #include <optional>
+#include <variant>
 
 //linker
 #pragma comment(lib, "dxguid.lib")
@@ -164,4 +166,18 @@ namespace GHL {
 	};
 	DXGI_COLOR_SPACE_TYPE GetD3DColorSpace(ColorSpace space);
 	ColorSpace GetColorSpace(DXGI_COLOR_SPACE_TYPE space);
+
+	/*
+	* Clear Color
+	*/
+	using ColorClearValue = Math::Vector4;
+
+	struct DepthStencilClearValue {
+		float depth;
+		uint8_t stencil;
+	};
+
+	using ClearValue = std::variant<ColorClearValue, DepthStencilClearValue>;
+	D3D12_CLEAR_VALUE GetD3DClearValue(const ClearValue& clearValue, DXGI_FORMAT format);
+
 }

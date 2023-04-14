@@ -16,9 +16,6 @@ namespace GHL {
 	class Device;
 	class Fence;
 	class CommandQueue;
-	class GraphicsQueue;
-	class ComputeQueue;
-	class CopyQueue;
 
 }
 

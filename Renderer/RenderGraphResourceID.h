@@ -32,9 +32,6 @@ namespace Renderer {
 		uint64_t mID{ 0u };
 	};
 
-	std::unordered_map<std::string, uint64_t> RenderGraphResourceID::mResourceNameToIDs;
-	std::vector<std::string> RenderGraphResourceID::mIDToResourceNames;
-
 	using SubresourceID = uint64_t;
 
 	SubresourceID EncodeSubresourceID(const RenderGraphResourceID& id, uint32_t subresourceIndex, bool isBuffer);

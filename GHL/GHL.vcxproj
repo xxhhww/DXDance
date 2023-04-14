@@ -187,6 +187,9 @@
     <ClCompile Include="SwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Math\Math.vcxproj">
+      <Project>{49ef35ec-4e53-4b6e-b6aa-7e0fc4239c11}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>

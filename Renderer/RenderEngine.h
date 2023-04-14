@@ -18,6 +18,9 @@
 
 #include "RenderGraph.h"
 
+#include "GBufferPass.h"
+#include "DeferredLightPass.h"
+
 #include "Tools/Event.h"
 
 #include <memory>
@@ -38,6 +41,8 @@ namespace Renderer {
 		RenderEngine& operator=(RenderEngine&& other) = default;
 
 		~RenderEngine() = default;
+
+		void Resize(uint64_t width, uint64_t height);
 
 		void Render();
 
@@ -76,6 +81,11 @@ namespace Renderer {
 
 		// ==========================...RenderGraph...==========================
 		std::unique_ptr<RenderGraph> mRenderGraph;
+
+		// ==========================...RenderPasses...==========================
+		GBufferPass mGBufferPass;
+		DeferredLightPass mDeferredLightPass;
+
 	};
 
 }

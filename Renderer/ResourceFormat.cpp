@@ -129,4 +129,19 @@ namespace Renderer {
 		mResourceDesc.Alignment = mAlignment;
 	}
 
+	uint32_t ResourceFormat::SubresourceCount() const {
+		uint32_t subresourceCount{ 0u };
+
+		std::visit(MakeVisitor(
+			[&](const TextureDesc& desc) {
+				subresourceCount = desc.mipLevals;
+			},
+			[&](const BufferDesc& desc) {
+				subresourceCount = 1u;
+			})
+			, mResourceDescVariant);
+
+		return subresourceCount;
+	}
+
 }

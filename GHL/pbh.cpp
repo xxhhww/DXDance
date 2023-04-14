@@ -1,5 +1,6 @@
 #include "pbh.h"
 #include "Tools/Assert.h"
+#include "Tools/VisitorHelper.h"
 
 namespace GHL {
 
@@ -210,5 +211,25 @@ namespace GHL {
 			ASSERT_FORMAT(false, "Unsupported ColorSpace");
 			return ColorSpace::Rec709;
 		}
+	}
+
+	D3D12_CLEAR_VALUE GetD3DClearValue(const ClearValue& clearValue, DXGI_FORMAT format) {
+		D3D12_CLEAR_VALUE d3dClearValue{};
+		d3dClearValue.Format = format;
+
+		std::visit(MakeVisitor(
+			[&](const ColorClearValue& value) {
+				d3dClearValue.Color[0] = value.x;
+				d3dClearValue.Color[1] = value.y;
+				d3dClearValue.Color[2] = value.z;
+				d3dClearValue.Color[3] = value.w;
+			},
+			[&](const DepthStencilClearValue& value) {
+				d3dClearValue.DepthStencil.Depth = value.depth;
+				d3dClearValue.DepthStencil.Stencil = value.stencil;
+			}
+			), clearValue);
+
+		return d3dClearValue;
 	}
 }

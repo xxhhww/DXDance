@@ -16,6 +16,7 @@ namespace Renderer {
 	, mHeapAllocator(heapAllocator) {
 		
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		const D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 
@@ -33,7 +34,7 @@ namespace Renderer {
 				D3D12_HEAP_FLAG_NONE,
 				&mResourceFormat.D3DResourceDesc(),
 				GHL::GetResourceStates(textureDesc.initialState),
-				&textureDesc.clearVaule,
+				&d3dClearValue,
 				IID_PPV_ARGS(&mResource)
 			));
 		}
@@ -50,7 +51,7 @@ namespace Renderer {
 					mHeapAllocation->heapOffset,
 					&mResourceFormat.D3DResourceDesc(),
 					GHL::GetResourceStates(textureDesc.initialState),
-					&textureDesc.clearVaule,
+					&d3dClearValue,
 					IID_PPV_ARGS(&mResource)
 				));
 			}
@@ -114,6 +115,7 @@ namespace Renderer {
 	, mDescriptorAllocator(descriptorAllocator) {
 
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		const D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 		ASSERT_FORMAT(heap->GetUsage() == GHL::EResourceUsage::Default, "Heap Usage Must be Default");
@@ -124,7 +126,7 @@ namespace Renderer {
 			heapOffset,
 			&mResourceFormat.D3DResourceDesc(),
 			GHL::GetResourceStates(textureDesc.initialState),
-			&textureDesc.clearVaule,
+			&d3dClearValue,
 			IID_PPV_ARGS(&mResource)
 		));
 	}

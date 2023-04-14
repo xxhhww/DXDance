@@ -147,6 +147,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BackBufferPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="BufferDesc.h" />
@@ -182,6 +183,7 @@
     <ClInclude Include="UploadList.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BackBufferPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="DeferredLightPass.cpp" />

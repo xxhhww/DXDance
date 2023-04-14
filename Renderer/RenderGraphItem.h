@@ -1,6 +1,5 @@
 #pragma once
 #include "GHL/pbh.h"
-#include "GHL/ResourceBarrierBatch.h"
 
 #include "RenderGraphResourceID.h"
 
@@ -11,7 +10,7 @@
 namespace Renderer {
 
 	class RenderGraphPass;
-	class GraphNode;
+	struct GraphNode;
 
 	struct WaitInfo {
 	public:
@@ -43,7 +42,7 @@ namespace Renderer {
 		virtual ~GraphNode() = default;
 	public:
 		uint8_t executionQueueIndex{ 0u };
-		uint8_t graphNodeIndex{ 0u };
+		uint64_t graphNodeIndex{ 0u };
 
 		bool needSignal{ false };
 		std::vector<WaitInfo> waitInfos;
@@ -54,13 +53,13 @@ namespace Renderer {
 	*/
 	struct PassNode : GraphNode {
 	public:
-		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceIndex);
-		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount);
-		void AddReadDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList);
+		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceIndex, bool isBuffer);
+		void AddReadDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount, bool isBuffer);
+		void AddReadDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList, bool isBuffer);
 
-		void AddWriteDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceIndex);
-		void AddWriteDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount);
-		void AddWriteDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList);
+		void AddWriteDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceIndex, bool isBuffer);
+		void AddWriteDependency(const RenderGraphResourceID& resourceID, uint32_t subresourceStartIndex, uint32_t subresourceCount, bool isBuffer);
+		void AddWriteDependency(const RenderGraphResourceID& resourceID, std::vector<uint32_t>&& subresourceIndexList, bool isBuffer);
 
 		void SetExecutionQueue(GHL::EGPUQueue queue = GHL::EGPUQueue::Graphics);
 
