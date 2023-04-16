@@ -20,6 +20,9 @@
 
 #include "GBufferPass.h"
 #include "DeferredLightPass.h"
+#include "BackBufferPass.h"
+
+#include "RootConstantsPerFrame.h"
 
 #include "Tools/Event.h"
 
@@ -43,6 +46,8 @@ namespace Renderer {
 		~RenderEngine() = default;
 
 		void Resize(uint64_t width, uint64_t height);
+
+		void Update(float dt);
 
 		void Render();
 
@@ -75,9 +80,10 @@ namespace Renderer {
 		std::unique_ptr<PoolDescriptorAllocator>   mDescriptorAllocator;  // 池化的描述符分配器
 		std::unique_ptr<LinearBufferAllocator>     mSharedMemAllocator;   // 线性的共享内存分配器(用于分配ConstantBuffer ShaderBuffer)
 
-		std::unique_ptr<GPUProfiler>      mGPUProfiler;      // Query RenderPass Data
-		std::unique_ptr<ShaderManger>     mShaderManger;     // 着色器管理器
-		std::unique_ptr<TileUpdateManger> mTileUpdateManger; // 流式纹理管理器
+		std::unique_ptr<GPUProfiler>			mGPUProfiler;			// Query RenderPass Data
+		std::unique_ptr<ShaderManger>			mShaderManger;			// 着色器管理器
+		std::unique_ptr<TileUpdateManger>		mTileUpdateManger;		// 流式纹理管理器
+		std::unique_ptr<ResourceStateTracker>	mResourceStateTracker;	// 资源状态追踪器
 
 		// ==========================...RenderGraph...==========================
 		std::unique_ptr<RenderGraph> mRenderGraph;
@@ -85,7 +91,12 @@ namespace Renderer {
 		// ==========================...RenderPasses...==========================
 		GBufferPass mGBufferPass;
 		DeferredLightPass mDeferredLightPass;
+		BackBufferPass mBackBufferPass;
 
+		// ==========================...PipelineResources...==========================
+		RootConstantsPerFrame mRootConstantsPerFrame;
+		std::unique_ptr<Texture> mFinalOutput;
+		RenderGraphResourceID mFinalOutputID;
 	};
 
 }

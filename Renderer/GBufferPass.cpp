@@ -10,22 +10,25 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				NewTextureProperties properties;
-				properties.width  = 1920u;
-				properties.height = 1080u;
-				properties.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+				NewTextureProperties _GBufferProperties;
+				_GBufferProperties.width  = 1920u;
+				_GBufferProperties.height = 1080u;
+				_GBufferProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 				
-				builder.NewRenderTarget("GBufferBaseColor", properties);
-				builder.NewRenderTarget("GBufferPosition", properties);
-				builder.NewRenderTarget("GBufferNormal", properties);
+				builder.DeclareTexture("GBufferBaseColor", _GBufferProperties);
+				builder.DeclareTexture("GBufferPosition", _GBufferProperties);
+				builder.DeclareTexture("GBufferNormal", _GBufferProperties);
+				builder.DeclareTexture("GBufferMixed", _GBufferProperties);
 
-				properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_GBufferProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
-				builder.NewRenderTarget("GBufferMixed", properties);
+				builder.DeclareTexture("GBufferDepth", _GBufferProperties);
 
-				properties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-				builder.NewDepthStencil("GBufferDepth", properties);
+				builder.WriteRenderTarget("GBufferBaseColor");
+				builder.WriteRenderTarget("GBufferPosition");
+				builder.WriteRenderTarget("GBufferNormal");
+				builder.WriteRenderTarget("GBufferMixed");
+				builder.WriteDepthStencil("GBufferDepth");
 			},
 			[=]() {
 

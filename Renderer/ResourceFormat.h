@@ -95,6 +95,8 @@ namespace Renderer {
 		inline const auto& GetResourceDescVariant() const { return mResourceDescVariant; }
 		inline const auto& GetTextureDesc()         const { return std::get<TextureDesc>(mResourceDescVariant); }
 		inline const auto& GetBufferDesc()          const { return std::get<BufferDesc>(mResourceDescVariant); }
+		inline const auto& GetInitialState()        const { return mInitialState; }
+		inline const auto& GetExpectedState()       const { return mExpectedState; }
 
 		uint32_t SubresourceCount() const;
 
@@ -108,6 +110,13 @@ namespace Renderer {
 		D3D12_RESOURCE_DESC mResourceDesc{};
 
 		ResourceDescVariant mResourceDescVariant{};
+
+		// 从资源描述符中提取出来的通用信息
+		DXGI_FORMAT			mFormat{ DXGI_FORMAT_UNKNOWN };
+		GHL::EResourceUsage mUsage{ GHL::EResourceUsage::Default };
+		GHL::EResourceState mInitialState{ GHL::EResourceState::Common };
+		GHL::EResourceState mExpectedState{ GHL::EResourceState::Common };
+
 		size_t mAlignment{ 0u };
 		size_t mSizeInBytes{ 0u };
 	};

@@ -16,10 +16,29 @@
 
 namespace Renderer {
 
-	RenderGraph::RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator)
+	RenderGraph::RenderGraph(
+		const GHL::Device* device, 
+		RingFrameTracker* frameTracker, 
+		PoolDescriptorAllocator* descriptorAllocator, 
+		PoolCommandListAllocator* commandListAllocator,
+		GHL::GraphicsQueue* graphicsQueue,
+		GHL::ComputeQueue* computeQueue,
+		GHL::CopyQueue* copyQueue,
+		ResourceStateTracker* stateTracker)
 	: mFrameTracker(frameTracker) 
+	, mCommandListAllocator(commandListAllocator)
 	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
-	, mResourceStateTracker(std::make_unique<RenderGraphResourceStateTracker>()) {}
+	, mResourceStateTracker(stateTracker) {
+		mCommandQueues.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
+		mCommandQueues.at(0u) = graphicsQueue;
+		mCommandQueues.at(1u) = computeQueue;
+		mCommandQueues.at(2u) = copyQueue;
+
+		mFences.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
+		mFences.at(0u) = std::make_unique<GHL::Fence>(device);
+		mFences.at(1u) = std::make_unique<GHL::Fence>(device);
+		mFences.at(2u) = std::make_unique<GHL::Fence>(device);
+	}
 
 	void RenderGraph::Build() {
 		if (mCompiled) {
@@ -36,6 +55,8 @@ namespace Renderer {
 
 		BuildRenderGraphEdge();
 
+		CullRedundantGraphEdge();
+
 		BuildAliasingBarrier();
 
 		mCompiled = true;
@@ -49,27 +70,33 @@ namespace Renderer {
 
 			for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
 				{
-					// 做资源转换操作
-					GHL::ResourceBarrierBatch resourceBarrierBatch;
-					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+					// Flush Resource Barrier
 					auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
+					if (transitionNode->expectedSubresourceStatesMap.empty()) {
+						goto RecordRenderCommand;
+					}
+
+					GHL::ResourceBarrierBatch allBatches;
 					for (const auto& [subresourceID, expectedStates] : transitionNode->expectedSubresourceStatesMap) {
 						auto [resourceID, subresourceIndex, isBuffer] = DecodeSubresourceID(subresourceID);
-						auto* resource = mResourceStorage->GetResourceByID(resourceID);
+						auto* rgResource = mResourceStorage->GetResourceByID(resourceID);
 
-						std::optional<GHL::ResourceBarrier> resourceBarrier{ std::nullopt };
+						GHL::ResourceBarrierBatch batch{};
 						if (isBuffer) {
-							resourceBarrier = mResourceStateTracker->TransitionImmediately(resource, expectedStates);
+							batch = mResourceStateTracker->TransitionImmediately(rgResource->resource, expectedStates);
 						}
 						else {
-							resourceBarrier = mResourceStateTracker->TransitionImmediately(resource, subresourceIndex, expectedStates);
+							batch = mResourceStateTracker->TransitionImmediately(rgResource->resource, subresourceIndex, expectedStates);
 						}
-
-						if (resourceBarrier != std::nullopt) {
-							resourceBarrierBatch.AddBarrier(*resourceBarrier);
-						}
+						allBatches.AddBarriers(batch);
 					}
-					commandList->D3DCommandList()->ResourceBarrier(resourceBarrierBatch.Size(), resourceBarrierBatch.D3DBarriers());
+
+					if (allBatches.Empty()) {
+						goto RecordRenderCommand;
+					}
+
+					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+					commandList->D3DCommandList()->ResourceBarrier(allBatches.Size(), allBatches.D3DBarriers());
 
 					auto* currCommandQueue = mCommandQueues.at(queueIndex);
 					auto* currFence = mFences.at(queueIndex).get();
@@ -92,9 +119,13 @@ namespace Renderer {
 				}
 
 				{
-					// 做录制渲染命令操作
-					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+RecordRenderCommand:					
+					// Record Render Command
 					auto& passNodes = currDL->passNodesPerQueue.at(queueIndex);
+					if (passNodes.empty()) {
+						continue;
+					}
+					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
 					auto* currCommandQueue = mCommandQueues.at(queueIndex);
 					auto* currFence = mFences.at(queueIndex).get();
 
@@ -123,14 +154,13 @@ namespace Renderer {
 		}
 	}
 
-	void RenderGraph::ImportResource(const std::string& name, Buffer* importedBuffer) {
-		auto* resource = mResourceStorage->ImportResource(name, importedBuffer);
-		mResourceStateTracker->StartTracking(resource);
+	RenderGraphResourceID RenderGraph::ImportResource(const std::string& name, Resource* importedResource) {
+		auto* resource = mResourceStorage->ImportResource(name, importedResource);
+		return resource->resourceID;
 	}
 
-	void RenderGraph::ImportResource(const std::string& name, Texture* importedTexture) {
-		auto* resource = mResourceStorage->ImportResource(name, importedTexture);
-		mResourceStateTracker->StartTracking(resource);
+	void RenderGraph::ExportResource(const std::string& name) {
+
 	}
 
 	void RenderGraph::SetupInternalResource() {
@@ -142,7 +172,7 @@ namespace Renderer {
 		// Start Tracking Internal Resource
 		for (auto& pair : mResourceStorage->GetResources()) {
 			if (!pair.second->imported) {
-				mResourceStateTracker->StartTracking(pair.second.get());
+				mResourceStateTracker->StartTracking(pair.second->resource);
 			}
 		}
 	}
@@ -273,37 +303,6 @@ namespace Renderer {
 	}
 
 	void RenderGraph::BuildRenderGraphEdge() {
-		// 构建由顺序执行产生的GraphEdge
-		{
-			std::vector<std::vector<GraphNode*>> graphNodesPerQueue;
-			graphNodesPerQueue.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
-			for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
-				auto* currDL = mDependencyLevelList.at(i).get();
-				auto* lastDL = i == 0u ? nullptr : mDependencyLevelList.at(i - 1u).get();
-
-				for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
-					if (currDL->passNodesPerQueue.at(queueIndex).empty()) {
-						continue;
-					}
-					
-					// Add Transiton Node
-					auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
-					if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
-						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
-						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, transitionNode->graphNodeIndex, true, false);
-					}
-					graphNodesPerQueue.at(queueIndex).push_back(transitionNode);
-
-					// Add Pass Node
-					for (const auto& passNode : currDL->passNodesPerQueue.at(queueIndex)) {
-						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
-						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, passNode->graphNodeIndex, true, false);
-						graphNodesPerQueue.at(queueIndex).push_back(passNode);
-					}
-				}
-			}
-		}
-
 		// 构建由读写依赖产生的GraphEdge
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
 
@@ -320,7 +319,7 @@ namespace Renderer {
 
 						if (passNode->readSubresources.find(subresourceID) == passNode->readSubresources.end()
 							&& passNode->writeSubresources.find(subresourceID) == passNode->writeSubresources.end()) continue;
-						expectedStates |= resource->GetSubresourceRequestedInfo(passNode->executionQueueIndex, subresourceIndex);
+						expectedStates |= resource->GetSubresourceRequestedInfo(passNode->passNodeIndex, subresourceIndex);
 
 						if (requiredQueues.find(passNode->executionQueueIndex) != requiredQueues.end()) continue;
 						requiredQueues.insert(passNode->executionQueueIndex);
@@ -373,7 +372,7 @@ namespace Renderer {
 				auto* targetTransitionNode = currDL->transitionNodePerQueue.at(targetQueueIndex);
 				targetTransitionNode->expectedSubresourceStatesMap[readSubresourceID] = currExpectedStates;
 				for (const auto& queueIndex : lastRequiredQueues) {
-					if (queueIndex == targetQueueIndex) continue;
+					if (queueIndex == targetQueueIndex || crossFrame) continue;
 					auto* lastPassNode = lastDL->passNodesPerQueue.at(queueIndex).back();
 					mGraphEdges.emplace_back(lastPassNode->graphNodeIndex, targetTransitionNode->graphNodeIndex, lastPassNode->executionQueueIndex != targetTransitionNode->executionQueueIndex, crossFrame);
 				}
@@ -400,6 +399,7 @@ namespace Renderer {
 				while (lastDlIndex != i) {
 					if (lastDlIndex < 0) {
 						lastDlIndex = mDependencyLevelList.size() - 1;
+						if (lastDlIndex == i) break;
 						crossFrame = true;
 					}
 
@@ -409,7 +409,10 @@ namespace Renderer {
 					lastDlIndex--;
 				}
 				if (lastRequiredQueues.empty()) {
-					// ASSERT_FORMAT(false, "Subresource Never Used!");
+					// 节点写入的资源无人使用
+					auto* targetTransitionNode = currDL->transitionNodePerQueue.at(*currRequiredQueues.begin());
+					targetTransitionNode->expectedSubresourceStatesMap[writeSubresourceID] = currExpectedStates;
+					continue;
 				}
 
 				uint8_t targetQueueIndex = *currRequiredQueues.begin();
@@ -443,6 +446,38 @@ namespace Renderer {
 
 		}
 
+		// 构建由顺序执行产生的GraphEdge
+		{
+		std::vector<std::vector<GraphNode*>> graphNodesPerQueue;
+		graphNodesPerQueue.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
+		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
+			auto* currDL = mDependencyLevelList.at(i).get();
+			auto* lastDL = i == 0u ? nullptr : mDependencyLevelList.at(i - 1u).get();
+
+			for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
+
+				// Add Transiton Node
+				if (!currDL->transitionNodePerQueue.at(queueIndex)->expectedSubresourceStatesMap.empty()) {
+					auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
+					if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
+						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
+						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, transitionNode->graphNodeIndex, false, false);
+					}
+					graphNodesPerQueue.at(queueIndex).push_back(transitionNode);
+				}
+
+				// Add Pass Node
+				for (const auto& passNode : currDL->passNodesPerQueue.at(queueIndex)) {
+					if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
+						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
+						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, passNode->graphNodeIndex, false, false);
+					}
+					graphNodesPerQueue.at(queueIndex).push_back(passNode);
+				}
+			}
+		}
+		}
+
 	}
 
 	void RenderGraph::CullRedundantGraphEdge() {
@@ -455,9 +490,21 @@ namespace Renderer {
 			dist[i][i] = 0;
 		}
 
-		for (const auto& edge : mGraphEdges) {
-			if (edge.crossFrame) continue;
-			dist[edge.producerNodeIndex][edge.consumerNodeIndex] = -1;
+		auto it = mGraphEdges.begin();
+		while (it != mGraphEdges.end()) {
+			const auto& edge = *it;
+			if (edge.crossFrame) { 
+				it++; 
+				continue; 
+			}
+
+			if (dist[edge.producerNodeIndex][edge.consumerNodeIndex] == -1) {
+				it = mGraphEdges.erase(it);
+			}
+			else {
+				dist[edge.producerNodeIndex][edge.consumerNodeIndex] = -1;
+				it++;
+			}
 		}
 
 		for (uint64_t k = 0u; k < nodeSize; k++) {

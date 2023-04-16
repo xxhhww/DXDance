@@ -17,8 +17,9 @@ namespace GHL {
 		/*
 		* Get方法
 		*/
-		inline auto* D3DResource()   const { return mResource.Get(); }
-		inline const auto& GetGpuAddress() const { return mResource->GetGPUVirtualAddress(); }
+		inline auto*       D3DResource()         { return mD3DResource.Get(); }
+		inline const auto* D3DResource()   const { return mD3DResource.Get(); }
+		inline const auto& GetGpuAddress() const { return mD3DResource->GetGPUVirtualAddress(); }
 
 		/*
 		* 设置调试名称
@@ -31,7 +32,7 @@ namespace GHL {
 		virtual void CreateDescriptor() = 0;
 
 	protected:
-		Microsoft::WRL::ComPtr<ID3D12Resource> mResource;
+		Microsoft::WRL::ComPtr<ID3D12Resource> mD3DResource;
 	};
 
 }

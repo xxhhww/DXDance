@@ -8,11 +8,9 @@
 #include <string>
 #include <unordered_map>
 
-
 namespace Renderer {
 
-	class Buffer;
-	class Texture;
+	class Resource;
 
 	class RenderGraphResource {
 	public:
@@ -34,12 +32,7 @@ namespace Renderer {
 		/*
 		* Called When Import External Pipeline Texture Resource
 		*/
-		RenderGraphResource(const std::string& name, Texture* resource);
-
-		/*
-		* Called When Import External Pipeline Buffer Resource
-		*/
-		RenderGraphResource(const std::string& name, Buffer*  resource);
+		RenderGraphResource(const std::string& name, Resource* importedResource);
 		
 		~RenderGraphResource() = default;
 
@@ -69,17 +62,15 @@ namespace Renderer {
 		GHL::Heap*	heap{ nullptr };
 		size_t		heapOffset{ 0u };
 
-		Texture* texture{ nullptr };
-		Buffer*  buffer { nullptr };
+		Resource* resource{ nullptr };
 
-		ResourceFormat		  resourceFormat;
+		ResourceFormat resourceFormat;
+
 		NewResourceProperties newResourceProperties;
-
 		GHL::EResourceState initialStates { GHL::EResourceState::Common };
 		GHL::EResourceState expectedStates{ GHL::EResourceState::Common };
 
 		std::unordered_map<uint64_t, PassRequestedInfo> requestedInfoPerPass;
-
 	};
 
 }

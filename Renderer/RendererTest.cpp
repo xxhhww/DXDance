@@ -22,7 +22,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             properties.width = 1920u;
             properties.height = 1080u;
             properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            builder.NewTexture("Tex_0", properties);
+            // builder.NewTexture("Tex_0", properties);
 
         },
         [=]() {}
@@ -39,7 +39,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             properties.width = 1920u;
             properties.height = 1080u;
             properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            builder.NewTexture("Tex_1", properties);
+            // builder.NewTexture("Tex_1", properties);
 
         },
         [=]() {}
@@ -66,7 +66,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
-            builder.NewTexture("Tex_3", NewTextureProperties{});
+            // builder.NewTexture("Tex_3", NewTextureProperties{});
 
         },
         [=]() {}
@@ -111,6 +111,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+    GHL::EnableDebugLayer();
 
     WindowSetting setting{};
     setting.fullscreen = false;
@@ -118,7 +119,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     InputManger inputManger{ &window };
 
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
-    Test_RenderGraphBuildDAG(renderEngine);
+    // Test_RenderGraphBuildDAG(renderEngine);
 
     bool done = false;
     while (!done) {
@@ -135,6 +136,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
         if (done) {
             break;
         }
+        renderEngine.Render();
     }
 
     return 0;

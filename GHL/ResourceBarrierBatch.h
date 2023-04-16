@@ -1,5 +1,6 @@
 #pragma once
 #include "pbh.h"
+#include "Resource.h"
 #include <vector>
 
 namespace GHL {
@@ -26,9 +27,9 @@ namespace GHL {
 	class TransitionBarrier : public ResourceBarrier {
 	public:
 		TransitionBarrier(
-			ID3D12Resource* resource,
-			D3D12_RESOURCE_STATES stateBefore,
-			D3D12_RESOURCE_STATES stateAfter,
+			Resource* resource,
+			EResourceState stateBefore,
+			EResourceState stateAfter,
 			UINT subResources = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 	};
 
@@ -38,9 +39,9 @@ namespace GHL {
 	class SplitTransitionBarrier : public ResourceBarrier {
 	public:
 		SplitTransitionBarrier(
-			ID3D12Resource* resource,
-			D3D12_RESOURCE_STATES stateBefore,
-			D3D12_RESOURCE_STATES stateAfter,
+			Resource* resource,
+			EResourceState stateBefore,
+			EResourceState stateAfter,
 			bool endFlag,
 			UINT subResources = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 	};
@@ -50,7 +51,7 @@ namespace GHL {
 	*/
 	class UAVBarrier : public ResourceBarrier {
 	public:
-		UAVBarrier(ID3D12Resource* resource);
+		UAVBarrier(Resource* resource);
 	};
 
 	/*
@@ -58,7 +59,7 @@ namespace GHL {
 	*/
 	class AliasingBarrier : public ResourceBarrier {
 	public:
-		AliasingBarrier(ID3D12Resource* resourceBefore, ID3D12Resource* resourceAfter);
+		AliasingBarrier(Resource* resourceBefore, Resource* resourceAfter);
 	};
 
 
@@ -68,16 +69,21 @@ namespace GHL {
 	class ResourceBarrierBatch {
 	public:
 		ResourceBarrierBatch() = default;
+		ResourceBarrierBatch(const ResourceBarrier& barrier);
+
 		~ResourceBarrierBatch() = default;
 
 		/*
 		* 添加资源屏障
 		*/
 		void AddBarrier(const ResourceBarrier& barrier);
+		void AddBarriers(const ResourceBarrierBatch& batch);
 
-		inline auto Size() const { return mBarriers.size(); }
+		inline bool Empty() const { return mD3DBarriers.size() == 0u; }
 
-		inline auto* D3DBarriers() const { return mBarriers.data(); }
+		inline auto Size() const { return mD3DBarriers.size(); }
+
+		inline const auto* D3DBarriers() const { return mD3DBarriers.data(); }
 
 		/*
 		* 清空资源屏障
@@ -85,6 +91,6 @@ namespace GHL {
 		void Clear();
 
 	private:
-		std::vector<D3D12_RESOURCE_BARRIER> mBarriers;
+		std::vector<D3D12_RESOURCE_BARRIER> mD3DBarriers;
 	};
 }

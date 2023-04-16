@@ -73,7 +73,7 @@ namespace GHL {
 	};
 	ENABLE_BITMASK_OPERATORS(EResourceState);
 
-	D3D12_RESOURCE_STATES GetResourceStates(EResourceState state);
+	D3D12_RESOURCE_STATES GetD3DResourceStates(EResourceState state);
 
 	enum class EGPUQueue : uint8_t {
 		Graphics = 0,

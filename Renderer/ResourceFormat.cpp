@@ -37,6 +37,11 @@ namespace Renderer {
 		// 解算D3D12_RESOURCE_DESC
 		std::visit(MakeVisitor(
 			[this](TextureDesc& desc) {
+				mFormat = desc.format;
+				mUsage = desc.usage;
+				mInitialState = desc.initialState;
+				mExpectedState = desc.expectedState;
+
 				mResourceDesc.Dimension = GHL::GetD3DTextureDimension(desc.dimension);
 				mResourceDesc.Format = desc.format;
 				mResourceDesc.MipLevels = desc.mipLevals;
@@ -96,6 +101,11 @@ namespace Renderer {
 					// ConstantBuffer需要字节对齐
 					desc.size = Math::AlignUp(desc.size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 				}
+
+				mFormat = desc.format;
+				mUsage = desc.usage;
+				mInitialState = desc.initialState;
+				mExpectedState = desc.expectedState;
 
 				mResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 				mResourceDesc.Format = DXGI_FORMAT_UNKNOWN;

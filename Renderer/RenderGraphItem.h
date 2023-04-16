@@ -30,6 +30,9 @@ namespace Renderer {
 		GraphEdge(uint64_t proNode, uint64_t conNode, bool crossQueue, bool crossFrame) 
 		: producerNodeIndex(proNode), consumerNodeIndex(conNode), crossQueue(crossQueue), crossFrame(crossFrame) {}
 
+		inline bool operator==(const GraphEdge& other) const {
+			return producerNodeIndex == other.producerNodeIndex && consumerNodeIndex == other.consumerNodeIndex;
+		}
 	public:
 		uint64_t producerNodeIndex{ 0u };
 		uint64_t consumerNodeIndex{ 0u };

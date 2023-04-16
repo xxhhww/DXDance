@@ -23,7 +23,9 @@ namespace GHL {
 		HRASSERT(device->D3DDevice()->CreateDescriptorHeap(&mDesc, IID_PPV_ARGS(&mHeap)));
 
 		mStartCpuHandle = mHeap->GetCPUDescriptorHandleForHeapStart();
-		mStartGpuHandle = mHeap->GetGPUDescriptorHandleForHeapStart();
+		if (mType == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || mType == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) {
+			mStartGpuHandle = mHeap->GetGPUDescriptorHandleForHeapStart();
+		}
 	}
 
 	DescriptorHandle DescriptorHeap::Allocate(uint64_t heapIndex) {

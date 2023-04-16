@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <queue>
 #include <unordered_map>
 #include <string>
 
@@ -15,6 +16,7 @@ namespace Renderer {
 		};
 
 	public:
+		RenderGraphResourceID() = default;
 		RenderGraphResourceID(uint64_t id);
 
 		inline const auto& GetID()   const { return mID; }
@@ -23,10 +25,12 @@ namespace Renderer {
 		bool operator==(const RenderGraphResourceID& a) const { return mID == a.mID; }
 
 		static RenderGraphResourceID FindOrCreateResourceID(const std::string& name);
+		static void RetireResourceID(const std::string& name);
 
 	private:
 		static std::unordered_map<std::string, uint64_t> mResourceNameToIDs;
 		static std::vector<std::string> mIDToResourceNames;
+		static std::queue<uint64_t> mRetiredIDs;
 
 	private:
 		uint64_t mID{ 0u };

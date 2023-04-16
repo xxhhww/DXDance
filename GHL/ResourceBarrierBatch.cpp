@@ -6,46 +6,56 @@ namespace GHL {
 	}
 
 	TransitionBarrier::TransitionBarrier(
-		ID3D12Resource* resource, 
-		D3D12_RESOURCE_STATES stateBefore, 
-		D3D12_RESOURCE_STATES stateAfter, 
+		Resource* resource,
+		EResourceState stateBefore, 
+		EResourceState stateAfter,
 		UINT subResources)
 	: ResourceBarrier(D3D12_RESOURCE_BARRIER_TYPE_TRANSITION) {
 		mBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		mBarrier.Transition.pResource = resource;
-		mBarrier.Transition.StateBefore = stateBefore;
-		mBarrier.Transition.StateAfter = stateAfter;
+		mBarrier.Transition.pResource = resource->D3DResource();
+		mBarrier.Transition.StateBefore = GetD3DResourceStates(stateBefore);
+		mBarrier.Transition.StateAfter = GetD3DResourceStates(stateAfter);
 		mBarrier.Transition.Subresource = subResources;
 	}
 
-	SplitTransitionBarrier::SplitTransitionBarrier(ID3D12Resource* resource, D3D12_RESOURCE_STATES stateBefore, D3D12_RESOURCE_STATES stateAfter, bool endFlag, UINT subResources)
+	SplitTransitionBarrier::SplitTransitionBarrier(Resource* resource, EResourceState stateBefore, EResourceState stateAfter, bool endFlag, UINT subResources)
 	: ResourceBarrier(D3D12_RESOURCE_BARRIER_TYPE_TRANSITION) {
 		mBarrier.Flags = endFlag ? D3D12_RESOURCE_BARRIER_FLAG_END_ONLY : D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
-		mBarrier.Transition.pResource = resource;
-		mBarrier.Transition.StateBefore = stateBefore;
-		mBarrier.Transition.StateAfter = stateAfter;
+		mBarrier.Transition.pResource = resource->D3DResource();
+		mBarrier.Transition.StateBefore = GetD3DResourceStates(stateBefore);
+		mBarrier.Transition.StateAfter = GetD3DResourceStates(stateAfter);
 		mBarrier.Transition.Subresource = subResources;
 	}
 
-	UAVBarrier::UAVBarrier(ID3D12Resource* resource)
+	UAVBarrier::UAVBarrier(Resource* resource)
 	: ResourceBarrier(D3D12_RESOURCE_BARRIER_TYPE_UAV){
 		mBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		mBarrier.UAV.pResource = resource;
+		mBarrier.UAV.pResource = resource->D3DResource();
 	}
 
-	AliasingBarrier::AliasingBarrier(ID3D12Resource* resourceBefore, ID3D12Resource* resourceAfter)
+	AliasingBarrier::AliasingBarrier(Resource* resourceBefore, Resource* resourceAfter)
 	: ResourceBarrier(D3D12_RESOURCE_BARRIER_TYPE_ALIASING) {
 		mBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-		mBarrier.Aliasing.pResourceBefore = resourceBefore;
-		mBarrier.Aliasing.pResourceAfter = resourceAfter;
+		mBarrier.Aliasing.pResourceBefore = resourceBefore->D3DResource();
+		mBarrier.Aliasing.pResourceAfter = resourceAfter->D3DResource();
+	}
+
+	ResourceBarrierBatch::ResourceBarrierBatch(const ResourceBarrier& barrier) {
+		AddBarrier(barrier);
 	}
 
 	void ResourceBarrierBatch::AddBarrier(const ResourceBarrier& barrier) {
-		mBarriers.push_back(barrier.D3DBarrier());
+		mD3DBarriers.push_back(barrier.D3DBarrier());
+	}
+
+	void ResourceBarrierBatch::AddBarriers(const ResourceBarrierBatch& batch) {
+		for (const auto& d3dBarrier : batch.mD3DBarriers) {
+			mD3DBarriers.push_back(d3dBarrier);
+		}
 	}
 
 	void ResourceBarrierBatch::Clear() {
-		mBarriers.clear();
+		mD3DBarriers.clear();
 	}
 
 }

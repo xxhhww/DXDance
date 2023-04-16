@@ -9,9 +9,8 @@ namespace Renderer {
 		const ResourceFormat& resFormat,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator
-		) 
-	: mDevice(device)
-	, mResourceFormat(resFormat)
+		)
+	: Resource(device, resFormat)
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator) {
 
@@ -38,9 +37,9 @@ namespace Renderer {
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
 				&mResourceFormat.D3DResourceDesc(),
-				GHL::GetResourceStates(bufferDesc.initialState),
+				GHL::GetD3DResourceStates(bufferDesc.initialState),
 				nullptr,
-				IID_PPV_ARGS(&mResource)
+				IID_PPV_ARGS(&mD3DResource)
 			));
 		}
 		else {
@@ -52,9 +51,9 @@ namespace Renderer {
 				mHeapAllocation->heap->D3DHeap(),
 				mHeapAllocation->heapOffset,
 				&mResourceFormat.D3DResourceDesc(),
-				GHL::GetResourceStates(bufferDesc.initialState),
+				GHL::GetD3DResourceStates(bufferDesc.initialState),
 				nullptr,
-				IID_PPV_ARGS(&mResource)
+				IID_PPV_ARGS(&mD3DResource)
 			));
 		}
 
@@ -67,9 +66,8 @@ namespace Renderer {
 		const ResourceFormat& resFormat,
 		PoolDescriptorAllocator* descriptorAllocator,
 		const GHL::Heap* heap,
-		size_t heapOffset) 
-	: mDevice(device)
-	, mResourceFormat(resFormat)
+		size_t heapOffset)
+	: Resource(device, resFormat)
 	, mDescriptorAllocator(descriptorAllocator) {
 
 		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
@@ -79,9 +77,9 @@ namespace Renderer {
 			heap->D3DHeap(),
 			heapOffset,
 			&mResourceFormat.D3DResourceDesc(),
-			GHL::GetResourceStates(bufferDesc.initialState),
+			GHL::GetD3DResourceStates(bufferDesc.initialState),
 			nullptr,
-			IID_PPV_ARGS(&mResource)
+			IID_PPV_ARGS(&mD3DResource)
 		));
 
 		CreateDescriptor();
@@ -104,7 +102,7 @@ namespace Renderer {
 		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
 
 		D3D12_RANGE mapRange{ 0, bufferDesc.size };
-		HRASSERT(mResource->Map(0, &mapRange, (void**)&mMappedMemory));
+		HRASSERT(mD3DResource->Map(0, &mapRange, (void**)&mMappedMemory));
 		return mMappedMemory;
 	}
 
@@ -113,7 +111,7 @@ namespace Renderer {
 			return;
 		}
 
-		mResource->Unmap(0, nullptr);
+		mD3DResource->Unmap(0, nullptr);
 		mMappedMemory = nullptr;
 	}
 
@@ -149,7 +147,7 @@ namespace Renderer {
 				else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::AccelerateStruct)) {
 					isAccelStruct = true;
 					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-					srvDesc.RaytracingAccelerationStructure.Location = mResource->GetGPUVirtualAddress();
+					srvDesc.RaytracingAccelerationStructure.Location = mD3DResource->GetGPUVirtualAddress();
 				}
 			}
 			else {
@@ -162,7 +160,7 @@ namespace Renderer {
 			}
 
 			mSRDescriptor = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			mDevice->D3DDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, *mSRDescriptor.Get());
+			mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mSRDescriptor.Get());
 		}
 
 		if (HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)) {
@@ -201,7 +199,7 @@ namespace Renderer {
 			}
 
 			mUADescriptor = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			mDevice->D3DDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, *mUADescriptor.Get());
+			mDevice->D3DDevice()->CreateUnorderedAccessView(mD3DResource.Get(), nullptr, &uavDesc, *mUADescriptor.Get());
 		}
 	}
 }

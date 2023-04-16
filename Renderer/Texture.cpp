@@ -10,13 +10,11 @@ namespace Renderer {
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator
 	)
-	: mDevice(device)
-	, mResourceFormat(resourceFormat)
+	: Resource(device, resourceFormat)
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator) {
 		
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
-		const D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 
@@ -33,9 +31,9 @@ namespace Renderer {
 				&heapProperties,
 				D3D12_HEAP_FLAG_NONE,
 				&mResourceFormat.D3DResourceDesc(),
-				GHL::GetResourceStates(textureDesc.initialState),
-				&d3dClearValue,
-				IID_PPV_ARGS(&mResource)
+				GHL::GetD3DResourceStates(textureDesc.initialState),
+				nullptr,
+				IID_PPV_ARGS(&mD3DResource)
 			));
 		}
 		else {
@@ -50,9 +48,9 @@ namespace Renderer {
 					mHeapAllocation->heap->D3DHeap(),
 					mHeapAllocation->heapOffset,
 					&mResourceFormat.D3DResourceDesc(),
-					GHL::GetResourceStates(textureDesc.initialState),
-					&d3dClearValue,
-					IID_PPV_ARGS(&mResource)
+					GHL::GetD3DResourceStates(textureDesc.initialState),
+					nullptr,
+					IID_PPV_ARGS(&mD3DResource)
 				));
 			}
 			else {
@@ -110,12 +108,10 @@ namespace Renderer {
 		const GHL::Heap* heap,
 		size_t heapOffset
 	)
-	: mDevice(device)
-	, mResourceFormat(resourceFormat)
+	: Resource(device, resourceFormat)
 	, mDescriptorAllocator(descriptorAllocator) {
 
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
-		const D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 		ASSERT_FORMAT(heap->GetUsage() == GHL::EResourceUsage::Default, "Heap Usage Must be Default");
@@ -125,9 +121,9 @@ namespace Renderer {
 			heap->D3DHeap(),
 			heapOffset,
 			&mResourceFormat.D3DResourceDesc(),
-			GHL::GetResourceStates(textureDesc.initialState),
-			&d3dClearValue,
-			IID_PPV_ARGS(&mResource)
+			GHL::GetD3DResourceStates(textureDesc.initialState),
+			nullptr,
+			IID_PPV_ARGS(&mD3DResource)
 		));
 	}
 
@@ -188,7 +184,7 @@ namespace Renderer {
 		}
 
 		mDSDescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-		mDevice->D3DDevice()->CreateDepthStencilView(mResource.Get(), &dsvDesc, *mDSDescriptors[subDesc].Get());
+		mDevice->D3DDevice()->CreateDepthStencilView(mD3DResource.Get(), &dsvDesc, *mDSDescriptors[subDesc].Get());
 		return mDSDescriptors[subDesc].Get();
 
 	}
@@ -272,7 +268,7 @@ namespace Renderer {
 		}
 
 		mSRDescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		mDevice->D3DDevice()->CreateShaderResourceView(mResource.Get(), &srvDesc, *mSRDescriptors[subDesc].Get());
+		mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mSRDescriptors[subDesc].Get());
 		return mSRDescriptors[subDesc].Get();
 
 	}
@@ -335,7 +331,7 @@ namespace Renderer {
 		}
 
 		mRTDescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-		mDevice->D3DDevice()->CreateRenderTargetView(mResource.Get(), &rtvDesc, *mRTDescriptors[subDesc].Get());
+		mDevice->D3DDevice()->CreateRenderTargetView(mD3DResource.Get(), &rtvDesc, *mRTDescriptors[subDesc].Get());
 		return mRTDescriptors[subDesc].Get();
 
 	}
@@ -386,7 +382,7 @@ namespace Renderer {
 		}
 
 		mUADescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-		mDevice->D3DDevice()->CreateUnorderedAccessView(mResource.Get(), nullptr, &uavDesc, *mUADescriptors[subDesc].Get());
+		mDevice->D3DDevice()->CreateUnorderedAccessView(mD3DResource.Get(), nullptr, &uavDesc, *mUADescriptors[subDesc].Get());
 		return mUADescriptors[subDesc].Get();
 
 	}

@@ -23,11 +23,11 @@ namespace GHL {
 	}
 
 	void CommandQueue::ExecuteCommandList(ID3D12GraphicsCommandList4* const commandList) {
-		mQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)commandList);
+		mQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&commandList);
 	}
 
 	void CommandQueue::ExecuteCommandLists(ID3D12GraphicsCommandList4* const commandLists, UINT count) {
-		mQueue->ExecuteCommandLists(count, (ID3D12CommandList* const*)commandLists);
+		mQueue->ExecuteCommandLists(count, (ID3D12CommandList* const*)&commandLists);
 	}
 
 	uint64_t CommandQueue::GetTimestampFrequency() const {

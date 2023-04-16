@@ -9,10 +9,10 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				builder.ReadTexture("DeferredLightOutput", ShaderAccessFlag::PixelShader);
+				builder.WriteRenderTarget("FinalOutput");
 			},
 			[=]() {
-
+				int i = 32;
 
 			});
 	}

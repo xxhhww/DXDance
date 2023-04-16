@@ -10,22 +10,14 @@ namespace Renderer {
 	, imported(false)
 	, resourceFormat(device) {}
 
-	RenderGraphResource::RenderGraphResource(const std::string& name, Texture* resource)
+	RenderGraphResource::RenderGraphResource(const std::string& name, Resource* importedResource)
 	: resourceID(RenderGraphResourceID::FindOrCreateResourceID(name))
 	, imported(true)
-	, texture(resource) 
-	, resourceFormat(texture->GetResourceFormat()) {}
-
-	RenderGraphResource::RenderGraphResource(const std::string& name, Buffer* resource)
-	: resourceID(RenderGraphResourceID::FindOrCreateResourceID(name))
-	, imported(true)
-	, buffer(resource) 
-	, resourceFormat(buffer->GetResourceFormat()) {}
+	, resource(importedResource)
+	, resourceFormat(importedResource->GetResourceFormat()) {}
 
 	void RenderGraphResource::BuildResourceFormat() {
-		if (imported) {
-			return;
-		}
+		if (imported) return;
 
 		std::visit(MakeVisitor(
 			[this](const NewTextureProperties& properties) {

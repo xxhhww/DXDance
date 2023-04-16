@@ -1,14 +1,12 @@
 #pragma once
-#include "GHL/Resource.h"
-#include "GHL/Heap.h"
-
-#include "ResourceFormat.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 
+#include "Resource.h"
+
 namespace Renderer {
 
-	class Buffer : public GHL::Resource {
+	class Buffer : public Renderer::Resource {
 	public:
 
 		/*
@@ -48,16 +46,10 @@ namespace Renderer {
 		*/
 		void CreateDescriptor() override;
 
-		inline const auto* GetDevice()         const { return mDevice; }
-		inline const auto& GetResourceFormat() const { return mResourceFormat; }
 		inline const auto* GetSRDescriptor()   const { return mSRDescriptor.Get(); }
 		inline const auto* GetUADescriptor()   const { return mUADescriptor.Get(); }
 
 	private:
-		const GHL::Device* mDevice{ nullptr };
-
-		ResourceFormat mResourceFormat;
-
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		DescriptorHandleWrap mSRDescriptor;
 		DescriptorHandleWrap mUADescriptor;

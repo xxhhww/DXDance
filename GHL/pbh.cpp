@@ -4,7 +4,7 @@
 
 namespace GHL {
 
-	D3D12_RESOURCE_STATES GetResourceStates(EResourceState state) {
+	D3D12_RESOURCE_STATES GetD3DResourceStates(EResourceState state) {
 		D3D12_RESOURCE_STATES d3dState = D3D12_RESOURCE_STATE_COMMON;
 		if (HasAllFlags(state, EResourceState::UnorderedAccess)) d3dState |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 		if (HasAllFlags(state, EResourceState::PixelShaderAccess)) d3dState |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;

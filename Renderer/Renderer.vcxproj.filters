@@ -81,12 +81,6 @@
     <ClInclude Include="Texture.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="BufferDesc.h">
-      <Filter>头文件\Resource</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureDesc.h">
-      <Filter>头文件\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceAllocator.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
@@ -147,12 +141,6 @@
     <ClInclude Include="RenderGraphResourceProperties.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceStateTracker.h">
-      <Filter>头文件\Renderer\RenderGraph</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGraphResourceTracker.h">
-      <Filter>头文件\Renderer\RenderGraph</Filter>
-    </ClInclude>
     <ClInclude Include="GBufferPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
@@ -161,6 +149,15 @@
     </ClInclude>
     <ClInclude Include="BackBufferPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RootConstantsPerFrame.h">
+      <Filter>头文件\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceStateTracker.h">
+      <Filter>头文件\Manger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -245,12 +242,6 @@
     <ClCompile Include="RenderGraphResourceID.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceStateTracker.cpp">
-      <Filter>源文件\Renderer\RenderGraph</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGraphResourceTracker.cpp">
-      <Filter>源文件\Renderer\RenderGraph</Filter>
-    </ClCompile>
     <ClCompile Include="GBufferPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
@@ -259,6 +250,12 @@
     </ClCompile>
     <ClCompile Include="BackBufferPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceStateTracker.cpp">
+      <Filter>源文件\Manger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,16 +1,14 @@
 #pragma once
-#include "RenderGraphResource.h"
+#include "Resource.h"
 
-#include "GHL/pbh.h"
 #include "GHL/ResourceBarrierBatch.h"
 
 #include <vector>
 #include <unordered_map>
-#include <optional>
 
 namespace Renderer {
 
-	class RenderGraphResourceStateTracker {
+	class ResourceStateTracker {
 	public:
 		struct SubresourceState {
 		public:
@@ -21,16 +19,20 @@ namespace Renderer {
 		using SubresourceStateList = std::vector<SubresourceState>;
 
 	public:
-		void StartTracking(RenderGraphResource* resource);
-		void StopTracking(RenderGraphResource* resource);
+		void StartTracking(Resource* resource);
+		void StopTracking(Resource* resource);
 
-		void ResetInitialStates();
-
-		std::optional<GHL::ResourceBarrier> TransitionImmediately(RenderGraphResource* resource, GHL::EResourceState newState, bool tryImplicitly = false);
-		std::optional<GHL::ResourceBarrier> TransitionImmediately(RenderGraphResource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = false);
+		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly = false);
+		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = false);
+		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, const SubresourceStateList& newSubresourceStates, GHL::EResourceState newState, bool tryImplicitly = false);
 
 	private:
-		std::unordered_map<RenderGraphResource*, SubresourceStateList> mSubresourceStateMap;
+		SubresourceStateList& GetSubresourceStateListInternal(Resource* resource);
+
+		bool IsNewStateRedundant(GHL::EResourceState oldState, GHL::EResourceState newState);
+
+	private:
+		std::unordered_map<Resource*, SubresourceStateList> mSubresourceStateMap;
 	};
 
 }

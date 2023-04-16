@@ -13,8 +13,7 @@ namespace GHL {
 
 namespace Renderer {
 
-	class Texture;
-	class Buffer;
+	class Resource;
 	class RenderGraphResource;
 	class PoolDescriptorAllocator;
 
@@ -26,14 +25,11 @@ namespace Renderer {
 		void BuildAliasing();
 
 		/*
-		* Import External Texture Pipeline Resource
+		* Import External Pipeline Resource
 		*/
-		RenderGraphResource* ImportResource(const std::string& name, Texture* resource);
+		RenderGraphResource* ImportResource(const std::string& name, Resource* resource);
 
-		/*
-		* Import External Buffer Pipeline Resource
-		*/
-		RenderGraphResource* ImportResource(const std::string& name, Buffer* resource);
+		void ExportResource(const std::string& name);
 
 		RenderGraphResource* DeclareResource(const std::string& name);
 

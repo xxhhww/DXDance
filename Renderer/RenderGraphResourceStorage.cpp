@@ -33,16 +33,16 @@ namespace Renderer {
 
 			std::visit(MakeVisitor(
 				[&](const NewTextureProperties& properties) {
-					pair.second->texture = new Texture(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
+					pair.second->resource = new Texture(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
 				},
 				[&](const NewBufferProperties& properties) {
-					pair.second->buffer = new Buffer(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
+					pair.second->resource = new Buffer(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
 				})
 				, pair.second->newResourceProperties);
 		}
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::ImportResource(const std::string& name, Texture* resource) {
+	RenderGraphResource* RenderGraphResourceStorage::ImportResource(const std::string& name, Resource* resource) {
 
 		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
 		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
@@ -50,12 +50,15 @@ namespace Renderer {
 		return mRenderGraphResources.at(resourceID).get();
 	}
 
-	RenderGraphResource* RenderGraphResourceStorage::ImportResource(const std::string& name, Buffer* resource) {
+	void RenderGraphResourceStorage::ExportResource(const std::string& name) {
 
 		RenderGraphResourceID resourceID = RenderGraphResourceID::FindOrCreateResourceID(name);
-		ASSERT_FORMAT(mRenderGraphResources.find(resourceID) == mRenderGraphResources.end(), "Resource: ", name, " is Redeclared!");
-		mRenderGraphResources[resourceID] = std::make_unique<RenderGraphResource>(name, resource);
-		return mRenderGraphResources.at(resourceID).get();
+		if (mRenderGraphResources.find(resourceID) != mRenderGraphResources.end()) {
+			RenderGraphResource* retiredResource = mRenderGraphResources.at(resourceID).get();
+			ASSERT_FORMAT(retiredResource->imported == true, "Retired Resource Is Not Imported");
+			mRenderGraphResources.erase(resourceID);
+		}
+		RenderGraphResourceID::RetireResourceID(name);
 	}
 
 	RenderGraphResource* RenderGraphResourceStorage::DeclareResource(const std::string& name) {

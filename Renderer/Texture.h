@@ -1,17 +1,14 @@
 #pragma once
-#include "GHL/Device.h"
-#include "GHL/Resource.h"
-
-#include "ResourceFormat.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 #include "Buffer.h"
 
+#include "Resource.h"
+
 namespace Renderer {
 
-	class Texture : public GHL::Resource {
+	class Texture : public Renderer::Resource {
 	public:
-
 		/*
 		* Committed: heapAllocator为空
 		* Placed   : textureDesc中的reserved标记为false且heapAllocator不为空
@@ -33,9 +30,6 @@ namespace Renderer {
 		);
 
 		~Texture();
-
-		inline const auto* GetDevice()          const { return mDevice; }
-		inline const auto& GetResourceFormat()  const { return mResourceFormat; }
 		
 		const GHL::DescriptorHandle* GetDSDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
 		const GHL::DescriptorHandle* GetSRDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
@@ -55,10 +49,6 @@ namespace Renderer {
 		inline const auto& GetTilings()       const { return mTiling; }
 
 	private:
-		const GHL::Device* mDevice{ nullptr };
-
-		ResourceFormat mResourceFormat{};
-
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 
 		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mSRDescriptors;
@@ -79,7 +69,6 @@ namespace Renderer {
 
 		Microsoft::WRL::ComPtr<ID3D12Resource2> mFeedbackResource;
 		D3D12_RESOURCE_DESC1 mFeedbackDesc{};
-
 	};
 
 }

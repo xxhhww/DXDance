@@ -16,13 +16,15 @@ namespace GHL {
 	class Device;
 	class Fence;
 	class CommandQueue;
+	class GraphicsQueue;
+	class ComputeQueue;
+	class CopyQueue;
 
 }
 
 namespace Renderer {
 
-	class Buffer;
-	class Texture;
+	class Resource;
 	class RenderGraphPass;
 	class RingFrameTracker;
 	class PoolDescriptorAllocator;
@@ -30,7 +32,15 @@ namespace Renderer {
 
 	class RenderGraph {
 	public:
-		RenderGraph(const GHL::Device* device, RingFrameTracker* frameTracker, PoolDescriptorAllocator* descriptorAllocator);
+		RenderGraph(
+			const GHL::Device* device, 
+			RingFrameTracker* frameTracker, 
+			PoolDescriptorAllocator* descriptorAllocator, 
+			PoolCommandListAllocator* commandListAllocator,
+			GHL::GraphicsQueue* graphicsQueue,
+			GHL::ComputeQueue* computeQueue,
+			GHL::CopyQueue* copyQueue,
+			ResourceStateTracker* stateTracker);
 		~RenderGraph() = default;
 
 		/*
@@ -50,14 +60,14 @@ namespace Renderer {
 		void Execute();
 
 		/*
-		* 从外部导入缓冲资源
+		* 从外部导入资源
 		*/
-		void ImportResource(const std::string& name, Buffer* importedBuffer);
+		RenderGraphResourceID ImportResource(const std::string& name, Resource* importedBuffer);
 
 		/*
-		* 从外部导入纹理资源
+		* 删除外部导入的资源
 		*/
-		void ImportResource(const std::string& name, Texture* importedTexture);
+		void ExportResource(const std::string& name);
 
 	private:
 
@@ -125,7 +135,7 @@ namespace Renderer {
 
 		std::unique_ptr<RenderGraphResourceStorage> mResourceStorage; // 存储管线资源
 
-		std::unique_ptr<RenderGraphResourceStateTracker> mResourceStateTracker;
+		ResourceStateTracker* mResourceStateTracker;
 	};
 
 }
