@@ -42,7 +42,7 @@ namespace GHL {
 		* Get·½·¨
 		*/
 		inline const auto  DXGISwapChain()                const { return mSwapChain.Get(); }
-		inline const auto  D3DBackBuffer(uint32_t index)  const { return mBackBuffers.at(index).Get(); }
+		inline       auto* D3DBackBuffer(uint32_t index)  const { return mBackBuffers.at(index).Get(); }
 		inline const auto  D3DCommandQueue()              const { return mCommandQueue; }
 		inline const auto  WinHandle()                    const { return mWindowHandle; }
 

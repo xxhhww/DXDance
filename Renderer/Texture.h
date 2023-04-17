@@ -29,6 +29,11 @@ namespace Renderer {
 			size_t heapOffset
 		);
 
+		Texture(
+			const GHL::Device* device, 
+			ID3D12Resource* backBuffer,
+			PoolDescriptorAllocator* descriptorAllocator);
+
 		~Texture();
 		
 		const GHL::DescriptorHandle* GetDSDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});

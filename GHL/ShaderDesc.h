@@ -1,5 +1,6 @@
 #pragma once
 #include "pbh.h"
+
 #include <string>
 #include <vector>
 
@@ -31,14 +32,20 @@ namespace GHL {
 		SM_6_6
 	};
 
+	enum class EShaderCompileFlag : uint8_t {
+		None = 0,
+		Debug = 1 << 0,
+		DisableOptimization = 1 << 1
+	};
+	ENABLE_BITMASK_OPERATORS(EShaderCompileFlag);
+
 	struct ShaderDesc {
-		EShaderStage stage = EShaderStage::VS;
-		EShaderModel model = EShaderModel::SM_6_6;
-		std::string path{ "" };
+		EShaderStage stage{ EShaderStage::VS };
+		EShaderModel model{ EShaderModel::SM_6_6 };
+		std::string file{ "" };
 		std::string entryPoint{ "" };
 		std::vector<ShaderMacro> macros{};
-		bool debugBuild{ true };
-		bool separatePDB{ false };
+		EShaderCompileFlag compileFlag{ EShaderCompileFlag::None };
 	};
 
 	std::string GenProfileString(EShaderStage stage, EShaderModel model);

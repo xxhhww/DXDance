@@ -83,37 +83,35 @@ namespace Renderer {
 		ASSERT_FORMAT(!mProxy.psFilepath.empty(), "PSFilepath Must not be Empty");
 
 		GHL::ShaderDesc shaderDesc{};
-		shaderDesc.debugBuild = true;
-		shaderDesc.separatePDB = false;
 		shaderDesc.model = GHL::EShaderModel::SM_6_6;
 		
 		// VS
-		shaderDesc.path = mProxy.vsFilepath;
+		shaderDesc.file = mProxy.vsFilepath;
 		shaderDesc.entryPoint = mProxy.vsEntryPoint ? *mProxy.vsEntryPoint : "VSMain";
 		shaderDesc.stage = GHL::EShaderStage::VS;
 
-		GHL::ShaderCompiler::ShaderCompilationResult compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
-		ASSERT_FORMAT(compilationResult.CompiledShader.GetBlob() != nullptr, "Compiled Blob is nullptr");
-		mInternalShaders[GHL::EShaderStage::VS] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
+		GHL::ShaderCompilationResult compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
+		ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+		mInternalShaders[GHL::EShaderStage::VS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
 
 		// PS
-		shaderDesc.path = mProxy.psFilepath;
+		shaderDesc.file = mProxy.psFilepath;
 		shaderDesc.entryPoint = mProxy.psEntryPoint ? *mProxy.psEntryPoint : "PSMain";
 		shaderDesc.stage = GHL::EShaderStage::PS;
 
 		compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
-		ASSERT_FORMAT(compilationResult.CompiledShader.GetBlob() != nullptr, "Compiled Blob is nullptr");
-		mInternalShaders[GHL::EShaderStage::PS] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
+		ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+		mInternalShaders[GHL::EShaderStage::PS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
 		
 		// GS
 		if (mProxy.gsFilepath) {
-			shaderDesc.path = *mProxy.gsFilepath;
+			shaderDesc.file = *mProxy.gsFilepath;
 			shaderDesc.entryPoint = mProxy.gsEntryPoint ? *mProxy.gsEntryPoint : "GSMain";
 			shaderDesc.stage = GHL::EShaderStage::GS;
 
 			compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
-			ASSERT_FORMAT(compilationResult.CompiledShader.GetBlob() != nullptr, "Compiled Blob is nullptr");
-			mInternalShaders[GHL::EShaderStage::GS] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
+			ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+			mInternalShaders[GHL::EShaderStage::GS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
 		}
 
 		// ±‡“ÎGHL::PipelineState
@@ -157,18 +155,16 @@ namespace Renderer {
 		ASSERT_FORMAT(!mProxy.csFilepath.empty(), "CSFilepath Must not be Empty");
 
 		GHL::ShaderDesc shaderDesc{};
-		shaderDesc.debugBuild = true;
-		shaderDesc.separatePDB = false;
 		shaderDesc.model = GHL::EShaderModel::SM_6_6;
 
 		// CS
-		shaderDesc.path = mProxy.csFilepath;
+		shaderDesc.file = mProxy.csFilepath;
 		shaderDesc.entryPoint = mProxy.csEntryPoint ? *mProxy.csEntryPoint : "CSMain";
 		shaderDesc.stage = GHL::EShaderStage::CS;
 
-		GHL::ShaderCompiler::ShaderCompilationResult compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
-		ASSERT_FORMAT(compilationResult.CompiledShader.GetBlob() != nullptr, "Compiled Blob is nullptr");
-		mInternalShaders[GHL::EShaderStage::CS] = std::make_unique<GHL::Shader>(compilationResult.CompiledShader);
+		GHL::ShaderCompilationResult compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
+		ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+		mInternalShaders[GHL::EShaderStage::CS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
 
 		// ±‡“ÎGHL::PipelineState
 		mInternalPipelineState = std::make_unique<GHL::ComputePipelineState>(mManger->GetDevice());

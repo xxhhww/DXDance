@@ -15,7 +15,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
 
     renderGraph.AddPass(
         "Pass0",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
             NewTextureProperties properties{};
@@ -25,12 +25,12 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             // builder.NewTexture("Tex_0", properties);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
     );
 
     renderGraph.AddPass(
         "Pass1",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
@@ -42,12 +42,12 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             // builder.NewTexture("Tex_1", properties);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
         "Pass2",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
             NewTextureProperties properties{};
@@ -57,24 +57,24 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
         "Pass3",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
             // builder.NewTexture("Tex_3", NewTextureProperties{});
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
         "Pass4",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
@@ -82,29 +82,29 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_3", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
         "Pass5",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
             builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
         "Pass6",
-        [=](RenderGraphBuilder& builder) {
+        [=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
             builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
             builder.ReadTexture("Tex_1", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=]() {}
+        [=](CommandListWrap& commandList, RenderContext& context) {}
         );
 
     renderGraph.Build();

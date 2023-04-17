@@ -29,18 +29,34 @@ namespace Renderer {
 	class RingFrameTracker;
 	class PoolDescriptorAllocator;
 	class PoolCommandListAllocator;
+	class ShaderManger;
+	class LinearBufferAllocator;
+
+	struct RenderContext {
+	public:
+		RenderContext(ShaderManger* _shaderManger, LinearBufferAllocator* _dynamicAllocator, RenderGraphResourceStorage* _resourceStorage)
+		: shaderManger(_shaderManger)
+		, dynamicAllocator(_dynamicAllocator)
+		, resourceStorage(_resourceStorage) {}
+
+		ShaderManger* shaderManger{ nullptr };
+		LinearBufferAllocator* dynamicAllocator{ nullptr };
+		RenderGraphResourceStorage* resourceStorage{ nullptr };
+	};
 
 	class RenderGraph {
 	public:
 		RenderGraph(
-			const GHL::Device* device, 
-			RingFrameTracker* frameTracker, 
-			PoolDescriptorAllocator* descriptorAllocator, 
+			const GHL::Device* device,
+			RingFrameTracker* frameTracker,
+			PoolDescriptorAllocator* descriptorAllocator,
 			PoolCommandListAllocator* commandListAllocator,
 			GHL::GraphicsQueue* graphicsQueue,
 			GHL::ComputeQueue* computeQueue,
 			GHL::CopyQueue* copyQueue,
-			ResourceStateTracker* stateTracker);
+			ResourceStateTracker* stateTracker,
+			ShaderManger* shaderManger,
+			LinearBufferAllocator* dynamicAllocator);
 		~RenderGraph() = default;
 
 		/*
@@ -128,14 +144,16 @@ namespace Renderer {
 		std::vector<TransitionNode*> mTransitionNodes;
 
 		std::vector<uint64_t> mSortedPassNodes; // 拓扑排序后的结果
-		
+
 		std::vector<std::vector<uint64_t>> mAdjacencyLists; // PassNodes的邻接表
 
 		std::vector<std::unique_ptr<DependencyLevel>> mDependencyLevelList; // 依赖层级
 
 		std::unique_ptr<RenderGraphResourceStorage> mResourceStorage; // 存储管线资源
 
-		ResourceStateTracker* mResourceStateTracker;
+		ResourceStateTracker* mResourceStateTracker{ nullptr };
+		ShaderManger* mShaderManger{ nullptr };
+		LinearBufferAllocator* mDynamicAllocator{ nullptr };
 	};
 
 }

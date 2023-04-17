@@ -4,7 +4,10 @@ namespace Renderer {
 
 	ShaderManger::ShaderManger(const GHL::Device* device)
 	: mDevice(device)
-	, mCompiler() {}
+	, mCompiler() {
+		mBaseRootSignature = std::make_unique<GHL::RootSignature>(mDevice);
+		mBaseRootSignature->Compile();
+	}
 
 	void ShaderManger::CreateGraphicsShader(const std::string& name, const GraphicsStateConfigurator& configurator) {
 		auto shader = std::make_unique<Renderer::GraphicsShader>(this);

@@ -100,6 +100,11 @@ namespace Renderer {
 
 		uint32_t SubresourceCount() const;
 
+		/*
+		* 为BackBuffer设置资源状态
+		*/
+		void SetBackBufferStates();
+
 	private:
 		void ResolveD3DResourceDesc();
 

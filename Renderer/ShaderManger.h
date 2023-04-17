@@ -18,6 +18,11 @@ namespace Renderer {
 
 		void CreateComputeShader(const std::string& name, const ComputeStateConfigurator& configurator);
 
+		template<typename T>
+		T* GetShader(const std::string& name) {
+			return static_cast<T*>(mShaders.at(name).get());
+		}
+
 		inline const auto* GetDevice()               const { return mDevice; }
 		inline const auto& GetCompiler()             const { return mCompiler; }
 

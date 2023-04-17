@@ -127,6 +127,16 @@ namespace Renderer {
 		));
 	}
 
+	Texture::Texture(
+		const GHL::Device* device, 
+		ID3D12Resource* backBuffer,
+		PoolDescriptorAllocator* descriptorAllocator)
+	: Resource(device, ResourceFormat{}) 
+	, mDescriptorAllocator(descriptorAllocator) {
+		mD3DResource = backBuffer;
+		mResourceFormat.SetBackBufferStates();
+	}
+
 	Texture::~Texture() {
 
 	}
@@ -277,7 +287,7 @@ namespace Renderer {
 
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
 
-		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::RenderTarget), "Unsupport RTDescriptor");
+		// ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::RenderTarget), "Unsupport RTDescriptor");
 
 		if (mRTDescriptors.find(subDesc) != mRTDescriptors.end()) {
 			return mRTDescriptors.at(subDesc).Get();

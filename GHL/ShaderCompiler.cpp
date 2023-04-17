@@ -3,175 +3,109 @@
 #include "Tools/StrUtil.h"
 
 namespace GHL {
-    CustomIncludeHandler::CustomIncludeHandler(const std::filesystem::path& rootPath, IDxcLibrary* library)
-    : mRootPath{ rootPath }, mLibrary{ library } {}
 
-    HRESULT STDMETHODCALLTYPE CustomIncludeHandler::LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource)
-    {
-        std::filesystem::path includePath{ pFilename };
-
-        std::string fileName = includePath.string();
-
-        // Search for the substring in string
-        size_t pos = fileName.find("./");
-
-        if (pos != std::string::npos)
-        {
-            // If found then erase it from string
-            fileName.erase(pos, 2);
-        }
-
-        mReadFileList.push_back(fileName);
-
-        includePath = mRootPath / pFilename;
-
-        IDxcBlobEncoding* source;
-        HRESULT result = mLibrary->CreateBlobFromFile(includePath.wstring().c_str(), nullptr, &source);
-        *ppIncludeSource = source;
-        return result;
-    }
-
-    // Implementing IUnknown
-    // https://docs.microsoft.com/en-us/office/client-developer/outlook/mapi/implementing-iunknown-in-c-plus-plus
-    //
-    HRESULT STDMETHODCALLTYPE CustomIncludeHandler::QueryInterface(REFIID riid, void** ppvObject)
-    {
-        // Always set out parameter to NULL, validating it first.
-        if (!ppvObject) return E_INVALIDARG;
-
-        *ppvObject = NULL;
-        if (riid == IID_IUnknown)
-        {
-            // Increment the reference count and return the pointer.
-            *ppvObject = (LPVOID)this;
-            AddRef();
-            return NOERROR;
-        }
-
-        return E_NOINTERFACE;
-    }
-
-    ULONG CustomIncludeHandler::AddRef()
-    {
-        InterlockedIncrement(&mRefCount);
-        return mRefCount;
-    }
-
-    ULONG CustomIncludeHandler::Release()
-    {
-        ULONG ulRefCount = InterlockedDecrement(&mRefCount);
-        //if (mRefCount == 0) delete this; // Crashes, even though it's from MS docs 
-        return ulRefCount;
-    }
+	char const* shaderDirectory = "E:/MyProject/DXDance/Shader/";
 
     ShaderCompiler::ShaderCompiler() {
         HRASSERT(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(mLibrary.GetAddressOf())));
         HRASSERT(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(mCompiler.GetAddressOf())));
     }
 
-    ShaderCompiler::ShaderCompilationResult ShaderCompiler::CompileShader(const ShaderDesc& desc) const {
-        BlobCompilationResult blobCompilationResult = CompileBlob(desc);
-        ShaderCompilationResult shaderCompilationResult{ Shader{ blobCompilationResult.Blob, blobCompilationResult.PDBBlob, desc.entryPoint, desc.stage }, blobCompilationResult.CompiledFileRelativePaths };
-        return shaderCompilationResult;
-    }
+    ShaderCompilationResult ShaderCompiler::CompileShader(const ShaderDesc& desc) const {
+		ShaderCompilationResult output;
 
-    ShaderCompiler::BlobCompilationResult ShaderCompiler::CompileBlob(const ShaderDesc& desc) const {
-        ASSERT_FORMAT(std::filesystem::exists(desc.path), "Shader file ", desc.path.c_str(), " doesn't exist");
+		uint32_t codePage = CP_UTF8;
+		Microsoft::WRL::ComPtr<IDxcBlobEncoding> sourceBlob;
 
-        std::wstring wPath = Tool::StrUtil::UTF8ToWString(desc.path);
-        std::wstring wEntryPoint = Tool::StrUtil::UTF8ToWString(desc.entryPoint);
-        std::wstring wProfile = Tool::StrUtil::UTF8ToWString(GenProfileString(desc.stage, desc.model));
-        LPWSTR suggestedDebugName = nullptr;
+		std::wstring shaderFile = Tool::StrUtil::UTF8ToWString(desc.file);
+		HRASSERT(mLibrary->CreateBlobFromFile(shaderFile.data(), &codePage, sourceBlob.GetAddressOf()));
+		
+		std::wstring name = Tool::StrUtil::UTF8ToWString(Tool::StrUtil::RemoveExtension(desc.file));
+		std::wstring dir = Tool::StrUtil::UTF8ToWString(shaderDirectory);
+		std::wstring path = Tool::StrUtil::UTF8ToWString(Tool::StrUtil::GetBasePath(desc.file));
 
-        std::vector<std::wstring> arguments;
-        arguments.push_back(L"/all_resources_bound");
+		std::wstring target = Tool::StrUtil::UTF8ToWString(GenProfileString(desc.stage, desc.model));
+		std::wstring entryPoint = Tool::StrUtil::UTF8ToWString(desc.entryPoint);
 
-        if (desc.debugBuild) {
-            arguments.push_back(L"/Zi");
-            arguments.push_back(L"/Od");
+		std::vector<wchar_t const*> compileArgs{};
+		compileArgs.push_back(name.c_str());
 
-            if (desc.separatePDB) {
-                arguments.push_back(L"/Qstrip_debug");
-            }
-        }
+		if (HasAnyFlag(desc.compileFlag, EShaderCompileFlag::Debug)) {
+			compileArgs.push_back(DXC_ARG_DEBUG);
+			compileArgs.push_back(L"-Qembed_debug");
+		}
+		else {
+			compileArgs.push_back(L"-Qstrip_debug");
+			compileArgs.push_back(L"-Qstrip_reflect");
+		}
 
-        std::vector<LPCWSTR> argumentPtrs;
-        for (auto& argument : arguments) {
-            argumentPtrs.push_back(argument.c_str());
-        }
+		if (HasAnyFlag(desc.compileFlag, EShaderCompileFlag::DisableOptimization)) {
+			compileArgs.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
+		}
+		else {
+			compileArgs.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
+		}
 
-        std::vector<DxcDefine> defines;
-        for (auto& macro : desc.macros) {
-            DxcDefine dxcDefine;
-            ZeroMemory(&dxcDefine, sizeof(dxcDefine));
-            std::wstring name = Tool::StrUtil::UTF8ToWString(macro.name);
-            std::wstring value = Tool::StrUtil::UTF8ToWString(macro.value);
+		compileArgs.push_back(L"-HV 2021");
 
-            wmemcpy((wchar_t*)dxcDefine.Name, name.c_str(), name.size());
-            wmemcpy((wchar_t*)dxcDefine.Value, value.c_str(), value.size());
-            defines.emplace_back(std::move(dxcDefine));
-        }
+		compileArgs.push_back(L"-E");
+		compileArgs.push_back(entryPoint.c_str());
+		compileArgs.push_back(L"-T");
+		compileArgs.push_back(target.c_str());
 
-        Microsoft::WRL::ComPtr<IDxcBlob> sourceBlob;
-        Microsoft::WRL::ComPtr<IDxcBlob> pdbBlob;
-        Microsoft::WRL::ComPtr<IDxcOperationResult> result;
+		compileArgs.push_back(L"-I");
+		compileArgs.push_back(dir.c_str());
+		compileArgs.push_back(L"-I");
+		compileArgs.push_back(path.c_str());
 
-        // TODO 自定义头文件
-        CustomIncludeHandler reader{ std::filesystem::path(desc.path), mLibrary.Get() };
-        // reader.LoadSource(path.filename().wstring().c_str(), sourceBlob.GetAddressOf());
+		std::vector<std::wstring> macros;
+		macros.reserve(desc.macros.size());
+		for (auto const& macro : desc.macros) {
+			std::wstring name = Tool::StrUtil::UTF8ToWString(macro.name);
+			std::wstring value = Tool::StrUtil::UTF8ToWString(macro.value);
+			compileArgs.push_back(L"-D");
+			if (macro.value.empty())
+				macros.push_back(name + L"=1");
+			else
+				macros.push_back(name + L"=" + value);
+			compileArgs.push_back(macros.back().c_str());
+		}
 
-        // Note: when compiling libraries, entry point and profile are ignored
+		DxcBuffer source_buffer;
+		source_buffer.Ptr = sourceBlob->GetBufferPointer();
+		source_buffer.Size = sourceBlob->GetBufferSize();
+		source_buffer.Encoding = 0;
+		
+		// CustomIncludeHandler custom_include_handler{};
 
-        if (desc.debugBuild && desc.separatePDB) {
-            mCompiler->CompileWithDebug(
-                sourceBlob.Get(),                   // Program text
-                wPath.c_str(),                      // File name, mostly for error messages
-                wEntryPoint.c_str(),                // Entry point function
-                wProfile.c_str(),                   // Target profile
-                argumentPtrs.data(),                // Compilation arguments
-                argumentPtrs.size(),                // Number of compilation arguments
-                defines.data(),                     // Name/value defines
-                defines.size(),                     // Number of compilation defines
-                &reader,                            // Handler for #include directives
-                result.GetAddressOf(),              // Compiler output status, buffer, and errors
-                &suggestedDebugName,                // Suggested file name for debug blob.
-                pdbBlob.GetAddressOf());            // Debug info blob
-        }
-        else {
-            mCompiler->Compile(
-                sourceBlob.Get(),                   // Program text
-                wPath.c_str(),                      // File name, mostly for error messages
-                wEntryPoint.c_str(),                // Entry point function
-                wProfile.c_str(),                   // Target profile
-                argumentPtrs.data(),                // Compilation arguments
-                argumentPtrs.size(),                // Number of compilation arguments
-                defines.data(),                     // Name/value defines
-                defines.size(),                     // Number of compilation defines
-                &reader,                            // Handler for #include directives
-                result.GetAddressOf());
-        }
+		Microsoft::WRL::ComPtr<IDxcResult> result;
+		HRASSERT(mCompiler->Compile(
+			&source_buffer,
+			compileArgs.data(), (uint32_t)compileArgs.size(),
+			nullptr,
+			IID_PPV_ARGS(result.GetAddressOf())));
 
-        HRESULT hrCompilation{};
-        result->GetStatus(&hrCompilation);
+		Microsoft::WRL::ComPtr<IDxcBlobUtf8> errors;
+		if (SUCCEEDED(result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr))) {
+			if (errors && errors->GetStringLength() > 0) {
+				ASSERT_FORMAT(false, errors->GetStringPointer());
+			}
+		}
+		Microsoft::WRL::ComPtr<IDxcBlob> blob;
+		HRASSERT(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(blob.GetAddressOf()), nullptr));
 
-        if (SUCCEEDED(hrCompilation)) {
-            Microsoft::WRL::ComPtr<IDxcBlob> compiledShaderBlob;
-            result->GetResult(compiledShaderBlob.GetAddressOf());
-            std::filesystem::path pdbFileName{ suggestedDebugName ? suggestedDebugName : L"" };
+		Microsoft::WRL::ComPtr<IDxcBlob> hash;
+		if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr))) {
+			DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
+			memcpy(output.shaderHash, hash_buf->HashDigest, sizeof(uint64_t) * 2);
+		}
 
-            return { compiledShaderBlob, pdbBlob, reader.AllReadFileRelativePaths(), pdbFileName.string() };
-        }
-        else {
-            Microsoft::WRL::ComPtr<IDxcBlobEncoding> printBlob;
-            Microsoft::WRL::ComPtr<IDxcBlobEncoding> printBlob16;
+		output.compiledShader.SetDesc(desc);
+		output.compiledShader.SetBytecode(blob->GetBufferPointer(), blob->GetBufferSize());
+		// output.includes = std::move(custom_include_handler.include_files);
+		output.includes.push_back(desc.file);
 
-            result->GetErrorBuffer(printBlob.GetAddressOf());
-            // We can use the library to get our preferred encoding.
-            mLibrary->GetBlobAsUtf16(printBlob.Get(), printBlob16.GetAddressOf());
-            OutputDebugStringW((LPWSTR)printBlob16->GetBufferPointer());
-
-            return { nullptr, nullptr, {}, "" };
-        }
+		return output;
     }
 
 }

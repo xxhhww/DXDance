@@ -7,7 +7,7 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"DeferredLightPass",
-			[=](RenderGraphBuilder& builder) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				NewTextureProperties _DeferredLightOutputProperties;
@@ -22,7 +22,7 @@ namespace Renderer {
 				builder.ReadTexture("GBufferNormal", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferMixed", ShaderAccessFlag::NonPixelShader);
 			},
-			[=]() {
+			[=](CommandListWrap& commandList, RenderContext& context) {
 
 
 			});

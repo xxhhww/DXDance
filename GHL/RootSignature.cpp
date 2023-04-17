@@ -30,21 +30,26 @@ namespace GHL {
 	}
 
 	void RootSignature::Compile() {
+		D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData{};
+		featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+		HRASSERT(mDevice->D3DDevice()->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData)));
+
 		// 两个DIRECTLY_INDEXED标识符分别启用HLSL中的ResourceDescriptorHeap 与 SamplerDescriptorHeap
+		mDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
 		mDesc.Desc_1_1.Flags =
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 			D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED |
 			D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
 
 		mDesc.Desc_1_1.NumParameters = (UINT)mParameters.size();
-		mDesc.Desc_1_1.pParameters = &mParameters[0];
+		mDesc.Desc_1_1.pParameters = mParameters.data();
 
 		mDesc.Desc_1_1.NumStaticSamplers = (UINT)mStaticSamplers.size();
 		mDesc.Desc_1_1.pStaticSamplers = mStaticSamplers.data();
 
 		Microsoft::WRL::ComPtr<ID3DBlob> signatureBlob;
 		Microsoft::WRL::ComPtr<ID3DBlob> errors;
-		D3D12SerializeVersionedRootSignature(&mDesc, &signatureBlob, &errors);
+		HRASSERT(D3D12SerializeVersionedRootSignature(&mDesc, &signatureBlob, &errors));
 		ASSERT_FORMAT(!errors, (char*)errors->GetBufferPointer());
 		HRASSERT(mDevice->D3DDevice()->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&mSignature)));
 	}

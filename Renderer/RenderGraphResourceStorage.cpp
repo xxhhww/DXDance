@@ -17,12 +17,16 @@ namespace Renderer {
 
 	void RenderGraphResourceStorage::BuildAliasing() {
 		for (auto& pair : mRenderGraphResources) {
+			if (pair.second->imported) continue;
+
 			pair.second->BuildResourceFormat();
 			mAliasingHelper->AddResource(pair.second.get());
 		}
 
 		// 构建资源别名
 		size_t totalHeapSize = mAliasingHelper->BuildAliasing();
+
+		if (totalHeapSize == 0u) return;
 
 		// 创建默认堆
 		mHeap = std::make_unique<GHL::Heap>(mDevice, totalHeapSize, GHL::EResourceUsage::Default);

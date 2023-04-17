@@ -24,11 +24,15 @@ namespace Renderer {
 		GHL::GraphicsQueue* graphicsQueue,
 		GHL::ComputeQueue* computeQueue,
 		GHL::CopyQueue* copyQueue,
-		ResourceStateTracker* stateTracker)
+		ResourceStateTracker* stateTracker,
+		ShaderManger* shaderManger,
+		LinearBufferAllocator* dynamicAllocator)
 	: mFrameTracker(frameTracker) 
 	, mCommandListAllocator(commandListAllocator)
 	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
-	, mResourceStateTracker(stateTracker) {
+	, mResourceStateTracker(stateTracker) 
+	, mShaderManger(shaderManger) 
+	, mDynamicAllocator(dynamicAllocator) {
 		mCommandQueues.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
 		mCommandQueues.at(0u) = graphicsQueue;
 		mCommandQueues.at(1u) = computeQueue;
@@ -63,6 +67,8 @@ namespace Renderer {
 	}
 
 	void RenderGraph::Execute() {
+
+		RenderContext renderContext{ mShaderManger, mDynamicAllocator, mResourceStorage.get() };
 
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
 
@@ -131,7 +137,7 @@ RecordRenderCommand:
 
 					for (auto& passNode : passNodes) {
 						// ÊÕ¼¯äÖÈ¾ÃüÁî
-						passNode->renderPass->Execute();
+						passNode->renderPass->Execute(commandList, renderContext);
 
 						// Wait Command
 						for (const auto& waitInfo : passNode->waitInfos) {
@@ -160,14 +166,14 @@ RecordRenderCommand:
 	}
 
 	void RenderGraph::ExportResource(const std::string& name) {
-
+		mResourceStorage->ExportResource(name);
 	}
 
 	void RenderGraph::SetupInternalResource() {
 		// Set up Internal Resource
 		for (auto& passNode : mPassNodes) {
 			RenderGraphBuilder builder(passNode, mResourceStorage.get());
-			passNode->renderPass->SetUp(builder);
+			passNode->renderPass->SetUp(builder, *mShaderManger);
 		}
 		// Start Tracking Internal Resource
 		for (auto& pair : mResourceStorage->GetResources()) {

@@ -59,7 +59,7 @@ namespace Renderer {
 		inline const auto& GetHead()               const { return mHead; }
 		inline const auto& GetTail()               const { return mTail; }
 		inline const auto& GetMaxSize()            const { return mMaxSize; }
-		inline const auto& GetUsedSize()           const { return mUsedSize; }
+		inline const auto& GetUsedSize()           const { return mFrameAttributes.size(); }
 		inline const auto& IsFirstFrame()          const { return mFirstFrame; }
 		inline const auto& GetCurrFrameIndex()     const { return mFrameAttributes.back().frameIndex; }
 		inline const auto& GetCurrFrameAttribute() const { return mFrameAttributes.back(); }

@@ -13,10 +13,16 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="资源文件\Test">
+      <UniqueIdentifier>{a17950a8-e729-4267-8940-45b81d564c5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="BaseEngineLayout.hlsli">
       <Filter>资源文件</Filter>
+    </None>
+    <None Include="BackBufferPassTest.hlsl">
+      <Filter>资源文件\Test</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -64,7 +64,7 @@ namespace Renderer {
 		std::unique_ptr<GHL::CopyQueue>        mCopyQueue;     // 复制引擎
 
 		std::unique_ptr<GHL::SwapChain> mSwapChain; // 交换链(RenderEngine好像不需要交换链，它最后是输出一张图片来给上层模块使用)
-		std::vector<ID3D12Resource*> mBackBuffers;  // 后缓冲
+		std::vector<std::unique_ptr<Texture>> mBackBuffers;  // 后缓冲
 
 		std::unique_ptr<GHL::Fence> mRenderFrameFence; // 渲染帧围栏
 

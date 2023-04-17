@@ -7,7 +7,7 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"GBufferPass",
-			[=](RenderGraphBuilder& builder) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
 				NewTextureProperties _GBufferProperties;
@@ -30,7 +30,7 @@ namespace Renderer {
 				builder.WriteRenderTarget("GBufferMixed");
 				builder.WriteDepthStencil("GBufferDepth");
 			},
-			[=]() {
+			[=](CommandListWrap& commandList, RenderContext& context) {
 
 
 			});

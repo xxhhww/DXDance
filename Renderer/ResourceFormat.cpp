@@ -33,6 +33,11 @@ namespace Renderer {
 		mResourceDescVariant = desc;
 	}
 
+	void ResourceFormat::SetBackBufferStates() {
+		mInitialState = GHL::EResourceState::Present;
+		mExpectedState = (GHL::EResourceState::Present | GHL::EResourceState::RenderTarget);
+	}
+
 	void ResourceFormat::ResolveD3DResourceDesc() {
 		// Ω‚À„D3D12_RESOURCE_DESC
 		std::visit(MakeVisitor(

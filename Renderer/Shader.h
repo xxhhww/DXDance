@@ -142,7 +142,7 @@ namespace Renderer {
 		void SetPipelineStateProxy(const GraphicsStateProxy& proxy);
 
 		inline const auto* GetPipelineState()        const { return mInternalPipelineState.get(); }
-		inline const auto* GetD3DPipelineState()     const { return mInternalPipelineState->D3DPipelineState(); }
+		inline auto* GetD3DPipelineState()           const { return mInternalPipelineState->D3DPipelineState(); }
 		inline const auto& GetD3DPipelineStateDesc() const { return mInternalPipelineState->desc; }
 		
 	private:
