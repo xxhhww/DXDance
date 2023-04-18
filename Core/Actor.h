@@ -1,5 +1,5 @@
 #pragma once
-#include "Entity.h"
+#include "ECS/Entity.h"
 #include "Tools/Event.h"
 #include "Tools/ISerializable.h"
 
@@ -112,7 +112,7 @@ namespace Core {
 		Actor*				mParent{ nullptr };	// 父物体
 		std::vector<Actor*> mChilds;			// 子物体
 
-		Entity				mEntity;			// ECS实体
+		ECS::Entity			mEntity;			// ECS实体
 	};
 }
 

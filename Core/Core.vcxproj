@@ -135,33 +135,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
-    <ClInclude Include="Archetype.h" />
     <ClInclude Include="AssetPathDataBase.h" />
-    <ClInclude Include="Entity.h" />
     <ClInclude Include="FooComponent.h" />
     <ClInclude Include="IAsset.h" />
     <ClInclude Include="IAssetManger.h" />
-    <ClInclude Include="IComponent.h" />
-    <ClInclude Include="IInspectorItem.h" />
-    <ClInclude Include="Metatype.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManger.h" />
     <ClInclude Include="ServiceLocator.h" />
-    <ClInclude Include="TaskProxy.h" />
-    <ClInclude Include="TaskSystem.h" />
-    <ClInclude Include="ThreadPool.h" />
-    <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="Archetype.cpp" />
     <ClCompile Include="AssetPathDataBase.cpp" />
     <ClCompile Include="CoreTest.cpp" />
-    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
-    <ClCompile Include="TaskProxy.cpp" />
-    <ClCompile Include="TaskSystem.cpp" />
     <None Include="IAssetManger.inl" />
     <None Include="TestDeserializeSceneOutput.json" />
     <None Include="TestRapidjson.json">
@@ -170,15 +157,17 @@
     <None Include="TestScenejson.json">
       <FileType>Document</FileType>
     </None>
-    <ClCompile Include="ThreadPool.cpp" />
-    <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Actor.inl" />
-    <None Include="Entity.inl" />
-    <None Include="Metatype.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ECS\ECS.vcxproj">
+      <Project>{50ff7f0a-d1ee-4ba5-8a02-96a2bd2367fc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Renderer\Renderer.vcxproj">
+      <Project>{caf78c56-cae7-43c5-aace-fb6489240994}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>

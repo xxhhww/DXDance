@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\ThirdParty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -150,6 +150,7 @@
     <ClInclude Include="BackBufferPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CCamera.h" />
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GPUProfiler.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="ShaderManger.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileUpdateManger.h" />
+    <ClInclude Include="CTransform.h" />
     <ClInclude Include="Uploader.h" />
     <ClInclude Include="UploadList.h" />
   </ItemGroup>
@@ -185,6 +187,8 @@
     <ClCompile Include="BackBufferPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CCamera.cpp" />
+    <ClCompile Include="CTransform.cpp" />
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />

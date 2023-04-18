@@ -1,15 +1,17 @@
 #include "Actor.h"
-#include "Transform.h"
+
 #include "FooComponent.h"
+
+#include "Renderer/CTransform.h"
 
 namespace Core {
 	Actor::Actor(int64_t actorID, const std::string& name) 
 	: mActorID(actorID)
 	, mName(name) 
-	, mEntity(Entity::Create<Transform>()) {}
+	, mEntity(ECS::Entity::Create<Renderer::Transform>()) {}
 
 	Actor::~Actor() {
-		Entity::Delete(mEntity);
+		ECS::Entity::Delete(mEntity);
 	}
 
 	void Actor::AttachParent(Actor& parent) {
@@ -76,7 +78,7 @@ namespace Core {
 
 		writer.Key("Components");
 		writer.StartArray();
-		mEntity.ForeachComp([&](IComponent* comp) {
+		mEntity.ForeachComp([&](ECS::IComponent* comp) {
 			comp->SerializeJson(writer);
 		});
 		writer.EndArray();
@@ -98,7 +100,7 @@ namespace Core {
 		for (size_t i = 0; i < ary.Size(); i++) {
 			std::string compname;
 			SerializeHelper::DeserializeString(ary[i], "Typename", compname);
-			if		(compname == typeid(Transform).name())		{ GetComponent<Transform>().DeserializeJson(ary[i]); }
+			if		(compname == typeid(Renderer::Transform).name())		{ GetComponent<Renderer::Transform>().DeserializeJson(ary[i]); }
 			else if (compname == typeid(FooComponent).name())	{ AddComponent<FooComponent>().DeserializeJson(ary[i]); }
 			else { assert(false); }
 		}

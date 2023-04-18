@@ -3,22 +3,26 @@
 
 using namespace ECS;
 
-struct CompA : public ECS::IComponent {
+class CompA : public ECS::IComponent {
+public:
     char a;
 };
 
-struct CompB : public ECS::IComponent {
+class CompB : public ECS::IComponent {
+public:
     float a;
     float b;
     float c;
     float d;
 };
 
-struct CompC : public ECS::IComponent {
+class CompC : public ECS::IComponent {
+public:
     float data[512];
 };
 
-struct CompD : public ECS::IComponent {
+class CompD : public ECS::IComponent {
+public:
     inline CompD() {
         a = 1; b = 2; c = 3; d = 4;
     }

@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\ECS">
-      <UniqueIdentifier>{9a26acd0-f35e-4cda-b54d-8d009564e169}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\ECS">
-      <UniqueIdentifier>{e32d6ea1-56a1-4852-b3d1-092d4d22c372}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Asset">
       <UniqueIdentifier>{c41b60c9-d2d1-4522-8971-d9ded01e4b98}</UniqueIdentifier>
     </Filter>
@@ -46,22 +40,13 @@
     <Filter Include="源文件\Test">
       <UniqueIdentifier>{e2c9e151-24c2-48c3-8a93-43e9e7fba76e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\TaskSystem">
-      <UniqueIdentifier>{c96b00a2-aabf-4bb2-83c5-b296276e6fa9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\TaskSystem">
-      <UniqueIdentifier>{6a19ae51-38b1-4393-b2c4-9a821977dcf4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\ECS\Components">
+    <Filter Include="头文件\Components">
       <UniqueIdentifier>{e080df25-55cd-458f-9078-754cdc08f51a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\ECS\Components">
-      <UniqueIdentifier>{4fb906b8-4d4b-4225-909d-ccf86dbe01a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\SceneManger">
+    <Filter Include="头文件\Scene">
       <UniqueIdentifier>{65bb13a7-f640-4cf5-a3e3-a1caec7e26f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\SceneManger">
+    <Filter Include="源文件\Scene">
       <UniqueIdentifier>{32727e6b-fbb3-48ac-b2a4-749f01471e03}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -75,94 +60,40 @@
     <ClInclude Include="IAsset.h">
       <Filter>头文件\Asset</Filter>
     </ClInclude>
-    <ClInclude Include="Metatype.h">
-      <Filter>头文件\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Archetype.h">
-      <Filter>头文件\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="Entity.h">
-      <Filter>头文件\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadPool.h">
-      <Filter>头文件\TaskSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskSystem.h">
-      <Filter>头文件\TaskSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskProxy.h">
-      <Filter>头文件\TaskSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="Actor.h">
-      <Filter>头文件\ECS</Filter>
-    </ClInclude>
-    <ClInclude Include="IComponent.h">
-      <Filter>头文件\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="IInspectorItem.h">
-      <Filter>头文件\ECS\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>头文件\ECS\Components</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
-      <Filter>头文件\SceneManger</Filter>
+      <Filter>头文件\Scene</Filter>
     </ClInclude>
     <ClInclude Include="SceneManger.h">
-      <Filter>头文件\SceneManger</Filter>
+      <Filter>头文件\Scene</Filter>
     </ClInclude>
     <ClInclude Include="FooComponent.h">
-      <Filter>头文件\ECS\Components</Filter>
+      <Filter>头文件\Components</Filter>
     </ClInclude>
     <ClInclude Include="AssetPathDataBase.h">
       <Filter>头文件\AssetManger</Filter>
     </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>头文件\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Archetype.cpp">
-      <Filter>源文件\ECS</Filter>
-    </ClCompile>
     <ClCompile Include="CoreTest.cpp">
       <Filter>源文件\Test</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.cpp">
-      <Filter>源文件\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="ThreadPool.cpp">
-      <Filter>源文件\TaskSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskSystem.cpp">
-      <Filter>源文件\TaskSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskProxy.cpp">
-      <Filter>源文件\TaskSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="Actor.cpp">
-      <Filter>源文件\ECS</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>源文件\ECS\Components</Filter>
-    </ClCompile>
     <ClCompile Include="Scene.cpp">
-      <Filter>源文件\SceneManger</Filter>
+      <Filter>源文件\Scene</Filter>
     </ClCompile>
     <ClCompile Include="SceneManger.cpp">
-      <Filter>源文件\SceneManger</Filter>
+      <Filter>源文件\Scene</Filter>
     </ClCompile>
     <ClCompile Include="AssetPathDataBase.cpp">
       <Filter>源文件\AssetManger</Filter>
     </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>源文件\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Metatype.inl">
-      <Filter>头文件\ECS</Filter>
-    </None>
-    <None Include="Entity.inl">
-      <Filter>头文件\ECS</Filter>
-    </None>
-    <None Include="Actor.inl">
-      <Filter>头文件\ECS</Filter>
-    </None>
     <None Include="TestRapidjson.json">
       <Filter>源文件\Test</Filter>
     </None>
@@ -174,6 +105,9 @@
     </None>
     <None Include="TestDeserializeSceneOutput.json">
       <Filter>源文件\Test</Filter>
+    </None>
+    <None Include="Actor.inl">
+      <Filter>头文件\Scene</Filter>
     </None>
   </ItemGroup>
 </Project>

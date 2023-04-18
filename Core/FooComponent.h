@@ -1,5 +1,5 @@
 #pragma once
-#include "IComponent.h"
+#include "ECS/IComponent.h"
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
 
@@ -7,7 +7,7 @@ namespace Core {
 	/*
 	* 测试时使用的组件
 	*/
-	class FooComponent : public IComponent {
+	class FooComponent : public ECS::IComponent {
 	public:
 		/*
 		* 序列化为Json数据

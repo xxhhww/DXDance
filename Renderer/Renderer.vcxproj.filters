@@ -58,6 +58,12 @@
     <Filter Include="源文件\Renderer\RenderPass">
       <UniqueIdentifier>{2d48d8fc-12d1-4594-9fb5-a35db837f511}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Components">
+      <UniqueIdentifier>{efa90fce-3b24-470a-955f-224ba19e465e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Components">
+      <UniqueIdentifier>{2ba159aa-bde1-45f9-9516-786a53cdd477}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -159,6 +165,12 @@
     <ClInclude Include="ResourceStateTracker.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
+    <ClInclude Include="CTransform.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CCamera.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -256,6 +268,12 @@
     </ClCompile>
     <ClCompile Include="ResourceStateTracker.cpp">
       <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="CCamera.cpp">
+      <Filter>源文件\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="CTransform.cpp">
+      <Filter>源文件\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
