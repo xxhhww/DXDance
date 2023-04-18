@@ -6,7 +6,7 @@ namespace App {
 		const std::string& title,
 		bool opend,
 		const UI::PanelWindowSettings& panelSetting)
-	: UI::PanelWindow(title, opend, panelSetting) 
+	: UI::PanelWindow(title, opend, panelSetting)
 	, mFinalOutputRect(1920.0f, 1080.0f)
 	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y) {
 		mBackImage = &CreateWidget<UI::Image>(0u, mFinalOutputRect);

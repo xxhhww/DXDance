@@ -99,7 +99,7 @@ namespace Renderer {
 	}
 
 	void RenderEngine::BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle) {
-		mFinalOutput->BindSRDescriptor(cpuHandle, TextureSubResourceDesc{});
+		mFinalOutput->BindSRDescriptor(cpuHandle);
 	}
 
 }
