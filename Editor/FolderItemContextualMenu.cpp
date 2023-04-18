@@ -12,10 +12,7 @@
 
 #include "Windows/OpenFileDialog.h"
 
-#include "Core/Texture.h"
 #include "Core/ServiceLocator.h"
-#include "Core/TextureManger.h"
-#include "Core/TextureLoader.h"
 
 #include <filesystem>
 
@@ -74,6 +71,7 @@ namespace App {
 				{
 				case Tool::FileType::TEXTURE:
 				{
+					/*
 					// 避免资源重名
 					int fails = 0;
 					std::string correctName;
@@ -104,6 +102,7 @@ namespace App {
 
 					// 更新控件
 					itemAddedEvent.Invoke(newPath);
+					*/
 					break;
 				}
 				case Tool::FileType::MODEL:

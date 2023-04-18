@@ -88,7 +88,8 @@ namespace Tool {
 
 		if (it != mFreeBlocks.at(order).end()) {
 			// ºÏ²¢ÐÖµÜ¿é
-			DeallocateInternal(std::min(offset, UnitSizeToSize(buddy)), order + 1);
+			size_t min = (offset < UnitSizeToSize(buddy)) ? offset : UnitSizeToSize(buddy);
+			DeallocateInternal(min, order + 1);
 			mFreeBlocks.at(order).erase(it);
 		}
 		else {

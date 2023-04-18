@@ -279,6 +279,9 @@
     <ClInclude Include="ContextualMenu.h">
       <Filter>头文件\Plugins</Filter>
     </ClInclude>
+    <ClInclude Include="Image.h">
+      <Filter>头文件\Widget\Visual</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IWidget.cpp">
@@ -424,6 +427,9 @@
     </ClCompile>
     <ClCompile Include="ContextualMenu.cpp">
       <Filter>源文件\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="Image.cpp">
+      <Filter>源文件\Visual</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

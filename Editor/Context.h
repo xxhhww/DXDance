@@ -6,8 +6,6 @@
 
 #include "Tools/Clock.h"
 
-#include "Core/TextureManger.h"
-
 namespace App {
 	class Context {
 	public:
@@ -30,7 +28,5 @@ namespace App {
 		std::unique_ptr<Windows::InputManger>	inputManger;
 		std::unique_ptr<UI::UIManger>			uiManger;		// UIManger的画布由Editor类进行设置
 		std::unique_ptr<Tool::Clock>			clock;			// 定时器
-
-		std::unique_ptr<Core::TextureManger>	textureManger;	// 纹理管理器
 	};
 }

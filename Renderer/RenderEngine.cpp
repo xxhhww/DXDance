@@ -12,9 +12,8 @@ namespace Renderer {
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
 		, mComputeQueue(std::make_unique<GHL::ComputeQueue>(mDevice.get()))
 		, mCopyQueue(std::make_unique<GHL::CopyQueue>(mDevice.get()))
-		, mSwapChain(std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, GHL::BackBufferStrategy::Double, width, height))
 		, mRenderFrameFence(std::make_unique<GHL::Fence>(mDevice.get()))
-		, mFrameTracker(std::make_unique<RingFrameTracker>(2u))
+		, mFrameTracker(std::make_unique<RingFrameTracker>(3u))
 		, mHeapAllocator(std::make_unique<BuddyHeapAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mCommandListAllocator(std::make_unique<PoolCommandListAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mDescriptorAllocator(std::make_unique<PoolDescriptorAllocator>(mDevice.get(), mFrameTracker.get(), std::vector<uint64_t>{1024, 128, 128, 128}))
@@ -33,21 +32,22 @@ namespace Renderer {
 			mShaderManger.get(),
 			mSharedMemAllocator.get())) {
 
-		mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(0u), mDescriptorAllocator.get()));
-		mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(1u), mDescriptorAllocator.get()));
+		if (windowHandle != nullptr) {
+			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, GHL::BackBufferStrategy::Triple, width, height);
+			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(0u), mDescriptorAllocator.get()));
+			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(1u), mDescriptorAllocator.get()));
+			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(2u), mDescriptorAllocator.get()));
+		}
 
 		// 创建FinalOutput纹理
 		TextureDesc _FinalOutputDesc{};
-		_FinalOutputDesc.width = 1920u;
-		_FinalOutputDesc.height = 1080u;
+		_FinalOutputDesc.width = width;
+		_FinalOutputDesc.height = height;
 		_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget);
 		mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
-		
-		mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mBackBuffers.at(0u).get());
+		mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
 
-		mResourceStateTracker->StartTracking(mBackBuffers.at(0u).get());
-		mResourceStateTracker->StartTracking(mBackBuffers.at(1u).get());
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
 
 		mBackBufferPass.AddPass(*mRenderGraph.get());
@@ -69,32 +69,24 @@ namespace Renderer {
 		mRenderFrameFence->IncrementExpectedValue();
 		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
 
-		if (!mFrameTracker->IsFirstFrame()) {
-			mRenderGraph->ImportResource("FinalOutput", mBackBuffers.at(mFrameTracker->GetCurrFrameIndex()).get());
-		}
-
 		mRenderGraph->Execute();
 
 		{
 			// 将FinalOutput转换为PixelShaderAccess供外部读取
-			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mBackBuffers.at(mFrameTracker->GetCurrFrameIndex()).get(), 0u, GHL::EResourceState::Present);
+			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), 0u, GHL::EResourceState::PixelShaderAccess);
 			CommandListWrap transitionCmdList = mCommandListAllocator->AllocateGraphicsCommandList();
 			transitionCmdList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
 			transitionCmdList->Close();
 			mGraphicsQueue->ExecuteCommandList(transitionCmdList->D3DCommandList());
 		}
 
-		mSwapChain->Present();
-
-		mRenderGraph->ExportResource("FinalOutput");
-
 		// 压入渲染命令完成后的围栏
 		mGraphicsQueue->SignalFence(*mRenderFrameFence.get());
 
-		if (mFrameTracker->GetUsedSize() == 2u) {
+		if (mFrameTracker->GetUsedSize() == 3u) {
 			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 
-			UINT64 valueToWaitFor = mRenderFrameFence->ExpectedValue() - (2u - 1u);
+			UINT64 valueToWaitFor = mRenderFrameFence->ExpectedValue() - (3u - 1u);
 			mRenderFrameFence->SetCompletionEvent(valueToWaitFor, eventHandle);
 
 			// Wait until the GPU hits current fence event is fired.
@@ -105,4 +97,9 @@ namespace Renderer {
 		// 检测并处理渲染帧是否完成
 		mFrameTracker->PopCompletedFrame(mRenderFrameFence->CompletedValue());
 	}
+
+	void RenderEngine::BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle) {
+		mFinalOutput->BindSRDescriptor(cpuHandle, TextureSubResourceDesc{});
+	}
+
 }

@@ -4,56 +4,8 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx12.h"
 
-/* 均为临时使用 */
-#include <d3d12.h>
-#include <dxgi1_4.h>
-#ifdef _DEBUG
-#define DX12_ENABLE_DEBUG_LAYER
-#endif
-
-#ifdef DX12_ENABLE_DEBUG_LAYER
-#include <dxgidebug.h>
-#pragma comment(lib, "dxguid.lib")
-#endif
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3d12.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-#pragma comment(lib, "dxcompiler.lib")
 namespace UI {
-	struct FrameContext
-	{
-		ID3D12CommandAllocator* CommandAllocator;
-		UINT64                  FenceValue;
-	};
-
-	// Data
-	static int const                    NUM_FRAMES_IN_FLIGHT = 3;
-	static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
-	static UINT                         g_frameIndex = 0;
-
-	static int const                    NUM_BACK_BUFFERS = 3;
-	static ID3D12Device* g_pd3dDevice = NULL;
-	static ID3D12DescriptorHeap* g_pd3dRtvDescHeap = NULL;
-	static ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
-	static ID3D12CommandQueue* g_pd3dCommandQueue = NULL;
-	static ID3D12GraphicsCommandList* g_pd3dCommandList = NULL;
-	static ID3D12Fence* g_fence = NULL;
-	static HANDLE                       g_fenceEvent = NULL;
-	static UINT64                       g_fenceLastSignaledValue = 0;
-	static IDXGISwapChain3* g_pSwapChain = NULL;
-	static HANDLE                       g_hSwapChainWaitableObject = NULL;
-	static ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
-	static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
-
-    // Forward declarations of helper functions
-    bool CreateDeviceD3D(HWND hWnd);
-    void CleanupDeviceD3D();
-    void CreateRenderTarget();
-    void CleanupRenderTarget();
-    void WaitForLastSubmittedFrame();
-    FrameContext* WaitForNextFrameResources();
-
-    bool CreateDeviceD3D(HWND hWnd)
+    bool UIManger::CreateDeviceD3D(HWND hWnd)
     {
         // Setup swap chain
         DXGI_SWAP_CHAIN_DESC1 sd;
@@ -74,7 +26,7 @@ namespace UI {
         }
 
         // [DEBUG] Enable debug interface
-#ifdef DX12_ENABLE_DEBUG_LAYER
+#if defined(DEBUG) || defined(_DEBUG)
         ID3D12Debug* pdx12Debug = NULL;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&pdx12Debug))))
             pdx12Debug->EnableDebugLayer();
@@ -86,14 +38,14 @@ namespace UI {
             return false;
 
         // [DEBUG] Setup debug interface to break on any warnings/errors
-#ifdef DX12_ENABLE_DEBUG_LAYER
+#if defined(DEBUG) || defined(_DEBUG)
         if (pdx12Debug != NULL)
         {
             ID3D12InfoQueue* pInfoQueue = NULL;
             g_pd3dDevice->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
             pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
             pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
-            pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, true);
+            pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
             pInfoQueue->Release();
             pdx12Debug->Release();
         }
@@ -120,7 +72,7 @@ namespace UI {
         {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1;
+            desc.NumDescriptors = 2;
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
                 return false;
@@ -169,7 +121,7 @@ namespace UI {
         return true;
     }
 
-    void CleanupDeviceD3D()
+    void UIManger::CleanupDeviceD3D()
     {
         CleanupRenderTarget();
         if (g_pSwapChain) { g_pSwapChain->SetFullscreenState(false, NULL); g_pSwapChain->Release(); g_pSwapChain = NULL; }
@@ -184,7 +136,7 @@ namespace UI {
         if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = NULL; }
         if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
 
-#ifdef DX12_ENABLE_DEBUG_LAYER
+#if defined(DEBUG) || defined(_DEBUG)
         IDXGIDebug1* pDebug = NULL;
         if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
         {
@@ -194,7 +146,7 @@ namespace UI {
 #endif
     }
 
-    void CreateRenderTarget()
+    void UIManger::CreateRenderTarget()
     {
         for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
         {
@@ -205,7 +157,7 @@ namespace UI {
         }
     }
 
-    void CleanupRenderTarget()
+    void UIManger::CleanupRenderTarget()
     {
         WaitForLastSubmittedFrame();
 
@@ -213,7 +165,7 @@ namespace UI {
             if (g_mainRenderTargetResource[i]) { g_mainRenderTargetResource[i]->Release(); g_mainRenderTargetResource[i] = NULL; }
     }
 
-    void WaitForLastSubmittedFrame()
+    void UIManger::WaitForLastSubmittedFrame()
     {
         FrameContext* frameCtx = &g_frameContext[g_frameIndex % NUM_FRAMES_IN_FLIGHT];
 
@@ -229,7 +181,7 @@ namespace UI {
         WaitForSingleObject(g_fenceEvent, INFINITE);
     }
 
-    FrameContext* WaitForNextFrameResources()
+    UIManger::FrameContext* UIManger::WaitForNextFrameResources()
     {
         UINT nextFrameIndex = g_frameIndex + 1;
         g_frameIndex = nextFrameIndex;

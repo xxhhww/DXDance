@@ -46,6 +46,12 @@
     <Filter Include="源文件\Panels\Hierarchy">
       <UniqueIdentifier>{68396275-776c-4a6b-9b97-ca9314e15da3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Panels\SceneView">
+      <UniqueIdentifier>{84688f26-6e5a-4ed9-80c6-6c1e4170c1de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Panels\SceneView">
+      <UniqueIdentifier>{6d606afc-4e49-4329-9afd-e676157120d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">
@@ -104,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="FileItemContextualMenu.h">
       <Filter>头文件\Panels\AssetBrowser</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneView.h">
+      <Filter>头文件\Panels\SceneView</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="FileItemContextualMenu.cpp">
       <Filter>源文件\Panels\AssetBrowser</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneView.cpp">
+      <Filter>源文件\Panels\SceneView</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

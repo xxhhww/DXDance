@@ -51,6 +51,8 @@ namespace Renderer {
 
 		void Render();
 
+		void BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
+
 	public:
 		// ==========================...GPU…Ë±∏...==========================
 		

@@ -41,6 +41,6 @@ namespace GHL {
 		bool mAftermathEnabled{ false };
 		uint64_t mMinimumHeapSize{ 0u };
 		uint64_t mHeapAlignment{ 0u };
-		uint64_t mNodeMask{ 0u };
+		uint64_t mNodeMask{ 1u };
 	};
 }

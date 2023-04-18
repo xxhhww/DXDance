@@ -14,9 +14,6 @@
 #include "Tools/StrUtil.h"
 #include "Tools/MetaFile.h"
 
-#include "Core/Texture.h"
-#include "Core/TextureLoader.h"
-#include "Core/TextureManger.h"
 #include "Core/ServiceLocator.h"
 
 namespace App {
@@ -89,6 +86,7 @@ namespace App {
 		{
 		case Tool::FileType::TEXTURE	:
 		{
+			/*
 			// 读取meta文件
 			Tool::MetaFile metaFile(metapath);
 			int64_t uid = metaFile.Get<int64_t>("UID");
@@ -105,6 +103,7 @@ namespace App {
 			CORESERVICE(Core::TextureManger).RegisterResource(texture);
 
 			break;
+			*/
 		}
 		case Tool::FileType::MODEL		:
 			break;
@@ -142,7 +141,7 @@ namespace App {
 		case Tool::FileType::TEXTURE:
 		{
 			// 通过名称注销资产
-			CORESERVICE(Core::TextureManger).UnRegisterResource(filename);
+			// CORESERVICE(Core::TextureManger).UnRegisterResource(filename);
 			break;
 		}
 		case Tool::FileType::MODEL:

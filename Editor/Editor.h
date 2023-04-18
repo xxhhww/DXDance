@@ -4,6 +4,7 @@
 namespace App {
 	class ShaderEditor;
 	class AssetBrowser;
+	class SceneView;
 
 	class Editor {
 	public:
@@ -46,5 +47,6 @@ namespace App {
 		UI::Canvas mCanvas;	// ±à¼­Æ÷»­²¼
 		ShaderEditor* mShaderEditor{ nullptr };
 		AssetBrowser* mAssetBrowser{ nullptr };
+		SceneView* mSceneView{ nullptr };
 	};
 }

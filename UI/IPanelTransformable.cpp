@@ -33,15 +33,8 @@ namespace UI {
 	}
 
 	void IPanelTransformable::Update() {
-		if (!mFirstFrame) {
-			if (!autoSize)
-				UpdateSize();
-			CopyImGuiSize();
-
-			UpdatePosition();
-			CopyImGuiPosition();
-		}
-		mFirstFrame = false;
+		CopyImGuiSize();
+		CopyImGuiPosition();
 	}
 
 	Math::Vector2 IPanelTransformable::CalculatePositionAlignmentOffset(bool useDefault) {

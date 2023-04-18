@@ -12,10 +12,6 @@ namespace App {
 	, projectAssetPath(projPath + "\\Assets") {
 		// 初始化Win32窗口
 		Windows::WindowSetting winSetting{};
-		winSetting.fullscreen = false;
-		winSetting.visible = true;
-		winSetting.maximized = true;
-		winSetting.resizable = true;
 		winSetting.title = projName;
 		window = std::make_unique<Windows::Window>();
 
@@ -28,16 +24,11 @@ namespace App {
 		// 初始化定时器
 		clock = std::make_unique<Tool::Clock>();
 
-		// 初始化资产管理器
-		textureManger = std::make_unique<Core::TextureManger>(projectAssetPath, projectEnginePath);
-
 		// 注册服务
 		Core::ServiceLocator::Provide(*window.get());
 		Core::ServiceLocator::Provide(*inputManger.get());
 		Core::ServiceLocator::Provide(*uiManger.get());
 		Core::ServiceLocator::Provide(*clock.get());
-
-		Core::ServiceLocator::Provide(*textureManger.get());
 	}
 
 	Context::~Context() {

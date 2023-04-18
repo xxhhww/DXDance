@@ -143,6 +143,7 @@
     <ClInclude Include="DragFloat2.h" />
     <ClInclude Include="DragFloat3.h" />
     <ClInclude Include="DragFloat4.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="IPlugin.h" />
     <ClInclude Include="Pluginable.h" />
     <ClInclude Include="SameLine.h" />
@@ -202,6 +203,7 @@
     <ClCompile Include="DragFloat3.cpp" />
     <ClCompile Include="DragFloat4.cpp" />
     <ClCompile Include="Group.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />

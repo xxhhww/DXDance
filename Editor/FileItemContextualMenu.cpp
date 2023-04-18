@@ -5,9 +5,7 @@
 
 #include "Tools/StrUtil.h"
 
-#include "Core/Texture.h"
 #include "Core/ServiceLocator.h"
-#include "Core/TextureManger.h"
 
 #include <filesystem>
 
@@ -46,6 +44,7 @@ namespace App {
 			{
 			case Tool::FileType::TEXTURE:
 			{
+				/*
 				do {
 					correctName = !fails ? (newName + '.' + extension) : (newName + " (" + std::to_string(fails) + ")." + extension);
 					fails++;
@@ -53,6 +52,7 @@ namespace App {
 
 				CORESERVICE(Core::TextureManger).RenameResource(name, correctName);
 				break;
+				*/
 			}
 			case Tool::FileType::MODEL:
 				break;

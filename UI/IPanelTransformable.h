@@ -57,6 +57,5 @@ namespace UI {
 		VerticalAlignment mVerticalAlignment{ VerticalAlignment::TOP };
 
 		bool mAlignmentChanged{ false };
-		bool mFirstFrame{ false };
 	};
 }

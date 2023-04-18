@@ -73,7 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ReferencePath>..\ThirdParty\include;$(ReferencePath)</ReferencePath>
-    <LibraryPath>..\ThirdParty\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\ThirdParty\lib;..\DXDance\ThirdParty\lib\DXC;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,6 +152,7 @@
     <ClInclude Include="MainMenuBar.h" />
     <ClInclude Include="MathNode.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="SceneView.h" />
     <ClInclude Include="ShaderEditor.h" />
     <ClInclude Include="Pin.h" />
     <ClInclude Include="VariableNode.h" />
@@ -174,6 +175,7 @@
     <ClCompile Include="MainMenuBar.cpp" />
     <ClCompile Include="MathNode.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="SceneView.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
     <ClCompile Include="Pin.cpp" />
     <ClCompile Include="VariableNode.cpp" />
@@ -181,6 +183,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
       <Project>{cc73a8f3-16a6-44d9-a924-34d75ef88bbc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Renderer\Renderer.vcxproj">
+      <Project>{caf78c56-cae7-43c5-aace-fb6489240994}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Tools\Tools.vcxproj">
+      <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>
     <ProjectReference Include="..\UI\UI.vcxproj">
       <Project>{f3015252-dc64-4f6d-b5d9-07f6bcdbd611}</Project>
