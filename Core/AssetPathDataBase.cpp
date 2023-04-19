@@ -5,8 +5,7 @@
 
 namespace Core {
 	AssetPathDataBase::AssetPathDataBase(const std::string& tablePath)
-	: mTablePath(tablePath) {
-	}
+	: mTablePath(tablePath) {}
 
 	AssetPathDataBase::~AssetPathDataBase() {}
 

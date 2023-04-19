@@ -1,14 +1,72 @@
 #include "ShaderCompiler.h"
+
 #include "Tools/Assert.h"
 #include "Tools/StrUtil.h"
+
+#include <fstream>
 
 namespace GHL {
 
 	char const* shaderDirectory = "E:/MyProject/DXDance/Shader/";
 
+	class CustomIncludeHandler : public IDxcIncludeHandler {
+	public:
+		CustomIncludeHandler(IDxcIncludeHandler* includeHandler, IDxcUtils* utils) 
+		: mIncludeHandler(includeHandler)
+		, mUtils(utils) {}
+
+		HRESULT STDMETHODCALLTYPE LoadSource(_In_ LPCWSTR pFilename, _COM_Outptr_result_maybenull_ IDxcBlob** ppIncludeSource) override {
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> encoding;
+			std::string include_file = Tool::StrUtil::WStringToUTF8(pFilename);
+			if (!std::filesystem::exists(include_file)) {
+				*ppIncludeSource = nullptr;
+				return E_FAIL;
+			}
+
+			bool already_included = false;
+			for (auto const& includedFile : includeFiles) {
+				if (include_file == includedFile) {
+					already_included = true;
+					break;
+				}
+			}
+
+			if (already_included) {
+				static const char nullStr[] = " ";
+				mUtils->CreateBlob(nullStr, ARRAYSIZE(nullStr), CP_UTF8, encoding.GetAddressOf());
+				*ppIncludeSource = encoding.Detach();
+				return S_OK;
+			}
+
+			std::wstring winclude_file = Tool::StrUtil::UTF8ToWString(include_file);
+			HRESULT hr = mUtils->LoadFile(winclude_file.c_str(), nullptr, encoding.GetAddressOf());
+			if (SUCCEEDED(hr)) {
+				includeFiles.push_back(include_file);
+				*ppIncludeSource = encoding.Detach();
+				return S_OK;
+			}
+			else *ppIncludeSource = nullptr;
+			return E_FAIL;
+		}
+		
+		HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override {
+			return mIncludeHandler->QueryInterface(riid, ppvObject);
+		}
+
+		ULONG STDMETHODCALLTYPE AddRef(void) override { return 1; }
+		ULONG STDMETHODCALLTYPE Release(void) override { return 1; }
+
+	public:
+		IDxcIncludeHandler* mIncludeHandler{ nullptr };
+		IDxcUtils* mUtils{ nullptr };
+		std::vector<std::string> includeFiles;
+	};
+
     ShaderCompiler::ShaderCompiler() {
         HRASSERT(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(mLibrary.GetAddressOf())));
         HRASSERT(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(mCompiler.GetAddressOf())));
+		HRASSERT(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(mUtils.GetAddressOf())));
+		HRASSERT(mLibrary->CreateIncludeHandler(mIncludeHandler.GetAddressOf()));
     }
 
     ShaderCompilationResult ShaderCompiler::CompileShader(const ShaderDesc& desc) const {
@@ -76,13 +134,13 @@ namespace GHL {
 		source_buffer.Size = sourceBlob->GetBufferSize();
 		source_buffer.Encoding = 0;
 		
-		// CustomIncludeHandler custom_include_handler{};
+		CustomIncludeHandler customIncludeHandler{ mIncludeHandler.Get(), mUtils.Get() };
 
 		Microsoft::WRL::ComPtr<IDxcResult> result;
 		HRASSERT(mCompiler->Compile(
 			&source_buffer,
 			compileArgs.data(), (uint32_t)compileArgs.size(),
-			nullptr,
+			&customIncludeHandler,
 			IID_PPV_ARGS(result.GetAddressOf())));
 
 		Microsoft::WRL::ComPtr<IDxcBlobUtf8> errors;
@@ -102,7 +160,7 @@ namespace GHL {
 
 		output.compiledShader.SetDesc(desc);
 		output.compiledShader.SetBytecode(blob->GetBufferPointer(), blob->GetBufferSize());
-		// output.includes = std::move(custom_include_handler.include_files);
+		output.includes = std::move(customIncludeHandler.includeFiles);
 		output.includes.push_back(desc.file);
 
 		return output;

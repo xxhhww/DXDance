@@ -13,29 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\Asset">
-      <UniqueIdentifier>{c41b60c9-d2d1-4522-8971-d9ded01e4b98}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Asset">
-      <UniqueIdentifier>{b0643cfe-cd4f-4736-82df-51b38473aeae}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\Interface">
-      <UniqueIdentifier>{2913a84f-903f-4de8-a38d-d195d7cdf121}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\Global">
-      <UniqueIdentifier>{630a525f-9c48-4e58-b101-8277212e6408}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\AssetManger">
       <UniqueIdentifier>{0f661359-7f88-4e82-9e00-a7d82dcde769}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\AssetManger">
       <UniqueIdentifier>{b6ca0843-133d-4d83-a7d9-8e86e005aa2c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="头文件\Asset\Loader">
-      <UniqueIdentifier>{6a12bc09-4088-4eb9-b70d-eedb053431a6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Asset\Loader">
-      <UniqueIdentifier>{4260cf03-8f30-4d39-8ba2-ab99984c851f}</UniqueIdentifier>
     </Filter>
     <Filter Include="源文件\Test">
       <UniqueIdentifier>{e2c9e151-24c2-48c3-8a93-43e9e7fba76e}</UniqueIdentifier>
@@ -49,16 +31,13 @@
     <Filter Include="源文件\Scene">
       <UniqueIdentifier>{32727e6b-fbb3-48ac-b2a4-749f01471e03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\GlobalService">
+      <UniqueIdentifier>{630a525f-9c48-4e58-b101-8277212e6408}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServiceLocator.h">
-      <Filter>头文件\Global</Filter>
-    </ClInclude>
-    <ClInclude Include="IAssetManger.h">
-      <Filter>头文件\AssetManger</Filter>
-    </ClInclude>
-    <ClInclude Include="IAsset.h">
-      <Filter>头文件\Asset</Filter>
+      <Filter>头文件\GlobalService</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>头文件\Scene</Filter>
@@ -99,9 +78,6 @@
     </None>
     <None Include="TestScenejson.json">
       <Filter>源文件\Test</Filter>
-    </None>
-    <None Include="IAssetManger.inl">
-      <Filter>头文件\AssetManger</Filter>
     </None>
     <None Include="TestDeserializeSceneOutput.json">
       <Filter>源文件\Test</Filter>

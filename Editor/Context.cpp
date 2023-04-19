@@ -24,11 +24,17 @@ namespace App {
 		// 初始化定时器
 		clock = std::make_unique<Tool::Clock>();
 
+		// 初始化资产管理器
+		assetPathDataBase = std::make_unique<Core::AssetPathDataBase>("Undefined");
+		sceneManger = std::make_unique<Core::SceneManger>(projectAssetPath, projectEnginePath, assetPathDataBase.get());
+
 		// 注册服务
 		Core::ServiceLocator::Provide(*window.get());
 		Core::ServiceLocator::Provide(*inputManger.get());
 		Core::ServiceLocator::Provide(*uiManger.get());
 		Core::ServiceLocator::Provide(*clock.get());
+		Core::ServiceLocator::Provide(*assetPathDataBase.get());
+		Core::ServiceLocator::Provide(*sceneManger.get());
 	}
 
 	Context::~Context() {

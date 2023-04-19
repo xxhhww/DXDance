@@ -1,9 +1,16 @@
 #pragma once
 #include "UI/PanelWindow.h"
+
 #include "Renderer/RenderEngine.h"
+#include "Renderer/CCamera.h"
+#include "Renderer/CTransform.h"
 
 namespace UI {
 	class Image;
+}
+
+namespace Core {
+	class SceneManger;
 }
 
 namespace App {
@@ -31,6 +38,10 @@ namespace App {
 		Math::Vector2 mAvailableSize{ 0.0f, 0.0f };
 		Renderer::RenderEngine mRenderEngine;
 		UI::Image* mBackImage{ nullptr };
+
+		Core::SceneManger*  mSceneManger{ nullptr };
+		Renderer::Camera	mEditorCamera;
+		Renderer::Transform mCameraTransform;
 	};
 
 }

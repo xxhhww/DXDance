@@ -108,7 +108,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;..\ThirdParty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,10 +153,12 @@
     <ClInclude Include="CCamera.h" />
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="GBufferPass.h" />
+    <ClInclude Include="GPUCamera.h" />
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
+    <ClInclude Include="RenderGraphBlackboard.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RootConstantsPerFrame.h" />
     <ClInclude Include="PoolDescriptorAllocator.h" />
@@ -187,8 +189,6 @@
     <ClCompile Include="BackBufferPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
-    <ClCompile Include="CCamera.cpp" />
-    <ClCompile Include="CTransform.cpp" />
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />

@@ -3,6 +3,8 @@
 #include "DeferredLightPass.h"
 #include "BackBufferPass.h"
 
+#include "ECS/Entity.h"
+
 namespace Renderer {
 
 	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height)
@@ -59,9 +61,11 @@ namespace Renderer {
 
 	}
 
-	void RenderEngine::Update(float dt) {
-		// ¸üÐÂConstants
-
+	void RenderEngine::Update(float dt, const Renderer::Camera& editorCamera, const Renderer::Transform& cameraTransform) {
+		
+		mRootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix;
+		mRootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix;
+		mRootConstantsPerFrame.currentEditorCamera.viewProjection = editorCamera.viewMatrix * editorCamera.projMatrix;
 	}
 
 	void RenderEngine::Render() {

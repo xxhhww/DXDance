@@ -24,9 +24,7 @@ struct Dummy
 #define PassDataType Dummy
 #endif
 
-ConstantBuffer<GlobalDataType> GlobalDataCB : register(b0, space10);
-ConstantBuffer<FrameDataType> FrameDataCB : register(b1, space10);
-ConstantBuffer<PassDataType> PassDataCB : register(b2, space10);
+ConstantBuffer<FrameDataType> FrameDataCB : register(b0, space10);
 
 
 

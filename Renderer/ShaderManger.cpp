@@ -6,6 +6,7 @@ namespace Renderer {
 	: mDevice(device)
 	, mCompiler() {
 		mBaseRootSignature = std::make_unique<GHL::RootSignature>(mDevice);
+		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 0u, 10u });
 		mBaseRootSignature->Compile();
 	}
 

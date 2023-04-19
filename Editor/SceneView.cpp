@@ -1,4 +1,8 @@
 #include "SceneView.h"
+
+#include "Core/ServiceLocator.h"
+#include "Core/SceneManger.h"
+
 #include "UI/Image.h"
 
 namespace App {
@@ -10,6 +14,8 @@ namespace App {
 	, mFinalOutputRect(1920.0f, 1080.0f)
 	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y) {
 		mBackImage = &CreateWidget<UI::Image>(0u, mFinalOutputRect);
+		mSceneManger = &CORESERVICE(Core::SceneManger);
+		mSceneManger->CreateEmptyScene("Undefined");
 	}
 
 	void SceneView::BindHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) {
@@ -23,7 +29,9 @@ namespace App {
 	}
 
 	void SceneView::Render(float dt) {
-		mRenderEngine.Update(dt);
+		// ¸üÐÂPerFrameData
+		mRenderEngine.Update(dt, mEditorCamera, mCameraTransform);
+		// äÖÈ¾
 		mRenderEngine.Render();
 	}
 

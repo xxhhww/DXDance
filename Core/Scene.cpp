@@ -1,12 +1,14 @@
 #include "Scene.h"
+#include "SceneManger.h"
 
 namespace Core {
-	Scene::Scene(IAssetManger<Scene>* manger)
-	: mManger(manger) {}
+	Scene::Scene(SceneManger* manger, int64_t uid)
+	: mManger(manger) 
+	, mUID(uid) {}
 
-	void Scene::Load(bool aSync) {
+	void Scene::Load() {
 		std::ifstream inputStream;
-		inputStream.open(mManger->GetRealPath(mPath));
+		inputStream.open(mManger->GetFullPath(mUID));
 		if (!inputStream.is_open()) {
 			assert(false);
 		}
@@ -30,13 +32,17 @@ namespace Core {
 		this->SerializeJson(writer);
 
 		std::ofstream outputStream;
-		outputStream.open(mManger->GetRealPath(mPath));
+		outputStream.open(mManger->GetFullPath(mUID));
 		if (!outputStream.is_open()) {
 			assert(false);
 		}
 
 		outputStream << buf.GetString() << std::endl;
 		outputStream.close();
+	}
+
+	void Scene::SaveToDisk() {
+
 	}
 
 	Actor* Scene::CreateActor(const std::string& name) {

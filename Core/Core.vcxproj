@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -109,7 +109,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\ThirdParty\include;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,8 +137,6 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AssetPathDataBase.h" />
     <ClInclude Include="FooComponent.h" />
-    <ClInclude Include="IAsset.h" />
-    <ClInclude Include="IAssetManger.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManger.h" />
     <ClInclude Include="ServiceLocator.h" />
@@ -149,7 +147,6 @@
     <ClCompile Include="CoreTest.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
-    <None Include="IAssetManger.inl" />
     <None Include="TestDeserializeSceneOutput.json" />
     <None Include="TestRapidjson.json">
       <FileType>Document</FileType>
@@ -164,9 +161,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ECS\ECS.vcxproj">
       <Project>{50ff7f0a-d1ee-4ba5-8a02-96a2bd2367fc}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\Renderer\Renderer.vcxproj">
-      <Project>{caf78c56-cae7-43c5-aace-fb6489240994}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>

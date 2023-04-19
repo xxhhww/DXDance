@@ -1,4 +1,5 @@
 #pragma once
+#include "GPUCamera.h"
 
 namespace Renderer {
 
@@ -7,7 +8,11 @@ namespace Renderer {
 	*/
 	struct RootConstantsPerFrame {
 	public:
+		GPUCamera currentEditorCamera;
+		GPUCamera previousEditorCamera;
 
+		GPUCamera currentRenderCamera;
+		GPUCamera previousRenderCamera;
 	};
 
 }

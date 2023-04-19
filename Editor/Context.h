@@ -2,6 +2,9 @@
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
 
+#include "Core/AssetPathDataBase.h"
+#include "Core/SceneManger.h"
+
 #include "UI/UIManger.h"
 
 #include "Tools/Clock.h"
@@ -24,9 +27,12 @@ namespace App {
 		const std::string projectEnginePath;
 		const std::string projectAssetPath;
 
-		std::unique_ptr<Windows::Window>		window;
-		std::unique_ptr<Windows::InputManger>	inputManger;
-		std::unique_ptr<UI::UIManger>			uiManger;		// UIManger的画布由Editor类进行设置
-		std::unique_ptr<Tool::Clock>			clock;			// 定时器
+		std::unique_ptr<Windows::Window>		 window;
+		std::unique_ptr<Windows::InputManger>	 inputManger;
+		std::unique_ptr<UI::UIManger>			 uiManger;		// UIManger的画布由Editor类进行设置
+		std::unique_ptr<Tool::Clock>			 clock;			// 定时器
+
+		std::unique_ptr<Core::AssetPathDataBase> assetPathDataBase;
+		std::unique_ptr<Core::SceneManger>       sceneManger;
 	};
 }

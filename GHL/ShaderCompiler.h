@@ -19,7 +19,9 @@ namespace GHL {
 
     private:
 
-        Microsoft::WRL::ComPtr<IDxcLibrary> mLibrary;
-        Microsoft::WRL::ComPtr<IDxcCompiler3> mCompiler;
+        Microsoft::WRL::ComPtr<IDxcLibrary>   mLibrary { nullptr };
+        Microsoft::WRL::ComPtr<IDxcCompiler3> mCompiler{ nullptr };
+        Microsoft::WRL::ComPtr<IDxcUtils>     mUtils   { nullptr };
+        Microsoft::WRL::ComPtr<IDxcIncludeHandler> mIncludeHandler{ nullptr };
 	};
 }

@@ -18,11 +18,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BaseEngineLayout.hlsli">
+    <None Include="BaseEngineLayout.hlsl">
       <Filter>资源文件</Filter>
     </None>
     <None Include="BackBufferPassTest.hlsl">
       <Filter>资源文件\Test</Filter>
+    </None>
+    <None Include="Camera.hlsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="MainEntryPoint.hlsl">
+      <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
 </Project>

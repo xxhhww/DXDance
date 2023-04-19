@@ -1,3 +1,8 @@
+#ifndef _BackBufferPassTest__
+#define _BackBufferPassTest__
+
+#include "MainEntryPoint.hlsl"
+
 struct a2v 
 {
 	float3 lsPos : POSITION;
@@ -25,3 +30,5 @@ float4 PSMain(v2p input) : SV_TARGET
 {
 	return float4(0.5f, 0.5f, 0.5f, 1.0f);
 }
+
+#endif

@@ -61,8 +61,8 @@
     <Filter Include="头文件\Components">
       <UniqueIdentifier>{efa90fce-3b24-470a-955f-224ba19e465e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Components">
-      <UniqueIdentifier>{2ba159aa-bde1-45f9-9516-786a53cdd477}</UniqueIdentifier>
+    <Filter Include="头文件\GPUData">
+      <UniqueIdentifier>{da1d3731-8b6f-46cf-9de5-84c56f76e5c1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -156,9 +156,6 @@
     <ClInclude Include="BackBufferPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="RootConstantsPerFrame.h">
-      <Filter>头文件\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
@@ -170,6 +167,15 @@
     </ClInclude>
     <ClInclude Include="CCamera.h">
       <Filter>头文件\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="RootConstantsPerFrame.h">
+      <Filter>头文件\GPUData</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUCamera.h">
+      <Filter>头文件\GPUData</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraphBlackboard.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -268,12 +274,6 @@
     </ClCompile>
     <ClCompile Include="ResourceStateTracker.cpp">
       <Filter>源文件\Manger</Filter>
-    </ClCompile>
-    <ClCompile Include="CCamera.cpp">
-      <Filter>源文件\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="CTransform.cpp">
-      <Filter>源文件\Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

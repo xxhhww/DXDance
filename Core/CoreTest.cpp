@@ -77,7 +77,7 @@ void TestRapidJson() {
 
 void TestSerializeScene() {
     // 生成测试场景
-    Scene scene(nullptr);
+    Scene scene(nullptr, 0u);
     Actor* actor1 = scene.CreateActor("Actor1");
     auto& fooComp = actor1->AddComponent<FooComponent>();
     fooComp.d = Math::Vector3{ 3.3f, 4.4f, 5.5f };
@@ -107,7 +107,7 @@ void TestSerializeScene() {
 
 void TestDeserializeScene() {
     // 测试场景
-    Scene scene(nullptr);
+    Scene scene(nullptr, 0u);
 
     // 读取Json
     std::ifstream iStream("TestScenejson.json");

@@ -23,6 +23,8 @@
 #include "BackBufferPass.h"
 
 #include "RootConstantsPerFrame.h"
+#include "CCamera.h"
+#include "CTransform.h"
 
 #include "Tools/Event.h"
 
@@ -47,7 +49,10 @@ namespace Renderer {
 
 		void Resize(uint64_t width, uint64_t height);
 
-		void Update(float dt);
+		/*
+		* ¸üÐÂRootConstantsPerFrame
+		*/
+		void Update(float dt, const Renderer::Camera& editorCamera, const Renderer::Transform& cameraTransform);
 
 		void Render();
 

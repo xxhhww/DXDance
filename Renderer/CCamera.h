@@ -1,4 +1,5 @@
 #pragma once
+#include "ECS/IComponent.h"
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
 
@@ -9,7 +10,7 @@ namespace Renderer {
 		EditorCamera = 1
 	};
 
-	class Camera {
+	class Camera : public ECS::IComponent {
 	public:
 		// 摄像机空间的基向量
 		Math::Vector3 lookUp;
@@ -17,6 +18,7 @@ namespace Renderer {
 		Math::Vector3 up;
 
 		CameraType cameraType;
+		bool mainCamera;			// 一次只能有一个RenderCamera被设置为mainCamera
 
 		float rotationSpeed;		// 旋转速度
 		float translationSpeed;		// 行进速度
@@ -40,7 +42,37 @@ namespace Renderer {
 		Math::Matrix4 projMatrix;	// 投影变换矩阵
 
 	public:
-		Camera();
+		Camera()
+			: lookUp(0.0f, 0.0f, 1.0f)
+			, right(1.0f, 0.0f, 0.0f)
+			, up(0.0f, 1.0f, 0.0f)
+			, cameraType(CameraType::RenderCamera)
+			, mainCamera(false)
+			, rotationSpeed(0.004f)
+			, translationSpeed(0.05f)
+			, lookUpMovingDir(0.0f)
+			, rightMovingDir(0.0f) {
+
+			frustum.nearZ = 1.0f;
+			frustum.farZ = 1000.0f;
+			frustum.aspect = 1.0f;
+			frustum.fovY = 0.25f * DirectX::XM_PI;
+
+			viewMatrix = Math::Matrix4();
+			projMatrix = Math::Matrix4();
+		}
+
+		void SerializeJson(Tool::JsonWriter& writer) const override {
+
+		}
+
+		/*
+		* 反序列化Json数据
+		*/
+		void DeserializeJson(const Tool::JsonReader& reader) override {
+
+		}
+
 	};
 
 }

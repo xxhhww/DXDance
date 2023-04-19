@@ -18,12 +18,34 @@ namespace Renderer {
 		/*
 		* 序列化为Json数据
 		*/
-		void SerializeJson(Tool::JsonWriter& writer) const override;
+		void SerializeJson(Tool::JsonWriter& writer) const override {
+			using namespace Tool;
+
+			writer.StartObject();
+
+			SerializeHelper::SerializeString(writer, "Typename", std::string(typeid(Transform).name()));
+
+			SerializeHelper::SerializeVector3(writer, "WorldPosition", worldPosition);
+			SerializeHelper::SerializeQuaternion(writer, "WorldRotation", worldRotation);
+			SerializeHelper::SerializeVector3(writer, "WorldScale", worldScale);
+			SerializeHelper::SerializeMatrix(writer, "WorldMatrix", worldMatrix);
+
+			writer.EndObject();
+		}
 
 		/*
 		* 反序列化Json数据
 		*/
-		void DeserializeJson(const Tool::JsonReader& reader) override;
+		void DeserializeJson(const Tool::JsonReader& reader) override {
+			using namespace Tool;
+
+			// Typename由上层解析
+			SerializeHelper::DeserializeVector3(reader, "WorldPosition", worldPosition);
+			SerializeHelper::DeserializeQuaternion(reader, "WorldRotation", worldRotation);
+			SerializeHelper::DeserializeVector3(reader, "WorldScale", worldScale);
+			SerializeHelper::DeserializeMatrix(reader, "WorldMatrix", worldMatrix);
+		}
+
 	};
 
 }

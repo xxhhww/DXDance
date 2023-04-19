@@ -3,6 +3,8 @@
 #include <comdef.h>
 #include <sstream>
 
+#include "StrUtil.h"
+
 template< typename... Args >
 inline void print_assertion(Args&&... args) {
     std::stringstream ss;
@@ -31,6 +33,6 @@ inline void print_assertion(Args&&... args) {
 {                                                                     \
     HRESULT hr__ = (x);                                               \
     _com_error comError{ hr__ };                                      \
-    ASSERT_FORMAT(!FAILED(hr__), comError.ErrorMessage()); \
+    ASSERT_FORMAT(!FAILED(hr__), Tool::StrUtil::WStringToUTF8(comError.ErrorMessage())); \
 }
 #endif
