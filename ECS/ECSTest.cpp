@@ -87,7 +87,12 @@ void TestECS() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
-    TestECS();
+    int i = 1;
+
+    while (i > 100) {
+        TestECS();
+        i--;
+    }
 
     return 0;
 }

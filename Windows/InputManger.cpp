@@ -103,7 +103,7 @@ namespace Windows {
 	}
 
 	void InputManger::PostUpdate() {
-		mMouseButtonStates.reset();
+		// mMouseButtonStates.reset();
 	}
 
 	void InputManger::GetTypematicRepeatRate(float* repeatDelay, float* repeatRate) const {

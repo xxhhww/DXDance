@@ -40,8 +40,8 @@ namespace App {
 		UI::Image* mBackImage{ nullptr };
 
 		Core::SceneManger*  mSceneManger{ nullptr };
-		Renderer::Camera	mEditorCamera;
-		Renderer::Transform mCameraTransform;
+		Renderer::Camera	mCameraComponent;
+		Renderer::Transform mTransformComponent;
 	};
 
 }

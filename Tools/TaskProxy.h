@@ -7,6 +7,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include <Windows.h>
+
 namespace Tool {
 	class TaskSystem;
 	class TaskProxy;
@@ -64,7 +66,6 @@ namespace Tool {
 		std::vector<Task>		mTasks;
 		uint32_t				mTaskCount{ 0u };			// 任务总数
 		std::atomic<uint32_t>	mCompletedTaskCount{ 0 };	// 已完成的任务个数
-		std::mutex				mCvMutex;					// 条件变量的锁
-		std::condition_variable mCv;						// 条件变量
+		HANDLE                  mAllCompletedEvent{ nullptr };
 	};
 }

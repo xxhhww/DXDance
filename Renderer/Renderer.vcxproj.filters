@@ -174,9 +174,6 @@
     <ClInclude Include="GPUCamera.h">
       <Filter>头文件\GPUData</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGraphBlackboard.h">
-      <Filter>头文件\Renderer\RenderGraph</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">

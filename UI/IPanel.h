@@ -15,6 +15,8 @@ namespace UI {
 		bool mEnable{ true };
 		std::string mPlaneID{ "?" };
 		static int64_t smPlaneIDInc;
+
+		bool mFirstFrame{ true };
 	public:
 		inline const auto& GetPlaneID() const { return mPlaneID; }
 		inline auto IsEnable() const { return mEnable; }

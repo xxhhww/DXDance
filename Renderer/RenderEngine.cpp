@@ -32,7 +32,8 @@ namespace Renderer {
 			mCopyQueue.get(), 
 			mResourceStateTracker.get(),
 			mShaderManger.get(),
-			mSharedMemAllocator.get())) {
+			mSharedMemAllocator.get())) 
+		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
 
 		if (windowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, GHL::BackBufferStrategy::Triple, width, height);
@@ -63,15 +64,21 @@ namespace Renderer {
 
 	void RenderEngine::Update(float dt, const Renderer::Camera& editorCamera, const Renderer::Transform& cameraTransform) {
 		
-		mRootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix;
-		mRootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix;
-		mRootConstantsPerFrame.currentEditorCamera.viewProjection = editorCamera.viewMatrix * editorCamera.projMatrix;
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix.Transpose();
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix.Transpose();
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.viewProjection = (editorCamera.viewMatrix * editorCamera.projMatrix).Transpose();
+
 	}
 
 	void RenderEngine::Render() {
 		// Ñ¹ÈëÐÂµÄäÖÈ¾Ö¡
 		mRenderFrameFence->IncrementExpectedValue();
 		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
+
+		// RootConstantsDataPerFrame
+		auto dynamicAllocation = mSharedMemAllocator->Allocate(sizeof(RootConstantsPerFrame), 256u);
+		memcpy(dynamicAllocation.cpuAddress, &mPipelineResourceStorage->rootConstantsPerFrame, sizeof(RootConstantsPerFrame));
+		mPipelineResourceStorage->rootConstantsPerFrameAddress = dynamicAllocation.gpuAddress;
 
 		mRenderGraph->Execute();
 

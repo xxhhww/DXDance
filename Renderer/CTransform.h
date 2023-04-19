@@ -15,6 +15,12 @@ namespace Renderer {
 		Math::Matrix4		worldMatrix;	// 相对于世界原点的变换
 
 	public:
+		Transform()
+		: worldPosition(0.0f, 0.0f, 0.0f)
+		, worldRotation(0.0f, 0.0f, 0.0f, 1.0f)
+		, worldScale(1.0f, 1.0f, 1.0f) {}
+
+	public:
 		/*
 		* 序列化为Json数据
 		*/

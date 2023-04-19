@@ -1,6 +1,8 @@
 #include "TaskProxy.h"
 #include "TaskSystem.h"
 
+#include "Assert.h"
+
 namespace Tool {
 
 	Task::Task(TaskProxy* proxy, std::function<void()>&& task)
@@ -17,7 +19,10 @@ namespace Tool {
 	TaskProxy::TaskProxy(const std::string& name)
 		: mName(name)
 		, mTaskCount(0u)
-		, mCompletedTaskCount(0) {}
+		, mCompletedTaskCount(0) {
+		mAllCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		ASSERT_FORMAT(mAllCompletedEvent != nullptr, "Failed to Create Event Handle");
+	}
 
 	void TaskProxy::AddTask(std::function<void()>&& task) {
 		mTasks.emplace_back(this, std::forward<std::function<void()>>(task));
@@ -28,10 +33,7 @@ namespace Tool {
 		for (auto& t : mTasks) {
 			TaskSystem::GetInstance()->Submit(std::bind(&Task::Run, &t));
 		}
-		{
-			std::unique_lock<std::mutex> lk(mCvMutex);
-			mCv.wait(lk);
-		}
+		WaitForSingleObject(mAllCompletedEvent, INFINITE);
 	}
 
 	void TaskProxy::TaskCompleted() {
@@ -39,7 +41,7 @@ namespace Tool {
 		mCompletedTaskCount++;
 		if (mCompletedTaskCount == mTaskCount) {
 			// 通知等待线程，任务已全部完成
-			mCv.notify_all();
+			SetEvent(mAllCompletedEvent);
 		}
 	}
 }

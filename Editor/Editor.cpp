@@ -7,6 +7,7 @@
 #include "Core/ServiceLocator.h"
 
 namespace App {
+
 	/*
 	* 编辑器初始化
 	*/
@@ -56,34 +57,39 @@ namespace App {
 	}
 
 	/*
-	* 编辑器预处理函数
-	*/
-	void Editor::PreUpdate(float delta) {
-		mContext.inputManger->PreUpdate(delta);
-	}
-
-	/*
 	* 编辑器更新函数
 	*/
 	void Editor::Update(float delta) {
-		// 处理编辑器输入
-		mShaderEditor->HandleShortCut();
-		// 处理行为逻辑
-
-		// 图形渲染
-		mSceneView->Update(delta);
-		mSceneView->Render(delta);
+		UpdateEditorPanels(delta);
+		UpdateAndRenderViewPanels(delta);
 		// 绘制画布
 		DrawEditorPanels();
 	}
 
-	void Editor::PostUpdate(float delta) {
-		mContext.inputManger->PostUpdate();
-	}
 	/*
 	* 绘制编辑器所有的控制面板
 	*/
 	void Editor::DrawEditorPanels() {
 		mContext.uiManger->Darw();
 	}
+
+	void Editor::PreUpdate(float delta) {
+		mContext.inputManger->PreUpdate(delta);
+	}
+
+	void Editor::PostUpdate(float delta) {
+		mContext.inputManger->PostUpdate();
+	}
+
+	void Editor::UpdateEditorPanels(float delta) {
+
+	}
+
+	void Editor::UpdateAndRenderViewPanels(float delta) {
+		if (mSceneView->IsOpened()) {
+			mSceneView->Update(delta);
+			mSceneView->Render(delta);
+		}
+	}
+
 }

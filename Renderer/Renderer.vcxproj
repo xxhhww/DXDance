@@ -158,7 +158,6 @@
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
-    <ClInclude Include="RenderGraphBlackboard.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RootConstantsPerFrame.h" />
     <ClInclude Include="PoolDescriptorAllocator.h" />

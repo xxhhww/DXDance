@@ -85,6 +85,8 @@ namespace Renderer {
 		*/
 		void ExportResource(const std::string& name);
 
+		inline auto* GetPipelineResourceStorage() const { return mResourceStorage.get(); }
+
 	private:
 
 		/*

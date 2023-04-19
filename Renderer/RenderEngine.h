@@ -101,9 +101,9 @@ namespace Renderer {
 		BackBufferPass mBackBufferPass;
 
 		// ==========================...PipelineResources...==========================
-		RootConstantsPerFrame mRootConstantsPerFrame;
 		std::unique_ptr<Texture> mFinalOutput;
 		RenderGraphResourceID mFinalOutputID;
+		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
 	};
 
 }

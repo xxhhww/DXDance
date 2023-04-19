@@ -37,7 +37,7 @@ namespace Renderer {
 				const UINT vertexBufferSize = sizeof(triangleVertices);
 				
 				auto* dynamicAllocator = context.dynamicAllocator;
-				auto dynamicAllocation = dynamicAllocator->Allocate(vertexBufferSize, 4);
+				auto dynamicAllocation = dynamicAllocator->Allocate(vertexBufferSize, 256u);
 				memcpy(dynamicAllocation.cpuAddress, &triangleVertices, vertexBufferSize);
 
 				D3D12_VERTEX_BUFFER_VIEW vbView{};
@@ -75,6 +75,7 @@ namespace Renderer {
 
 				commandList->D3DCommandList()->SetGraphicsRootSignature(shaderManger->GetBaseD3DRootSignature());
 				commandList->D3DCommandList()->SetPipelineState(shader->GetD3DPipelineState());
+				commandList->D3DCommandList()->SetGraphicsRootConstantBufferView(0u, context.resourceStorage->rootConstantsPerFrameAddress);
 
 				commandList->D3DCommandList()->IASetVertexBuffers(0u, 1u, &vbView);
 				commandList->D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

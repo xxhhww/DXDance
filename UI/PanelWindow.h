@@ -51,8 +51,8 @@ namespace UI {
 
 	protected:
 		bool mOpened;
-		bool mHovered;
-		bool mFocused;
+		bool mHovered{ false };
+		bool mFocused{ false };
 		bool mMustScrollToBottom{ false };
 		bool mMustScrollToTop{ false };
 		bool mScrolledToBottom{ false };

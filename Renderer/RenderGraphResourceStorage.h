@@ -1,6 +1,8 @@
 #pragma once
 #include "RenderGraphResourceID.h"
 #include "MemoryAliasingHelper.h"
+#include "RootConstantsPerFrame.h"
+
 #include <memory>
 #include <functional>
 
@@ -39,6 +41,10 @@ namespace Renderer {
 
 		inline auto&       GetResources()       { return mRenderGraphResources; }
 		inline const auto& GetResources() const { return mRenderGraphResources; }
+
+	public:
+		RootConstantsPerFrame rootConstantsPerFrame;
+		D3D12_GPU_VIRTUAL_ADDRESS rootConstantsPerFrameAddress;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

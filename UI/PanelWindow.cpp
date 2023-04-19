@@ -122,8 +122,10 @@ namespace UI {
 			ImGui::SetNextWindowSizeConstraints(minSizeConstraint, maxSizeConstraint);
 
 			if (ImGui::Begin((name + mPlaneID).c_str(), closable ? &mOpened : nullptr, windowFlags)) {
+
 				mHovered = ImGui::IsWindowHovered();
-				mFocused = ImGui::IsWindowFocused();
+				mFocused = mFirstFrame ? false : ImGui::IsWindowFocused();
+				mFirstFrame = false;
 
 				auto scrollY = ImGui::GetScrollY();
 
