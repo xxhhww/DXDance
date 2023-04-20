@@ -70,7 +70,7 @@ namespace Renderer {
 				commandList->D3DCommandList()->RSSetViewports(1u, &viewPort);
 				commandList->D3DCommandList()->RSSetScissorRects(1u, &rect);
 
-				// commandList->D3DCommandList()->ClearRenderTargetView(cpuHandle, clearColor, 1u, &rect);
+				commandList->D3DCommandList()->ClearRenderTargetView(cpuHandle, clearColor, 1u, &rect);
 				commandList->D3DCommandList()->OMSetRenderTargets(1u, &cpuHandle, false, nullptr);
 
 				commandList->D3DCommandList()->SetGraphicsRootSignature(shaderManger->GetBaseD3DRootSignature());

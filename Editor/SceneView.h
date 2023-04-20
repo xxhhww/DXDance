@@ -10,6 +10,7 @@ namespace UI {
 }
 
 namespace Core {
+	class Scene;
 	class SceneManger;
 }
 
@@ -26,6 +27,8 @@ namespace App {
 
 		void BindHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle);
 
+		void LoadNewScene(const std::string& path);
+
 		void Update(float dt);
 
 		void Render(float dt);
@@ -39,9 +42,10 @@ namespace App {
 		Renderer::RenderEngine mRenderEngine;
 		UI::Image* mBackImage{ nullptr };
 
-		Core::SceneManger*  mSceneManger{ nullptr };
-		Renderer::Camera	mCameraComponent;
-		Renderer::Transform mTransformComponent;
+		Core::SceneManger*   mSceneManger{ nullptr };
+		Core::Scene*		 mCurrentScene{ nullptr };
+		Renderer::Camera*	 mEditorCamera;
+		Renderer::Transform* mEditorTransform;
 	};
 
 }

@@ -36,10 +36,11 @@ namespace Core {
 			UnLoadCurrentScene();
 		}
 		mCurrScene = new Scene(this, Tool::UIDGenerator::Get());
+		mCurrScene->editorTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
+
 		Actor* mainCamera = mCurrScene->CreateActor("MainCamera");
 		auto& cTransform = mainCamera->GetComponent<Renderer::Transform>();
 		cTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
-
 		auto& cCamera = mainCamera->AddComponent<Renderer::Camera>();
 		cCamera.cameraType = Renderer::CameraType::RenderCamera;
 		cCamera.mainCamera = true;

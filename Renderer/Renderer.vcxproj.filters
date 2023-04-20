@@ -64,6 +64,12 @@
     <Filter Include="头文件\GPUData">
       <UniqueIdentifier>{da1d3731-8b6f-46cf-9de5-84c56f76e5c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\StreamSystem">
+      <UniqueIdentifier>{1892b8e1-e51d-4c02-957e-25b45205950f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\StreamSystem">
+      <UniqueIdentifier>{d6cf5766-f277-4f3f-a951-eb9930212be0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -76,9 +82,6 @@
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
     <ClInclude Include="SegregatedPoolHeapAllocator.h">
-      <Filter>头文件\Allocator</Filter>
-    </ClInclude>
-    <ClInclude Include="RingFrameTracker.h">
       <Filter>头文件\Allocator</Filter>
     </ClInclude>
     <ClInclude Include="Buffer.h">
@@ -174,6 +177,18 @@
     <ClInclude Include="GPUCamera.h">
       <Filter>头文件\GPUData</Filter>
     </ClInclude>
+    <ClInclude Include="RingFrameTracker.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamTexture.h">
+      <Filter>头文件\Renderer\StreamSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamTextureStorage.h">
+      <Filter>头文件\Renderer\StreamSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="FileStreamer.h">
+      <Filter>头文件\Renderer\StreamSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -186,9 +201,6 @@
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp">
-      <Filter>源文件\Allocator</Filter>
-    </ClCompile>
-    <ClCompile Include="RingFrameTracker.cpp">
       <Filter>源文件\Allocator</Filter>
     </ClCompile>
     <ClCompile Include="Buffer.cpp">
@@ -271,6 +283,21 @@
     </ClCompile>
     <ClCompile Include="ResourceStateTracker.cpp">
       <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="RingFrameTracker.cpp">
+      <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamTexture.cpp">
+      <Filter>源文件\Renderer\StreamSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamTextureManger.cpp">
+      <Filter>源文件\Renderer\StreamSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="FileStreamer.cpp">
+      <Filter>源文件\Renderer\StreamSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectStorageTest.cpp">
+      <Filter>源文件\Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

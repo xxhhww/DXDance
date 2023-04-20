@@ -21,8 +21,7 @@ v2p VSMain(a2v input)
 {
 	v2p output;
 	output.csPos = float4(input.lsPos, 1.0f);
-	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.View);
-	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.Projection);
+	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.ViewProjection);
 	output.uv = input.uv;
 
 	return output;

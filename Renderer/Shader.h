@@ -13,7 +13,6 @@
 namespace Renderer {
 
 	class Material;
-
 	class ShaderManger;
 
 	/*

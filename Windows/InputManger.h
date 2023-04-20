@@ -22,8 +22,11 @@ namespace Windows {
 		bool IsKeyDown(EKey key) const;
 		bool IsKeyPressed(EKey key, bool autoRepeat = true) const;
 		bool IsKeyReleased(EKey key) const;
+		bool IsMouseMove() const;
 		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsMouseButtonReleased(EMouseButton button) const;
+
+		Math::Vector2 GetMouseRawDelta() const;
 
 		void PreUpdate(float delta);
 		void PostUpdate();

@@ -48,14 +48,14 @@ namespace Renderer {
 		, up(0.0f, 1.0f, 0.0f)
 		, cameraType(CameraType::RenderCamera)
 		, mainCamera(false)
-		, rotationSpeed(0.004f)
+		, rotationSpeed(0.05f)
 		, translationSpeed(0.5f)
 		, lookUpMovingDir(0.0f)
 		, rightMovingDir(0.0f) {
 
 			frustum.nearZ = 1.0f;
 			frustum.farZ = 1000.0f;
-			frustum.aspect = 1.0f;
+			frustum.aspect = 1920.0f / 1080.0f;
 			frustum.fovY = 0.25f * DirectX::XM_PI;
 
 			viewMatrix = Math::Matrix4();

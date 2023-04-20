@@ -36,6 +36,11 @@ namespace Core {
 		void LoadSceneFromDisk(const std::string& path);
 
 		/*
+		* 获得当前场景
+		*/
+		inline auto* GetCurrentScene() const { return mCurrScene; }
+
+		/*
 		* 获取资产的完整路径
 		*/
 		std::string GetFullPath(const std::string& path);

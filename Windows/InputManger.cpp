@@ -77,12 +77,20 @@ namespace Windows {
 		return !keyData.down && keyData.downDurationPrev >= 0.0f;
 	}
 
+	bool InputManger::IsMouseMove() const {
+		return (mRawDelta.x != 0 || mRawDelta.y != 0);
+	}
+	
 	bool InputManger::IsMouseButtonPressed(EMouseButton button) const {
 		return mMouseButtonStates[static_cast<int>(button)];
 	}
 
 	bool InputManger::IsMouseButtonReleased(EMouseButton button) const {
 		return mMouseButtonStates[static_cast<int>(button)];
+	}
+
+	Math::Vector2 InputManger::GetMouseRawDelta() const {
+		return mRawDelta;
 	}
 
 	void InputManger::PreUpdate(float delta) {
@@ -104,6 +112,7 @@ namespace Windows {
 
 	void InputManger::PostUpdate() {
 		// mMouseButtonStates.reset();
+		mRawDelta = Math::Vector2{ 0.0f, 0.0f };
 	}
 
 	void InputManger::GetTypematicRepeatRate(float* repeatDelay, float* repeatRate) const {

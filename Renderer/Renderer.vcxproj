@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>..\DXDance\ThirdParty\lib\DXC;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\ThirdParty\lib\DXC;..\ThirdParty\lib\DirectStorage;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,12 +108,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;..\ThirdParty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dstorage.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\DXDance\ThirdParty\lib\DirectStorage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -152,6 +153,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CCamera.h" />
     <ClInclude Include="DeferredLightPass.h" />
+    <ClInclude Include="FileStreamer.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GPUCamera.h" />
     <ClInclude Include="GPUProfiler.h" />
@@ -178,6 +180,8 @@
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManger.h" />
+    <ClInclude Include="StreamTexture.h" />
+    <ClInclude Include="StreamTextureStorage.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileUpdateManger.h" />
     <ClInclude Include="CTransform.h" />
@@ -189,6 +193,8 @@
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="DeferredLightPass.cpp" />
+    <ClCompile Include="DirectStorageTest.cpp" />
+    <ClCompile Include="FileStreamer.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
@@ -197,7 +203,9 @@
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
-    <ClCompile Include="RendererTest.cpp" />
+    <ClCompile Include="RendererTest.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="RenderGraph.cpp" />
     <ClCompile Include="RenderGraphBuilder.cpp" />
     <ClCompile Include="RenderGraphItem.cpp" />
@@ -213,6 +221,8 @@
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManger.cpp" />
+    <ClCompile Include="StreamTexture.cpp" />
+    <ClCompile Include="StreamTextureManger.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileUpdateManger.cpp" />
     <ClCompile Include="Uploader.cpp" />

@@ -54,7 +54,7 @@ namespace Renderer {
 		inline const auto& GetNumTilesTotal() const { return mNumTilesTotal; }
 		inline const auto& GetTilings()       const { return mTiling; }
 
-	private:
+	protected:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 
 		std::unordered_map<TextureSubResourceDesc, DescriptorHandleWrap, TextureSubResourceDescHashFunc> mSRDescriptors;

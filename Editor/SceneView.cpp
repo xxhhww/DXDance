@@ -2,6 +2,7 @@
 
 #include "Core/ServiceLocator.h"
 #include "Core/SceneManger.h"
+#include "Core/Scene.h"
 
 #include "UI/Image.h"
 
@@ -17,14 +18,19 @@ namespace App {
 	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y) {
 		mBackImage = &CreateWidget<UI::Image>(0u, mFinalOutputRect);
 		mSceneManger = &CORESERVICE(Core::SceneManger);
-		mSceneManger->CreateEmptyScene("Undefined");
-
-		mTransformComponent.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
+		LoadNewScene("Undefined");
 	}
 
 	void SceneView::BindHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) {
 		mRenderEngine.BindFinalOuputSRV(cpuHandle);
 		mBackImage->textureID = gpuHandle.ptr;
+	}
+
+	void SceneView::LoadNewScene(const std::string& path) {
+		mSceneManger->CreateEmptyScene("Undefined");
+		mCurrentScene = mSceneManger->GetCurrentScene();
+		mEditorCamera = &mCurrentScene->editorCamera;
+		mEditorTransform = &mCurrentScene->editorTransform;
 	}
 
 	void SceneView::Update(float dt) {
@@ -34,27 +40,43 @@ namespace App {
 		if (IsFocused() && CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_RBUTTON)) {
 			// 处理摄像机移动
 			if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_W)) {
-				XMVECTOR s = XMVectorReplicate(dt * mCameraComponent.translationSpeed);
-				XMVECTOR l = XMLoadFloat3(&mCameraComponent.lookUp);
-				XMVECTOR p = XMLoadFloat3(&mTransformComponent.worldPosition);
-				XMStoreFloat3(&mTransformComponent.worldPosition, XMVectorMultiplyAdd(s, l, p));
-				OutputDebugString(L"WWW\n");
+				XMVECTOR s = XMVectorReplicate(dt * mCurrentScene->editorCamera.translationSpeed);
+				XMVECTOR l = XMLoadFloat3(&mEditorCamera->lookUp);
+				XMVECTOR p = XMLoadFloat3(&mEditorTransform->worldPosition);
+				XMStoreFloat3(&mEditorTransform->worldPosition, XMVectorMultiplyAdd(s, l, p));
 			}
 			if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_S)) {
-				XMVECTOR s = XMVectorReplicate(-dt * mCameraComponent.translationSpeed);
-				XMVECTOR l = XMLoadFloat3(&mCameraComponent.lookUp);
-				XMVECTOR p = XMLoadFloat3(&mTransformComponent.worldPosition);
-				XMStoreFloat3(&mTransformComponent.worldPosition, XMVectorMultiplyAdd(s, l, p));
-				OutputDebugString(L"SSS\n");
+				XMVECTOR s = XMVectorReplicate(-dt * mEditorCamera->translationSpeed);
+				XMVECTOR l = XMLoadFloat3(&mEditorCamera->lookUp);
+				XMVECTOR p = XMLoadFloat3(&mEditorTransform->worldPosition);
+				XMStoreFloat3(&mEditorTransform->worldPosition, XMVectorMultiplyAdd(s, l, p));
 			}
 			if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_A)) {
-
+				XMVECTOR s = XMVectorReplicate(-dt * mEditorCamera->translationSpeed);
+				XMVECTOR r = XMLoadFloat3(&mEditorCamera->right);
+				XMVECTOR p = XMLoadFloat3(&mEditorTransform->worldPosition);
+				XMStoreFloat3(&mEditorTransform->worldPosition, XMVectorMultiplyAdd(s, r, p));
 			}
 			if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_D)) {
-
+				XMVECTOR s = XMVectorReplicate(dt * mEditorCamera->translationSpeed);
+				XMVECTOR r = XMLoadFloat3(&mEditorCamera->right);
+				XMVECTOR p = XMLoadFloat3(&mEditorTransform->worldPosition);
+				XMStoreFloat3(&mEditorTransform->worldPosition, XMVectorMultiplyAdd(s, r, p));
 			}
 			// 处理摄像机旋转
+			if (CORESERVICE(Windows::InputManger).IsMouseMove()) {
+				Math::Vector2 rawDelta = CORESERVICE(Windows::InputManger).GetMouseRawDelta();
 
+				XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&mEditorCamera->right), mEditorCamera->rotationSpeed * XMConvertToRadians((float)rawDelta.y));
+				XMStoreFloat3(&mEditorCamera->up, XMVector3TransformNormal(XMLoadFloat3(&mEditorCamera->up), R));
+				XMStoreFloat3(&mEditorCamera->lookUp, XMVector3TransformNormal(XMLoadFloat3(&mEditorCamera->lookUp), R));
+
+				XMMATRIX R1 = XMMatrixRotationY(mEditorCamera->rotationSpeed * XMConvertToRadians((float)rawDelta));
+
+				XMStoreFloat3(&mEditorCamera->right, XMVector3TransformNormal(XMLoadFloat3(&mEditorCamera->right), R1));
+				XMStoreFloat3(&mEditorCamera->up, XMVector3TransformNormal(XMLoadFloat3(&mEditorCamera->up), R1));
+				XMStoreFloat3(&mEditorCamera->lookUp, XMVector3TransformNormal(XMLoadFloat3(&mEditorCamera->lookUp), R1));
+			}
 		}
 
 		// 更新编辑摄像机与渲染摄像机的矩阵数据
@@ -74,7 +96,7 @@ namespace App {
 				camera.frustum.farZ);
 		};
 
-		updateCameraMatrix(mCameraComponent, mTransformComponent);
+		updateCameraMatrix(*mEditorCamera, *mEditorTransform);
 		ECS::Entity::Foreach([&](Renderer::Camera& camera, Renderer::Transform& transform) {
 			updateCameraMatrix(camera, transform);
 		});
@@ -82,7 +104,7 @@ namespace App {
 
 	void SceneView::Render(float dt) {
 		// 更新PerFrameData
-		mRenderEngine.Update(dt, mCameraComponent, mTransformComponent);
+		mRenderEngine.Update(dt, *mEditorCamera, *mEditorTransform);
 		// 渲染
 		mRenderEngine.Render();
 	}

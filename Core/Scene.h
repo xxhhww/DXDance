@@ -1,6 +1,9 @@
 #pragma once
 #include "Actor.h"
 
+#include "Renderer/CCamera.h"
+#include "Renderer/CTransform.h"
+
 namespace Core {
 
 	class SceneManger;
@@ -57,6 +60,10 @@ namespace Core {
 		* 反序列化Json数据
 		*/
 		void DeserializeJson(const Tool::JsonReader& reader);
+
+	public:
+		Renderer::Camera	editorCamera;
+		Renderer::Transform editorTransform;
 
 	private:
 		// Scene类或者说资产类中不存放该对象的路径，而是存放资产UID
