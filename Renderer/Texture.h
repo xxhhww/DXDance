@@ -7,7 +7,10 @@
 
 namespace Renderer {
 
+	class StreamTexture;
+
 	class Texture : public Renderer::Resource {
+		friend class StreamTexture;
 	public:
 		/*
 		* Committed: heapAllocator为空
@@ -48,12 +51,6 @@ namespace Renderer {
 		*/
 		void CreateDescriptor() override {}
 
-		// ==============================...流式纹理...==============================
-
-		inline const auto& GetTileShape()     const { return mTileShape; }
-		inline const auto& GetNumTilesTotal() const { return mNumTilesTotal; }
-		inline const auto& GetTilings()       const { return mTiling; }
-
 	protected:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 
@@ -64,17 +61,6 @@ namespace Renderer {
 
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		BuddyHeapAllocator::Allocation* mHeapAllocation;
-
-		// ==============================...流式纹理...==============================
-		// 变量
-
-		D3D12_PACKED_MIP_INFO mPackedMipInfo; // last n mips may be packed into a single tile
-		D3D12_TILE_SHAPE mTileShape;          // e.g. a 64K tile may contain 128x128 texels @ 4B/pixel
-		UINT mNumTilesTotal;
-		std::vector<D3D12_SUBRESOURCE_TILING> mTiling;
-
-		Microsoft::WRL::ComPtr<ID3D12Resource2> mFeedbackResource;
-		D3D12_RESOURCE_DESC1 mFeedbackDesc{};
 	};
 
 }

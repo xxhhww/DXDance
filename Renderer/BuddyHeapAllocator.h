@@ -32,6 +32,7 @@ namespace Renderer {
 			GHL::Heap* heap{ nullptr };
 			uint64_t   heapIndex{ 0u };
 			size_t     heapOffset{ 0u };
+			uint32_t   tileOffset{ 0u };
 			size_t     size{ 0u };
 		};
 

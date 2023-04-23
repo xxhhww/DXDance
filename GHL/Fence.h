@@ -25,6 +25,11 @@ namespace GHL {
 		void SetCompletionEvent(uint64_t value, HANDLE eventHandle);
 
 		/*
+		* CPU等待值完成
+		*/
+		void Wait(std::optional<uint64_t> value = std::nullopt);
+
+		/*
 		* Get方法
 		*/
 		inline const auto D3DFence()       const { return mFence.Get(); }

@@ -34,7 +34,7 @@ namespace Renderer {
 		*/
 		RenderGraphResource(const std::string& name, Resource* importedResource);
 		
-		~RenderGraphResource() = default;
+		~RenderGraphResource();
 
 		/*
 		* Build Resource Format For Internal Pipeline Resource to Get D3D12_RESOURCE_DESC & AllocationInfo

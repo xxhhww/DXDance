@@ -48,6 +48,7 @@ namespace Renderer {
 		_FinalOutputDesc.height = height;
 		_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget);
+		_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 		mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
 		mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
 

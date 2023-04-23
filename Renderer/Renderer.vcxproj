@@ -152,8 +152,11 @@
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CCamera.h" />
+    <ClInclude Include="DataUploader.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="DeferredLightPass.h" />
-    <ClInclude Include="FileStreamer.h" />
+    <ClInclude Include="FileHandle.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GPUCamera.h" />
     <ClInclude Include="GPUProfiler.h" />
@@ -180,21 +183,32 @@
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManger.h" />
-    <ClInclude Include="StreamTexture.h" />
-    <ClInclude Include="StreamTextureStorage.h" />
+    <ClInclude Include="StreamTexture.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="StreamTextureStorage.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileUpdateManger.h" />
     <ClInclude Include="CTransform.h" />
+    <ClInclude Include="TileUpdater.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Uploader.h" />
     <ClInclude Include="UploadList.h" />
+    <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BackBufferPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="DataUploader.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="DirectStorageTest.cpp" />
-    <ClCompile Include="FileStreamer.cpp" />
+    <ClCompile Include="FileHandle.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
@@ -221,12 +235,23 @@
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManger.cpp" />
-    <ClCompile Include="StreamTexture.cpp" />
-    <ClCompile Include="StreamTextureManger.cpp" />
+    <ClCompile Include="StreamTexture.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="StreamTextureManger.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="StreamTextureStorage.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileUpdateManger.cpp" />
+    <ClCompile Include="TileUpdater.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Uploader.cpp" />
     <ClCompile Include="UploadList.cpp" />
+    <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RenderGraph.inl" />

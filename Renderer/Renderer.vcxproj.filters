@@ -64,10 +64,10 @@
     <Filter Include="头文件\GPUData">
       <UniqueIdentifier>{da1d3731-8b6f-46cf-9de5-84c56f76e5c1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\StreamSystem">
+    <Filter Include="头文件\Renderer\StreamTextureSystem">
       <UniqueIdentifier>{1892b8e1-e51d-4c02-957e-25b45205950f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\Renderer\StreamSystem">
+    <Filter Include="源文件\Renderer\StreamTextureSystem">
       <UniqueIdentifier>{d6cf5766-f277-4f3f-a951-eb9930212be0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -181,13 +181,22 @@
       <Filter>头文件\Manger</Filter>
     </ClInclude>
     <ClInclude Include="StreamTexture.h">
-      <Filter>头文件\Renderer\StreamSystem</Filter>
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
     <ClInclude Include="StreamTextureStorage.h">
-      <Filter>头文件\Renderer\StreamSystem</Filter>
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
-    <ClInclude Include="FileStreamer.h">
-      <Filter>头文件\Renderer\StreamSystem</Filter>
+    <ClInclude Include="DataUploader.h">
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="TileUpdater.h">
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="XeTextureFormat.h">
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="FileHandle.h">
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -288,16 +297,28 @@
       <Filter>源文件\Manger</Filter>
     </ClCompile>
     <ClCompile Include="StreamTexture.cpp">
-      <Filter>源文件\Renderer\StreamSystem</Filter>
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
     <ClCompile Include="StreamTextureManger.cpp">
-      <Filter>源文件\Renderer\StreamSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="FileStreamer.cpp">
-      <Filter>源文件\Renderer\StreamSystem</Filter>
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
     <ClCompile Include="DirectStorageTest.cpp">
       <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="DataUploader.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamTextureStorage.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="TileUpdater.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="XeTextureFormat.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHandle.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

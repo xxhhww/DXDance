@@ -16,6 +16,12 @@ namespace Renderer {
 	, resource(importedResource)
 	, resourceFormat(importedResource->GetResourceFormat()) {}
 
+	RenderGraphResource::~RenderGraphResource() {
+		if (resource != nullptr && imported == false) {
+			delete resource;
+		}
+	}
+
 	void RenderGraphResource::BuildResourceFormat() {
 		if (imported) return;
 

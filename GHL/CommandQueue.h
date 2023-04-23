@@ -42,9 +42,9 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 
-		inline auto* D3DCommandQueue() const { return mQueue.Get(); }
-
 		inline const auto* GetDevice()       const { return mDevice; }
+		inline const auto& GetQueueType()    const { return mType; }
+		inline auto* D3DCommandQueue() const { return mQueue.Get(); }
 
 	private:
 		const Device* mDevice{ nullptr };

@@ -15,6 +15,7 @@ namespace Renderer {
 	, mHeapAllocator(heapAllocator) {
 		
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 
@@ -32,7 +33,7 @@ namespace Renderer {
 				D3D12_HEAP_FLAG_NONE,
 				&mResourceFormat.D3DResourceDesc(),
 				GHL::GetD3DResourceStates(textureDesc.initialState),
-				nullptr,
+				&d3dClearValue,
 				IID_PPV_ARGS(&mD3DResource)
 			));
 		}
@@ -49,54 +50,19 @@ namespace Renderer {
 					mHeapAllocation->heapOffset,
 					&mResourceFormat.D3DResourceDesc(),
 					GHL::GetD3DResourceStates(textureDesc.initialState),
-					nullptr,
+					&d3dClearValue,
 					IID_PPV_ARGS(&mD3DResource)
 				));
 			}
 			else {
 				ASSERT_FORMAT(false, "Unsupport Reserved Resource!");
-				/*
 				// 以保留方式创建该Buffer
 				HRASSERT(mDevice->D3DDevice()->CreateReservedResource(
-					&mResourceDesc,
-					mInitialStates,
-					&mTextureDesc.clearVaule,
-					IID_PPV_ARGS(&mResource)
+					&mResourceFormat.D3DResourceDesc(),
+					GHL::GetD3DResourceStates(textureDesc.initialState),
+					&d3dClearValue,
+					IID_PPV_ARGS(&mD3DResource)
 				));
-
-				UINT subresourceCount = mResourceDesc.MipLevels;
-				mTiling.resize(subresourceCount);
-				mDevice->D3DDevice()->GetResourceTiling(mResource.Get(), &mNumTilesTotal, &mPackedMipInfo, &mTileShape, &subresourceCount, 0, &mTiling[0]);
-
-				// 创建Feedback
-				mFeedbackDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-				mFeedbackDesc.Format = DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE;
-				mFeedbackDesc.MipLevels = mResourceDesc.MipLevels;
-				mFeedbackDesc.Alignment = 0u;
-				mFeedbackDesc.DepthOrArraySize = mResourceDesc.DepthOrArraySize;
-				mFeedbackDesc.Height = mResourceDesc.Height;
-				mFeedbackDesc.Width = mResourceDesc.Width;
-				mFeedbackDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-				mFeedbackDesc.SampleDesc.Count = 1u;
-				mFeedbackDesc.SampleDesc.Quality = 0u;
-				mFeedbackDesc.SamplerFeedbackMipRegion.Height = mTileShape.HeightInTexels;
-				mFeedbackDesc.SamplerFeedbackMipRegion.Width = mTileShape.WidthInTexels;
-				mFeedbackDesc.SamplerFeedbackMipRegion.Depth = mTileShape.DepthInTexels;
-
-				D3D12_HEAP_PROPERTIES heapProperties;
-				heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-				// 以默认方式创建Feedback
-				HRASSERT(mDevice->D3DDevice()->CreateCommittedResource2(
-					&heapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&mFeedbackDesc,
-					D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-					nullptr,
-					nullptr,
-					IID_PPV_ARGS(&mResource)
-				));
-				*/
 			}
 		}
 	}
@@ -112,6 +78,7 @@ namespace Renderer {
 	, mDescriptorAllocator(descriptorAllocator) {
 
 		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 		ASSERT_FORMAT(heap->GetUsage() == GHL::EResourceUsage::Default, "Heap Usage Must be Default");
@@ -122,7 +89,7 @@ namespace Renderer {
 			heapOffset,
 			&mResourceFormat.D3DResourceDesc(),
 			GHL::GetD3DResourceStates(textureDesc.initialState),
-			nullptr,
+			&d3dClearValue,
 			IID_PPV_ARGS(&mD3DResource)
 		));
 	}

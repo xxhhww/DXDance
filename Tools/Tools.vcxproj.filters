@@ -85,6 +85,9 @@
     <Filter Include="源文件\TaskSystem">
       <UniqueIdentifier>{3377206c-b6af-4d04-8af7-4f7bea932799}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\TemplateAllocator">
+      <UniqueIdentifier>{162f7091-6c23-49c6-88b9-670f15c43665}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Event.inl">
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="ThreadPool.h">
       <Filter>头文件\TaskSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="TemplateAllocator.h">
+      <Filter>头文件\TemplateAllocator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

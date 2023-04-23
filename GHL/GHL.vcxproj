@@ -134,6 +134,7 @@
     <ClInclude Include="CommandAllocator.h" />
     <ClInclude Include="CommandList.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="DDS.h" />
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="DWParam.h" />

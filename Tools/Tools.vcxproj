@@ -148,6 +148,7 @@
     <ClInclude Include="SystemCall.h" />
     <ClInclude Include="TaskProxy.h" />
     <ClInclude Include="TaskSystem.h" />
+    <ClInclude Include="TemplateAllocator.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="UIDGenerator.h" />
     <ClInclude Include="VisitorHelper.h" />

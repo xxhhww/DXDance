@@ -20,6 +20,17 @@ namespace GHL {
 		HRASSERT(mFence->SetEventOnCompletion(value, eventHandle));
 	}
 
+	void Fence::Wait(std::optional<uint64_t> value) {
+		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
+		UINT64 valueToWaitFor = value.value_or(mExpectedValue);
+		SetCompletionEvent(valueToWaitFor, eventHandle);
+
+		// Wait until the GPU hits current fence event is fired.
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+
 	void Fence::SetDebugName(const std::string& name) {
 		HRASSERT(mFence->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
 	}
