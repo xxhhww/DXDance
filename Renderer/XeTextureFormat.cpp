@@ -14,7 +14,7 @@ namespace Renderer {
         desc.format = GetFormat();
         desc.supportStream = true;
         desc.initialState = GHL::EResourceState::PixelShaderAccess;
-        desc.expectedState = desc.initialState;
+        desc.expectedState = GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::CopyDestination;
 
         return desc;
     }

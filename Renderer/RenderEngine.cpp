@@ -23,8 +23,15 @@ namespace Renderer {
 		, mGPUProfiler(std::make_unique<GPUProfiler>(mDevice.get(), mFrameTracker.get()))
 		, mShaderManger(std::make_unique<ShaderManger>(mDevice.get()))
 		, mResourceStateTracker(std::make_unique<ResourceStateTracker>())
+		, mStreamTextureManger(std::make_unique<StreamTextureManger>(
+			mDevice.get(),
+			mCopyQueue.get(),
+			mDescriptorAllocator.get(),
+			mHeapAllocator.get(),
+			mFrameTracker.get()))
 		, mRenderGraph(std::make_unique<RenderGraph>(
-			mDevice.get(), mFrameTracker.get(), 
+			mDevice.get(),
+			mFrameTracker.get(), 
 			mDescriptorAllocator.get(), 
 			mCommandListAllocator.get(), 
 			mGraphicsQueue.get(), 
@@ -57,6 +64,8 @@ namespace Renderer {
 		mBackBufferPass.AddPass(*mRenderGraph.get());
 
 		mRenderGraph->Build();
+
+		mStreamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 	}
 
 	void RenderEngine::Resize(uint64_t width, uint64_t height) {

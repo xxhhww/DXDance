@@ -111,9 +111,6 @@
     <ClInclude Include="GPUProfiler.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
-    <ClInclude Include="TileUpdateManger.h">
-      <Filter>头文件\Manger</Filter>
-    </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
@@ -183,7 +180,7 @@
     <ClInclude Include="StreamTexture.h">
       <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
-    <ClInclude Include="StreamTextureStorage.h">
+    <ClInclude Include="StreamTextureManger.h">
       <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
     <ClInclude Include="DataUploader.h">
@@ -237,9 +234,6 @@
       <Filter>源文件\Manger</Filter>
     </ClCompile>
     <ClCompile Include="GPUProfiler.cpp">
-      <Filter>源文件\Manger</Filter>
-    </ClCompile>
-    <ClCompile Include="TileUpdateManger.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
@@ -306,9 +300,6 @@
       <Filter>源文件\Test</Filter>
     </ClCompile>
     <ClCompile Include="DataUploader.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="StreamTextureStorage.cpp">
       <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
     <ClCompile Include="TileUpdater.cpp">

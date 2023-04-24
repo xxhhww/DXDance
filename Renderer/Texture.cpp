@@ -55,12 +55,11 @@ namespace Renderer {
 				));
 			}
 			else {
-				ASSERT_FORMAT(false, "Unsupport Reserved Resource!");
 				// 以保留方式创建该Buffer
 				HRASSERT(mDevice->D3DDevice()->CreateReservedResource(
 					&mResourceFormat.D3DResourceDesc(),
 					GHL::GetD3DResourceStates(textureDesc.initialState),
-					&d3dClearValue,
+					nullptr,
 					IID_PPV_ARGS(&mD3DResource)
 				));
 			}

@@ -1,10 +1,12 @@
 #pragma once
-
+#include "DirectStorage/dstorage.h"
 #include <memory>
 #include <wrl.h>
-#include "DirectStorage/dstorage.h"
 
-#include "GHL/Fence.h"
+namespace GHL {
+	class Device;
+	class Fence;
+}
 
 namespace Renderer {
 
@@ -13,21 +15,18 @@ namespace Renderer {
 	*/
 	class DataUploader {
 	public:
-		DataUploader(const GHL::Device* device);
+		DataUploader(const GHL::Device* device, IDStorageFactory* dsFactory);
 		~DataUploader() = default;
 
-		inline auto* GetDStorageFactory() const { return mDStorageFactory.Get(); }
 		inline auto* GetFileCopyQueue()   const { return mFileCopyQueue.Get(); }
 		inline auto* GetMemoryCopyQueue() const { return mMemoryCopyQueue.Get(); }
 		inline auto* GetCopyFence()       const { return mCopyFence.get(); }
 
 	private:
-		inline static const uint32_t mStagingBufferSizeMB = 128u;
-
 		const GHL::Device* mDevice{ nullptr };
-		Microsoft::WRL::ComPtr<IDStorageFactory> mDStorageFactory;
-		Microsoft::WRL::ComPtr<IDStorageQueue>   mFileCopyQueue;
-		Microsoft::WRL::ComPtr<IDStorageQueue>   mMemoryCopyQueue;
+		IDStorageFactory* mDStorageFactory{ nullptr };
+		Microsoft::WRL::ComPtr<IDStorageQueue> mFileCopyQueue;
+		Microsoft::WRL::ComPtr<IDStorageQueue> mMemoryCopyQueue;
 		
 		std::unique_ptr<GHL::Fence> mCopyFence;
 	};

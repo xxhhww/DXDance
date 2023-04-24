@@ -43,7 +43,7 @@ namespace UI {
         {
             ID3D12InfoQueue* pInfoQueue = NULL;
             g_pd3dDevice->QueryInterface(IID_PPV_ARGS(&pInfoQueue));
-            pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+            pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, false);
             pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
             pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
             pInfoQueue->Release();

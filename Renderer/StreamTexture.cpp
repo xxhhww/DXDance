@@ -11,13 +11,13 @@ namespace Renderer {
 	StreamTexture::StreamTexture(
 		const GHL::Device* device,
 		const XeTexureFormat& xeTextureFormat,
-		FileHandle* fileHandle,
+		std::unique_ptr<FileHandle> fileHandle,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
 		RingFrameTracker* frameTracker)
 	: mDevice(device)
 	, mFileFormat(xeTextureFormat)
-	, mFileHandle(fileHandle)
+	, mFileHandle(std::move(fileHandle))
 	, mFrameTracker(frameTracker) 
 	, mHeapAllocator(heapAllocator) {
 		ResourceFormat resourceFormat{ mDevice, xeTextureFormat.ConvertTextureDesc() };
@@ -25,7 +25,7 @@ namespace Renderer {
 
 		mInternalTexture = new Texture(device, resourceFormat, descriptorAllocator, heapAllocator);
 		mMaxMip = resourceFormat.SubresourceCount();
-
+		mPackedMipsFileOffset = mFileFormat.GetPackedMipFileOffset(&mPackedMipsNumBytes, &mPackedMipsUncompressedSize);
 		const auto& d3dResourceDesc = resourceFormat.D3DResourceDesc();
 
 		mTiling.resize(mMaxMip);
@@ -47,8 +47,7 @@ namespace Renderer {
 			mFeedbackResourceDesc.SamplerFeedbackMipRegion.Width  = GetTileTexelWidth();
 			mFeedbackResourceDesc.SamplerFeedbackMipRegion.Depth  = GetTileTexelDepth();
 
-			D3D12_HEAP_PROPERTIES heapProperties;
-			heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+			const auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
 			// 以默认方式创建Feedback
 			HRASSERT(mDevice->D3DDevice()->CreateCommittedResource2(
@@ -199,14 +198,12 @@ namespace Renderer {
 		mappingFence->Wait();
 
 		// 执行数据复制操作
-
-		auto fileOffset = mFileFormat.GetFileOffset(resourceRegionStartCoordinates);
 		DSTORAGE_REQUEST request{};
 		request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
 		request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
 		request.Source.File.Source = mFileHandle->GetDStorageFile();
-		request.Source.File.Offset = fileOffset.offset;
-		request.Source.File.Size = fileOffset.numBytes;
+		request.Source.File.Offset = mPackedMipsFileOffset;
+		request.Source.File.Size = mPackedMipsNumBytes;
 		request.UncompressedSize = mPackedMipsUncompressedSize;
 
 		request.Destination.Tiles.Resource = mInternalTexture->D3DResource();
@@ -217,6 +214,8 @@ namespace Renderer {
 		copyDsQueue->EnqueueRequest(&request);
 		copyFence->IncrementExpectedValue();
 		copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+		copyDsQueue->Submit();
+
 		copyFence->Wait();
 	}
 

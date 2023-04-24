@@ -8,6 +8,7 @@
 
 namespace GHL {
 	class CommandQueue;
+	class Fence;
 }
 
 namespace Renderer {
@@ -19,7 +20,7 @@ namespace Renderer {
 		StreamTexture(
 			const GHL::Device* device,
 			const XeTexureFormat& xeTextureFormat,
-			FileHandle* fileHandle,
+			std::unique_ptr<FileHandle> fileHandle,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator,
 			RingFrameTracker* ringFrameTracker);
@@ -56,22 +57,24 @@ namespace Renderer {
 		inline const auto& GetResidencyMapOffset() const { return mResidencyMapOffset; }
 
 	private:
-		const GHL::Device* mDevice      { nullptr };
+		const GHL::Device* mDevice { nullptr };
 		XeTexureFormat mFileFormat;
-		FileHandle* mFileHandle{ nullptr };
+		std::unique_ptr<FileHandle> mFileHandle;
 
-		Texture* mInternalTexture       { nullptr };
+		Texture* mInternalTexture { nullptr };
 		RingFrameTracker* mFrameTracker { nullptr };
-		BuddyHeapAllocator* mHeapAllocator{ nullptr };
+		BuddyHeapAllocator* mHeapAllocator { nullptr };
 
-		uint32_t mMaxMip{ 0u }; // Start From 1u
-
-		uint64_t mPackedMipsUncompressedSize{ 0u };
 		D3D12_PACKED_MIP_INFO mPackedMipInfo; // last n mips may be packed into a single tile
 		D3D12_TILE_SHAPE mTileShape;          // e.g. a 64K tile may contain 128x128 texels @ 4B/pixel
 		UINT mNumTilesTotal;
 		std::vector<D3D12_SUBRESOURCE_TILING> mTiling;
 
+		uint32_t mMaxMip{ 0u }; // Start From 1u
+
+		uint32_t mPackedMipsFileOffset{ 0u };
+		uint32_t mPackedMipsNumBytes{ 0u };
+		uint32_t mPackedMipsUncompressedSize{ 0u };
 		BuddyHeapAllocator::Allocation* mPackedMipsHeapAllocation{ nullptr };
 
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mClearUavHeap;

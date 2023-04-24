@@ -24,6 +24,7 @@
     <ProjectGuid>{d22dc974-7c5f-42ce-8933-5f58b72cb8ba}</ProjectGuid>
     <RootNamespace>Shader</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Shader</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
