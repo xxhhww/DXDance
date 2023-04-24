@@ -28,7 +28,7 @@ namespace Renderer {
 			);
 		~StreamTextureManger() = default;
 
-		Texture* Request(const std::string& filepath);
+		StreamTexture* Request(const std::string& filepath);
 
 	private:
 		inline static const uint32_t mStagingBufferSizeMB = 128u;

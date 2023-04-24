@@ -28,6 +28,11 @@ namespace Renderer {
 		~StreamTexture();
 
 		/*
+		* 录制Feedback的清理命令
+		*/
+		void RecordClearFeedback(ID3D12GraphicsCommandList4* commandList);
+
+		/*
 		* 录制解算Feedback的命令
 		*/
 		void RecordResolve(ID3D12GraphicsCommandList4* commandList);
@@ -80,12 +85,14 @@ namespace Renderer {
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mClearUavHeap;
 		D3D12_RESOURCE_DESC1 mFeedbackResourceDesc{};
 		Microsoft::WRL::ComPtr<ID3D12Resource2> mFeedbackResource;
+		DescriptorHandleWrap mFeedbackUADescriptor;
 
 		Microsoft::WRL::ComPtr<ID3D12Resource> mResolvedResource;
 		std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> mReadbackResource;
 
 		std::vector<BYTE, AlignedAllocator<BYTE>> mMinMipMap; // 该纹理的MipLevel驻留信息，总是需要更新到GlobalMinMipMap中
 		uint64_t mResidencyMapOffset{ 0u }; // 该纹理的驻留信息在全局驻留信息中的偏移量(索引)
+
 	};
 
 }

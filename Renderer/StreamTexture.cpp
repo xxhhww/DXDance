@@ -59,6 +59,7 @@ namespace Renderer {
 				nullptr,
 				IID_PPV_ARGS(&mFeedbackResource)
 			));
+			mFeedbackResource->SetName(L"Feedback");
 		}
 
 		// CPU heap used for ClearUnorderedAccessView on feedback map
@@ -77,6 +78,9 @@ namespace Renderer {
 				mInternalTexture->D3DResource(),
 				mFeedbackResource.Get(),
 				mClearUavHeap->GetCPUDescriptorHandleForHeapStart());
+			mFeedbackUADescriptor = mInternalTexture->mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+			mDevice->D3DDevice()->CopyDescriptorsSimple(1u, mFeedbackUADescriptor->GetCpuHandle(),
+				mClearUavHeap->GetCPUDescriptorHandleForHeapStart(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		}
 
 		// create gpu-side resolve destination
@@ -92,9 +96,10 @@ namespace Renderer {
 				&resolvedResourceDesc,
 				// NOTE: though used as RESOLVE_DEST, it is also copied to the CPU
 				// start in the copy_source state to align with transition barrier logic in TileUpdateManager
-				D3D12_RESOURCE_STATE_COPY_SOURCE,
+				D3D12_RESOURCE_STATE_RESOLVE_DEST,
 				nullptr,
 				IID_PPV_ARGS(&mResolvedResource)));
+			mResolvedResource->SetName(L"ResolvedResource");
 		}
 
 		{
@@ -108,6 +113,7 @@ namespace Renderer {
 
 			mReadbackResource.resize(mFrameTracker->GetMaxSize());
 
+			int i = 0;
 			for (auto& rb : mReadbackResource) {
 				HRASSERT(mDevice->D3DDevice()->CreateCommittedResource(
 					&resolvedHeapProperties,
@@ -117,6 +123,8 @@ namespace Renderer {
 					D3D12_RESOURCE_STATE_COPY_DEST,
 					nullptr,
 					IID_PPV_ARGS(&rb)));
+				rb->SetName(std::to_wstring(i).c_str());
+				i++;
 			}
 		}
 	}
@@ -127,7 +135,21 @@ namespace Renderer {
 		}
 	}
 
+	void StreamTexture::RecordClearFeedback(ID3D12GraphicsCommandList4* commandList) {
+		UINT clearValue[4]{};
+		commandList->ClearUnorderedAccessViewUint(
+			mFeedbackUADescriptor.Get()->GetGpuHandle(),
+			mClearUavHeap->GetCPUDescriptorHandleForHeapStart(),
+			mFeedbackResource.Get(),
+			clearValue,
+			0, 
+			nullptr);
+	}
+
 	void StreamTexture::RecordResolve(ID3D12GraphicsCommandList4* commandList) {
+		auto beforeBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mFeedbackResource.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+		commandList->ResourceBarrier(1u, &beforeBarrier);
+
 		auto resolveDest = mResolvedResource.Get();
 
 		// resolve the min mip map
@@ -142,9 +164,15 @@ namespace Renderer {
 			DXGI_FORMAT_R8_UINT, // decode format must be R8_UINT
 			D3D12_RESOLVE_MODE_DECODE_SAMPLER_FEEDBACK
 		);
+
+		auto afterBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mFeedbackResource.Get(), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		commandList->ResourceBarrier(1u, &afterBarrier);
 	}
 
 	void StreamTexture::RecordReadback(ID3D12GraphicsCommandList4* commandList) {
+		auto beforeBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mResolvedResource.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		commandList->ResourceBarrier(1u, &beforeBarrier);
+
 		uint8_t currentFrameIndex = mFrameTracker->GetCurrFrameIndex();
 		ID3D12Resource* pResolvedReadback = mReadbackResource[currentFrameIndex].Get();
 		auto srcDesc = mResolvedResource->GetDesc();
@@ -160,6 +188,9 @@ namespace Renderer {
 			0, 0, 0,
 			&srcLocation,
 			nullptr);
+
+		auto afterBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mResolvedResource.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		commandList->ResourceBarrier(1u, &afterBarrier);
 	}
 
 	void StreamTexture::MapAndLoadPackedMipMap(GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence) {
@@ -207,7 +238,7 @@ namespace Renderer {
 		request.Source.File.Offset = mPackedMipsFileOffset;
 		request.Source.File.Size = mPackedMipsNumBytes;
 		request.Destination.MultipleSubresources.Resource = mInternalTexture->D3DResource();
-		request.Destination.MultipleSubresources.FirstSubresource = GetPackedMipInfo().NumStandardMips;
+		request.Destination.MultipleSubresources.FirstSubresource = firstSubresource;
 		request.UncompressedSize = mPackedMipsUncompressedSize;
 
 		copyDsQueue->EnqueueRequest(&request);

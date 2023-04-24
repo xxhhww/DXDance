@@ -28,12 +28,16 @@ namespace Renderer {
 					});
 			},
 			[=](CommandListWrap& commandList, RenderContext& context) {
-				uint32_t srvIndex = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet")->GetSRDescriptor()->GetHeapIndex();
+				auto* streamTexture = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
+				uint32_t srvIndex = streamTexture->GetInternalResource()->GetSRDescriptor()->GetHeapIndex();
 
 				Vertex triangleVertices[] = {
-					{ { 0.0f, 0.25f, 0.0f }    },
-					{ { 0.25f, -0.25f, 0.0f }  },
-					{ { -0.25f, -0.25f, 0.0f } }
+					{ { -1.0f, 1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 0.0f} },
+					{ { 1.0f, -1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 1.0f} },
+					{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 1.0f} },
+					{ { -1.0f, 1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 0.0f} },
+					{ { 1.0f, 1.0f, 0.0f   }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 0.0f} },
+					{ { 1.0f, -1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 1.0f} }
 				};
 				const UINT vertexBufferSize = sizeof(triangleVertices);
 				
@@ -68,6 +72,8 @@ namespace Renderer {
 
 				FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+				streamTexture->RecordClearFeedback(commandList->D3DCommandList());
+
 				commandList->D3DCommandList()->RSSetViewports(1u, &viewPort);
 				commandList->D3DCommandList()->RSSetScissorRects(1u, &rect);
 
@@ -80,9 +86,10 @@ namespace Renderer {
 
 				commandList->D3DCommandList()->IASetVertexBuffers(0u, 1u, &vbView);
 				commandList->D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				commandList->D3DCommandList()->DrawInstanced(3u, 1u, 0u, 0u);
-				
+				commandList->D3DCommandList()->DrawInstanced(6u, 1u, 0u, 0u);
 
+				streamTexture->RecordResolve(commandList->D3DCommandList());
+				streamTexture->RecordReadback(commandList->D3DCommandList());
 			});
 	}
 

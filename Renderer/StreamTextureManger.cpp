@@ -37,10 +37,10 @@ namespace Renderer {
 		mDataUploader = std::make_unique<DataUploader>(mDevice, mDStorageFactory.Get());
 	}
 
-	Texture* StreamTextureManger::Request(const std::string& filepath) {
+	StreamTexture* StreamTextureManger::Request(const std::string& filepath) {
 		auto it = mTextureStorages.find(filepath);
 		if (it != mTextureStorages.end()) {
-			return it->second->GetInternalResource();
+			return it->second.get();
 		}
 
 		XeTexureFormat xeTextureFormat{ filepath };
@@ -51,7 +51,7 @@ namespace Renderer {
 		streamTexture->MapAndLoadPackedMipMap(mMappingQueue, mMappingFence.get(), mDataUploader->GetFileCopyQueue(), mDataUploader->GetCopyFence());
 		mTextureStorages[filepath] = std::move(streamTexture);
 
-		return mTextureStorages.at(filepath)->GetInternalResource();
+		return mTextureStorages.at(filepath).get();
 	}
 
 }
