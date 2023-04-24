@@ -25,20 +25,15 @@ namespace UI {
             sd.Stereo = FALSE;
         }
 
-        // [DEBUG] Enable debug interface
-#if defined(DEBUG) || defined(_DEBUG)
         ID3D12Debug* pdx12Debug = NULL;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&pdx12Debug))))
             pdx12Debug->EnableDebugLayer();
-#endif
 
         // Create device
         D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
         if (D3D12CreateDevice(NULL, featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
             return false;
 
-        // [DEBUG] Setup debug interface to break on any warnings/errors
-#if defined(DEBUG) || defined(_DEBUG)
         if (pdx12Debug != NULL)
         {
             ID3D12InfoQueue* pInfoQueue = NULL;
@@ -49,7 +44,6 @@ namespace UI {
             pInfoQueue->Release();
             pdx12Debug->Release();
         }
-#endif
 
         {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};

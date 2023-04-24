@@ -198,18 +198,17 @@ namespace Renderer {
 		mappingFence->Wait();
 
 		// 执行数据复制操作
+		// 注意: PackedMip虽然只是一个Tile，但是跨越多个子资源，所以DestinationType设置为MULTIPLE_SUBRESOURCES
 		DSTORAGE_REQUEST request{};
-		request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
+		request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_MULTIPLE_SUBRESOURCES;
 		request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
+		request.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)mFileFormat.GetCompressionFormat();
 		request.Source.File.Source = mFileHandle->GetDStorageFile();
 		request.Source.File.Offset = mPackedMipsFileOffset;
 		request.Source.File.Size = mPackedMipsNumBytes;
+		request.Destination.MultipleSubresources.Resource = mInternalTexture->D3DResource();
+		request.Destination.MultipleSubresources.FirstSubresource = GetPackedMipInfo().NumStandardMips;
 		request.UncompressedSize = mPackedMipsUncompressedSize;
-
-		request.Destination.Tiles.Resource = mInternalTexture->D3DResource();
-		request.Destination.Tiles.TiledRegionStartCoordinate = resourceRegionStartCoordinates;
-		request.Destination.Tiles.TileRegionSize = D3D12_TILE_REGION_SIZE{ 1, FALSE, 0, 0, 0 };
-		request.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)mFileFormat.GetCompressionFormat();
 
 		copyDsQueue->EnqueueRequest(&request);
 		copyFence->IncrementExpectedValue();

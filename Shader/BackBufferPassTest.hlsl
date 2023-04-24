@@ -29,7 +29,9 @@ v2p VSMain(a2v input)
 
 float4 PSMain(v2p input) : SV_TARGET
 {
-	return float4(0.5f, 0.5f, 0.5f, 1.0f);
+	Texture2D streamTex = ResourceDescriptorHeap[0];
+	float3 value =  streamTex.Sample(SamplerPointClamp, input.uv, 0, 5).rgb;
+	return float4(value, 1.0f);
 }
 
 #endif

@@ -32,6 +32,11 @@ namespace GHL {
 		void AddStaticSampler(D3D12_STATIC_SAMPLER_DESC staticSamplerDesc);
 
 		/*
+		* 初始化静态跟采样器
+		*/
+		void InitStaticSampler();
+
+		/*
 		* 编译
 		*/
 		void Compile();

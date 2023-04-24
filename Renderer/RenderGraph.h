@@ -4,6 +4,8 @@
 #include "ResourceStateTracker.h"
 #include "RenderGraphResourceStorage.h"
 
+#include "StreamTextureManger.h"
+
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -12,14 +14,12 @@
 #include <string>
 
 namespace GHL {
-
 	class Device;
 	class Fence;
 	class CommandQueue;
 	class GraphicsQueue;
 	class ComputeQueue;
 	class CopyQueue;
-
 }
 
 namespace Renderer {
@@ -34,14 +34,20 @@ namespace Renderer {
 
 	struct RenderContext {
 	public:
-		RenderContext(ShaderManger* _shaderManger, LinearBufferAllocator* _dynamicAllocator, RenderGraphResourceStorage* _resourceStorage)
+		RenderContext(
+			ShaderManger* _shaderManger, 
+			LinearBufferAllocator* _dynamicAllocator, 
+			RenderGraphResourceStorage* _resourceStorage,
+			StreamTextureManger* _streamTextureManger)
 		: shaderManger(_shaderManger)
 		, dynamicAllocator(_dynamicAllocator)
-		, resourceStorage(_resourceStorage) {}
+		, resourceStorage(_resourceStorage)
+		, streamTextureManger(_streamTextureManger) {}
 
 		ShaderManger* shaderManger{ nullptr };
 		LinearBufferAllocator* dynamicAllocator{ nullptr };
 		RenderGraphResourceStorage* resourceStorage{ nullptr };
+		StreamTextureManger* streamTextureManger{ nullptr };
 	};
 
 	class RenderGraph {
@@ -56,7 +62,8 @@ namespace Renderer {
 			GHL::CopyQueue* copyQueue,
 			ResourceStateTracker* stateTracker,
 			ShaderManger* shaderManger,
-			LinearBufferAllocator* dynamicAllocator);
+			LinearBufferAllocator* dynamicAllocator,
+			StreamTextureManger* streamTextureManger);
 		~RenderGraph() = default;
 
 		/*
@@ -131,6 +138,7 @@ namespace Renderer {
 
 	private:
 		RingFrameTracker* mFrameTracker{ nullptr };
+		PoolDescriptorAllocator*  mDescriptorAllocator{ nullptr };
 		PoolCommandListAllocator* mCommandListAllocator{ nullptr };
 
 		std::vector<GHL::CommandQueue*> mCommandQueues;
@@ -156,6 +164,7 @@ namespace Renderer {
 		ResourceStateTracker* mResourceStateTracker{ nullptr };
 		ShaderManger* mShaderManger{ nullptr };
 		LinearBufferAllocator* mDynamicAllocator{ nullptr };
+		StreamTextureManger* mStreamTextureManger{ nullptr };
 	};
 
 }

@@ -26,13 +26,16 @@ namespace Renderer {
 		GHL::CopyQueue* copyQueue,
 		ResourceStateTracker* stateTracker,
 		ShaderManger* shaderManger,
-		LinearBufferAllocator* dynamicAllocator)
+		LinearBufferAllocator* dynamicAllocator,
+		StreamTextureManger* streamTextureManger)
 	: mFrameTracker(frameTracker) 
+	, mDescriptorAllocator(descriptorAllocator)
 	, mCommandListAllocator(commandListAllocator)
 	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
 	, mResourceStateTracker(stateTracker) 
 	, mShaderManger(shaderManger) 
-	, mDynamicAllocator(dynamicAllocator) {
+	, mDynamicAllocator(dynamicAllocator)
+	, mStreamTextureManger(streamTextureManger) {
 		mCommandQueues.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
 		mCommandQueues.at(0u) = graphicsQueue;
 		mCommandQueues.at(1u) = computeQueue;
@@ -68,7 +71,7 @@ namespace Renderer {
 
 	void RenderGraph::Execute() {
 
-		RenderContext renderContext{ mShaderManger, mDynamicAllocator, mResourceStorage.get() };
+		RenderContext renderContext{ mShaderManger, mDynamicAllocator, mResourceStorage.get(), mStreamTextureManger };
 
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
 
@@ -132,6 +135,8 @@ RecordRenderCommand:
 						continue;
 					}
 					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+					auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+					commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 					auto* currCommandQueue = mCommandQueues.at(queueIndex);
 					auto* currFence = mFences.at(queueIndex).get();
 

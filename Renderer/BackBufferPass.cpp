@@ -28,7 +28,8 @@ namespace Renderer {
 					});
 			},
 			[=](CommandListWrap& commandList, RenderContext& context) {
-				
+				uint32_t srvIndex = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet")->GetSRDescriptor()->GetHeapIndex();
+
 				Vertex triangleVertices[] = {
 					{ { 0.0f, 0.25f, 0.0f }    },
 					{ { 0.25f, -0.25f, 0.0f }  },

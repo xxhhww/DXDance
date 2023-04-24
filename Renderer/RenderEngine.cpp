@@ -39,7 +39,8 @@ namespace Renderer {
 			mCopyQueue.get(), 
 			mResourceStateTracker.get(),
 			mShaderManger.get(),
-			mSharedMemAllocator.get())) 
+			mSharedMemAllocator.get(),
+			mStreamTextureManger.get())) 
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
 
 		if (windowHandle != nullptr) {
