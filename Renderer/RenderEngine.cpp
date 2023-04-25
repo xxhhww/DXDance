@@ -7,15 +7,19 @@
 
 namespace Renderer {
 
-	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height)
-		: mAdapterContainer(std::make_unique<GHL::AdapterContainer>())
+	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers)
+		: mWindowHandle(windowHandle)
+		, mOutputWidth(width)
+		, mOutputHeight(height)
+		, mBackBufferStrategy((GHL::BackBufferStrategy)numBackBuffers)
+		, mAdapterContainer(std::make_unique<GHL::AdapterContainer>())
 		, mSelectedAdapter(mAdapterContainer->GetHighPerformanceAdapter())
 		, mDevice(std::make_unique<GHL::Device>(*mSelectedAdapter, false))
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
 		, mComputeQueue(std::make_unique<GHL::ComputeQueue>(mDevice.get()))
 		, mCopyQueue(std::make_unique<GHL::CopyQueue>(mDevice.get()))
 		, mRenderFrameFence(std::make_unique<GHL::Fence>(mDevice.get()))
-		, mFrameTracker(std::make_unique<RingFrameTracker>(3u))
+		, mFrameTracker(std::make_unique<RingFrameTracker>(numBackBuffers))
 		, mHeapAllocator(std::make_unique<BuddyHeapAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mCommandListAllocator(std::make_unique<PoolCommandListAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mDescriptorAllocator(std::make_unique<PoolDescriptorAllocator>(mDevice.get(), mFrameTracker.get(), std::vector<uint64_t>{1024, 128, 128, 128}))
@@ -44,10 +48,10 @@ namespace Renderer {
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
 
 		if (windowHandle != nullptr) {
-			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, GHL::BackBufferStrategy::Triple, width, height);
-			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(0u), mDescriptorAllocator.get()));
-			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(1u), mDescriptorAllocator.get()));
-			mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(2u), mDescriptorAllocator.get()));
+			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);
+			for (uint32_t i = 0; i < numBackBuffers; i++) {
+				mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(i), mDescriptorAllocator.get()));
+			}
 		}
 
 		// 创建FinalOutput纹理
@@ -62,6 +66,7 @@ namespace Renderer {
 
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
 
+		// 添加RenderPass
 		mBackBufferPass.AddPass(*mRenderGraph.get());
 
 		mRenderGraph->Build();
@@ -105,10 +110,10 @@ namespace Renderer {
 		// 压入渲染命令完成后的围栏
 		mGraphicsQueue->SignalFence(*mRenderFrameFence.get());
 
-		if (mFrameTracker->GetUsedSize() == 3u) {
+		if (mFrameTracker->GetUsedSize() == std::underlying_type<GHL::BackBufferStrategy>::type(mBackBufferStrategy)) {
 			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 
-			UINT64 valueToWaitFor = mRenderFrameFence->ExpectedValue() - (3u - 1u);
+			UINT64 valueToWaitFor = mRenderFrameFence->ExpectedValue() - (std::underlying_type<GHL::BackBufferStrategy>::type(mBackBufferStrategy) - 1u);
 			mRenderFrameFence->SetCompletionEvent(valueToWaitFor, eventHandle);
 
 			// Wait until the GPU hits current fence event is fired.

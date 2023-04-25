@@ -23,11 +23,12 @@ namespace Renderer {
 		}
 
 		auto heapIndex = *poolAllocation->bucket->userData.heapIndex;
-		auto offset = poolAllocation->block->offset;
+		auto heapOffset = poolAllocation->block->offset;
+		auto tileOffset = heapOffset / mMinBlockSize;
 		auto size = poolAllocation->block->size;
 		auto* heap = mHeaps.at(heapIndex).get();
 
-		return new Allocation(poolAllocation, heap, heapIndex, offset, size);
+		return new Allocation(poolAllocation, heap, heapIndex, heapOffset, tileOffset, size);
 	}
 
 	void BuddyHeapAllocator::Deallocate(BuddyHeapAllocator::Allocation* allocation) {

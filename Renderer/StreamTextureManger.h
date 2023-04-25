@@ -1,5 +1,6 @@
 #pragma once
 #include "DataUploader.h"
+#include "TileUpdater.h"
 #include "StreamTexture.h"
 
 namespace GHL {
@@ -31,6 +32,12 @@ namespace Renderer {
 		StreamTexture* Request(const std::string& filepath);
 
 	private:
+		/*
+		* 渲染帧完成后的回调函数
+		*/
+		void FrameCompletedCallback(uint8_t frameIndex);
+
+	private:
 		inline static const uint32_t mStagingBufferSizeMB = 128u;
 
 		const GHL::Device* mDevice{ nullptr };
@@ -40,7 +47,8 @@ namespace Renderer {
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		RingFrameTracker* mFrameTracker{ nullptr };
 		Microsoft::WRL::ComPtr<IDStorageFactory> mDStorageFactory;
-		std::unique_ptr<DataUploader> mDataUploader{ nullptr };
+		std::unique_ptr<DataUploader> mDataUploader;
+		std::unique_ptr<TileUpdater>  mTileUpdater;
 
 		std::unordered_map<std::string, std::unique_ptr<StreamTexture>> mTextureStorages;
 	};

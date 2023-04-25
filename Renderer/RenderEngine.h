@@ -38,7 +38,7 @@ namespace Renderer {
 	*/
 	class RenderEngine {
 	public:
-		RenderEngine(HWND windowHandle, uint64_t width, uint64_t height);
+		RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers = 3u);
 		RenderEngine(const RenderEngine& other) = delete;
 		RenderEngine(RenderEngine&& other) = default;
 
@@ -59,11 +59,16 @@ namespace Renderer {
 		void BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
 	public:
+		// ==========================...杂项...==========================
+		HWND mWindowHandle{ nullptr };
+		uint32_t mOutputWidth{ 0u };
+		uint32_t mOutputHeight{ 0u };
+		GHL::BackBufferStrategy mBackBufferStrategy{ GHL::BackBufferStrategy::Triple };
+
 		// ==========================...GPU设备...==========================
-		
 		std::unique_ptr<GHL::AdapterContainer> mAdapterContainer; // 适配器容器
 		const GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
-		
+
 		std::unique_ptr<GHL::Device> mDevice;
 
 		std::unique_ptr<GHL::GraphicsQueue>    mGraphicsQueue; // 图形引擎

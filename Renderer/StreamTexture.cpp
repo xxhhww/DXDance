@@ -19,23 +19,25 @@ namespace Renderer {
 	, mFileFormat(xeTextureFormat)
 	, mFileHandle(std::move(fileHandle))
 	, mFrameTracker(frameTracker) 
-	, mHeapAllocator(heapAllocator) {
+	, mHeapAllocator(heapAllocator) 
+	, mQueuedReadbackFeedback(mFrameTracker->GetMaxSize()) {
 		ResourceFormat resourceFormat{ mDevice, xeTextureFormat.ConvertTextureDesc() };
 		ASSERT_FORMAT(resourceFormat.GetTextureDesc().supportStream == true, "SupportStream Is False");
 
 		mInternalTexture = new Texture(device, resourceFormat, descriptorAllocator, heapAllocator);
-		mMaxMip = resourceFormat.SubresourceCount();
 		mPackedMipsFileOffset = mFileFormat.GetPackedMipFileOffset(&mPackedMipsNumBytes, &mPackedMipsUncompressedSize);
+		
 		const auto& d3dResourceDesc = resourceFormat.D3DResourceDesc();
-
-		mTiling.resize(mMaxMip);
-		mDevice->D3DDevice()->GetResourceTiling(mInternalTexture->D3DResource(), &mNumTilesTotal, &mPackedMipInfo, &mTileShape, &mMaxMip, 0, &mTiling[0]);
-
+		uint32_t subresourceCount = resourceFormat.SubresourceCount();
+		mTiling.resize(subresourceCount);
+		mDevice->D3DDevice()->GetResourceTiling(mInternalTexture->D3DResource(), &mNumTilesTotal, &mPackedMipInfo, &mTileShape, &subresourceCount, 0, &mTiling[0]);
+		mNumStandardMips = mPackedMipInfo.NumStandardMips;
+		mTileMappingState = std::make_unique<TileMappingState>(mNumStandardMips, mTiling);
 		// ´´½¨Feedback
 		{
 			mFeedbackResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 			mFeedbackResourceDesc.Format = DXGI_FORMAT_SAMPLER_FEEDBACK_MIN_MIP_OPAQUE;
-			mFeedbackResourceDesc.MipLevels = mMaxMip;
+			mFeedbackResourceDesc.MipLevels = d3dResourceDesc.MipLevels;
 			mFeedbackResourceDesc.Alignment = 0u;
 			mFeedbackResourceDesc.DepthOrArraySize = d3dResourceDesc.DepthOrArraySize;
 			mFeedbackResourceDesc.Height = d3dResourceDesc.Height;
@@ -112,7 +114,6 @@ namespace Renderer {
 			rd.Width = pitch * GetNumTilesHeight();
 
 			mReadbackResource.resize(mFrameTracker->GetMaxSize());
-
 			int i = 0;
 			for (auto& rb : mReadbackResource) {
 				HRASSERT(mDevice->D3DDevice()->CreateCommittedResource(
@@ -188,6 +189,8 @@ namespace Renderer {
 			0, 0, 0,
 			&srcLocation,
 			nullptr);
+		const auto& currFrameAttribute = mFrameTracker->GetCurrFrameAttribute();
+		mQueuedReadbackFeedback.at(currFrameAttribute.frameIndex).renderFrameFenceValue = currFrameAttribute.fenceValue;
 
 		auto afterBarrier = CD3DX12_RESOURCE_BARRIER::Transition(mResolvedResource.Get(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 		commandList->ResourceBarrier(1u, &afterBarrier);
@@ -249,8 +252,64 @@ namespace Renderer {
 		copyFence->Wait();
 	}
 
+	void StreamTexture::ProcessReadbackFeedback() {
+
+	}
+
+	void StreamTexture::FrameCompletedCallback(uint8_t frameIndex) {
+		mQueuedReadbackFeedback.at(frameIndex).isFresh = true;
+	}
+
 	void StreamTexture::SetResidencyMapOffset(uint64_t mapOffset) {
 		mResidencyMapOffset = mapOffset;
 	}
+
+	// =============================== TileMappingState ===============================
+	StreamTexture::TileMappingState::TileMappingState(uint32_t mipNums, std::vector<D3D12_SUBRESOURCE_TILING>& subresourceTilings) {
+		mRefCounts.resize(mipNums);
+		mResidencyStates.resize(mipNums);
+		mHeapAllocations.resize(mipNums);
+
+		for (uint32_t i = 0; i < subresourceTilings.size(); i++) {
+			auto& tiling = subresourceTilings.at(i);
+			if (tiling.WidthInTiles  == 0u 
+				&& tiling.HeightInTiles == 0u 
+				&& tiling.DepthInTiles  == 0u) continue;
+
+			mRefCounts.at(i).resize(tiling.HeightInTiles);
+			mResidencyStates.at(i).resize(tiling.HeightInTiles);
+			mHeapAllocations.at(i).resize(tiling.HeightInTiles);
+
+			for (uint32_t j = 0; j < tiling.HeightInTiles; j++) {
+				mRefCounts.at(i).at(j).resize(tiling.WidthInTiles, 0u);
+				mResidencyStates.at(i).at(j).resize(tiling.WidthInTiles, TileMappingState::ResidencyState::NotResident);
+				mHeapAllocations.at(i).at(j).resize(tiling.WidthInTiles, nullptr);
+			}
+		}
+	}
+
+	StreamTexture::TileMappingState::~TileMappingState() {
+	}
+
+	void StreamTexture::TileMappingState::SetRefCount(uint32_t x, uint32_t y, uint32_t s, uint32_t refCount) {
+		mRefCounts[s][y][x] = refCount;
+	}
+	
+	void StreamTexture::TileMappingState::IncRefCount(uint32_t x, uint32_t y, uint32_t s) {
+		mRefCounts[s][y][x] ++;
+	}
+
+	void StreamTexture::TileMappingState::DecRefCount(uint32_t x, uint32_t y, uint32_t s) {
+		mRefCounts[s][y][x] --;
+	}
+
+	void StreamTexture::TileMappingState::SetResidencyState(uint32_t x, uint32_t y, uint32_t s, ResidencyState state) {
+		mResidencyStates[s][y][x] = state;
+	}
+
+	void StreamTexture::TileMappingState::SetHeapAllocation(uint32_t x, uint32_t y, uint32_t s, BuddyHeapAllocator::Allocation* heapAllocation) {
+		mHeapAllocations[s][y][x] = heapAllocation;
+	}
+
 
 }

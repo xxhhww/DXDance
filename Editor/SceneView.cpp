@@ -15,7 +15,7 @@ namespace App {
 		const UI::PanelWindowSettings& panelSetting)
 	: UI::PanelWindow(title, opend, panelSetting)
 	, mFinalOutputRect(1920.0f, 1080.0f)
-	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y) {
+	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y, 3u) {
 		mBackImage = &CreateWidget<UI::Image>(0u, mFinalOutputRect);
 		mSceneManger = &CORESERVICE(Core::SceneManger);
 		LoadNewScene("Undefined");

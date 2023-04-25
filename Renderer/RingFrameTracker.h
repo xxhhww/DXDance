@@ -5,7 +5,7 @@
 namespace Renderer {
 
 	/*
-	* 环型数据结构，用来跟踪帧(Frame)的状态，并在状态改变时进行对应的处理
+	* 环型数据结构，用来跟踪渲染帧的状态，并在状态改变时进行对应的回调处理
 	*/
 	class RingFrameTracker {
 	public:

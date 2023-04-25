@@ -35,6 +35,14 @@ namespace Renderer {
 
 		// Init DataUploader
 		mDataUploader = std::make_unique<DataUploader>(mDevice, mDStorageFactory.Get());
+
+		// Init TileUpdater
+		mTileUpdater = std::make_unique<TileUpdater>(mDevice, mFrameTracker, &mTextureStorages, mDataUploader.get());
+
+		// 注册渲染帧完成的回调函数
+		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
+			FrameCompletedCallback(frameIndex);
+		});
 	}
 
 	StreamTexture* StreamTextureManger::Request(const std::string& filepath) {
@@ -52,6 +60,12 @@ namespace Renderer {
 		mTextureStorages[filepath] = std::move(streamTexture);
 
 		return mTextureStorages.at(filepath).get();
+	}
+
+	void StreamTextureManger::FrameCompletedCallback(uint8_t frameIndex) {
+		for (auto& pair : mTextureStorages) {
+			pair.second->FrameCompletedCallback(frameIndex);
+		}
 	}
 
 }

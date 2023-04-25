@@ -19,10 +19,11 @@ namespace Renderer {
 		using BuddyPool = Tool::BuddyAllocatorPool<BucketUserData, void>;
 
 		struct Allocation {
-			Allocation(typename BuddyPool::Allocation* poolAllocation, GHL::Heap* heap, uint64_t heapIndex, size_t offset, size_t size)
+			Allocation(typename BuddyPool::Allocation* poolAllocation, GHL::Heap* heap, uint64_t heapIndex, size_t heapOffset, size_t tileOffset, size_t size)
 			: poolAllocation(poolAllocation)
 			, heap(heap)
-			, heapOffset(offset)
+			, heapOffset(heapOffset)
+			, tileOffset(tileOffset)
 			, size(size) {}
 
 			~Allocation() = default;

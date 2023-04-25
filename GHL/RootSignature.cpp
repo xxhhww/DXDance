@@ -43,8 +43,7 @@ namespace GHL {
 			D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
 			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
 			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
-			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
-			0.0f, 16u, D3D12_COMPARISON_FUNC_ALWAYS); // addressW
+			D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
 		AddStaticSampler(pointClamp);
 
 		const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
@@ -80,7 +79,7 @@ namespace GHL {
 			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
 			D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressW
 			0.0f,                              // mipLODBias
-			8);                                // maxAnisotropy
+			4);                                // maxAnisotropy
 		AddStaticSampler(anisotropicClamp);
 	}
 
