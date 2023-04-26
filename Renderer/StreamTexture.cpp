@@ -1,5 +1,6 @@
 #include "StreamTexture.h"
 #include "FileHandle.h"
+#include "DataUploader.h"
 
 #include "GHL/CommandQueue.h"
 #include "GHL/Fence.h"
@@ -10,17 +11,20 @@ namespace Renderer {
 
 	StreamTexture::StreamTexture(
 		const GHL::Device* device,
+		DataUploader* dataUploader,
 		const XeTexureFormat& xeTextureFormat,
 		std::unique_ptr<FileHandle> fileHandle,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
 		RingFrameTracker* frameTracker)
 	: mDevice(device)
+	, mDataUploader(dataUploader)
 	, mFileFormat(xeTextureFormat)
 	, mFileHandle(std::move(fileHandle))
 	, mFrameTracker(frameTracker) 
 	, mHeapAllocator(heapAllocator) 
-	, mQueuedReadbackFeedback(mFrameTracker->GetMaxSize()) {
+	, mQueuedReadbackFeedback(mFrameTracker->GetMaxSize()) 
+	, mPendingEvictions(mFrameTracker->GetMaxSize()) {
 		ResourceFormat resourceFormat{ mDevice, xeTextureFormat.ConvertTextureDesc() };
 		ASSERT_FORMAT(resourceFormat.GetTextureDesc().supportStream == true, "SupportStream Is False");
 
@@ -128,6 +132,9 @@ namespace Renderer {
 				i++;
 			}
 		}
+
+		mMinMipMapCache.resize(GetNumTilesWidth()* GetNumTilesHeight(), mNumStandardMips);
+		mMinMipMap.resize(mMinMipMapCache.size(), mNumStandardMips);
 	}
 
 	StreamTexture::~StreamTexture() {
@@ -253,6 +260,65 @@ namespace Renderer {
 	}
 
 	void StreamTexture::ProcessReadbackFeedback() {
+		
+		// 寻找最新鲜的Feedback
+		bool feedbackFound = false;
+		uint64_t latestFeedbackFenceValue = 0;
+		uint32_t targetFeedbackIndex{ 0u };
+		for (size_t i = 0; i < mQueuedReadbackFeedback.size(); i++) {
+			if (mQueuedReadbackFeedback.at(i).isFresh) {
+				uint64_t feedbackFenceValue = mQueuedReadbackFeedback.at(i).renderFrameFenceValue;
+				if ((!feedbackFound) || (latestFeedbackFenceValue <= feedbackFenceValue)) {
+					feedbackFound = true;
+					targetFeedbackIndex = i;
+					latestFeedbackFenceValue = feedbackFenceValue;
+					// this feedback will either be used or skipped. either way it is "consumed"
+					mQueuedReadbackFeedback.at(i).isFresh = false;
+				}
+			}
+		}
+
+		if (!feedbackFound) return;
+
+		{
+			uint8_t* pResolvedData{ nullptr };
+			ID3D12Resource* pReadbackFeedbackResource = mReadbackResource.at(targetFeedbackIndex).Get();
+			pReadbackFeedbackResource->Map(0u, nullptr, reinterpret_cast<void**>(&pResolvedData));
+
+
+			uint32_t height = GetNumTilesHeight();
+			uint32_t width = GetNumTilesWidth();
+
+			uint8_t* pTileRow = mMinMipMapCache.data();
+			for (uint32_t y = 0; y < height; y++) {
+				for (uint32_t x = 0; x < width; x++) {
+					// clamp to the maximum we are tracking (not tracking packed mips)
+					uint8_t desired = std::min(pResolvedData[x], mNumStandardMips);
+					if (desired != 2) {
+						int i = 32;
+					}
+					uint8_t initialValue = pTileRow[x];
+					SetMinMip(initialValue, x, y, desired);
+					pTileRow[x] = desired;
+				} // end loop over x
+				pTileRow += width;
+				pResolvedData += (width + 0x0ff) & ~0x0ff;
+
+			} // end loop over y
+
+			D3D12_RANGE emptyRange{ 0u, 0u };
+			pReadbackFeedbackResource->Unmap(0u, &emptyRange);
+
+			// 更新pendingEvictions
+			mPendingEvictions.Rescue(*mTileMappingState);
+		}
+	}
+
+	void StreamTexture::ProcessTileLoadings() {
+
+	}
+
+	void StreamTexture::ProcessTileEvictions() {
 
 	}
 
@@ -262,6 +328,51 @@ namespace Renderer {
 
 	void StreamTexture::SetResidencyMapOffset(uint64_t mapOffset) {
 		mResidencyMapOffset = mapOffset;
+	}
+
+	void StreamTexture::SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip) {
+		// what mip level is currently referenced at this tile?
+		UINT8 s = currentMip;
+
+		// addref mips we want
+		// AddRef()s are ordered from bottom mip to top (all dependencies will be loaded first)
+		while (s > desiredMip) {
+			s -= 1; // already have "this" tile. e.g. have s == 1, desired in_s == 0, start with 0.
+			AddTileRef(x >> s, y >> s, s);
+		}
+
+		// decref mips we don't need
+		// DecRef()s are ordered from top mip to bottom (evict lower resolution tiles after all higher resolution ones)
+		while (s < desiredMip) {
+			DecTileRef(x >> s, y >> s, s);
+			s++;
+		}
+	}
+
+	void StreamTexture::AddTileRef(uint32_t x, uint32_t y, uint32_t s) {
+		const auto refCount = mTileMappingState->GetRefCount(x, y, s);
+
+		// if refcount is 0xffff... then adding to it will wrap around. shouldn't happen.
+		ASSERT_FORMAT(~refCount);
+
+		// need to allocate?
+		if (0 == refCount) {
+			mPendingLoadings.push_back(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
+		}
+		mTileMappingState->IncRefCount(x, y, s);
+	}
+
+	void StreamTexture::DecTileRef(uint32_t x, uint32_t y, uint32_t s) {
+		const auto refCount = mTileMappingState->GetRefCount(x, y, s);
+
+		ASSERT_FORMAT(0 != refCount);
+
+		// last refrence? try to evict
+		if (1 == refCount) {
+			// queue up a decmapping request that will release the heap index after mapping and clear the resident flag
+			mPendingEvictions.Append(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
+		}
+		mTileMappingState->DecRefCount(x, y, s);
 	}
 
 	// =============================== TileMappingState ===============================
@@ -311,5 +422,51 @@ namespace Renderer {
 		mHeapAllocations[s][y][x] = heapAllocation;
 	}
 
+	// =============================== Eviction ===============================
+	StreamTexture::EvictionDelay::EvictionDelay(UINT numSwapBuffers) {
+		mMappings.resize(numSwapBuffers + 1u);
+	}
+
+	void StreamTexture::EvictionDelay::MoveToNextFrame() {
+		// start with A, B, C
+		// after swaps, have C, A, B
+		// then insert C, A, BC
+		// then clear 0, A, BC
+		UINT lastMapping = (UINT)mMappings.size() - 1;
+		for (UINT i = lastMapping; i > 0; i--)
+		{
+			mMappings[i].swap(mMappings[i - 1]);
+		}
+		mMappings.back().insert(mMappings.back().end(), mMappings[0].begin(), mMappings[0].end());
+		mMappings[0].clear();
+	}
+
+	void StreamTexture::EvictionDelay::Clear() {
+		for (auto& i : mMappings) {
+			i.clear();
+		}
+	}
+
+	void StreamTexture::EvictionDelay::Rescue(const TileMappingState& in_tileMappingState) {
+		// note: it is possible even for the most recent evictions to have refcount > 0
+		// because a tile can be evicted then loaded again within a single ProcessFeedback() call
+		for (auto& evictions : mMappings) {
+			UINT numPending = (UINT)evictions.size();
+			for (UINT i = 0; i < numPending;) {
+				auto& c = evictions[i];
+				// on rescue, swap a later tile in and re-try the check
+				// this re-orders the queue, but we can tolerate that
+				// because the residency map is built bottom-up
+				if (in_tileMappingState.GetRefCount(c.X, c.Y, c.Subresource)) {
+					numPending--;
+					c = evictions[numPending];
+				}
+				else { // refcount still 0, this tile may still be evicted 
+					i++;
+				}
+			}
+			evictions.resize(numPending);
+		}
+	}
 
 }

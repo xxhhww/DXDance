@@ -16,11 +16,13 @@ namespace GHL {
 namespace Renderer {
 
 	class FileHandle;
+	class DataUploader;
 
 	class StreamTexture {
 	public:
 		StreamTexture(
 			const GHL::Device* device,
+			DataUploader* dataUploader,
 			const XeTexureFormat& xeTextureFormat,
 			std::unique_ptr<FileHandle> fileHandle,
 			PoolDescriptorAllocator* descriptorAllocator,
@@ -57,6 +59,16 @@ namespace Renderer {
 		void ProcessReadbackFeedback();
 
 		/*
+		* 处理Tile加载的任务
+		*/
+		void ProcessTileLoadings();
+
+		/*
+		* 处理Tile卸载的任务
+		*/
+		void ProcessTileEvictions();
+
+		/*
 		* 渲染帧完成后的回调函数，不直接注册到FrameTracker的渲染帧完成回调中，而是由StreamTextureManger中的同名回调函数调用
 		*/
 		void FrameCompletedCallback(uint8_t frameIndex);
@@ -81,7 +93,15 @@ namespace Renderer {
 		inline const auto& GetResidencyMapOffset() const { return mResidencyMapOffset; }
 
 	private:
+		void SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip);
+
+		void AddTileRef(uint32_t x, uint32_t y, uint32_t s);
+
+		void DecTileRef(uint32_t x, uint32_t y, uint32_t s);
+
+	private:
 		const GHL::Device* mDevice { nullptr };
+		DataUploader* mDataUploader{ nullptr };
 
 		// =============================== XetFileHandle ===============================
 		XeTexureFormat mFileFormat;
@@ -96,7 +116,7 @@ namespace Renderer {
 		D3D12_TILE_SHAPE mTileShape;          // e.g. a 64K tile may contain 128x128 texels @ 4B/pixel
 		UINT mNumTilesTotal;
 		std::vector<D3D12_SUBRESOURCE_TILING> mTiling;
-		uint32_t mNumStandardMips{ 0u }; // Start From 1u
+		uint8_t mNumStandardMips{ 0u }; // Start From 1u
 
 		// =============================== PackedMipsInformation ===============================
 		uint32_t mPackedMipsFileOffset{ 0u };
@@ -127,12 +147,14 @@ namespace Renderer {
 		std::vector<QueuedReadbackFeedback> mQueuedReadbackFeedback;
 
 		// =============================== ResidencyMipMap ===============================
+		std::vector<uint8_t> mMinMipMapCache;
 		std::vector<BYTE, AlignedAllocator<BYTE>> mMinMipMap; // 该纹理的MipLevel驻留信息，总是需要更新到GlobalMinMipMap中
 		uint64_t mResidencyMapOffset{ 0u }; // 该纹理的驻留信息在全局驻留信息中的偏移量(索引)
 
 	private:
 		// =============================== TileMappingState ===============================
 		class TileMappingState {
+			friend class StreamTexture;
 		public:
 			template<typename T> using TileRow = std::vector<T>;
 			template<typename T> using TileMip = std::vector<TileRow<T>>;
@@ -160,6 +182,7 @@ namespace Renderer {
 			inline const auto& GetRefCount(uint32_t x, uint32_t y, uint32_t s)       const { return mRefCounts[s][y][x]; }
 			inline const auto& GetResidencyState(uint32_t x, uint32_t y, uint32_t s) const { return mResidencyStates[s][y][x]; }
 			inline const auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s) const { return mHeapAllocations[s][y][x]; }
+			
 		private:
 			TileSeq<uint32_t> mRefCounts;								// 每一个Tile的引用计数
 			TileSeq<ResidencyState> mResidencyStates;					// 每一个Tile的驻留状态
@@ -168,8 +191,26 @@ namespace Renderer {
 		std::unique_ptr<TileMappingState> mTileMappingState;
 
 		// =============================== Pending Information ===============================
-		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingLoads;
-		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingEvicts;
+		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingLoadings;
+
+		class EvictionDelay {
+		public:
+			EvictionDelay(UINT numSwapBuffers);
+			~EvictionDelay() = default;
+
+			using MappingCoords = std::vector<D3D12_TILED_RESOURCE_COORDINATE>;
+			void Append(D3D12_TILED_RESOURCE_COORDINATE in_coord) { mMappings[0].push_back(in_coord); }
+			MappingCoords& GetReadyToEvict() { return mMappings.back(); }
+
+			void MoveToNextFrame();
+			void Clear();
+
+			// drop pending evictions for tiles that now have non-zero refcount
+			void Rescue(const TileMappingState& in_tileMappingState);
+		private:
+			std::vector<MappingCoords> mMappings;
+		};
+		EvictionDelay mPendingEvictions;
 	};
 
 }

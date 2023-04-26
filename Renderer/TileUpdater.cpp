@@ -17,6 +17,8 @@ namespace Renderer {
 	, mTextureStorage(textureStorage)
 	, mDataUploader(dataUploader) {
 
+		mThreadCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		ASSERT_FORMAT(mThreadCompletedEvent != nullptr, "Failed to Create Thread Completed Event Handle");
 		mFrameCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		ASSERT_FORMAT(mFrameCompletedEvent != nullptr, "Failed to Create Frame Completed Event Handle");
 
@@ -26,7 +28,7 @@ namespace Renderer {
 	}
 
 	TileUpdater::~TileUpdater() {
-		mThreadRunning = false;
+		SetEvent(mThreadCompletedEvent);
 	}
 
 	void TileUpdater::SetFrameCompletedEvent() {
@@ -34,17 +36,16 @@ namespace Renderer {
 	}
 
 	void TileUpdater::ProcessFeedbackThread() {
-		while (mThreadRunning) {
-			/*
+		while (true) {
 			// 等待一个渲染帧完成
-			WaitForSingleObject(mFrameCompletedEvent, INFINITE);
+			HANDLE waitLists[] = { mThreadCompletedEvent, mFrameCompletedEvent };
+			WaitForMultipleObjects(_ARRAYSIZE(waitLists), waitLists, false, INFINITE);
 
 			// 一个渲染帧完成，为每一个StreamTexture处理ReadbackFeedback
 			for (auto& pair : *mTextureStorage) {
 				auto* streamTexture = pair.second.get();
 				streamTexture->ProcessReadbackFeedback();
 			}
-			*/
 		}
 
 	}

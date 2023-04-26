@@ -43,13 +43,12 @@ namespace Renderer {
 		void UpdateResidencyMipMap();
 
 	private:
-		bool mThreadRunning{ true };
-
 		const GHL::Device* mDevice{ nullptr };
 		RingFrameTracker*  mFrameTracker{ nullptr };
 		std::unordered_map<std::string, std::unique_ptr<StreamTexture>>* mTextureStorage{ nullptr };
 		DataUploader* mDataUploader{ nullptr };
 
+		HANDLE mThreadCompletedEvent{ nullptr };
 		HANDLE mFrameCompletedEvent{ nullptr };
 	};
 
