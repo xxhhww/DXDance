@@ -48,8 +48,10 @@ namespace Renderer {
 		std::unordered_map<std::string, std::unique_ptr<StreamTexture>>* mTextureStorage{ nullptr };
 		DataUploader* mDataUploader{ nullptr };
 
-		HANDLE mThreadCompletedEvent{ nullptr };
+		bool mThreadRunning{ true };
 		HANDLE mFrameCompletedEvent{ nullptr };
+		std::thread mProcessFeedbackThread;
+
 	};
 
 }

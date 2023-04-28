@@ -31,12 +31,6 @@
     <Filter Include="源文件\Resource">
       <UniqueIdentifier>{aec3f8f6-d3cd-4327-acf2-e460e515cb5c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\Uploader">
-      <UniqueIdentifier>{d9b62673-acb2-440c-9d9e-c72b46d3b996}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Renderer\Uploader">
-      <UniqueIdentifier>{a4ff8c97-87b4-47b7-9af6-0afd76d577b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Manger">
       <UniqueIdentifier>{a2954feb-6283-4118-9ffd-3a72fa95b638}</UniqueIdentifier>
     </Filter>
@@ -98,12 +92,6 @@
     </ClInclude>
     <ClInclude Include="RenderEngine.h">
       <Filter>头文件\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="UploadList.h">
-      <Filter>头文件\Renderer\Uploader</Filter>
-    </ClInclude>
-    <ClInclude Include="Uploader.h">
-      <Filter>头文件\Renderer\Uploader</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManger.h">
       <Filter>头文件\Manger</Filter>
@@ -195,6 +183,9 @@
     <ClInclude Include="FileHandle.h">
       <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
+    <ClInclude Include="UploadList.h">
+      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -223,12 +214,6 @@
     </ClCompile>
     <ClCompile Include="RenderEngine.cpp">
       <Filter>源文件\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Uploader.cpp">
-      <Filter>源文件\Renderer\Uploader</Filter>
-    </ClCompile>
-    <ClCompile Include="UploadList.cpp">
-      <Filter>源文件\Renderer\Uploader</Filter>
     </ClCompile>
     <ClCompile Include="ShaderManger.cpp">
       <Filter>源文件\Manger</Filter>
@@ -309,6 +294,9 @@
       <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
     <ClCompile Include="FileHandle.cpp">
+      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadList.cpp">
       <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
   </ItemGroup>

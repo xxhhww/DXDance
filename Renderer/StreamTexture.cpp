@@ -260,7 +260,8 @@ namespace Renderer {
 	}
 
 	void StreamTexture::ProcessReadbackFeedback() {
-		
+		mPendingEvictions.MoveToNextFrame();
+
 		// 寻找最新鲜的Feedback
 		bool feedbackFound = false;
 		uint64_t latestFeedbackFenceValue = 0;
@@ -314,12 +315,28 @@ namespace Renderer {
 		}
 	}
 
-	void StreamTexture::ProcessTileLoadings() {
+	uint32_t StreamTexture::ProcessTileLoadings() {
+		// 将TileLoading任务推入DataUploader中
+		
+		UploadList* uploadList = mDataUploader->AllocateUploadList();
+		// 在显存堆上为每一个Tile进行分配
+		for (const auto& coord : mPendingLoadings) {
+			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr
+				&& mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::NotResident) {
+				BuddyHeapAllocator::Allocation* heapAllocation = mHeapAllocator->Allocate(mTileSize);
 
+				mTileMappingState->SetHeapAllocation(coord.X, coord.Y, coord.Subresource, heapAllocation);
+				mTileMappingState->SetResidencyState(coord.X, coord.Y, coord.Subresource, TileMappingState::ResidencyState::Loading);
+
+				uploadList->SetPendingStreamTexture(this);
+				uploadList->PushPendingLoadings(coord, heapAllocation);
+			}
+		}
+		mDataUploader->SubmitUploadList(uploadList);
 	}
 
-	void StreamTexture::ProcessTileEvictions() {
-
+	uint32_t StreamTexture::ProcessTileEvictions() {
+		return 1;
 	}
 
 	void StreamTexture::FrameCompletedCallback(uint8_t frameIndex) {

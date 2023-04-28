@@ -61,12 +61,12 @@ namespace Renderer {
 		/*
 		* 处理Tile加载的任务
 		*/
-		void ProcessTileLoadings();
+		uint32_t ProcessTileLoadings();
 
 		/*
 		* 处理Tile卸载的任务
 		*/
-		void ProcessTileEvictions();
+		uint32_t ProcessTileEvictions();
 
 		/*
 		* 渲染帧完成后的回调函数，不直接注册到FrameTracker的渲染帧完成回调中，而是由StreamTextureManger中的同名回调函数调用
@@ -152,6 +152,7 @@ namespace Renderer {
 		uint64_t mResidencyMapOffset{ 0u }; // 该纹理的驻留信息在全局驻留信息中的偏移量(索引)
 
 	private:
+		size_t mTileSize{ 0u };
 		// =============================== TileMappingState ===============================
 		class TileMappingState {
 			friend class StreamTexture;
@@ -166,8 +167,11 @@ namespace Renderer {
 			enum class ResidencyState : uint8_t {
 				NotResident = 0, // b00
 				Resident    = 1, // b01
-				Evicting    = 2, // b10
-				Loading     = 3, // b11
+				Loading     = 2, // b11
+				// Evicting    = 3 
+				// 事实上，Tile的驻留状态并不会出现Evicting，因为Tile的卸载操作并不会在其他线程内执行。
+				// 它会在ProcessFeedbackThread内直接将目标Tile的HeapAllocation放回Heap池中。
+				// 在这一过程中，并不会发生真正的显存释放操作。
 			};
 		public:
 			TileMappingState(uint32_t mipNums, std::vector<D3D12_SUBRESOURCE_TILING>& subresourceTilings);
@@ -182,7 +186,7 @@ namespace Renderer {
 			inline const auto& GetRefCount(uint32_t x, uint32_t y, uint32_t s)       const { return mRefCounts[s][y][x]; }
 			inline const auto& GetResidencyState(uint32_t x, uint32_t y, uint32_t s) const { return mResidencyStates[s][y][x]; }
 			inline const auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s) const { return mHeapAllocations[s][y][x]; }
-			
+
 		private:
 			TileSeq<uint32_t> mRefCounts;								// 每一个Tile的引用计数
 			TileSeq<ResidencyState> mResidencyStates;					// 每一个Tile的驻留状态
