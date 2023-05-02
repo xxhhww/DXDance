@@ -1,6 +1,9 @@
 #include "RingFrameTracker.h"
+#include <Windows.h>
 
 namespace Renderer {
+
+    static bool ttt = true;
 
 	RingFrameTracker::RingFrameTracker(size_t maxSize) : mMaxSize(maxSize) {}
 
@@ -28,6 +31,7 @@ namespace Renderer {
             for (const auto& callBack : mCompletedCallBacks) {
                 callBack(oldestFrameTail.frameIndex);
             }
+
             mFrameAttributes.pop_front();
         }
 	}

@@ -27,6 +27,13 @@ namespace Tool {
 		T* operator->() { return mWrapResource; }
 		T* Get() const { return mWrapResource; }
 
+		inline void Release() {
+			if (mDeletedCallBack != nullptr) {
+				mDeletedCallBack();
+				mDeletedCallBack = nullptr;
+			}
+		}
+
 	private:
 		T* mWrapResource{ nullptr };
 		std::function<void()> mDeletedCallBack{ nullptr };

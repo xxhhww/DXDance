@@ -203,28 +203,28 @@ namespace Renderer {
 		commandList->ResourceBarrier(1u, &afterBarrier);
 	}
 
-	void StreamTexture::MapAndLoadPackedMipMap(GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence) {
+	void StreamTexture::MapAndLoadPackedMipMap(GHL::CommandQueue* mappingQueue, GHL::Fence* packedMipMappingFence, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence) {
 		
 		// 在Mapping之前，我们需要为PackedMipMap分配显存
 		mPackedMipsHeapAllocation = mHeapAllocator->Allocate(mPackedMipsUncompressedSize);
 
 		// 在数据复制之前，我们需要执行Mapping操作
 
-		UINT firstSubresource = GetPackedMipInfo().NumStandardMips;
+		uint32_t firstSubresource = GetPackedMipInfo().NumStandardMips;
 
 		// mapping packed mips is different from regular tiles: must be mapped before we can use copytextureregion() instead of copytiles()
-		UINT numTiles = GetPackedMipInfo().NumTilesForPackedMips;
+		uint32_t numTiles = GetPackedMipInfo().NumTilesForPackedMips;
 
 		std::vector<D3D12_TILE_RANGE_FLAGS> rangeFlags(numTiles, D3D12_TILE_RANGE_FLAG_NONE);
 
 		// if the number of standard (not packed) mips is n, then start updating at subresource n
 		D3D12_TILED_RESOURCE_COORDINATE resourceRegionStartCoordinates{ 0, 0, 0, firstSubresource };
 		D3D12_TILE_REGION_SIZE resourceRegionSizes{ numTiles, FALSE, 0, 0, 0 };
-
+		
 		// perform packed mip tile mapping on the copy queue
 		mappingQueue->D3DCommandQueue()->UpdateTileMappings(
 			mInternalTexture->D3DResource(),
-			1, // numRegions
+			numTiles,
 			&resourceRegionStartCoordinates,
 			&resourceRegionSizes,
 			mPackedMipsHeapAllocation->heap->D3DHeap(),
@@ -234,9 +234,9 @@ namespace Renderer {
 			nullptr,
 			D3D12_TILE_MAPPING_FLAG_NONE
 		);
-		mappingFence->IncrementExpectedValue();
-		mappingQueue->SignalFence(*mappingFence);
-		mappingFence->Wait();
+		packedMipMappingFence->IncrementExpectedValue();
+		mappingQueue->SignalFence(*packedMipMappingFence);
+		packedMipMappingFence->Wait();
 
 		// 执行数据复制操作
 		// 注意: PackedMip虽然只是一个Tile，但是跨越多个子资源，所以DestinationType设置为MULTIPLE_SUBRESOURCES
@@ -295,9 +295,7 @@ namespace Renderer {
 				for (uint32_t x = 0; x < width; x++) {
 					// clamp to the maximum we are tracking (not tracking packed mips)
 					uint8_t desired = std::min(pResolvedData[x], mNumStandardMips);
-					if (desired != 2) {
-						int i = 32;
-					}
+					desired = 0u;
 					uint8_t initialValue = pTileRow[x];
 					SetMinMip(initialValue, x, y, desired);
 					pTileRow[x] = desired;
@@ -317,9 +315,13 @@ namespace Renderer {
 
 	uint32_t StreamTexture::ProcessTileLoadings() {
 		// 将TileLoading任务推入DataUploader中
-		
+		if (mPendingLoadings.empty()) {
+			return 0;
+		}
+
 		UploadList* uploadList = mDataUploader->AllocateUploadList();
 		// 在显存堆上为每一个Tile进行分配
+		uint32_t uploadSize{ 0u };
 		for (const auto& coord : mPendingLoadings) {
 			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr
 				&& mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::NotResident) {
@@ -330,9 +332,16 @@ namespace Renderer {
 
 				uploadList->SetPendingStreamTexture(this);
 				uploadList->PushPendingLoadings(coord, heapAllocation);
+				uploadSize++;
 			}
 		}
-		mDataUploader->SubmitUploadList(uploadList);
+		mPendingLoadings.clear();
+
+		if (!uploadList->Empty()) {
+			mDataUploader->SubmitUploadList(uploadList);
+		}
+
+		return uploadSize;
 	}
 
 	uint32_t StreamTexture::ProcessTileEvictions() {
@@ -343,9 +352,20 @@ namespace Renderer {
 		mQueuedReadbackFeedback.at(frameIndex).isFresh = true;
 	}
 
+	void StreamTexture::TileLoadingsCompletedCallback(const std::vector<D3D12_TILED_RESOURCE_COORDINATE>& coords) {
+		for (const auto& coord : coords) {
+			ASSERT_FORMAT(mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Loading,
+				"Unsupported ResidencyState");
+			mTileMappingState->SetResidencyState(coord.X, coord.Y, coord.Subresource, TileMappingState::ResidencyState::Resident);
+		}
+
+		// TODO 修改本地与全局的ResidencyMinMip
+	}
+
 	void StreamTexture::SetResidencyMapOffset(uint64_t mapOffset) {
 		mResidencyMapOffset = mapOffset;
 	}
+
 
 	void StreamTexture::SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip) {
 		// what mip level is currently referenced at this tile?

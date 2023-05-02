@@ -49,7 +49,7 @@ namespace Renderer {
 		/*
 		* 映射并从文件中加载PackedMipMap数据，由渲染主线程直接调用，而非其他线程调用
 		*/
-		void MapAndLoadPackedMipMap(GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence);
+		void MapAndLoadPackedMipMap(GHL::CommandQueue* mappingQueue, GHL::Fence* packedMipMappingFence, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence);
 
 		/*
 		* 该函数并不在渲染主线程中运行，而是在ProcessFeedback线程中运行
@@ -74,6 +74,12 @@ namespace Renderer {
 		void FrameCompletedCallback(uint8_t frameIndex);
 
 		/*
+		* Tile的数据上传并映射完成后的回调函数
+		* @Param coords: 描述目标Tiles
+		*/
+		void TileLoadingsCompletedCallback(const std::vector<D3D12_TILED_RESOURCE_COORDINATE>& coords);
+
+		/*
 		* 设置该StreamTexture的Residency在全局ResidencyMap中的偏移量
 		*/
 		void SetResidencyMapOffset(uint64_t mapOffset);
@@ -92,6 +98,8 @@ namespace Renderer {
 		inline const auto& GetNumTilesDepth()      const { return mTiling.at(0).DepthInTiles; }
 		inline const auto& GetResidencyMapOffset() const { return mResidencyMapOffset; }
 
+		inline const auto& GetFileFormat()         const { return mFileFormat; }
+		inline const auto* GetFileHandle()         const { return mFileHandle.get(); }
 	private:
 		void SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip);
 
@@ -152,7 +160,7 @@ namespace Renderer {
 		uint64_t mResidencyMapOffset{ 0u }; // 该纹理的驻留信息在全局驻留信息中的偏移量(索引)
 
 	private:
-		size_t mTileSize{ 0u };
+		size_t mTileSize{ 65536u };
 		// =============================== TileMappingState ===============================
 		class TileMappingState {
 			friend class StreamTexture;
@@ -171,7 +179,7 @@ namespace Renderer {
 				// Evicting    = 3 
 				// 事实上，Tile的驻留状态并不会出现Evicting，因为Tile的卸载操作并不会在其他线程内执行。
 				// 它会在ProcessFeedbackThread内直接将目标Tile的HeapAllocation放回Heap池中。
-				// 在这一过程中，并不会发生真正的显存释放操作。
+				// 并且，在这一过程中，并不会发生真正的显存释放操作。
 			};
 		public:
 			TileMappingState(uint32_t mipNums, std::vector<D3D12_SUBRESOURCE_TILING>& subresourceTilings);

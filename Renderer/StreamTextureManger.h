@@ -42,7 +42,7 @@ namespace Renderer {
 
 		const GHL::Device* mDevice{ nullptr };
 		GHL::CommandQueue* mMappingQueue{ nullptr };
-		std::unique_ptr<GHL::Fence> mMappingFence;
+		std::unique_ptr<GHL::Fence> mPackedMipMappingFence;
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		RingFrameTracker* mFrameTracker{ nullptr };

@@ -17,7 +17,7 @@ namespace Renderer {
 	)
 	: mDevice(device)
 	, mMappingQueue(mappingQueue)
-	, mMappingFence(std::make_unique<GHL::Fence>(mDevice))
+	, mPackedMipMappingFence(std::make_unique<GHL::Fence>(mDevice))
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator)
 	, mFrameTracker(ringFrameTracker) {
@@ -34,7 +34,7 @@ namespace Renderer {
 		mDStorageFactory->SetStagingBufferSize(mStagingBufferSizeMB * 1024u * 1024u);
 
 		// Init DataUploader
-		mDataUploader = std::make_unique<DataUploader>(mDevice, mDStorageFactory.Get());
+		mDataUploader = std::make_unique<DataUploader>(mDevice, mMappingQueue, mDStorageFactory.Get());
 
 		// Init TileUpdater
 		mTileUpdater = std::make_unique<TileUpdater>(mDevice, mFrameTracker, &mTextureStorages, mDataUploader.get());
@@ -61,7 +61,7 @@ namespace Renderer {
 			mDescriptorAllocator, 
 			mHeapAllocator, 
 			mFrameTracker);
-		streamTexture->MapAndLoadPackedMipMap(mMappingQueue, mMappingFence.get(), mDataUploader->GetFileCopyQueue(), mDataUploader->GetCopyFence());
+		streamTexture->MapAndLoadPackedMipMap(mMappingQueue, mPackedMipMappingFence.get(), mDataUploader->GetFileCopyQueue(), mDataUploader->GetCopyFence());
 		mTextureStorages[filepath] = std::move(streamTexture);
 
 		return mTextureStorages.at(filepath).get();

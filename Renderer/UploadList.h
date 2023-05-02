@@ -15,6 +15,7 @@ namespace Renderer {
 			Free,
 			Allocated,
 			Processing,
+			Completed
 		};
 
 	public:
@@ -31,12 +32,16 @@ namespace Renderer {
 
 		void Clear();
 
+		bool Empty();
+
 	private:
 		std::atomic<UploadList::State> mUploadState{ State::Free };
 
 		StreamTexture* mPendingStreamTexture{ nullptr };
 		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingLoadings;
 		std::vector<BuddyHeapAllocator::Allocation*> mHeapAllocations;
+		uint64_t mCopyFenceValue{ 0u };		// GPU Copy    Fence Value
+		uint64_t mMappingFenceValue{ 0u };	// GPU Maooing Fence Value
 	};
 
 }

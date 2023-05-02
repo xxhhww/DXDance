@@ -4,14 +4,17 @@
 
 #include "Tools/Pool.h"
 #include "Tools/Ring.h"
+#include "Tools/Wrap.h"
 
 #include <thread>
 #include <memory>
+#include <mutex>
 #include <wrl.h>
 
 namespace GHL {
 	class Device;
 	class Fence;
+	class CommandQueue;
 }
 
 namespace Renderer {
@@ -27,11 +30,18 @@ namespace Renderer {
 		};
 
 		using Pool = Tool::Pool<SlotUserDataType>;
+		using UploadListWrap = Tool::Wrap<UploadList>;
 
 	public:
-		DataUploader(const GHL::Device* device, IDStorageFactory* dsFactory);
+		DataUploader(
+			const GHL::Device* device, 
+			GHL::CommandQueue* mappingQueue,
+			IDStorageFactory* dsFactory);
 		~DataUploader();
 
+		/*
+		* 分配一个UploadList，由ProcessFeedback线程调用
+		*/
 		UploadList* AllocateUploadList();
 
 		/*
@@ -48,22 +58,28 @@ namespace Renderer {
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
+		GHL::CommandQueue* mMappingQueue{ nullptr };
+		std::unique_ptr<GHL::Fence>	mMappingFence;
+		std::mutex mMappingFenceMutex;
+
 		IDStorageFactory* mDStorageFactory{ nullptr };
 		Microsoft::WRL::ComPtr<IDStorageQueue> mFileCopyQueue;
 		Microsoft::WRL::ComPtr<IDStorageQueue> mMemoryCopyQueue;
-		
+
 		std::unique_ptr<GHL::Fence> mCopyFence;
+		std::mutex mCopyFenceMutex;
 
 		// UploadList的分配池
+		std::mutex mUploadListPoolMutex;	// TODO锁可以不需要
 		Pool mUploadListPool;
 		std::vector<std::unique_ptr<UploadList>> mUploadLists;
 
 		// 监视线程待处理的环形任务队列
-		Tool::Ring               mMonitorTaskAlloc;
-		std::vector<UploadList*> mRingMonitorTasks;
+		Tool::Ring                  mRingMonitorTaskAlloc;
+		std::vector<UploadListWrap> mRingMonitorTasks;
 		
 		// 监视线程
-		bool		mThreadRunning{ false };
+		bool		mThreadRunning{ true };
 		HANDLE		mMonitorEvent{ nullptr };
 		std::thread	mMonitorThread;	// 监视线程
 	};

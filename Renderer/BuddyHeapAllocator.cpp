@@ -35,7 +35,6 @@ namespace Renderer {
 		mPendingDeallocations[mFrameTracker->GetCurrFrameIndex()].push_back(allocation);
 	}
 
-
 	void BuddyHeapAllocator::CleanUpPendingDeallocation(uint8_t frameIndex) {
 		for (size_t i = 0; i < mPendingDeallocations[frameIndex].size(); i++) {
 			auto* deallocation = mPendingDeallocations[frameIndex][i];

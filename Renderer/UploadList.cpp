@@ -25,4 +25,8 @@ namespace Renderer {
 		mPendingLoadings.clear();
 	}
 
+	bool UploadList::Empty() {
+		return mPendingLoadings.empty();
+	}
+
 }
