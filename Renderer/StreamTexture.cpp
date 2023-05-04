@@ -24,7 +24,7 @@ namespace Renderer {
 	, mFrameTracker(frameTracker) 
 	, mHeapAllocator(heapAllocator) 
 	, mQueuedReadbackFeedback(mFrameTracker->GetMaxSize()) 
-	, mPendingEvictions(mFrameTracker->GetMaxSize()) {
+	, mPendingTileEvictions() {
 		ResourceFormat resourceFormat{ mDevice, xeTextureFormat.ConvertTextureDesc() };
 		ASSERT_FORMAT(resourceFormat.GetTextureDesc().supportStream == true, "SupportStream Is False");
 
@@ -260,7 +260,7 @@ namespace Renderer {
 	}
 
 	void StreamTexture::ProcessReadbackFeedback() {
-		mPendingEvictions.MoveToNextFrame();
+		mPendingTileEvictions.MoveToNextFrame();
 
 		// 寻找最新鲜的Feedback
 		bool feedbackFound = false;
@@ -295,7 +295,6 @@ namespace Renderer {
 				for (uint32_t x = 0; x < width; x++) {
 					// clamp to the maximum we are tracking (not tracking packed mips)
 					uint8_t desired = std::min(pResolvedData[x], mNumStandardMips);
-					desired = 0u;
 					uint8_t initialValue = pTileRow[x];
 					SetMinMip(initialValue, x, y, desired);
 					pTileRow[x] = desired;
@@ -309,43 +308,60 @@ namespace Renderer {
 			pReadbackFeedbackResource->Unmap(0u, &emptyRange);
 
 			// 更新pendingEvictions
-			mPendingEvictions.Rescue(*mTileMappingState);
+			mPendingTileEvictions.Rescue(*mTileMappingState);
 		}
 	}
 
 	uint32_t StreamTexture::ProcessTileLoadings() {
 		// 将TileLoading任务推入DataUploader中
-		if (mPendingLoadings.empty()) {
+		if (mPendingTileLoadings.empty()) {
 			return 0;
 		}
 
 		UploadList* uploadList = mDataUploader->AllocateUploadList();
+		uploadList->SetPendingStreamTexture(this);
 		// 在显存堆上为每一个Tile进行分配
 		uint32_t uploadSize{ 0u };
-		for (const auto& coord : mPendingLoadings) {
+		for (const auto& coord : mPendingTileLoadings) {
 			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr
 				&& mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::NotResident) {
+				
 				BuddyHeapAllocator::Allocation* heapAllocation = mHeapAllocator->Allocate(mTileSize);
 
 				mTileMappingState->SetHeapAllocation(coord.X, coord.Y, coord.Subresource, heapAllocation);
 				mTileMappingState->SetResidencyState(coord.X, coord.Y, coord.Subresource, TileMappingState::ResidencyState::Loading);
 
-				uploadList->SetPendingStreamTexture(this);
 				uploadList->PushPendingLoadings(coord, heapAllocation);
 				uploadSize++;
 			}
 		}
-		mPendingLoadings.clear();
-
-		if (!uploadList->Empty()) {
-			mDataUploader->SubmitUploadList(uploadList);
-		}
+		mPendingTileLoadings.clear();
+		mDataUploader->SubmitUploadList(uploadList);
 
 		return uploadSize;
 	}
 
 	uint32_t StreamTexture::ProcessTileEvictions() {
-		return 1;
+		if (mPendingTileEvictions.GetReadyToEvict().empty()) {
+			return 0;
+		}
+
+		auto& readyEvictions = mPendingTileEvictions.GetReadyToEvict();
+		for (const auto& coord : readyEvictions) {
+			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr) {
+				continue;
+			}
+
+			if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Resident) {
+
+				mHeapAllocator->Deallocate(mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource));
+				mTileMappingState->SetHeapAllocation(coord.X, coord.Y, coord.Subresource, nullptr);
+				mTileMappingState->SetResidencyState(coord.X, coord.Y, coord.Subresource, TileMappingState::ResidencyState::NotResident);
+			}
+			else if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Loading) {
+				// 需要Eviction的Tile正在Loading，保留该Evictions下次循环再来检测
+			}
+		}
 	}
 
 	void StreamTexture::FrameCompletedCallback(uint8_t frameIndex) {
@@ -394,7 +410,7 @@ namespace Renderer {
 
 		// need to allocate?
 		if (0 == refCount) {
-			mPendingLoadings.push_back(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
+			mPendingTileLoadings.push_back(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
 		}
 		mTileMappingState->IncRefCount(x, y, s);
 	}
@@ -407,7 +423,7 @@ namespace Renderer {
 		// last refrence? try to evict
 		if (1 == refCount) {
 			// queue up a decmapping request that will release the heap index after mapping and clear the resident flag
-			mPendingEvictions.Append(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
+			mPendingTileEvictions.Append(D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, s });
 		}
 		mTileMappingState->DecRefCount(x, y, s);
 	}
@@ -460,8 +476,8 @@ namespace Renderer {
 	}
 
 	// =============================== Eviction ===============================
-	StreamTexture::EvictionDelay::EvictionDelay(UINT numSwapBuffers) {
-		mMappings.resize(numSwapBuffers + 1u);
+	StreamTexture::EvictionDelay::EvictionDelay(uint32_t nFrames) {
+		mEvictionsBuffer.resize(nFrames);
 	}
 
 	void StreamTexture::EvictionDelay::MoveToNextFrame() {
@@ -469,17 +485,17 @@ namespace Renderer {
 		// after swaps, have C, A, B
 		// then insert C, A, BC
 		// then clear 0, A, BC
-		UINT lastMapping = (UINT)mMappings.size() - 1;
-		for (UINT i = lastMapping; i > 0; i--)
+		uint32_t lastMapping = (uint32_t)mEvictionsBuffer.size() - 1;
+		for (uint32_t i = lastMapping; i > 0; i--)
 		{
-			mMappings[i].swap(mMappings[i - 1]);
+			mEvictionsBuffer[i].swap(mEvictionsBuffer[i - 1]);
 		}
-		mMappings.back().insert(mMappings.back().end(), mMappings[0].begin(), mMappings[0].end());
-		mMappings[0].clear();
+		mEvictionsBuffer.back().insert(mEvictionsBuffer.back().end(), mEvictionsBuffer[0].begin(), mEvictionsBuffer[0].end());
+		mEvictionsBuffer[0].clear();
 	}
 
 	void StreamTexture::EvictionDelay::Clear() {
-		for (auto& i : mMappings) {
+		for (auto& i : mEvictionsBuffer) {
 			i.clear();
 		}
 	}
@@ -487,9 +503,9 @@ namespace Renderer {
 	void StreamTexture::EvictionDelay::Rescue(const TileMappingState& in_tileMappingState) {
 		// note: it is possible even for the most recent evictions to have refcount > 0
 		// because a tile can be evicted then loaded again within a single ProcessFeedback() call
-		for (auto& evictions : mMappings) {
-			UINT numPending = (UINT)evictions.size();
-			for (UINT i = 0; i < numPending;) {
+		for (auto& evictions : mEvictionsBuffer) {
+			uint32_t numPending = (uint32_t)evictions.size();
+			for (uint32_t i = 0; i < numPending;) {
 				auto& c = evictions[i];
 				// on rescue, swap a later tile in and re-try the check
 				// this re-orders the queue, but we can tolerate that

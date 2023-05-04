@@ -29,6 +29,7 @@ namespace Renderer {
 		mThreadRunning = false;
 		SetEvent(mFrameCompletedEvent);
 		mProcessFeedbackThread.join();
+		CloseHandle(mFrameCompletedEvent);
 	}
 
 	void TileUpdater::SetFrameCompletedEvent() {
@@ -37,6 +38,7 @@ namespace Renderer {
 
 	void TileUpdater::ProcessFeedbackThread() {
 		while (mThreadRunning) {
+			// 如果此时没有任何任务，则等待一个新的渲染帧的完成
 			WaitForSingleObject(mFrameCompletedEvent, INFINITE);
 			if (!mThreadRunning) break;
 
@@ -47,6 +49,7 @@ namespace Renderer {
 				streamTexture->ProcessTileLoadings();
 				streamTexture->ProcessTileEvictions();
 			}
+			
 		}
 
 	}

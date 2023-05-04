@@ -23,6 +23,9 @@ namespace Renderer {
 	void UploadList::Clear() {
 		mPendingStreamTexture = nullptr;
 		mPendingLoadings.clear();
+		mHeapAllocations.clear();
+		mMappingFenceValue = 0u;
+		mCopyFenceValue = 0u;
 	}
 
 	bool UploadList::Empty() {

@@ -110,6 +110,7 @@ namespace Renderer {
 		// 压入渲染命令完成后的围栏
 		mGraphicsQueue->SignalFence(*mRenderFrameFence.get());
 
+		// TODO 除了等待GPU任务的完成外，渲染主线程还需要等待ProcessThread线程的任务完成情况
 		if (mFrameTracker->GetUsedSize() == std::underlying_type<GHL::BackBufferStrategy>::type(mBackBufferStrategy)) {
 			HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 

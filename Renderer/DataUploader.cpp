@@ -79,14 +79,10 @@ namespace Renderer {
 
     void DataUploader::SubmitUploadList(UploadList* uploadList) {
 
-        // 数据映射任务，使用DirectX12的CopyQueue
-        auto mappingTask = [this, uploadList]() {
-
-        };
-
         // 数据上传任务，使用DStorage的Queue，其实还是CopyQueue
-        auto uploadTask = [this, uploadList]() {
+        auto mappingAndUploadTask = [this, uploadList]() {
             {
+                // mapping tasks
                 auto* streamTexture = uploadList->mPendingStreamTexture;
 
                 uint32_t numCoords = uploadList->mPendingLoadings.size();
@@ -119,47 +115,52 @@ namespace Renderer {
                     uploadList->mMappingFenceValue = mMappingFence->ExpectedValue();
                 }
 
-                mMappingFence->Wait();
             }
-            auto* streamTexture = uploadList->mPendingStreamTexture;
-            const auto& fileFormat = streamTexture->GetFileFormat();
-            const auto* fileHandle = streamTexture->GetFileHandle();
 
-            DSTORAGE_REQUEST dsRequest{};
-            dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
-            dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
-            dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)fileFormat.GetCompressionFormat();
-            dsRequest.Destination.Tiles.TileRegionSize = D3D12_TILE_REGION_SIZE{ 1, FALSE, 0, 0, 0 };
-            dsRequest.Source.File.Source = fileHandle->GetDStorageFile();
-            dsRequest.UncompressedSize = D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES;
-
-            uint32_t numCoords = uploadList->mPendingLoadings.size();
-            for (uint32_t i = 0u; i < numCoords; i++) {
-                const auto& currCoord = uploadList->mPendingLoadings.at(i);
-                auto fileOffset = fileFormat.GetFileOffset(currCoord);
-
-                dsRequest.Source.File.Offset = fileOffset.offset;
-                dsRequest.Source.File.Size = fileOffset.numBytes;
-
-                dsRequest.Destination.Tiles.Resource = streamTexture->GetInternalResource()->D3DResource();
-                dsRequest.Destination.Tiles.TiledRegionStartCoordinate = currCoord;
-                
-                mFileCopyQueue->EnqueueRequest(&dsRequest);
-            }
+            // 数据在上传之前必须要完成对应显存的映射
+            mMappingFence->Wait();
 
             {
-                // 可优化
-                std::lock_guard lock(mCopyFenceMutex);
-                mCopyFence->IncrementExpectedValue();
-                mFileCopyQueue->EnqueueSignal(mCopyFence->D3DFence(), mCopyFence->ExpectedValue());
-                uploadList->mCopyFenceValue = mCopyFence->ExpectedValue();
-                mFileCopyQueue->Submit();
+                // upload tasks
+                auto* streamTexture = uploadList->mPendingStreamTexture;
+                const auto& fileFormat = streamTexture->GetFileFormat();
+                const auto* fileHandle = streamTexture->GetFileHandle();
+
+                DSTORAGE_REQUEST dsRequest{};
+                dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
+                dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
+                dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)fileFormat.GetCompressionFormat();
+                dsRequest.Destination.Tiles.TileRegionSize = D3D12_TILE_REGION_SIZE{ 1, FALSE, 0, 0, 0 };
+                dsRequest.Source.File.Source = fileHandle->GetDStorageFile();
+                dsRequest.UncompressedSize = D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES;
+
+                uint32_t numCoords = uploadList->mPendingLoadings.size();
+                for (uint32_t i = 0u; i < numCoords; i++) {
+                    const auto& currCoord = uploadList->mPendingLoadings.at(i);
+                    auto fileOffset = fileFormat.GetFileOffset(currCoord);
+
+                    dsRequest.Source.File.Offset = fileOffset.offset;
+                    dsRequest.Source.File.Size = fileOffset.numBytes;
+
+                    dsRequest.Destination.Tiles.Resource = streamTexture->GetInternalResource()->D3DResource();
+                    dsRequest.Destination.Tiles.TiledRegionStartCoordinate = currCoord;
+
+                    mFileCopyQueue->EnqueueRequest(&dsRequest);
+                }
+
+                {
+                    // 可优化
+                    std::lock_guard lock(mCopyFenceMutex);
+                    mCopyFence->IncrementExpectedValue();
+                    mFileCopyQueue->EnqueueSignal(mCopyFence->D3DFence(), mCopyFence->ExpectedValue());
+                    uploadList->mCopyFenceValue = mCopyFence->ExpectedValue();
+                    mFileCopyQueue->Submit();
+                }
             }
         };
 
         // 将uploadList的任务提交给TaskSystem
-        Tool::TaskSystem::GetInstance()->Submit(mappingTask);
-        Tool::TaskSystem::GetInstance()->Submit(uploadTask);
+        Tool::TaskSystem::GetInstance()->Submit(mappingAndUploadTask);
         uploadList->SetUploadListState(UploadList::State::Processing);
 
     }

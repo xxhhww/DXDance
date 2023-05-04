@@ -34,7 +34,7 @@ float4 PSMain(v2p input) : SV_TARGET
 
 	feedback.WriteSamplerFeedback(streamTexture, SamplerPointClamp, input.uv);
 
-	float3 value = streamTexture.Sample(SamplerAnisotropicClamp, input.uv, 0, 0).rgb;
+	float3 value = streamTexture.Sample(SamplerAnisotropicClamp, input.uv, 0, 2).rgb;
 
 	return float4(value, 1.0f);
 }

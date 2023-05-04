@@ -173,13 +173,10 @@ namespace Renderer {
 			* 描述每个Tile的驻留状态
 			*/
 			enum class ResidencyState : uint8_t {
-				NotResident = 0, // b00
-				Resident    = 1, // b01
-				Loading     = 2, // b11
-				// Evicting    = 3 
-				// 事实上，Tile的驻留状态并不会出现Evicting，因为Tile的卸载操作并不会在其他线程内执行。
-				// 它会在ProcessFeedbackThread内直接将目标Tile的HeapAllocation放回Heap池中。
-				// 并且，在这一过程中，并不会发生真正的显存释放操作。
+				NotResident = 0,
+				Resident    = 1,
+				Loading     = 2,
+				Evicting    = 3 
 			};
 		public:
 			TileMappingState(uint32_t mipNums, std::vector<D3D12_SUBRESOURCE_TILING>& subresourceTilings);
@@ -193,7 +190,7 @@ namespace Renderer {
 
 			inline const auto& GetRefCount(uint32_t x, uint32_t y, uint32_t s)       const { return mRefCounts[s][y][x]; }
 			inline const auto& GetResidencyState(uint32_t x, uint32_t y, uint32_t s) const { return mResidencyStates[s][y][x]; }
-			inline const auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s) const { return mHeapAllocations[s][y][x]; }
+			inline auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s) const { return mHeapAllocations[s][y][x]; }
 
 		private:
 			TileSeq<uint32_t> mRefCounts;								// 每一个Tile的引用计数
@@ -203,26 +200,41 @@ namespace Renderer {
 		std::unique_ptr<TileMappingState> mTileMappingState;
 
 		// =============================== Pending Information ===============================
-		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingLoadings;
+		std::vector<D3D12_TILED_RESOURCE_COORDINATE> mPendingTileLoadings;
 
+		/*
+		* 相对于Tile的Loading操作来说，Tile的Eviction操作更强调同步问题，如果不做额外操作则可能发生显存错位从而导致采样出错的结果
+		* 因此，这里设置一个Eviction缓冲区，只有满足连续N帧不可见时，Tile才会触发Eviction操作
+		*/
 		class EvictionDelay {
 		public:
-			EvictionDelay(UINT numSwapBuffers);
+			EvictionDelay(uint32_t nFrames = 4u);
 			~EvictionDelay() = default;
 
-			using MappingCoords = std::vector<D3D12_TILED_RESOURCE_COORDINATE>;
-			void Append(D3D12_TILED_RESOURCE_COORDINATE in_coord) { mMappings[0].push_back(in_coord); }
-			MappingCoords& GetReadyToEvict() { return mMappings.back(); }
+			void Append(D3D12_TILED_RESOURCE_COORDINATE coord) { mEvictionsBuffer[0].push_back(coord); }
+			std::vector<D3D12_TILED_RESOURCE_COORDINATE>& GetReadyToEvict() { return mEvictionsBuffer.back(); }
 
 			void MoveToNextFrame();
 			void Clear();
 
 			// drop pending evictions for tiles that now have non-zero refcount
 			void Rescue(const TileMappingState& in_tileMappingState);
+
 		private:
-			std::vector<MappingCoords> mMappings;
+			std::vector<std::vector<D3D12_TILED_RESOURCE_COORDINATE>> mEvictionsBuffer;
 		};
-		EvictionDelay mPendingEvictions;
+		EvictionDelay mPendingTileEvictions;
+
+		/*
+		* 当一个Tile触发了Eviction操作时，该Tile所拥有的HeapAllocation不能被立即放回显存池中。
+		* 因为该HeapAllocation可能会在下一次循环时被其他Tile重用，又由于MinMipMap的延迟更新问题，这会使得GPU仍然认为该HeapAllocation属于已被Eviction的Tile，进而造成纹理采样错位。
+		* 因此，该HeapAllocation需要在保存NumSwapBuffers个帧之后再被放回池子中，该操作确保了MinMipMap的延迟更新不会造成后续的采样错位问题。
+		*/
+		class DeallocationDelay {
+		public:
+
+		private:
+		};
 	};
 
 }

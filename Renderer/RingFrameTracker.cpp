@@ -3,8 +3,6 @@
 
 namespace Renderer {
 
-    static bool ttt = true;
-
 	RingFrameTracker::RingFrameTracker(size_t maxSize) : mMaxSize(maxSize) {}
 
 	void RingFrameTracker::PushCurrentFrame(uint64_t expectedValue) {
