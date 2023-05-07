@@ -2,6 +2,8 @@
 #include "RingFrameTracker.h"
 #include "DataUploader.h"
 
+#include "GHL/Fence.h"
+
 #include "Tools/TaskSystem.h"
 #include "Tools/Assert.h"
 
@@ -9,17 +11,15 @@ namespace Renderer {
 
 	TileUpdater::TileUpdater(
 		const GHL::Device* device,
+		GHL::Fence* renderFrameFence,
 		RingFrameTracker* frameTracker,
 		std::unordered_map<std::string, std::unique_ptr<StreamTexture>>* textureStorage,
 		DataUploader* dataUploader)
 	: mDevice(device) 
+	, mRenderFrameFence(renderFrameFence)
 	, mFrameTracker(frameTracker)
 	, mTextureStorage(textureStorage)
 	, mDataUploader(dataUploader) {
-
-		mFrameCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		ASSERT_FORMAT(mFrameCompletedEvent != nullptr, "Failed to Create Frame Completed Event Handle");
-
 		mProcessFeedbackThread = std::thread([this]() {
 			ProcessFeedbackThread();
 		});
@@ -27,29 +27,36 @@ namespace Renderer {
 
 	TileUpdater::~TileUpdater() {
 		mThreadRunning = false;
-		SetEvent(mFrameCompletedEvent);
 		mProcessFeedbackThread.join();
-		CloseHandle(mFrameCompletedEvent);
-	}
-
-	void TileUpdater::SetFrameCompletedEvent() {
-		SetEvent(mFrameCompletedEvent);
 	}
 
 	void TileUpdater::ProcessFeedbackThread() {
+		bool moreTasks = false;
+		uint64_t prevFrameFenceValue = 0u;
 		while (mThreadRunning) {
 			// 如果此时没有任何任务，则等待一个新的渲染帧的完成
-			WaitForSingleObject(mFrameCompletedEvent, INFINITE);
-			if (!mThreadRunning) break;
-
-			// 一个渲染帧完成，为每一个StreamTexture处理ReadbackFeedback
-			for (auto& pair : *mTextureStorage) {
-				auto* streamTexture = pair.second.get();
-				streamTexture->ProcessReadbackFeedback();
-				streamTexture->ProcessTileLoadings();
-				streamTexture->ProcessTileEvictions();
+			uint64_t completedFrameFenceVaule = mRenderFrameFence->CompletedValue();
+			if (completedFrameFenceVaule != prevFrameFenceValue) {
+				for (auto& pair : *mTextureStorage) {
+					auto* streamTexture = pair.second.get();
+					streamTexture->ProcessReadbackFeedback();
+					if (streamTexture->IsStale()) {
+						moreTasks = true;
+					}
+				}
 			}
-			
+
+			if (moreTasks) {
+				for (auto& pair : *mTextureStorage) {
+					auto* streamTexture = pair.second.get();
+					if (streamTexture->IsStale()) {
+						continue;
+					}
+					streamTexture->ProcessTileLoadings();
+					streamTexture->ProcessTileEvictions();
+				}
+			}
+
 		}
 
 	}

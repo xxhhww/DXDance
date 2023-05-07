@@ -59,14 +59,14 @@ namespace Renderer {
 		void ProcessReadbackFeedback();
 
 		/*
-		* 处理Tile加载的任务
+		* 处理Tile加载的任务，返回值表示是否有任务需要延迟提交
 		*/
-		uint32_t ProcessTileLoadings();
+		bool ProcessTileLoadings();
 
 		/*
-		* 处理Tile卸载的任务
+		* 处理Tile卸载的任务，返回值表示是否有任务需要延迟提交
 		*/
-		uint32_t ProcessTileEvictions();
+		bool ProcessTileEvictions();
 
 		/*
 		* 渲染帧完成后的回调函数，不直接注册到FrameTracker的渲染帧完成回调中，而是由StreamTextureManger中的同名回调函数调用
@@ -83,6 +83,11 @@ namespace Renderer {
 		* 设置该StreamTexture的Residency在全局ResidencyMap中的偏移量
 		*/
 		void SetResidencyMapOffset(uint64_t mapOffset);
+
+		/*
+		* 该StreamTexture是否还有任务
+		*/
+		bool IsStale();
 
 		inline auto* GetInternalResource() const { return mInternalTexture; }
 

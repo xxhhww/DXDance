@@ -11,12 +11,14 @@ namespace Renderer {
 	StreamTextureManger::StreamTextureManger(
 		const GHL::Device* device, 
 		GHL::CommandQueue* mappingQueue,
+		GHL::Fence* renderFrameFence,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
 		RingFrameTracker* ringFrameTracker
 	)
 	: mDevice(device)
 	, mMappingQueue(mappingQueue)
+	, mRenderFrameFence(renderFrameFence)
 	, mPackedMipMappingFence(std::make_unique<GHL::Fence>(mDevice))
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator)

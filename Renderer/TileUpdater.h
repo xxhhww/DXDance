@@ -5,6 +5,7 @@
 
 namespace GHL {
 	class Device;
+	class Fence;
 }
 
 namespace Renderer {
@@ -20,15 +21,11 @@ namespace Renderer {
 	public:
 		TileUpdater(
 			const GHL::Device* device, 
+			GHL::Fence* renderFrameFence,
 			RingFrameTracker* frameTracker, 
 			std::unordered_map<std::string, std::unique_ptr<StreamTexture>>* textureStorage, 
 			DataUploader* dataUploader);
 		~TileUpdater();
-
-		/*
-		* 设置帧完成事件的触发
-		*/
-		void SetFrameCompletedEvent();
 
 	private:
 
@@ -44,12 +41,12 @@ namespace Renderer {
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
+		GHL::Fence* mRenderFrameFence{ nullptr };
 		RingFrameTracker*  mFrameTracker{ nullptr };
 		std::unordered_map<std::string, std::unique_ptr<StreamTexture>>* mTextureStorage{ nullptr };
 		DataUploader* mDataUploader{ nullptr };
 
 		bool mThreadRunning{ true };
-		HANDLE mFrameCompletedEvent{ nullptr };
 		std::thread mProcessFeedbackThread;
 
 	};

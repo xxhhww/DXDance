@@ -312,10 +312,10 @@ namespace Renderer {
 		}
 	}
 
-	uint32_t StreamTexture::ProcessTileLoadings() {
+	bool StreamTexture::ProcessTileLoadings() {
 		// 将TileLoading任务推入DataUploader中
 		if (mPendingTileLoadings.empty()) {
-			return 0;
+			return false;
 		}
 
 		UploadList* uploadList = mDataUploader->AllocateUploadList();
@@ -323,9 +323,9 @@ namespace Renderer {
 		// 在显存堆上为每一个Tile进行分配
 		uint32_t uploadSize{ 0u };
 		for (const auto& coord : mPendingTileLoadings) {
-			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr
-				&& mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::NotResident) {
-				
+			ASSERT_FORMAT(mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr, "Heap Allocation Must Be Nullptr");
+			
+			if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::NotResident) {
 				BuddyHeapAllocator::Allocation* heapAllocation = mHeapAllocator->Allocate(mTileSize);
 
 				mTileMappingState->SetHeapAllocation(coord.X, coord.Y, coord.Subresource, heapAllocation);
@@ -334,23 +334,25 @@ namespace Renderer {
 				uploadList->PushPendingLoadings(coord, heapAllocation);
 				uploadSize++;
 			}
+			else if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Evicting) {
+				// 该Tile处于Evicting状态中
+			}
 		}
 		mPendingTileLoadings.clear();
 		mDataUploader->SubmitUploadList(uploadList);
 
-		return uploadSize;
+		return false;
 	}
 
-	uint32_t StreamTexture::ProcessTileEvictions() {
+	bool StreamTexture::ProcessTileEvictions() {
 		if (mPendingTileEvictions.GetReadyToEvict().empty()) {
-			return 0;
+			return false;
 		}
 
 		auto& readyEvictions = mPendingTileEvictions.GetReadyToEvict();
+		uint32_t numDelayed = 0u;
 		for (const auto& coord : readyEvictions) {
-			if (mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) == nullptr) {
-				continue;
-			}
+			ASSERT_FORMAT(mTileMappingState->GetHeapAllocation(coord.X, coord.Y, coord.Subresource) != nullptr, "Heap Allocation Must Not Be Nullptr");
 
 			if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Resident) {
 
@@ -359,9 +361,15 @@ namespace Renderer {
 				mTileMappingState->SetResidencyState(coord.X, coord.Y, coord.Subresource, TileMappingState::ResidencyState::NotResident);
 			}
 			else if (mTileMappingState->GetResidencyState(coord.X, coord.Y, coord.Subresource) == TileMappingState::ResidencyState::Loading) {
+				
 				// 需要Eviction的Tile正在Loading，保留该Evictions下次循环再来检测
+				readyEvictions[numDelayed] = coord;
+				numDelayed++;
 			}
 		}
+
+		readyEvictions.resize(numDelayed);
+		return numDelayed == 0u ? false : true;
 	}
 
 	void StreamTexture::FrameCompletedCallback(uint8_t frameIndex) {
@@ -382,6 +390,9 @@ namespace Renderer {
 		mResidencyMapOffset = mapOffset;
 	}
 
+	bool StreamTexture::IsStale() {
+		return (mPendingTileLoadings.size() || mPendingTileEvictions.GetReadyToEvict().size());
+	}
 
 	void StreamTexture::SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip) {
 		// what mip level is currently referenced at this tile?
