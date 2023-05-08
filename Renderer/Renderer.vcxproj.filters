@@ -64,6 +64,9 @@
     <Filter Include="源文件\Renderer\StreamTextureSystem">
       <UniqueIdentifier>{d6cf5766-f277-4f3f-a951-eb9930212be0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Uploader">
+      <UniqueIdentifier>{7c24d7a0-4b48-4944-9a9b-eb6a47d7e5c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -186,6 +189,12 @@
     <ClInclude Include="UploadList.h">
       <Filter>头文件\Renderer\StreamTextureSystem</Filter>
     </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -298,6 +307,12 @@
     </ClCompile>
     <ClCompile Include="UploadList.cpp">
       <Filter>源文件\Renderer\StreamTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>源文件\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

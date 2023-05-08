@@ -163,6 +163,8 @@
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RootConstantsPerFrame.h" />
     <ClInclude Include="PoolDescriptorAllocator.h" />
@@ -212,6 +214,8 @@
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MemoryAliasingHelper.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />
     <ClCompile Include="RenderEngine.cpp" />

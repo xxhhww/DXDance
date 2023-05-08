@@ -22,6 +22,7 @@
 #include <dxgi1_6.h>
 #include <pix.h>
 #include <dxcapi.h>
+#include <DirectXCollision.h>
 #ifdef _DEBUG
 #include <dxgidebug.h>
 #endif
