@@ -23,7 +23,6 @@ namespace Renderer {
 		StreamTextureManger(
 			const GHL::Device* device, 
 			GHL::CommandQueue* mappingQueue,
-			GHL::Fence* renderFrameFence,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator,
 			RingFrameTracker* ringFrameTracker
@@ -42,7 +41,6 @@ namespace Renderer {
 		inline static const uint32_t mStagingBufferSizeMB = 128u;
 
 		const GHL::Device* mDevice{ nullptr };
-		GHL::Fence* mRenderFrameFence{ nullptr };
 		GHL::CommandQueue* mMappingQueue{ nullptr };
 		std::unique_ptr<GHL::Fence> mPackedMipMappingFence;
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };

@@ -30,7 +30,6 @@ namespace Renderer {
 		, mStreamTextureManger(std::make_unique<StreamTextureManger>(
 			mDevice.get(),
 			mCopyQueue.get(),
-			mRenderFrameFence.get(),
 			mDescriptorAllocator.get(),
 			mHeapAllocator.get(),
 			mFrameTracker.get()))
