@@ -1,4 +1,6 @@
 #pragma once
+#include "EditorResourceManger.h"
+
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
 
@@ -6,6 +8,8 @@
 #include "Core/SceneManger.h"
 
 #include "UI/UIManger.h"
+
+#include "Renderer/RenderEngine.h"
 
 #include "Tools/Clock.h"
 
@@ -34,5 +38,8 @@ namespace App {
 
 		std::unique_ptr<Core::AssetPathDataBase> assetPathDataBase;
 		std::unique_ptr<Core::SceneManger>       sceneManger;
+
+		std::unique_ptr<Renderer::RenderEngine>  renderEngine;
+		std::unique_ptr<EditorResourceManger>    editorResourceManger;
 	};
 }

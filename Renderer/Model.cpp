@@ -10,7 +10,7 @@ namespace Renderer {
 		const GHL::Device* device,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
-		const std::string path) 
+		const std::string& path) 
 	: mDevice(device) 
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator)

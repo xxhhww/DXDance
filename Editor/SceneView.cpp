@@ -13,16 +13,15 @@ namespace App {
 		const std::string& title,
 		bool opend,
 		const UI::PanelWindowSettings& panelSetting)
-	: UI::PanelWindow(title, opend, panelSetting)
-	, mFinalOutputRect(1920.0f, 1080.0f)
-	, mRenderEngine(nullptr, mFinalOutputRect.x, mFinalOutputRect.y, 3u) {
-		mBackImage = &CreateWidget<UI::Image>(0u, mFinalOutputRect);
+	: UI::PanelWindow(title, opend, panelSetting) {
+		mRenderEngine = &CORESERVICE(Renderer::RenderEngine);
+		mBackImage = &CreateWidget<UI::Image>(0u, Math::Vector2{ 1920.0f, 1080.0f });
 		mSceneManger = &CORESERVICE(Core::SceneManger);
 		LoadNewScene("Undefined");
 	}
 
 	void SceneView::BindHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle) {
-		mRenderEngine.BindFinalOuputSRV(cpuHandle);
+		mRenderEngine->BindFinalOuputSRV(cpuHandle);
 		mBackImage->textureID = gpuHandle.ptr;
 	}
 
@@ -104,9 +103,9 @@ namespace App {
 
 	void SceneView::Render(float dt) {
 		// ¸üÐÂPerFrameData
-		mRenderEngine.Update(dt, *mEditorCamera, *mEditorTransform);
+		mRenderEngine->Update(dt, *mEditorCamera, *mEditorTransform);
 		// äÖÈ¾
-		mRenderEngine.Render();
+		mRenderEngine->Render();
 	}
 
 	Math::Vector2 SceneView::GetAvailableSize() const {

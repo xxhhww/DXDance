@@ -196,6 +196,7 @@
     <ClInclude Include="TileUpdater.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="UploaderEngine.h" />
     <ClInclude Include="UploadList.h" />
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
@@ -247,6 +248,7 @@
     <ClCompile Include="TileUpdater.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="UploaderEngine.cpp" />
     <ClCompile Include="UploadList.cpp" />
     <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>

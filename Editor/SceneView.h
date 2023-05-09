@@ -37,9 +37,8 @@ namespace App {
 		Math::Vector2 GetAvailableSize() const;
 
 	private:
-		Math::Vector2 mFinalOutputRect{ 0.0f, 0.0f };
 		Math::Vector2 mAvailableSize{ 0.0f, 0.0f };
-		Renderer::RenderEngine mRenderEngine;
+		Renderer::RenderEngine* mRenderEngine{ nullptr };
 		UI::Image* mBackImage{ nullptr };
 
 		Core::SceneManger*   mSceneManger{ nullptr };

@@ -75,8 +75,6 @@ namespace Renderer {
 		uint32_t mIndexCount{ 0u };
 		std::unique_ptr<Buffer> mVertexBuffer;
 		std::unique_ptr<Buffer> mIndexBuffer;
-
-		DirectX::BoundingBox mBoundingBox;
 	};
 
 }

@@ -19,7 +19,7 @@ namespace Renderer {
 			const GHL::Device* device,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator,
-			const std::string path);
+			const std::string& path);
 
 		~Model() = default;
 
@@ -38,6 +38,8 @@ namespace Renderer {
 		std::string mPath;
 
 		std::vector<std::unique_ptr<Mesh>> mMeshs;
+
+		DirectX::BoundingBox mBoundingBox; // АќЮЇКа
 	};
 
 }

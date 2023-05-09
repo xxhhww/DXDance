@@ -67,6 +67,9 @@
     <Filter Include="源文件\Uploader">
       <UniqueIdentifier>{7c24d7a0-4b48-4944-9a9b-eb6a47d7e5c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Uploader">
+      <UniqueIdentifier>{9c08e0a5-ef86-4ebf-9611-ffa6fc69c49a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -195,6 +198,9 @@
     <ClInclude Include="Mesh.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="UploaderEngine.h">
+      <Filter>头文件\Uploader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -313,6 +319,9 @@
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="UploaderEngine.cpp">
+      <Filter>源文件\Uploader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

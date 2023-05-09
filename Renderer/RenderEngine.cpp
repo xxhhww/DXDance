@@ -45,7 +45,8 @@ namespace Renderer {
 			mShaderManger.get(),
 			mSharedMemAllocator.get(),
 			mStreamTextureManger.get())) 
-		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
+		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
+		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get())) {
 
 		if (windowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);

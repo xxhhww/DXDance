@@ -5,6 +5,8 @@
 #include "GHL/AdapterContainer.h"
 #include "GHL/CommandQueue.h"
 
+#include "UploaderEngine.h"
+
 #include "RingFrameTracker.h"
 
 #include "BuddyHeapAllocator.h"
@@ -108,6 +110,9 @@ namespace Renderer {
 		std::unique_ptr<Texture> mFinalOutput;
 		RenderGraphResourceID mFinalOutputID;
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
+
+		// ==========================...UploadEngine...==========================
+		std::unique_ptr<UploaderEngine> mUploaderEngine;
 	};
 
 }

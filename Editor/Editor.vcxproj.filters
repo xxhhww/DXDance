@@ -114,6 +114,9 @@
     <ClInclude Include="SceneView.h">
       <Filter>头文件\Panels\SceneView</Filter>
     </ClInclude>
+    <ClInclude Include="EditorResourceManger.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -178,6 +181,9 @@
     </ClCompile>
     <ClCompile Include="SceneView.cpp">
       <Filter>源文件\Panels\SceneView</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorResourceManger.cpp">
+      <Filter>源文件\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

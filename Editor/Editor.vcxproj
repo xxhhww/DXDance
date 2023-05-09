@@ -73,7 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ReferencePath>..\ThirdParty\include;$(ReferencePath)</ReferencePath>
-    <LibraryPath>..\ThirdParty\lib;..\DXDance\ThirdParty\lib\DXC;..\ThirdParty\lib\DirectStorage;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\ThirdParty\lib;..\ThirdParty\lib\DXC;..\ThirdParty\lib\DirectStorage;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -141,6 +141,7 @@
     <ClInclude Include="BrowserItem.h" />
     <ClInclude Include="BrowserItemContextualMenu.h" />
     <ClInclude Include="Context.h" />
+    <ClInclude Include="EditorResourceManger.h" />
     <ClInclude Include="FileItem.h" />
     <ClInclude Include="FileItemContextualMenu.h" />
     <ClInclude Include="FolderItem.h" />
@@ -175,6 +176,7 @@
     <ClCompile Include="MainMenuBar.cpp" />
     <ClCompile Include="MathNode.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="EditorResourceManger.cpp" />
     <ClCompile Include="SceneView.cpp" />
     <ClCompile Include="ShaderEditor.cpp" />
     <ClCompile Include="Pin.cpp" />
