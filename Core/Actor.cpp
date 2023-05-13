@@ -8,10 +8,13 @@ namespace Core {
 	Actor::Actor(int64_t actorID, const std::string& name) 
 	: mActorID(actorID)
 	, mName(name) 
-	, mEntity(ECS::Entity::Create<Renderer::Transform>()) {}
+	, mEntity(ECS::Entity::Create<Renderer::Transform>()) {
+		Actor::ActorCreatedEvent.Invoke(mActorID);
+	}
 
 	Actor::~Actor() {
 		ECS::Entity::Delete(mEntity);
+		Actor::ActorDeletedEvent.Invoke(mActorID);
 	}
 
 	void Actor::AttachParent(Actor& parent) {

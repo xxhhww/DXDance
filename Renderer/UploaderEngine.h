@@ -28,8 +28,8 @@ namespace Renderer {
 		const GHL::Device* mDevice{ nullptr };
 
 		Microsoft::WRL::ComPtr<IDStorageFactory> mDStorageFactory;
-		Microsoft::WRL::ComPtr<IDStorageQueue> mFileCopyQueue;
-		Microsoft::WRL::ComPtr<IDStorageQueue> mMemoryCopyQueue;
+		Microsoft::WRL::ComPtr<IDStorageQueue>   mFileCopyQueue;
+		Microsoft::WRL::ComPtr<IDStorageQueue>   mMemoryCopyQueue;
 
 		std::unique_ptr<GHL::Fence> mCopyFence;
 	};

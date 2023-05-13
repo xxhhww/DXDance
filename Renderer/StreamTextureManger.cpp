@@ -13,28 +13,20 @@ namespace Renderer {
 		GHL::CommandQueue* mappingQueue,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
-		RingFrameTracker* ringFrameTracker
+		RingFrameTracker* ringFrameTracker,
+		IDStorageFactory* dstorageFactory,
+		IDStorageQueue* fileCopyQueue,
+		IDStorageQueue* memoryCopyQueue
 	)
 	: mDevice(device)
 	, mMappingQueue(mappingQueue)
 	, mPackedMipMappingFence(std::make_unique<GHL::Fence>(mDevice))
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator)
-	, mFrameTracker(ringFrameTracker) {
-		// Init DStorage
-		DSTORAGE_CONFIGURATION dsConfig{};
-		DStorageSetConfiguration(&dsConfig);
-
-		HRASSERT(DStorageGetFactory(IID_PPV_ARGS(&mDStorageFactory)));
-		DSTORAGE_DEBUG debugFlags = DSTORAGE_DEBUG_NONE;
-#ifdef _DEBUG
-		debugFlags = DSTORAGE_DEBUG_SHOW_ERRORS;
-#endif
-		mDStorageFactory->SetDebugFlags(debugFlags);
-		mDStorageFactory->SetStagingBufferSize(mStagingBufferSizeMB * 1024u * 1024u);
-
+	, mFrameTracker(ringFrameTracker)
+	, mDStorageFactory(dstorageFactory) {
 		// Init DataUploader
-		mDataUploader = std::make_unique<DataUploader>(mDevice, mMappingQueue, mDStorageFactory.Get());
+		mDataUploader = std::make_unique<DataUploader>(mDevice, mMappingQueue, mDStorageFactory, fileCopyQueue, memoryCopyQueue);
 
 		// Init TileUpdater
 		mTileUpdater = std::make_unique<TileUpdater>(mDevice, mFrameTracker, &mTextureStorages, mDataUploader.get());
@@ -52,7 +44,7 @@ namespace Renderer {
 		}
 
 		XeTexureFormat xeTextureFormat{ filepath };
-		std::unique_ptr<FileHandle> fileHandle = std::make_unique<FileHandle>(mDStorageFactory.Get(), filepath);
+		std::unique_ptr<FileHandle> fileHandle = std::make_unique<FileHandle>(mDStorageFactory, filepath);
 		std::unique_ptr<StreamTexture> streamTexture = std::make_unique<StreamTexture>(
 			mDevice, 
 			mDataUploader.get(),

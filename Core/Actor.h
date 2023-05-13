@@ -1,5 +1,6 @@
 #pragma once
 #include "ECS/Entity.h"
+
 #include "Tools/Event.h"
 #include "Tools/ISerializable.h"
 
@@ -100,6 +101,15 @@ namespace Core {
 		* 反序列化Json数据
 		*/
 		void DeserializeJson(const Tool::JsonReader& reader) override;
+
+	public:
+		// Actor创建回调，链接到编辑层的Hierarchy
+		inline static Tool::Event<int64_t> ActorCreatedEvent;
+		// Actor销毁回调，链接到编辑层的Hierarchy
+		inline static Tool::Event<int64_t> ActorDeletedEvent;
+		
+		inline static Tool::Event<int64_t, int64_t> ActorAttachEvent;
+		inline static Tool::Event<int64_t>			ActorDetachEvent;
 
 	private:
 		int64_t				mActorID{ -1 };		// 物体ID(与Entity的ID不同，ActorID需要持久化存储)

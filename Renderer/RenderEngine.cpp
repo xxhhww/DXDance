@@ -15,6 +15,7 @@ namespace Renderer {
 		, mAdapterContainer(std::make_unique<GHL::AdapterContainer>())
 		, mSelectedAdapter(mAdapterContainer->GetHighPerformanceAdapter())
 		, mDevice(std::make_unique<GHL::Device>(*mSelectedAdapter, false))
+		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get()))
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
 		, mComputeQueue(std::make_unique<GHL::ComputeQueue>(mDevice.get()))
 		, mCopyQueue(std::make_unique<GHL::CopyQueue>(mDevice.get()))
@@ -32,7 +33,10 @@ namespace Renderer {
 			mCopyQueue.get(),
 			mDescriptorAllocator.get(),
 			mHeapAllocator.get(),
-			mFrameTracker.get()))
+			mFrameTracker.get(),
+			mUploaderEngine->GetDSFactory(),
+			mUploaderEngine->GetFileCopyQueue(),
+			mUploaderEngine->GetMemoryCopyQueue()))
 		, mRenderGraph(std::make_unique<RenderGraph>(
 			mDevice.get(),
 			mFrameTracker.get(), 
@@ -45,8 +49,7 @@ namespace Renderer {
 			mShaderManger.get(),
 			mSharedMemAllocator.get(),
 			mStreamTextureManger.get())) 
-		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
-		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get())) {
+		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
 
 		if (windowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);

@@ -73,6 +73,9 @@ namespace Renderer {
 
 		std::unique_ptr<GHL::Device> mDevice;
 
+		// ==========================...UploadEngine...==========================
+		std::unique_ptr<UploaderEngine> mUploaderEngine;
+
 		std::unique_ptr<GHL::GraphicsQueue>    mGraphicsQueue; // 图形引擎
 		std::unique_ptr<GHL::ComputeQueue>     mComputeQueue;  // 计算引擎
 		std::unique_ptr<GHL::CopyQueue>        mCopyQueue;     // 复制引擎
@@ -111,8 +114,6 @@ namespace Renderer {
 		RenderGraphResourceID mFinalOutputID;
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
 
-		// ==========================...UploadEngine...==========================
-		std::unique_ptr<UploaderEngine> mUploaderEngine;
 	};
 
 }

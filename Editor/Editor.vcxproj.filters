@@ -52,6 +52,9 @@
     <Filter Include="头文件\Panels\SceneView">
       <UniqueIdentifier>{6d606afc-4e49-4329-9afd-e676157120d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Panels\Inspector">
+      <UniqueIdentifier>{5e2fbab9-fd4a-4d9d-af36-04878b35ee5b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">
@@ -114,8 +117,11 @@
     <ClInclude Include="SceneView.h">
       <Filter>头文件\Panels\SceneView</Filter>
     </ClInclude>
-    <ClInclude Include="EditorResourceManger.h">
-      <Filter>头文件\Core</Filter>
+    <ClInclude Include="Hierarchy.h">
+      <Filter>头文件\Panels\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyContextualMenu.h">
+      <Filter>头文件\Panels\Hierarchy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -182,8 +188,11 @@
     <ClCompile Include="SceneView.cpp">
       <Filter>源文件\Panels\SceneView</Filter>
     </ClCompile>
-    <ClCompile Include="EditorResourceManger.cpp">
-      <Filter>源文件\Core</Filter>
+    <ClCompile Include="Hierarchy.cpp">
+      <Filter>源文件\Panels\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyContextualMenu.cpp">
+      <Filter>源文件\Panels\Hierarchy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

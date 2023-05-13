@@ -25,7 +25,10 @@ namespace Renderer {
 			GHL::CommandQueue* mappingQueue,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator,
-			RingFrameTracker* ringFrameTracker
+			RingFrameTracker* ringFrameTracker,
+			IDStorageFactory* dstorageFactory,
+			IDStorageQueue* fileCopyQueue,
+			IDStorageQueue* memoryCopyQueue
 			);
 		~StreamTextureManger() = default;
 
@@ -46,7 +49,7 @@ namespace Renderer {
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		RingFrameTracker* mFrameTracker{ nullptr };
-		Microsoft::WRL::ComPtr<IDStorageFactory> mDStorageFactory;
+		IDStorageFactory* mDStorageFactory;
 		std::unique_ptr<DataUploader> mDataUploader;
 		std::unique_ptr<TileUpdater>  mTileUpdater;
 

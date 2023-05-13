@@ -1,13 +1,13 @@
-#include "EditorResourceManger.h"
+#include "EditorAssetManger.h"
 
 #include "Core/ServiceLocator.h"
 
 #include "Renderer/RenderEngine.h"
 
-namespace App {
+namespace Core {
 
-	EditorResourceManger::EditorResourceManger(const std::string& path)
-	: mModelsPath(path + "/Models") {
+	EditorAssetManger::EditorAssetManger(const std::string& path)
+		: mModelsPath(path + "/Models") {
 
 		auto& graphicsKernel = CORESERVICE(Renderer::RenderEngine);
 		auto* device = graphicsKernel.mDevice.get();
@@ -49,13 +49,12 @@ namespace App {
 		mModels["Camera"]->LoadDataFromDisk(uploader->GetMemoryCopyQueue(), uploader->GetCopyFence());
 	}
 
-	EditorResourceManger::~EditorResourceManger() {
+	EditorAssetManger::~EditorAssetManger() {
 
 	}
 
-	Renderer::Model* EditorResourceManger::GetModel(const std::string& name) {
-		const std::string pathname = mModelsPath + '/' + name;
-		auto it = mModels.find(pathname);
+	Renderer::Model* EditorAssetManger::GetModel(const std::string& name) {
+		auto it = mModels.find(name);
 		return (it == mModels.end()) ? nullptr : it->second.get();
 	}
 

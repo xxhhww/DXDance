@@ -14,7 +14,9 @@ namespace Renderer {
 	DataUploader::DataUploader(
         const GHL::Device* device,
         GHL::CommandQueue* mappingQueue,
-        IDStorageFactory* dsFactory)
+        IDStorageFactory* dsFactory,
+        IDStorageQueue* fileCopyQueue,
+        IDStorageQueue* memoryCopyQueue)
     : mDevice(device)
     , mMappingQueue(mappingQueue)
     , mMappingFence(std::make_unique<GHL::Fence>(mDevice))

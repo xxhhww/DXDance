@@ -26,18 +26,14 @@ namespace Renderer {
 
 		aiMatrix4x4 identity;
 
-		ProcessNode(&identity, scene->mRootNode, scene, mMeshs, copyDsQueue);
-		copyFence->IncrementExpectedValue();
-		copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-		copyDsQueue->Submit();
-		copyFence->Wait();
+		ProcessNode(&identity, scene->mRootNode, scene, mMeshs, copyDsQueue, copyFence);
 	}
 
 	void Model::ProcessMaterials(const struct aiScene* p_scene, std::vector<std::string>& p_materials) {
 		return;
 	}
 
-	void Model::ProcessNode(void* p_transform, struct aiNode* p_node, const struct aiScene* p_scene, std::vector<std::unique_ptr<Mesh>>& p_meshes, IDStorageQueue* copyDsQueue) {
+	void Model::ProcessNode(void* p_transform, struct aiNode* p_node, const struct aiScene* p_scene, std::vector<std::unique_ptr<Mesh>>& p_meshes, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence) {
 		aiMatrix4x4 nodeTransformation = *reinterpret_cast<aiMatrix4x4*>(p_transform) * p_node->mTransformation;
 
 		// Process all the node's meshes (if any)
@@ -63,12 +59,12 @@ namespace Renderer {
 				ResourceFormat{ mDevice, ibDesc },
 				mDescriptorAllocator, 
 				mHeapAllocator));
-			p_meshes.back()->LoadDataFromMemory(copyDsQueue, vertices, indices);
+			p_meshes.back()->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
 		}
 
 		// Then do the same for each of its children
 		for (uint32_t i = 0; i < p_node->mNumChildren; ++i) {
-			ProcessNode(&nodeTransformation, p_node->mChildren[i], p_scene, p_meshes, copyDsQueue);
+			ProcessNode(&nodeTransformation, p_node->mChildren[i], p_scene, p_meshes, copyDsQueue, copyFence);
 		}
 	}
 

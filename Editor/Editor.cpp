@@ -1,8 +1,10 @@
 #include "Editor.h"
-#include "MainMenuBar.h"
-#include "ShaderEditor.h"
-#include "AssetBrowser.h"
-#include "SceneView.h"
+
+#include "Editor/MainMenuBar.h"
+#include "Editor/ShaderEditor.h"
+#include "Editor/AssetBrowser.h"
+#include "Editor/Hierarchy.h"
+#include "Editor/SceneView.h"
 
 #include "Core/ServiceLocator.h"
 
@@ -26,6 +28,10 @@ namespace App {
 
 		mShaderEditor = &mCanvas.CreatePanel<ShaderEditor>("Shader Editor");
 		mAssetBrowser = &mCanvas.CreatePanel<AssetBrowser>("Asset Browser", mContext.projectEnginePath, mContext.projectAssetPath);
+		
+		// Hierarchy的初始化必须放在SceneView的初始化之前，SceneView初始化时会产生Actor的创建、析构事件，这些事件的回调会链接到Hierarchy上
+		mHierarchy = &mCanvas.CreatePanel<Hierarchy>("Hierarchy");
+
 		mSceneView = &mCanvas.CreatePanel<SceneView>("Scene View");
 		mSceneView->BindHandle(cpuHandle, gpuHandle);
 

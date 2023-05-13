@@ -1,7 +1,10 @@
 #include "SceneManger.h"
+#include "Core/EditorAssetManger.h"
+#include "Core/ServiceLocator.h"
 
 #include "Renderer/CCamera.h"
 #include "Renderer/CTransform.h"
+#include "Renderer/CMeshRenderer.h"
 
 #include "Tools/StrUtil.h"
 #include "Tools/Assert.h"

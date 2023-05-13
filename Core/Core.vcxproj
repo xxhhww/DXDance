@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="AssetPathDataBase.h" />
+    <ClInclude Include="EditorAssetManger.h" />
     <ClInclude Include="FooComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManger.h" />
@@ -145,6 +146,7 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="AssetPathDataBase.cpp" />
     <ClCompile Include="CoreTest.cpp" />
+    <ClCompile Include="EditorAssetManger.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
     <None Include="TestDeserializeSceneOutput.json" />

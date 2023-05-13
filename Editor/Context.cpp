@@ -28,12 +28,12 @@ namespace App {
 		assetPathDataBase = std::make_unique<Core::AssetPathDataBase>("Undefined");
 		sceneManger = std::make_unique<Core::SceneManger>(projectAssetPath, projectEnginePath, assetPathDataBase.get());
 
-		// 初始化内核引擎
+		// 初始化内核引擎，并将其注册为服务
 		renderEngine = std::make_unique<Renderer::RenderEngine>(nullptr, 1920u, 1080u);
 		Core::ServiceLocator::Provide(*renderEngine.get());
 
 		// 初始化编辑器资源管理器
-		editorResourceManger = std::make_unique<App::EditorResourceManger>("E:/MyProject/DXDance/Resources");
+		editorAssetManger = std::make_unique<Core::EditorAssetManger>("E:/MyProject/DXDance/Resources");
 
 		// 注册服务
 		Core::ServiceLocator::Provide(*window.get());
@@ -42,7 +42,7 @@ namespace App {
 		Core::ServiceLocator::Provide(*clock.get());
 		Core::ServiceLocator::Provide(*assetPathDataBase.get());
 		Core::ServiceLocator::Provide(*sceneManger.get());
-		Core::ServiceLocator::Provide(*editorResourceManger.get());
+		Core::ServiceLocator::Provide(*editorAssetManger.get());
 	}
 
 	Context::~Context() {

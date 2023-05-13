@@ -7,6 +7,10 @@
 
 #include <DirectStorage/dstorage.h>
 
+namespace GHL {
+	class Fence;
+}
+
 namespace Renderer {
 
 	struct Vertex {
@@ -64,7 +68,7 @@ namespace Renderer {
 		/*
 		* 使用DStorage从内存加载数据
 		*/
-		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

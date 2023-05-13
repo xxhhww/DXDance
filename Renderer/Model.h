@@ -25,9 +25,11 @@ namespace Renderer {
 
 		void LoadDataFromDisk(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence);
 
+		inline auto* GetFirstMesh() const { return mMeshs.front().get(); }
+
 	private:
 		void ProcessMaterials(const aiScene* p_scene, std::vector<std::string>& p_materials);;
-		void ProcessNode(void* p_transform, aiNode* p_node, const aiScene* p_scene, std::vector<std::unique_ptr<Mesh>>& p_meshes, IDStorageQueue* copyDsQueue);
+		void ProcessNode(void* p_transform, aiNode* p_node, const aiScene* p_scene, std::vector<std::unique_ptr<Mesh>>& p_meshes, IDStorageQueue* copyDsQueue, GHL::Fence* copyFence);
 		void ProcessMesh(void* p_transform, aiMesh* p_mesh, const aiScene* p_scene, std::vector<Vertex>& p_outVertices, std::vector<uint32_t>& p_outIndices);
 
 	private:

@@ -36,7 +36,9 @@ namespace Renderer {
 		DataUploader(
 			const GHL::Device* device, 
 			GHL::CommandQueue* mappingQueue,
-			IDStorageFactory* dsFactory);
+			IDStorageFactory* dsFactory,
+			IDStorageQueue* fileCopyQueue,
+			IDStorageQueue* memoryCopyQueue);
 		~DataUploader();
 
 		/*
@@ -63,8 +65,8 @@ namespace Renderer {
 		std::mutex mMappingFenceMutex;
 
 		IDStorageFactory* mDStorageFactory{ nullptr };
-		Microsoft::WRL::ComPtr<IDStorageQueue> mFileCopyQueue;
-		Microsoft::WRL::ComPtr<IDStorageQueue> mMemoryCopyQueue;
+		Microsoft::WRL::ComPtr<IDStorageQueue>	 mFileCopyQueue;
+		Microsoft::WRL::ComPtr<IDStorageQueue>   mMemoryCopyQueue;
 
 		std::unique_ptr<GHL::Fence> mCopyFence;
 		std::mutex mCopyFenceMutex;

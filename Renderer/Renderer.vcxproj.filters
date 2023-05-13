@@ -201,6 +201,9 @@
     <ClInclude Include="UploaderEngine.h">
       <Filter>头文件\Uploader</Filter>
     </ClInclude>
+    <ClInclude Include="CMeshRenderer.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">

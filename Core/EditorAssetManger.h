@@ -1,13 +1,14 @@
 #pragma once
 #include "Renderer/Model.h"
+#include "Renderer/Mesh.h"
 #include "Renderer/Shader.h"
 
-namespace App {
+namespace Core {
 
-	class EditorResourceManger {
+	class EditorAssetManger {
 	public:
-		EditorResourceManger(const std::string& path);
-		~EditorResourceManger();
+		EditorAssetManger(const std::string& path);
+		~EditorAssetManger();
 
 		Renderer::Model* GetModel(const std::string& name);
 

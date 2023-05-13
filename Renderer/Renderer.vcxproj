@@ -152,6 +152,7 @@
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CCamera.h" />
+    <ClInclude Include="CMeshRenderer.h" />
     <ClInclude Include="DataUploader.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
