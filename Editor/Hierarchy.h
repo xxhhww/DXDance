@@ -1,11 +1,19 @@
 #pragma once
 #include "UI/PanelWindow.h"
 
-namespace UI {
+#include <unordered_map>
 
+namespace UI {
+	class Child;
+}
+
+namespace Core {
+	class Actor;
 }
 
 namespace App {
+
+	class HierarchyItem;
 
 	class Hierarchy : public UI::PanelWindow {
 	public:
@@ -17,7 +25,18 @@ namespace App {
 
 		~Hierarchy();
 
+		void CreateActorCallback(Core::Actor* actor);
+
+		void DestoryActorCallback(Core::Actor* actor);
+
+		void AttachActorCallback(Core::Actor* childActor, Core::Actor* parentActor);
+
 	private:
+
+	private:
+		UI::Child* mCanvas{ nullptr };
+		HierarchyItem* mRootItem{ nullptr };
+		std::unordered_map<Core::Actor*, HierarchyItem*> mHelperLinks;
 	};
 
 }

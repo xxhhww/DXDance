@@ -2,8 +2,13 @@
 #include "imgui.h"
 
 namespace UI {
+	Group::Group() {
+		mAutoExecutePlugins = false;
+	}
+
 	void Group::_Draw_Internal_Impl() {
 		ImGui::BeginGroup();
+		ExecuteAllPlugins();
 		DrawWidgets();
 		ImGui::EndGroup();
 	}

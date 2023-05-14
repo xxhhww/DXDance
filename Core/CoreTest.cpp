@@ -83,11 +83,11 @@ void TestSerializeScene() {
     fooComp.d = Math::Vector3{ 3.3f, 4.4f, 5.5f };
     
     Actor* actor2 = scene.CreateActor("Actor2");
-    actor2->AttachParent(*actor1);
+    actor2->AttachParent(actor1);
     Actor* actor3 = scene.CreateActor("Actor3");
-    actor3->AttachParent(*actor1);
+    actor3->AttachParent(actor1);
     Actor* actor4 = scene.CreateActor("Actor4");
-    actor4->AttachParent(*actor3);
+    actor4->AttachParent(actor3);
     auto& transform = actor4->GetComponent<Renderer::Transform>();
 
 

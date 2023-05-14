@@ -1,27 +1,49 @@
 #include "HierarchyContextualMenu.h"
 
+#include "Core/SceneManger.h"
+#include "Core/ServiceLocator.h"
+
 #include "UI/MenuList.h"
 #include "UI/InputText.h"
 
+#include "Tools/Assert.h"
+
 namespace App {
 
-	HierarchyContextualMenu::HierarchyContextualMenu() {
+	HierarchyContextualMenu::HierarchyContextualMenu(Core::Actor* actor, UI::ContextualMenuType menuType)
+	: UI::ContextualMenu(menuType) 
+	, mActor(actor) {
 		BuildPopupContextItem();
+	}
+
+	HierarchyContextualMenu::~HierarchyContextualMenu() {
 	}
 
 	void HierarchyContextualMenu::BuildPopupContextItem() {
 
-		// 一级目录
+		// Create
 		auto& createMenu = CreateWidget<UI::MenuList>("Create");
-		auto& renameMenu = CreateWidget<UI::MenuList>("Rename");
-		auto& deleteMenu = CreateWidget<UI::MenuItem>("Delete");
+		auto& createEmptyItem = createMenu.CreateWidget<UI::MenuItem>("Empty");
+		createEmptyItem.clickedEvent += [this]() {
+			auto* currScene = CORESERVICE(Core::SceneManger).GetCurrentScene();
+			ASSERT_FORMAT(currScene != nullptr, "Current Scene Must Not Be Nullptr");
+			auto* actor = currScene->CreateActor("Empty");
+			if (mActor != nullptr) {
+				actor->AttachParent(mActor);
+			}
+		};
 
-		// 二级目录
 		auto& createSphereItem = createMenu.CreateWidget<UI::MenuItem>("Sphere");
 
-		auto& renameInputTextItem = renameMenu.CreateWidget<UI::InputText>("##hidelabel", "");
 
-		// 
+		if (mActor != nullptr) {
+			// Delete
+			auto& deleteMenu = CreateWidget<UI::MenuItem>("Delete");
+			
+			// Rename
+			auto& renameMenu = CreateWidget<UI::MenuList>("Rename");
+			auto& renameInputTextItem = renameMenu.CreateWidget<UI::InputText>("##hidelabel", "");
+		} 
 	}
 
 }

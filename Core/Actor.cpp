@@ -9,26 +9,28 @@ namespace Core {
 	: mActorID(actorID)
 	, mName(name) 
 	, mEntity(ECS::Entity::Create<Renderer::Transform>()) {
-		Actor::ActorCreatedEvent.Invoke(mActorID);
+		Actor::ActorCreatedEvent.Invoke(this);
 	}
 
 	Actor::~Actor() {
 		ECS::Entity::Delete(mEntity);
-		Actor::ActorDeletedEvent.Invoke(mActorID);
+		Actor::ActorDestoryedEvent.Invoke(this);
 	}
 
-	void Actor::AttachParent(Actor& parent) {
-		if (mParent == &parent) {
+	void Actor::AttachParent(Actor* parent) {
+		if (mParent == parent) {
 			return;
 		}
 
 		// AttachÊµÌå
-		mEntity.AttachParent(parent.mEntity);
+		mEntity.AttachParent(parent->mEntity);
 
 		// AttachActor
-		mParentID = parent.GetID();
-		mParent = &parent;
-		parent.mChilds.push_back(this);
+		mParentID = parent->GetID();
+		mParent = parent;
+		parent->mChilds.push_back(this);
+
+		ActorAttachEvent.Invoke(this, parent);
 	}
 
 	void Actor::DetachParent() {

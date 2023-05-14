@@ -6,6 +6,7 @@ namespace UI {
 	: mName(name)
 	, mWidthScale(widthScale)
 	, useBorder(border) {
+		mAutoExecutePlugins = false;
 	}
 
 	void Child::_Draw_Internal_Impl() {
@@ -14,6 +15,7 @@ namespace UI {
         ImGui::BeginChild((mName + mWidgetID).c_str(), ImVec2(ImGui::GetWindowContentRegionWidth() * mWidthScale, 0), useBorder, flags);
 
 		DrawWidgets();
+		ExecuteAllPlugins();
 
         ImGui::EndChild();
 	}

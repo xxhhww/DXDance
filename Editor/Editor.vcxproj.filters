@@ -123,6 +123,9 @@
     <ClInclude Include="HierarchyContextualMenu.h">
       <Filter>头文件\Panels\Hierarchy</Filter>
     </ClInclude>
+    <ClInclude Include="HierarchyItem.h">
+      <Filter>头文件\Panels\Hierarchy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -192,6 +195,9 @@
       <Filter>源文件\Panels\Hierarchy</Filter>
     </ClCompile>
     <ClCompile Include="HierarchyContextualMenu.cpp">
+      <Filter>源文件\Panels\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyItem.cpp">
       <Filter>源文件\Panels\Hierarchy</Filter>
     </ClCompile>
   </ItemGroup>

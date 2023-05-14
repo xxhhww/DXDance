@@ -4,7 +4,7 @@
 #include "Pluginable.h"
 
 namespace UI {
-	class IPanel : public IDrawable, public Pluginable, public IWidgetContainer {
+	class IPanel : public IDrawable, public IWidgetContainer {
 	public:
 		IPanel();
 		virtual ~IPanel() = default;

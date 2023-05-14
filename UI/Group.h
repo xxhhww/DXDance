@@ -5,6 +5,7 @@
 namespace UI {
 	class Group : public IWidget, public IWidgetContainer {
 	public:
+		Group();
 	protected:
 		virtual void _Draw_Internal_Impl() override;
 	};

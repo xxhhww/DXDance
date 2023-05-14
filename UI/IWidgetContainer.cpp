@@ -57,8 +57,8 @@ namespace UI {
 		DoDestruction();
 		DoPreparation();
 
-		for (const auto& pair : mWidgets) {
-			pair.first->Draw();
+		for (uint32_t i = 0; i < mWidgets.size(); i++) {
+			mWidgets.at(i).first->Draw();
 		}
 	}
 

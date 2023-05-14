@@ -99,7 +99,7 @@ namespace Core {
 		for (auto& actor : mActors) {
 			Actor* parent = FindActorByID(actor->GetParentID());
 			if (parent != nullptr) {
-				actor->AttachParent(*parent);
+				actor->AttachParent(parent);
 			}
 		}
 

@@ -7,8 +7,15 @@ namespace UI {
 	* A simple plugin that will show a contextual menu on right click
 	* You can add widgets to a contextual menu
 	*/
+	enum class ContextualMenuType {
+		Window,
+		Item
+	};
+
 	class ContextualMenu : public IPlugin, public IWidgetContainer {
 	public:
+		ContextualMenu(ContextualMenuType menuType = ContextualMenuType::Item);
+
 		/*
 		* Execute the plugin
 		*/
@@ -18,5 +25,8 @@ namespace UI {
 		* Force close the contextual menu
 		*/
 		void Close();
+
+	protected:
+		ContextualMenuType mMenuType;
 	};
 }

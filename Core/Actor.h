@@ -59,7 +59,7 @@ namespace Core {
 		/*
 		* 添加父节点
 		*/
-		void AttachParent(Actor& parent);
+		void AttachParent(Actor* parent);
 
 		/*
 		* 移除父节点
@@ -104,12 +104,11 @@ namespace Core {
 
 	public:
 		// Actor创建回调，链接到编辑层的Hierarchy
-		inline static Tool::Event<int64_t> ActorCreatedEvent;
+		inline static Tool::Event<Actor*> ActorCreatedEvent;
 		// Actor销毁回调，链接到编辑层的Hierarchy
-		inline static Tool::Event<int64_t> ActorDeletedEvent;
+		inline static Tool::Event<Actor*> ActorDestoryedEvent;
 		
-		inline static Tool::Event<int64_t, int64_t> ActorAttachEvent;
-		inline static Tool::Event<int64_t>			ActorDetachEvent;
+		inline static Tool::Event<Actor*, Actor*> ActorAttachEvent;
 
 	private:
 		int64_t				mActorID{ -1 };		// 物体ID(与Entity的ID不同，ActorID需要持久化存储)

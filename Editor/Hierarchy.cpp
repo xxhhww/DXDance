@@ -1,7 +1,13 @@
 #include "Hierarchy.h"
+#include "HierarchyItem.h"
 #include "HierarchyContextualMenu.h"
 
+#include "Core/Actor.h"
+
 #include "UI/TreeNode.h"
+#include "UI/Child.h"
+
+#include "Tools/Assert.h"
 
 namespace App {
 	Hierarchy::Hierarchy(
@@ -10,11 +16,37 @@ namespace App {
 		const UI::PanelWindowSettings& panelSetting
 	) 
 	: PanelWindow(title, opened, panelSetting) {
-		auto& testTree = CreateWidget<UI::TreeNode>("TTT");
-		auto& contextualMenu = CreatePlugin<HierarchyContextualMenu>();
+
+		mCanvas = &CreateWidget<UI::Child>("Scene");
+		mCanvas->CreatePlugin<HierarchyContextualMenu>(nullptr, UI::ContextualMenuType::Window);
+
+		mRootItem = &mCanvas->CreateWidget<HierarchyItem>(nullptr, true);
+
+		// 注册Actor创建与销毁的回调函数
+		Core::Actor::ActorCreatedEvent   += std::bind(&Hierarchy::CreateActorCallback, this, std::placeholders::_1);
+		Core::Actor::ActorDestoryedEvent += std::bind(&Hierarchy::DestoryActorCallback, this, std::placeholders::_1);
+		Core::Actor::ActorAttachEvent += std::bind(&Hierarchy::AttachActorCallback, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
-	Hierarchy::~Hierarchy() {
+	Hierarchy::~Hierarchy() {}
+
+	void Hierarchy::CreateActorCallback(Core::Actor* actor) {
+		HierarchyItem* item = mRootItem->CreateHierarchyItem<HierarchyItem>(actor);
+		item->CreatePlugin<HierarchyContextualMenu>(actor, UI::ContextualMenuType::Item);
+		mHelperLinks.emplace(std::make_pair(actor, item));
+	}
+
+	void Hierarchy::DestoryActorCallback(Core::Actor* actor) {
+
+	}
+
+	void Hierarchy::AttachActorCallback(Core::Actor* childActor, Core::Actor* parentActor) {
+		HierarchyItem* childItem = mHelperLinks.at(childActor);
+		HierarchyItem* parentItem = mHelperLinks.at(parentActor);
+
+		ASSERT_FORMAT(childItem != nullptr && parentItem != nullptr, "Item Should Not Be Nullptr");
+
+		childItem->AttachParent(parentItem);
 	}
 
 }

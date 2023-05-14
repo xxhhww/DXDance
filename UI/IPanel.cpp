@@ -10,8 +10,6 @@ namespace UI {
 	void IPanel::Draw() {
 		if (mEnable) {
 			_Draw_Internal_Impl();
-
-			ExecuteAllPlugins();
 		}
 	}
 }
