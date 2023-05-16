@@ -1,10 +1,11 @@
 #include "SceneManger.h"
+
 #include "Core/EditorAssetManger.h"
 #include "Core/ServiceLocator.h"
 
-#include "Renderer/CCamera.h"
-#include "Renderer/CTransform.h"
-#include "Renderer/CMeshRenderer.h"
+#include "ECS/CCamera.h"
+#include "ECS/CTransform.h"
+#include "ECS/CMeshRenderer.h"
 
 #include "Tools/StrUtil.h"
 #include "Tools/Assert.h"
@@ -27,6 +28,7 @@ namespace Core {
 		if (mCurrScene == nullptr) return;
 		mCurrScene->SaveToDisk();
 		delete mCurrScene;
+		mCurrScene = nullptr;
 	}
 	
 	void SceneManger::SaveCurrentScene() {
@@ -42,10 +44,10 @@ namespace Core {
 		mCurrScene->editorTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
 
 		Actor* mainCamera = mCurrScene->CreateActor("MainCamera");
-		auto& cTransform = mainCamera->GetComponent<Renderer::Transform>();
+		auto& cTransform = mainCamera->GetComponent<ECS::Transform>();
 		cTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
-		auto& cCamera = mainCamera->AddComponent<Renderer::Camera>();
-		cCamera.cameraType = Renderer::CameraType::RenderCamera;
+		auto& cCamera = mainCamera->AddComponent<ECS::Camera>();
+		cCamera.cameraType = ECS::CameraType::RenderCamera;
 		cCamera.mainCamera = true;
 
 		mAssetPathDataBase->SetPath(mCurrScene->GetUID(), path);

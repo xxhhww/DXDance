@@ -8,12 +8,15 @@ namespace App {
 
 	HierarchyItem::HierarchyItem(Core::Actor* actor, bool root)
 	: root(root)
-	, mActor(actor) {}
+	, mActor(actor) {
+		mAutoExecutePlugins = false;
+	}
 
 	HierarchyItem::~HierarchyItem() {
 		for (auto& item : mChilds) {
 			if (item != nullptr) {
 				delete item;
+				item = nullptr;
 			}
 		}
 		mChilds.clear();
@@ -56,6 +59,8 @@ namespace App {
 
 	void HierarchyItem::_Draw_Internal_Impl() {
 		if (root) {
+			// 清理子对象
+			DoDestruction();
 			// 绘制子项目
 			for (uint32_t i = 0; i < mChilds.size(); i++) {
 				mChilds.at(i)->Draw();
@@ -80,8 +85,8 @@ namespace App {
 		}
 
 		// 在渲染子对象之前执行以下操作
-		DoDestruction();
 		ExecuteAllPlugins();
+		DoDestruction();
 
 		if (opened) {
 			if (!prevOpened) {
@@ -109,6 +114,7 @@ namespace App {
 					bool needErase = item->IsDestory();
 					if (needErase) {
 						delete item;
+						item = nullptr;
 					}
 					return needErase;
 				}),

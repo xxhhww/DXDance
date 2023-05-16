@@ -5,8 +5,10 @@
 #include "Editor/AssetBrowser.h"
 #include "Editor/Hierarchy.h"
 #include "Editor/SceneView.h"
+#include "Editor/Inspector.h"
 
 #include "Core/ServiceLocator.h"
+#include "Core/SceneManger.h"
 
 namespace App {
 
@@ -35,9 +37,14 @@ namespace App {
 		mSceneView = &mCanvas.CreatePanel<SceneView>("Scene View");
 		mSceneView->BindHandle(cpuHandle, gpuHandle);
 
+		// Inspector的初始化必须放在SceneView的初始化之后，Inspector初始化时会使用MainCamera作为默认的焦点
+		mInspector = &mCanvas.CreatePanel<Inspector>("Inspector");
+
 		mainMenuBar.RegisterPanel(mShaderEditor);
 		mainMenuBar.RegisterPanel(mAssetBrowser);
+		mainMenuBar.RegisterPanel(mHierarchy);
 		mainMenuBar.RegisterPanel(mSceneView);
+		mainMenuBar.RegisterPanel(mInspector);
 
 		mContext.uiManger->SetCanvas(&mCanvas);
 	}
@@ -46,6 +53,8 @@ namespace App {
 	* 编辑器析构
 	*/
 	Editor::~Editor() {
+		// 让场景中的Actor提前于Hierarchy释放
+		CORESERVICE(Core::SceneManger).UnLoadCurrentScene();
 		mCanvas.DeleteAllPanels();
 	}
 

@@ -34,21 +34,23 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
-		inline bool operator!= (Vector2 v2) const { return Vector2(XMVectorNotEqual(*this, v2)).x; }
-		inline bool operator== (Vector2 v2) const { return Vector2(XMVectorEqual(*this, v2)).x; }
-		inline bool operator<  (Vector2 v2) const { return Vector2(XMVectorLess(*this, v2)).x; }
-		inline bool operator<= (Vector2 v2) const { return Vector2(XMVectorLessOrEqual(*this, v2)).x; }
-		inline bool operator>  (Vector2 v2) const { return Vector2(XMVectorGreater(*this, v2)).x; }
-		inline bool operator>= (Vector2 v2) const { return Vector2(XMVectorGreaterOrEqual(*this, v2)).x; }
+		inline bool operator<  (Vector2 v) const { return (x < v.x && y < v.y);   }
+		inline bool operator<= (Vector2 v) const { return (x <= v.x && y <= v.y); }
+		inline bool operator>  (Vector2 v) const { return (x > v.x && y > v.y);   }
+		inline bool operator>= (Vector2 v) const { return (x >= v.x && y >= v.y); }
+		inline bool operator!= (Vector2 v) const { return (x != v.x || y != v.y); }
+		inline bool operator== (Vector2 v) const { return (x == v.x && y == v.y); }
+
 		inline Vector2 operator- () const { return XMVectorNegate(*this); }
-		inline Vector2 operator+ (Vector2 v2) const { return XMVectorAdd(*this, v2); }
-		inline Vector2 operator- (Vector2 v2) const { return XMVectorSubtract(*this, v2); }
-		inline Vector2 operator* (Vector2 v2) const { return XMVectorMultiply(*this, v2); }
-		inline Vector2 operator/ (Vector2 v2) const { return XMVectorDivide(*this, v2); }
-		inline Vector2 operator+ (float  v2) const { return *this * Vector2(v2); }
-		inline Vector2 operator- (float  v2) const { return *this * Vector2(v2); }
-		inline Vector2 operator* (float  v2) const { return *this * Vector2(v2); }
-		inline Vector2 operator/ (float  v2) const { return *this / Vector2(v2); }
+		
+		inline Vector2 operator+ (Vector2 v) const { return XMVectorAdd(*this, v);      }
+		inline Vector2 operator- (Vector2 v) const { return XMVectorSubtract(*this, v); }
+		inline Vector2 operator* (Vector2 v) const { return XMVectorMultiply(*this, v); }
+		inline Vector2 operator/ (Vector2 v) const { return XMVectorDivide(*this, v);   }
+		inline Vector2 operator+ (float  v) const { return *this * Vector2(v); }
+		inline Vector2 operator- (float  v) const { return *this * Vector2(v); }
+		inline Vector2 operator* (float  v) const { return *this * Vector2(v); }
+		inline Vector2 operator/ (float  v) const { return *this / Vector2(v); }
 
 		inline Vector2& operator += (Vector2 v) { *this = *this + v; return *this; }
 		inline Vector2& operator -= (Vector2 v) { *this = *this - v; return *this; }
@@ -91,21 +93,23 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
-		inline bool operator<  (Vector3 v2) const { return Vector3(XMVectorLess(*this, v2)).x; }
-		inline bool operator<= (Vector3 v2) const { return Vector3(XMVectorLessOrEqual(*this, v2)).x; }
-		inline bool operator>  (Vector3 v2) const { return Vector3(XMVectorGreater(*this, v2)).x; }
-		inline bool operator>= (Vector3 v2) const { return Vector3(XMVectorGreaterOrEqual(*this, v2)).x; }
+		inline bool operator<  (Vector3 v) const { return (x < v.x && y < v.y && z < v.z);    }
+		inline bool operator<= (Vector3 v) const { return (x <= v.x && y <= v.y && z <= v.z); }
+		inline bool operator>  (Vector3 v) const { return (x > v.x && y > v.y && z > v.z);    }
+		inline bool operator>= (Vector3 v) const { return (x >= v.x && y >= v.y && z >= v.z); }
+		inline bool operator!= (Vector3 v) const { return (x != v.x || y != v.y || z != v.z); }
+		inline bool operator== (Vector3 v) const { return (x == v.x && y == v.y && z == v.z); }
+
 		inline Vector3 operator- () const { return XMVectorNegate(*this); }
-		inline Vector3 operator+ (Vector3 v2) const { return XMVectorAdd(*this, v2); }
-		inline Vector3 operator- (Vector3 v2) const { return XMVectorSubtract(*this, v2); }
-		inline Vector3 operator* (Vector3 v2) const { return XMVectorMultiply(*this, v2); }
-		inline Vector3 operator/ (Vector3 v2) const { return XMVectorDivide(*this, v2); }
-		inline bool operator !=(Vector3 v) const { return Vector3(XMVectorNotEqual(*this, v)).x; }
-		inline bool operator ==(Vector3 v) const { return Vector3(XMVectorEqual(*this, v)).x; }
-		inline Vector3 operator+ (float  v2) const { return *this * Vector3(v2); }
-		inline Vector3 operator- (float  v2) const { return *this * Vector3(v2); }
-		inline Vector3 operator* (float  v2) const { return *this * Vector3(v2); }
-		inline Vector3 operator/ (float  v2) const { return *this / Vector3(v2); }
+		
+		inline Vector3 operator+ (Vector3 v) const { return XMVectorAdd(*this, v);      }
+		inline Vector3 operator- (Vector3 v) const { return XMVectorSubtract(*this, v); }
+		inline Vector3 operator* (Vector3 v) const { return XMVectorMultiply(*this, v); }
+		inline Vector3 operator/ (Vector3 v) const { return XMVectorDivide(*this, v);   }
+		inline Vector3 operator+ (float  v) const { return *this * Vector3(v); }
+		inline Vector3 operator- (float  v) const { return *this * Vector3(v); }
+		inline Vector3 operator* (float  v) const { return *this * Vector3(v); }
+		inline Vector3 operator/ (float  v) const { return *this / Vector3(v); }
 
 		inline Vector3& operator += (Vector3 v) { *this = *this + v; return *this; }
 		inline Vector3& operator -= (Vector3 v) { *this = *this - v; return *this; }
@@ -138,21 +142,23 @@ namespace Math {
 		inline operator float() const { return this->x; }
 		inline operator bool() const { return this->x; }
 
-		inline bool operator<  (Vector4 v2) const { return Vector4(XMVectorLess(*this, v2)).x; }
-		inline bool operator<= (Vector4 v2) const { return Vector4(XMVectorLessOrEqual(*this, v2)).x; }
-		inline bool operator>  (Vector4 v2) const { return Vector4(XMVectorGreater(*this, v2)).x; }
-		inline bool operator>= (Vector4 v2) const { return Vector4(XMVectorGreaterOrEqual(*this, v2)).x; }
-		inline bool operator !=(Vector4 v) const { return Vector4(XMVectorNotEqual(*this, v)).x; }
-		inline bool operator ==(Vector4 v) const { return Vector4(XMVectorEqual(*this, v)).x; }
+		inline bool operator<  (Vector4 v) const { return (x < v.x && y < v.y && z < v.z && w < v.w); }
+		inline bool operator<= (Vector4 v) const { return (x <= v.x && y <= v.y && z <= v.z && w <= v.w); }
+		inline bool operator>  (Vector4 v) const { return (x > v.x && y > v.y && z > v.z && w > v.w); }
+		inline bool operator>= (Vector4 v) const { return (x >= v.x && y >= v.y && z >= v.z && w >= v.w); }
+		inline bool operator!= (Vector4 v) const { return (x != v.x || y != v.y || z != v.z || w != v.w); }
+		inline bool operator== (Vector4 v) const { return (x == v.x && y == v.y && z == v.z && w == v.w); }
+		
 		inline Vector4 operator- () const { return Vector4(XMVectorNegate(*this)); }
-		inline Vector4 operator+ (Vector4 v2) const { return Vector4(XMVectorAdd(*this, v2)); }
-		inline Vector4 operator- (Vector4 v2) const { return Vector4(XMVectorSubtract(*this, v2)); }
-		inline Vector4 operator* (Vector4 v2) const { return Vector4(XMVectorMultiply(*this, v2)); }
-		inline Vector4 operator/ (Vector4 v2) const { return Vector4(XMVectorDivide(*this, v2)); }
-		inline Vector4 operator+ (float  v2) const { return *this * Vector4(v2); }
-		inline Vector4 operator- (float  v2) const { return *this * Vector4(v2); }
-		inline Vector4 operator* (float  v2) const { return *this * Vector4(v2); }
-		inline Vector4 operator/ (float  v2) const { return *this / Vector4(v2); }
+		
+		inline Vector4 operator+ (Vector4 v) const { return Vector4(XMVectorAdd(*this, v));      }
+		inline Vector4 operator- (Vector4 v) const { return Vector4(XMVectorSubtract(*this, v)); }
+		inline Vector4 operator* (Vector4 v) const { return Vector4(XMVectorMultiply(*this, v)); }
+		inline Vector4 operator/ (Vector4 v) const { return Vector4(XMVectorDivide(*this, v));   }
+		inline Vector4 operator+ (float  v) const { return *this * Vector4(v); }
+		inline Vector4 operator- (float  v) const { return *this * Vector4(v); }
+		inline Vector4 operator* (float  v) const { return *this * Vector4(v); }
+		inline Vector4 operator/ (float  v) const { return *this / Vector4(v); }
 
 		inline Vector4& operator += (Vector4 v) { *this = *this + v; return *this; }
 		inline Vector4& operator -= (Vector4 v) { *this = *this - v; return *this; }

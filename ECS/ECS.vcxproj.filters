@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\Components">
+      <UniqueIdentifier>{9fced5be-98ff-4a13-b5de-40676be3c36a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Archetype.h">
@@ -26,6 +29,15 @@
     </ClInclude>
     <ClInclude Include="IComponent.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CCamera.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CMeshRenderer.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CTransform.h">
+      <Filter>头文件\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

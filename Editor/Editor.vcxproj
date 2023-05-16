@@ -150,6 +150,7 @@
     <ClInclude Include="Hierarchy.h" />
     <ClInclude Include="HierarchyContextualMenu.h" />
     <ClInclude Include="HierarchyItem.h" />
+    <ClInclude Include="Inspector.h" />
     <ClInclude Include="ISupportUndo.h" />
     <ClInclude Include="Link.h" />
     <ClInclude Include="MainMenuBar.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="Hierarchy.cpp" />
     <ClCompile Include="HierarchyContextualMenu.cpp" />
     <ClCompile Include="HierarchyItem.cpp" />
+    <ClCompile Include="Inspector.cpp" />
     <ClCompile Include="ISupportUndo.cpp" />
     <ClCompile Include="Link.cpp" />
     <ClCompile Include="MainMenuBar.cpp" />

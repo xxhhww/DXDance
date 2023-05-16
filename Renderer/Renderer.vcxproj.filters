@@ -156,12 +156,6 @@
     <ClInclude Include="ResourceStateTracker.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
-    <ClInclude Include="CTransform.h">
-      <Filter>头文件\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="CCamera.h">
-      <Filter>头文件\Components</Filter>
-    </ClInclude>
     <ClInclude Include="RootConstantsPerFrame.h">
       <Filter>头文件\GPUData</Filter>
     </ClInclude>
@@ -200,9 +194,6 @@
     </ClInclude>
     <ClInclude Include="UploaderEngine.h">
       <Filter>头文件\Uploader</Filter>
-    </ClInclude>
-    <ClInclude Include="CMeshRenderer.h">
-      <Filter>头文件\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

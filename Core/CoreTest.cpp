@@ -7,7 +7,7 @@
 
 #include "Scene.h"
 #include "FooComponent.h"
-#include "Renderer/CTransform.h"
+#include "ECS/CTransform.h"
 
 #include <fstream>
 #include <iostream>
@@ -88,7 +88,7 @@ void TestSerializeScene() {
     actor3->AttachParent(actor1);
     Actor* actor4 = scene.CreateActor("Actor4");
     actor4->AttachParent(actor3);
-    auto& transform = actor4->GetComponent<Renderer::Transform>();
+    auto& transform = actor4->GetComponent<ECS::Transform>();
 
 
     // –¥»Î

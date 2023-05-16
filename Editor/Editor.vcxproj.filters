@@ -55,6 +55,9 @@
     <Filter Include="头文件\Panels\Inspector">
       <UniqueIdentifier>{5e2fbab9-fd4a-4d9d-af36-04878b35ee5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\Panels\Inspector">
+      <UniqueIdentifier>{1da47d7a-e365-405b-b6d0-d79583b64241}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="HierarchyItem.h">
       <Filter>头文件\Panels\Hierarchy</Filter>
+    </ClInclude>
+    <ClInclude Include="Inspector.h">
+      <Filter>头文件\Panels\Inspector</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -199,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="HierarchyItem.cpp">
       <Filter>源文件\Panels\Hierarchy</Filter>
+    </ClCompile>
+    <ClCompile Include="Inspector.cpp">
+      <Filter>源文件\Panels\Inspector</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

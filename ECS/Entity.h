@@ -63,7 +63,8 @@ namespace ECS {
 		void AddTask(Chunk* chunk, ClassType& lambda) {
 			auto tup = std::make_tuple(ComponentArrayBuildHelper<Args>::Build(chunk)...);
 			for (int32_t i = chunk->header.validCount - 1; i >= 0; i--) {
-				proxy.AddTask(std::bind(lambda, std::get<decltype(ComponentArrayBuildHelper<Args>::Build(chunk))>(tup)[i]...));
+				// 注意！！！：必须要加上std::ref，这是因为std::bind默认会将值复制一份再传递。有些任务内需要更改组件的值，值传递的方式会导致错误
+				proxy.AddTask(std::bind(lambda, std::ref(std::get<decltype(ComponentArrayBuildHelper<Args>::Build(chunk))>(tup)[i])...));
 			}
 		}
 

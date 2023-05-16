@@ -4,7 +4,7 @@
 #include "Renderer/Mesh.h"
 #include "Renderer/Material.h"
 
-namespace Renderer {
+namespace ECS {
 
 	enum class RenderLayer {
 		Deferred,
@@ -18,6 +18,17 @@ namespace Renderer {
 		RenderLayer renderLayer{ RenderLayer::Forward };
 
 	public:
+		void SerializeJson(Tool::JsonWriter& writer) const override {
+
+		}
+
+		void DeserializeJson(const Tool::JsonReader& reader) override {
+
+		}
+
+		void OnInspector(UI::IWidgetContainer* container) override {
+
+		}
 	};
 
 }

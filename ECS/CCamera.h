@@ -3,7 +3,8 @@
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
 
-namespace Renderer {
+
+namespace ECS {
 
 	enum class CameraType {
 		RenderCamera = 0,
@@ -22,9 +23,6 @@ namespace Renderer {
 
 		float rotationSpeed;		// 旋转速度
 		float translationSpeed;		// 行进速度
-
-		float lookUpMovingDir;		// 摄像机是否在沿着LookUp方向前进(取值: -1;0;1)
-		float rightMovingDir;		// 摄像机是否在沿着Right方向前进 (取值: -1;0;1)
 
 		struct Frustum {
 			float nearZ;
@@ -49,9 +47,7 @@ namespace Renderer {
 		, cameraType(CameraType::RenderCamera)
 		, mainCamera(false)
 		, rotationSpeed(0.05f)
-		, translationSpeed(0.5f)
-		, lookUpMovingDir(0.0f)
-		, rightMovingDir(0.0f) {
+		, translationSpeed(0.5f) {
 
 			frustum.nearZ = 1.0f;
 			frustum.farZ = 1000.0f;
@@ -69,11 +65,36 @@ namespace Renderer {
 
 		}
 
-		/*
-		* 反序列化Json数据
-		*/
 		void DeserializeJson(const Tool::JsonReader& reader) override {
 
+		}
+
+		void OnInspector(UI::IWidgetContainer* container) override {
+			auto* group = &container->CreateWidget<UI::GroupCollapsable>("Camera");
+
+			auto& nearZItem = group->CreateWidget<UI::SliderFloat>("nearZ", 0.0f, 0.0f, 10.0f);
+			nearZItem.dataGatherer = [this]() -> float {
+				return frustum.nearZ;
+			};
+			nearZItem.dataProvider = [this](float newValue) {
+				frustum.nearZ = newValue;
+			};
+
+			auto& farZItem = group->CreateWidget<UI::SliderFloat>("farZ", 0.0f, 100.0f, 1000.0f);
+			farZItem.dataGatherer = [this]() -> float {
+				return frustum.farZ;
+			};
+			farZItem.dataProvider = [this](float newValue) {
+				frustum.farZ = newValue;
+			};
+
+			auto& fovItem = group->CreateWidget<UI::SliderFloat>("Fov", 0.0f, 0.0f, 90.0f);
+			fovItem.dataGatherer = [this]() -> float {
+				return frustum.fovY / DirectX::XM_PI * 180.0f;
+			};
+			fovItem.dataProvider = [this](float newValue) {
+				frustum.fovY = newValue / 180.0f * DirectX::XM_PI;
+			};
 		}
 
 	};

@@ -79,7 +79,7 @@ namespace App {
 		}
 
 		// 更新编辑摄像机与渲染摄像机的矩阵数据
-		auto updateCameraMatrix = [](Renderer::Camera& camera, Renderer::Transform& transform) {
+		auto updateCameraMatrix = [](ECS::Camera& camera, ECS::Transform& transform) {
 			// 计算ViewMatrix
 			const XMVECTOR camTarget = transform.worldPosition + camera.lookUp;
 			camera.viewMatrix = XMMatrixLookAtLH(
@@ -96,8 +96,11 @@ namespace App {
 		};
 
 		updateCameraMatrix(*mEditorCamera, *mEditorTransform);
-		ECS::Entity::Foreach([&](Renderer::Camera& camera, Renderer::Transform& transform) {
+		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			updateCameraMatrix(camera, transform);
+		});
+		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
+			int i = 32;
 		});
 	}
 

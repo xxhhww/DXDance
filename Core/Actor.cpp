@@ -2,19 +2,24 @@
 
 #include "FooComponent.h"
 
-#include "Renderer/CTransform.h"
+#include "ECS/CTransform.h"
 
 namespace Core {
 	Actor::Actor(int64_t actorID, const std::string& name) 
 	: mActorID(actorID)
 	, mName(name) 
-	, mEntity(ECS::Entity::Create<Renderer::Transform>()) {
+	, mEntity(ECS::Entity::Create<ECS::Transform>()) {
 		Actor::ActorCreatedEvent.Invoke(this);
 	}
 
 	Actor::~Actor() {
+		DetachParent();
 		ECS::Entity::Delete(mEntity);
 		Actor::ActorDestoryedEvent.Invoke(this);
+	}
+
+	void Actor::ForeachComp(std::function<void(ECS::IComponent*)>&& lambda) const {
+		mEntity.ForeachComp(std::forward<std::function<void(ECS::IComponent*)>>(lambda));
 	}
 
 	void Actor::AttachParent(Actor* parent) {
@@ -22,23 +27,26 @@ namespace Core {
 			return;
 		}
 
+		// 移除当前父对象
+		DetachParent();
+
 		// Attach实体
 		mEntity.AttachParent(parent->mEntity);
 
 		// AttachActor
 		mParentID = parent->GetID();
 		mParent = parent;
-		parent->mChilds.push_back(this);
+		mParent->mChilds.push_back(this);
 
-		ActorAttachEvent.Invoke(this, parent);
+		ActorAttachEvent.Invoke(this, mParent);
 	}
 
 	void Actor::DetachParent() {
-		if (mParentID == -1) {
+		if (mParentID == -1 && mParent == nullptr) {
 			return;
 		}
 
-		// Detach实体
+		// DetachEntity
 		mEntity.DetachParent();
 
 		// DetachActor
@@ -105,7 +113,7 @@ namespace Core {
 		for (size_t i = 0; i < ary.Size(); i++) {
 			std::string compname;
 			SerializeHelper::DeserializeString(ary[i], "Typename", compname);
-			if		(compname == typeid(Renderer::Transform).name())		{ GetComponent<Renderer::Transform>().DeserializeJson(ary[i]); }
+			if		(compname == typeid(ECS::Transform).name())		{ GetComponent<ECS::Transform>().DeserializeJson(ary[i]); }
 			else if (compname == typeid(FooComponent).name())	{ AddComponent<FooComponent>().DeserializeJson(ary[i]); }
 			else { assert(false); }
 		}

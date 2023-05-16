@@ -50,6 +50,27 @@ namespace Core {
 		return mActors.back().get();
 	}
 
+	void Scene::DeleteActor(Actor* actor) {
+		auto& childs = actor->GetChilds();
+		for (auto& child : childs) {
+			DeleteActor(child);
+		}
+
+		auto it = std::find_if(mActors.begin(), mActors.end(),
+			[&](std::unique_ptr<Actor>& item) {
+				if (item.get() == actor) {
+					return true;
+				}
+				return false;
+			});
+
+		if (it == mActors.end()) {
+			return;
+		}
+
+		mActors.erase(it);
+	}
+
 	Actor* Scene::FindActorByID(int32_t id) {
 		auto it = std::find_if(mActors.begin(), mActors.end(),
 			[&](std::unique_ptr<Actor>& item) {

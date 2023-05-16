@@ -6,6 +6,7 @@ namespace App {
 	class AssetBrowser;
 	class Hierarchy;
 	class SceneView;
+	class Inspector;
 
 	class Editor {
 	public:
@@ -61,5 +62,6 @@ namespace App {
 		AssetBrowser* mAssetBrowser{ nullptr };
 		Hierarchy*    mHierarchy{ nullptr };
 		SceneView*    mSceneView{ nullptr };
+		Inspector*    mInspector{ nullptr };
 	};
 }

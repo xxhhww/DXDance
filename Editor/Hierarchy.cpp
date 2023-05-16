@@ -25,10 +25,15 @@ namespace App {
 		// 注册Actor创建与销毁的回调函数
 		Core::Actor::ActorCreatedEvent   += std::bind(&Hierarchy::CreateActorCallback, this, std::placeholders::_1);
 		Core::Actor::ActorDestoryedEvent += std::bind(&Hierarchy::DestoryActorCallback, this, std::placeholders::_1);
-		Core::Actor::ActorAttachEvent += std::bind(&Hierarchy::AttachActorCallback, this, std::placeholders::_1, std::placeholders::_2);
+		Core::Actor::ActorAttachEvent    += std::bind(&Hierarchy::AttachActorCallback, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
-	Hierarchy::~Hierarchy() {}
+	Hierarchy::~Hierarchy() {
+		if (mRootItem != nullptr) {
+			delete mRootItem;
+			mRootItem = nullptr;
+		}
+	}
 
 	void Hierarchy::CreateActorCallback(Core::Actor* actor) {
 		HierarchyItem* item = mRootItem->CreateHierarchyItem<HierarchyItem>(actor);
@@ -37,7 +42,13 @@ namespace App {
 	}
 
 	void Hierarchy::DestoryActorCallback(Core::Actor* actor) {
-
+		auto it = mHelperLinks.find(actor);
+		if (it == mHelperLinks.end()) {
+			return;
+		}
+		HierarchyItem* item = it->second;
+		item->Destory();
+		mHelperLinks.erase(it);
 	}
 
 	void Hierarchy::AttachActorCallback(Core::Actor* childActor, Core::Actor* parentActor) {

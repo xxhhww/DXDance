@@ -57,6 +57,11 @@ namespace Core {
 		bool HasComponent() const;
 
 		/*
+		* 遍历组件
+		*/
+		void ForeachComp(std::function<void(ECS::IComponent*)>&& lambda) const;
+
+		/*
 		* 添加父节点
 		*/
 		void AttachParent(Actor* parent);
@@ -84,13 +89,16 @@ namespace Core {
 		/*
 		* Get方法
 		*/
-		inline const auto& GetName()		const { return mName; }
-		inline const auto& GetID()			const { return mActorID; }
-		inline const auto& GetActive()		const { return mActive; }
-		inline const auto& GetDestoryed()	const { return mDestoryed; }
-		inline const auto& GetChilds()		const { return mChilds; }
-		inline const auto& GetParentID()	const { return mParentID; }
-		inline Actor*	   GetParent()		const { return mParent; }
+		inline const auto& GetName()	   const { return mName; }
+		inline const auto& GetID()		   const { return mActorID; }
+		inline const auto& GetActive()	   const { return mActive; }
+		inline const auto& GetDestoryed()  const { return mDestoryed; }
+		inline const auto& GetChilds()	   const { return mChilds; }
+		inline const auto& GetParentID()   const { return mParentID; }
+		inline auto*	   GetParent()	   const { return mParent; }
+
+		inline auto&       GetChilds()           { return mChilds; }
+
 	public:
 		/*
 		* 序列化为Json数据

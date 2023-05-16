@@ -11,6 +11,9 @@ namespace UI {
 
 		void Draw() override;
 	public:
+		std::function<TData(void)> dataGatherer{ nullptr };
+		std::function<void(TData)> dataProvider{ nullptr };
+
 		Tool::Event<const TData&> valueChangedEvent;
 		TData data;
 	};

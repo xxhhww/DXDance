@@ -59,9 +59,13 @@ void TestECS() {
     std::atomic<int> sum2 = 0;
     QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
     Entity::Foreach([&](Entity::ID& id, CompA& compA, CompB& compB, CompC& compC) {
+        compA.a = 'c';
         count++;
         sum2.fetch_add(compB.a);
-        });
+    });
+    Entity::Foreach([&](Entity::ID& id, CompA& compA, CompB& compB, CompC& compC) {
+        int i = 32;
+    });
     QueryPerformanceCounter((LARGE_INTEGER*)&currTime);
     int64_t diffCount = currTime - startTime;
     int64_t deltaTime = diffCount * secondPerCount;
@@ -87,12 +91,7 @@ void TestECS() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
-    int i = 1;
-
-    while (i > 100) {
-        TestECS();
-        i--;
-    }
+    TestECS();
 
     return 0;
 }

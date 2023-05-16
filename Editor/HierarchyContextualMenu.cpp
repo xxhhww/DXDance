@@ -35,11 +35,15 @@ namespace App {
 
 		auto& createSphereItem = createMenu.CreateWidget<UI::MenuItem>("Sphere");
 
-
 		if (mActor != nullptr) {
 			// Delete
-			auto& deleteMenu = CreateWidget<UI::MenuItem>("Delete");
-			
+			auto& deleteMenuItem = CreateWidget<UI::MenuItem>("Delete");
+			deleteMenuItem.clickedEvent += [this]() {
+				auto* currScene = CORESERVICE(Core::SceneManger).GetCurrentScene();
+				ASSERT_FORMAT(currScene != nullptr, "Current Scene Must Not Be Nullptr");
+				currScene->DeleteActor(mActor);
+			};
+
 			// Rename
 			auto& renameMenu = CreateWidget<UI::MenuList>("Rename");
 			auto& renameInputTextItem = renameMenu.CreateWidget<UI::InputText>("##hidelabel", "");

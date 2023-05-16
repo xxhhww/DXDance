@@ -130,6 +130,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Archetype.h" />
+    <ClInclude Include="CCamera.h" />
+    <ClInclude Include="CMeshRenderer.h" />
+    <ClInclude Include="CTransform.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="Metatype.h" />
@@ -146,6 +149,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\UI\UI.vcxproj">
+      <Project>{f3015252-dc64-4f6d-b5d9-07f6bcdbd611}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -5,6 +5,9 @@
 #include "GHL/AdapterContainer.h"
 #include "GHL/CommandQueue.h"
 
+#include "ECS/CCamera.h"
+#include "ECS/CTransform.h"
+
 #include "UploaderEngine.h"
 
 #include "RingFrameTracker.h"
@@ -25,8 +28,6 @@
 #include "BackBufferPass.h"
 
 #include "RootConstantsPerFrame.h"
-#include "CCamera.h"
-#include "CTransform.h"
 
 #include "Tools/Event.h"
 
@@ -54,7 +55,7 @@ namespace Renderer {
 		/*
 		* ¸üÐÂRootConstantsPerFrame
 		*/
-		void Update(float dt, const Renderer::Camera& editorCamera, const Renderer::Transform& cameraTransform);
+		void Update(float dt, const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform);
 
 		void Render();
 

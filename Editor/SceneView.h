@@ -1,9 +1,10 @@
 #pragma once
 #include "UI/PanelWindow.h"
 
+#include "ECS/CCamera.h"
+#include "ECS/CTransform.h"
+
 #include "Renderer/RenderEngine.h"
-#include "Renderer/CCamera.h"
-#include "Renderer/CTransform.h"
 
 namespace UI {
 	class Image;
@@ -41,10 +42,10 @@ namespace App {
 		Renderer::RenderEngine* mRenderEngine{ nullptr };
 		UI::Image* mBackImage{ nullptr };
 
-		Core::SceneManger*   mSceneManger{ nullptr };
-		Core::Scene*		 mCurrentScene{ nullptr };
-		Renderer::Camera*	 mEditorCamera;
-		Renderer::Transform* mEditorTransform;
+		Core::SceneManger* mSceneManger{ nullptr };
+		Core::Scene*	   mCurrentScene{ nullptr };
+		ECS::Camera*	   mEditorCamera;
+		ECS::Transform*    mEditorTransform;
 	};
 
 }

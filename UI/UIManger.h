@@ -34,6 +34,14 @@ namespace UI {
 		*/
 		void Darw();
 
+		/*
+		* 获取画布
+		*/
+		inline auto* GetCanvas()           const { return mCanvas; }
+
+		/*
+		* D3D相关
+		*/
 		inline auto* GetSRDescriptorHeap() const { return g_pd3dSrvDescHeap; }
 		inline auto  GetSRVIncrementSize() const { return g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); }
 

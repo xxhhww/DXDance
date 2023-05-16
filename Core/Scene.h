@@ -1,8 +1,8 @@
 #pragma once
 #include "Actor.h"
 
-#include "Renderer/CCamera.h"
-#include "Renderer/CTransform.h"
+#include "ECS/CCamera.h"
+#include "ECS/CTransform.h"
 
 namespace Core {
 
@@ -38,6 +38,11 @@ namespace Core {
 		Actor* CreateActor(const std::string& name);
 
 		/*
+		* 删除Actor
+		*/
+		void DeleteActor(Actor* actor);
+
+		/*
 		* 通过ID寻找Actor
 		*/
 		Actor* FindActorByID(int32_t id);
@@ -62,8 +67,8 @@ namespace Core {
 		void DeserializeJson(const Tool::JsonReader& reader);
 
 	public:
-		Renderer::Camera	editorCamera;
-		Renderer::Transform editorTransform;
+		ECS::Camera	   editorCamera;
+		ECS::Transform editorTransform;
 
 	private:
 		// Scene类或者说资产类中不存放该对象的路径，而是存放资产UID
