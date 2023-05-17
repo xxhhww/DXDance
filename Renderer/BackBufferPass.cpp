@@ -7,9 +7,10 @@ namespace Renderer {
 
 	struct Vertex {
 		Math::Vector3 pos;
+		Math::Vector2 uv;
 		Math::Vector3 normal;
 		Math::Vector3 tangent;
-		Math::Vector2 uv;
+		Math::Vector3 bitangent;
 	};
 
 	void BackBufferPass::AddPass(RenderGraph& renderGraph) {
@@ -23,7 +24,7 @@ namespace Renderer {
 
 				manger.CreateGraphicsShader("BackBufferPass",
 					[](GraphicsStateProxy& proxy) {
-						proxy.vsFilepath = "E:/MyProject/DXDance/Shader/BackBufferPassTest.hlsl";
+						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/BackBufferPassTest.hlsl";
 						proxy.psFilepath = proxy.vsFilepath;
 					});
 			},
@@ -32,12 +33,12 @@ namespace Renderer {
 				uint32_t srvIndex = streamTexture->GetInternalResource()->GetSRDescriptor()->GetHeapIndex();
 
 				Vertex triangleVertices[] = {
-					{ { -1.0f, 1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 0.0f} },
-					{ { 1.0f, -1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 1.0f} },
-					{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 1.0f} },
-					{ { -1.0f, 1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {0.0f, 0.0f} },
-					{ { 1.0f, 1.0f, 0.0f   }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 0.0f} },
-					{ { 1.0f, -1.0f, 0.0f  }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, {1.0f, 1.0f} }
+					{ { -1.0f, 1.0f, 0.0f  }, {0.0f, 0.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
+					{ { 1.0f, -1.0f, 0.0f  }, {1.0f, 1.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
+					{ { -1.0f, -1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
+					{ { -1.0f, 1.0f, 0.0f  }, {0.0f, 0.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
+					{ { 1.0f, 1.0f, 0.0f   }, {1.0f, 0.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
+					{ { 1.0f, -1.0f, 0.0f  }, {1.0f, 1.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } }
 				};
 				const UINT vertexBufferSize = sizeof(triangleVertices);
 				

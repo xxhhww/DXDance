@@ -27,15 +27,17 @@ namespace App {
 		// 初始化时，将SelectedActor设置为场景中的MainCamera
 		auto* currScene = CORESERVICE(Core::SceneManger).GetCurrentScene();
 		ASSERT_FORMAT(currScene != nullptr, "Current Scene Should Not Be Nullptr");
-		Focus(currScene->FindActorByName("MainCamera"));
+		FocusActor(currScene->FindActorByName("MainCamera"));
 	}
 
-	Inspector::~Inspector() {
+	Inspector::~Inspector() {}
 
-	}
+	void Inspector::FocusActor(Core::Actor* actor) {
+		if (actor == mSelectedActor) {
+			return;
+		}
 
-	void Inspector::Focus(Core::Actor* actor) {
-		UnFocus();
+		UnFocusActor();
 		mSelectedActor = actor;
 
 		// actor id
@@ -51,10 +53,13 @@ namespace App {
 		});
 	}
 
-	void Inspector::UnFocus() {
+	void Inspector::UnFocusActor() {
 		if (mSelectedActor == nullptr) {
 			return;
 		}
+		// 注意：有内存泄露的风险！！！后续再优化
+		mActorComponentsGroup->DeleteAllWidgets();
+		mSelectedActor = nullptr;
 	}
 
 }

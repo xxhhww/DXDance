@@ -1,11 +1,14 @@
-#include "Hierarchy.h"
-#include "HierarchyItem.h"
-#include "HierarchyContextualMenu.h"
+#include "Editor/Hierarchy.h"
+#include "Editor/HierarchyItem.h"
+#include "Editor/HierarchyContextualMenu.h"
+#include "Editor/Inspector.h"
 
 #include "Core/Actor.h"
+#include "Core/ServiceLocator.h"
 
 #include "UI/TreeNode.h"
 #include "UI/Child.h"
+#include "UI/UIManger.h"
 
 #include "Tools/Assert.h"
 
@@ -38,6 +41,12 @@ namespace App {
 	void Hierarchy::CreateActorCallback(Core::Actor* actor) {
 		HierarchyItem* item = mRootItem->CreateHierarchyItem<HierarchyItem>(actor);
 		item->CreatePlugin<HierarchyContextualMenu>(actor, UI::ContextualMenuType::Item);
+		item->clickedEvent += [actor]() {
+			auto* canvas = CORESERVICE(UI::UIManger).GetCanvas();
+			auto& inspectorPanel = canvas->GetPanel<Inspector>("Inspector");
+			inspectorPanel.FocusActor(actor);
+		};
+
 		mHelperLinks.emplace(std::make_pair(actor, item));
 	}
 
@@ -48,6 +57,14 @@ namespace App {
 		}
 		HierarchyItem* item = it->second;
 		item->Destory();
+
+		auto* canvas = CORESERVICE(UI::UIManger).GetCanvas();
+		auto& inspectorPanel = canvas->GetPanel<Inspector>("Inspector");
+		auto* focusActor = inspectorPanel.GetFocusActor();
+		if (focusActor == actor) {
+			inspectorPanel.UnFocusActor();
+		}
+
 		mHelperLinks.erase(it);
 	}
 

@@ -25,6 +25,7 @@ struct Dummy
 #endif
 
 ConstantBuffer<FrameDataType> FrameDataCB : register(b0, space10);
+ConstantBuffer<PassDataType>  PassDataCB  : register(b1, space10);
 
 SamplerState SamplerPointWrap : register(s0);
 SamplerState SamplerPointClamp : register(s1);

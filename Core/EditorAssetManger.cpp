@@ -47,6 +47,22 @@ namespace Core {
 
 		mModels["Camera"] = std::make_unique<Renderer::Model>(device, descriptorAllocator, heapAllocator, mModelsPath + "/Camera.fbx");
 		mModels["Camera"]->LoadDataFromDisk(uploader->GetMemoryCopyQueue(), uploader->GetCopyFence());
+	
+		auto* shaderManger = graphicsKernel.mShaderManger.get();
+		
+		shaderManger->CreateGraphicsShader("AxisPicking",
+			[](Renderer::GraphicsStateProxy& proxy) {
+				proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Editor/AxisPicking.hlsl";
+				proxy.psFilepath = proxy.vsFilepath;
+			});
+		mGraphicsShaders["AxisPicking"] = shaderManger->GetShader<Renderer::GraphicsShader>("AxisPicking");
+
+		shaderManger->CreateGraphicsShader("AxisRender",
+			[](Renderer::GraphicsStateProxy& proxy) {
+				proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Editor/AxisRender.hlsl";
+				proxy.psFilepath = proxy.vsFilepath;
+			});
+		mGraphicsShaders["AxisRender"] = shaderManger->GetShader<Renderer::GraphicsShader>("AxisRender");
 	}
 
 	EditorAssetManger::~EditorAssetManger() {
@@ -56,6 +72,16 @@ namespace Core {
 	Renderer::Model* EditorAssetManger::GetModel(const std::string& name) {
 		auto it = mModels.find(name);
 		return (it == mModels.end()) ? nullptr : it->second.get();
+	}
+
+	Renderer::Mesh* EditorAssetManger::GetMesh(const std::string& name) {
+		auto* model = GetModel(name);
+		return model->GetFirstMesh();
+	}
+
+	Renderer::GraphicsShader* EditorAssetManger::GetShader(const std::string& name) {
+		auto it = mGraphicsShaders.find(name);
+		return (it == mGraphicsShaders.end()) ? nullptr : it->second;
 	}
 
 }

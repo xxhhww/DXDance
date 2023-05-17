@@ -5,6 +5,7 @@
 #include "ECS/CTransform.h"
 
 #include "Renderer/RenderEngine.h"
+#include "Renderer/Texture.h"
 
 namespace UI {
 	class Image;
@@ -37,6 +38,21 @@ namespace App {
 	private:
 		Math::Vector2 GetAvailableSize() const;
 
+		/*
+		* 处理用户拾取
+		*/
+		void HandleActorPicking();
+
+		/*
+		* 将Actor与坐标轴渲染到纹理中
+		*/
+		void RenderSceneForActorPicking();
+
+		/*
+		* 渲染编辑器常用的小组件
+		*/
+		void RenderGizmo();
+
 	private:
 		Math::Vector2 mAvailableSize{ 0.0f, 0.0f };
 		Renderer::RenderEngine* mRenderEngine{ nullptr };
@@ -46,6 +62,8 @@ namespace App {
 		Core::Scene*	   mCurrentScene{ nullptr };
 		ECS::Camera*	   mEditorCamera;
 		ECS::Transform*    mEditorTransform;
+
+		std::unique_ptr<Renderer::Texture>  mPickingTexture;
 	};
 
 }

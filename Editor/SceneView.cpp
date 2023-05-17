@@ -97,10 +97,18 @@ namespace App {
 
 		updateCameraMatrix(*mEditorCamera, *mEditorTransform);
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
+			const float rt = fmod(transform.worldRotation.y, DirectX::XM_2PI);
+
+			if (rt > DirectX::XM_PI)
+				transform.worldRotation.y = rt - DirectX::XM_2PI;
+			else if (rt < -DirectX::XM_PI)
+				transform.worldRotation.y = rt + DirectX::XM_2PI;
+
+			camera.lookUp = XMVector4Transform(Math::Vector4{ 0.0f, 0.0f, 1.0f, 0.0f }, XMMatrixRotationRollPitchYaw(transform.worldRotation.x, transform.worldRotation.y, transform.worldRotation.z));
+			camera.right  = XMVector3Cross(Math::Vector4{ 0.0f, 1.0f, 0.0f, 0.0f }, camera.lookUp);
+			camera.up     = XMVector3Cross(camera.lookUp, camera.right);
+
 			updateCameraMatrix(camera, transform);
-		});
-		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
-			int i = 32;
 		});
 	}
 
@@ -109,6 +117,8 @@ namespace App {
 		mRenderEngine->Update(dt, *mEditorCamera, *mEditorTransform);
 		// äÖÈ¾
 		mRenderEngine->Render();
+
+		RenderGizmo();
 	}
 
 	Math::Vector2 SceneView::GetAvailableSize() const {
@@ -116,4 +126,15 @@ namespace App {
 		return result;
 	}
 
+	void SceneView::HandleActorPicking() {
+
+	}
+
+	void SceneView::RenderSceneForActorPicking() {
+
+	}
+
+	void SceneView::RenderGizmo() {
+
+	}
 }

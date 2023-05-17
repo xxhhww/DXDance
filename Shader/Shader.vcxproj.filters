@@ -17,18 +17,4 @@
       <UniqueIdentifier>{a17950a8-e729-4267-8940-45b81d564c5c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="BaseEngineLayout.hlsl">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="BackBufferPassTest.hlsl">
-      <Filter>资源文件\Test</Filter>
-    </None>
-    <None Include="Camera.hlsl">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="MainEntryPoint.hlsl">
-      <Filter>资源文件</Filter>
-    </None>
-  </ItemGroup>
 </Project>

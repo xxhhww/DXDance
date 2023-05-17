@@ -89,9 +89,9 @@ namespace Renderer {
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
-				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = camera.viewMatrix.Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = camera.projMatrix.Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
 			}
 		});
 	}

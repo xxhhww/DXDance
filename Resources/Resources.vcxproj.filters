@@ -14,4 +14,25 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Editor\AxisPicking.hlsl" />
+    <None Include="Shaders\Engine\BackBufferPassTest.hlsl" />
+    <None Include="Shaders\Engine\BaseEngineLayout.hlsl" />
+    <None Include="Shaders\Engine\Camera.hlsl" />
+    <None Include="Shaders\Engine\MainEntryPoint.hlsl" />
+    <None Include="Models\Arrow_Picking.fbx" />
+    <None Include="Models\Arrow_Rotate.fbx" />
+    <None Include="Models\Arrow_Scale.fbx" />
+    <None Include="Models\Arrow_Translate.fbx" />
+    <None Include="Models\Camera.fbx" />
+    <None Include="Models\Cube.fbx" />
+    <None Include="Models\Cylinder.fbx" />
+    <None Include="Models\Plane.fbx" />
+    <None Include="Models\Roll.fbx" />
+    <None Include="Models\Sphere.fbx" />
+    <None Include="Models\Vertical_Plane.fbx" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
+  </ItemGroup>
 </Project>

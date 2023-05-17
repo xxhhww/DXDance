@@ -5,10 +5,11 @@
 
 struct a2v 
 {
-	float3 lsPos : POSITION;
-	float3 lsNormal : NORMAL;
-	float3 tangent : TANGENT;
-	float2 uv : TEXCOORD;
+	float3 lsPos     : POSITION;
+	float2 uv        : TEXCOORD;
+	float3 lsNormal  : NORMAL;
+	float3 tangent   : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 struct v2p

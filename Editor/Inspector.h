@@ -21,9 +21,11 @@ namespace App {
 
 		~Inspector();
 
-		void Focus(Core::Actor* actor);
+		void FocusActor(Core::Actor* actor);
 
-		void UnFocus();
+		void UnFocusActor();
+
+		inline auto* GetFocusActor() const { return mSelectedActor; }
 
 	private:
 		Core::Actor* mSelectedActor{ nullptr };
