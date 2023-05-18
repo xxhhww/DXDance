@@ -5,7 +5,7 @@
 
 namespace Renderer {
 
-	struct Vertex {
+	struct TempVertex {
 		Math::Vector3 pos;
 		Math::Vector2 uv;
 		Math::Vector3 normal;
@@ -32,7 +32,7 @@ namespace Renderer {
 				auto* streamTexture = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 				uint32_t srvIndex = streamTexture->GetInternalResource()->GetSRDescriptor()->GetHeapIndex();
 
-				Vertex triangleVertices[] = {
+				TempVertex triangleVertices[] = {
 					{ { -1.0f, 1.0f, 0.0f  }, {0.0f, 0.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
 					{ { 1.0f, -1.0f, 0.0f  }, {1.0f, 1.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
 					{ { -1.0f, -1.0f, 0.0f }, {0.0f, 1.0f}, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.25f, 0.0f } },
@@ -48,7 +48,7 @@ namespace Renderer {
 
 				D3D12_VERTEX_BUFFER_VIEW vbView{};
 				vbView.BufferLocation = dynamicAllocation.gpuAddress;
-				vbView.StrideInBytes = sizeof(Vertex);
+				vbView.StrideInBytes = sizeof(TempVertex);
 				vbView.SizeInBytes = dynamicAllocation.size;
 				
 				auto* shaderManger = context.shaderManger;

@@ -295,6 +295,7 @@ namespace Renderer {
 				for (uint32_t x = 0; x < width; x++) {
 					// clamp to the maximum we are tracking (not tracking packed mips)
 					uint8_t desired = std::min(pResolvedData[x], mNumStandardMips);
+					desired = 2u;
 					uint8_t initialValue = pTileRow[x];
 					SetMinMip(initialValue, x, y, desired);
 					pTileRow[x] = desired;

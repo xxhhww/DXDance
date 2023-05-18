@@ -1,4 +1,5 @@
 #pragma once
+#include "Mesh.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 
@@ -48,6 +49,22 @@ namespace Renderer {
 
 		inline const auto* GetSRDescriptor()   const { return mSRDescriptor.Get(); }
 		inline const auto* GetUADescriptor()   const { return mUADescriptor.Get(); }
+
+		inline const auto GetVBDescriptor() const {
+			D3D12_VERTEX_BUFFER_VIEW vbView{};
+			vbView.BufferLocation = mD3DResource->GetGPUVirtualAddress();
+			vbView.StrideInBytes = sizeof(Renderer::Vertex);
+			vbView.SizeInBytes = mResourceFormat.GetSizeInBytes();
+			return vbView;
+		}
+
+		inline const auto GetIBDescriptor() const {
+			D3D12_INDEX_BUFFER_VIEW ibView{};
+			ibView.BufferLocation = mD3DResource->GetGPUVirtualAddress();
+			ibView.Format = DXGI_FORMAT_R32_UINT;
+			ibView.SizeInBytes = mResourceFormat.GetSizeInBytes();
+			return ibView;
+		}
 
 	private:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };

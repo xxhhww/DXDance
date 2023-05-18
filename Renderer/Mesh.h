@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.h"
+#include "ResourceFormat.h"
 #include "BuddyHeapAllocator.h"
 #include "PoolDescriptorAllocator.h"
 
@@ -12,6 +12,8 @@ namespace GHL {
 }
 
 namespace Renderer {
+
+	class Buffer;
 
 	struct Vertex {
 	public:
@@ -69,6 +71,10 @@ namespace Renderer {
 		* 使用DStorage从内存加载数据
 		*/
 		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+
+		inline auto* GetVertexBuffer() const { return mVertexBuffer.get(); }
+
+		inline auto* GetIndexBuffer()  const { return mIndexBuffer.get(); }
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

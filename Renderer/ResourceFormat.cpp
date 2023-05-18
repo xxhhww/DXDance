@@ -136,12 +136,18 @@ namespace Renderer {
 	}
 
 	void ResourceFormat::QueryResourceAllocationInfo() {
-		// 查询ResourceDesc需求的显存
-		D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
-		mAlignment = allocInfo.Alignment;
-		mSizeInBytes = allocInfo.SizeInBytes;
+		if (mResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER && mResourceDesc.Format == DXGI_FORMAT_UNKNOWN) {
+			mAlignment = mResourceDesc.Alignment;
+			mSizeInBytes = mResourceDesc.Width;
+		}
+		else {
+			// 查询ResourceDesc需求的显存
+			D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
+			mAlignment = allocInfo.Alignment;
+			mSizeInBytes = allocInfo.SizeInBytes;
 
-		mResourceDesc.Alignment = mAlignment;
+			mResourceDesc.Alignment = mAlignment;
+		}
 	}
 
 	uint32_t ResourceFormat::SubresourceCount() const {

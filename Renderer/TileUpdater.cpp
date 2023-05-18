@@ -48,7 +48,7 @@ namespace Renderer {
 				auto* streamTexture = pair.second.get();
 				streamTexture->ProcessReadbackFeedback();
 				streamTexture->ProcessTileLoadings();
-				streamTexture->ProcessTileEvictions();
+				// streamTexture->ProcessTileEvictions();
 			}
 		}
 

@@ -115,6 +115,9 @@ namespace Renderer {
 		RenderGraphResourceID mFinalOutputID;
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
 
+		// ==========================...Editor Render Pass...==========================
+		// ±à¼­Æ÷äÖÈ¾Pass£¬ÓÉÍâ²¿×¢²á
+		Tool::Event<CommandListWrap&, RenderContext&> mEditorRenderPass;
 	};
 
 }

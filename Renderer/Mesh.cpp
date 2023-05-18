@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Buffer.h"
 
 #include "GHL/Fence.h"
 

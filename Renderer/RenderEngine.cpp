@@ -83,12 +83,14 @@ namespace Renderer {
 	}
 
 	void RenderEngine::Update(float dt, const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform) {
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position = cameraTransform.worldPosition;
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix.Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix.Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.viewProjection = (editorCamera.viewMatrix * editorCamera.projMatrix).Transpose();
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position = transform.worldPosition;
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
@@ -109,12 +111,19 @@ namespace Renderer {
 		mRenderGraph->Execute();
 
 		{
+			RenderContext renderContext{ mShaderManger.get(), mSharedMemAllocator.get(), mRenderGraph->GetPipelineResourceStorage(), mStreamTextureManger.get()};
+
+			CommandListWrap commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+			
+			// 录制Editor Render Pass命令
+			mEditorRenderPass.Invoke(commandList, renderContext);
+
 			// 将FinalOutput转换为PixelShaderAccess供外部读取
 			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), 0u, GHL::EResourceState::PixelShaderAccess);
-			CommandListWrap transitionCmdList = mCommandListAllocator->AllocateGraphicsCommandList();
-			transitionCmdList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
-			transitionCmdList->Close();
-			mGraphicsQueue->ExecuteCommandList(transitionCmdList->D3DCommandList());
+			
+			commandList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
+			commandList->Close();
+			mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 		}
 
 		// 压入渲染命令完成后的围栏

@@ -7,6 +7,9 @@
 #include "Renderer/RenderEngine.h"
 #include "Renderer/Texture.h"
 
+#include "Math/Matrix.h"
+#include "Math/Vector.h"
+
 namespace UI {
 	class Image;
 }
@@ -49,9 +52,14 @@ namespace App {
 		void RenderSceneForActorPicking();
 
 		/*
-		* 渲染编辑器常用的小组件
+		* 注册编辑器渲染Pass
 		*/
-		void RenderGizmo();
+		void RegisterEditorRenderPass();
+
+		/*
+		* Create D3DObject For Picking
+		*/
+		void CreateD3DObjectForPicking();
 
 	private:
 		Math::Vector2 mAvailableSize{ 0.0f, 0.0f };
@@ -64,6 +72,21 @@ namespace App {
 		ECS::Transform*    mEditorTransform;
 
 		std::unique_ptr<Renderer::Texture>  mPickingTexture;
+
+		struct AxisPassData {
+		public:
+			Math::Matrix4 modelMatrix;
+			Math::Matrix4 viewMatrix;
+			Math::Matrix4 projMatrix;
+			Math::Vector3 viewPos;
+			int           highlightedAxis{ 3 }; // 被鼠标选中的控制轴
+		} mAxisPassData;
+
+		std::unique_ptr<GHL::CommandAllocator> mCommandListAllocator;
+		std::unique_ptr<GHL::CommandList>      mPickingCommandList;
+		std::unique_ptr<GHL::Fence>            mPickingFence;
+		std::unique_ptr<Renderer::Texture>     mPickingRenderTarget;
+		std::unique_ptr<Renderer::Buffer>      mPickingReadback;
 	};
 
 }
