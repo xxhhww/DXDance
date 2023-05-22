@@ -17,7 +17,10 @@ namespace Windows {
 		void SetKeyRepeatRate(float rate);
 		EKeyData& GetKeyData(EKey key);
 		const EKeyData& GetKeyData(EKey key) const;
+
 		EMouseButtonState GetMouseButtonState(EMouseButton button) const;
+		Math::Vector2 GetMousePosition() const;
+		Math::Vector2 GetMouseRawDelta() const;
 
 		bool IsKeyDown(EKey key) const;
 		bool IsKeyPressed(EKey key, bool autoRepeat = true) const;
@@ -25,8 +28,6 @@ namespace Windows {
 		bool IsMouseMove() const;
 		bool IsMouseButtonPressed(EMouseButton button) const;
 		bool IsMouseButtonReleased(EMouseButton button) const;
-
-		Math::Vector2 GetMouseRawDelta() const;
 
 		void PreUpdate(float delta);
 		void PostUpdate();

@@ -31,6 +31,7 @@
     <None Include="Models\Roll.fbx" />
     <None Include="Models\Sphere.fbx" />
     <None Include="Models\Vertical_Plane.fbx" />
+    <None Include="Shaders\Editor\ActorPicking.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />

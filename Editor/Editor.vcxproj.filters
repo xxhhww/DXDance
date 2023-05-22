@@ -132,6 +132,9 @@
     <ClInclude Include="Inspector.h">
       <Filter>头文件\Panels\Inspector</Filter>
     </ClInclude>
+    <ClInclude Include="AxisBehavior.h">
+      <Filter>头文件\Panels\SceneView</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor.cpp">
@@ -208,6 +211,9 @@
     </ClCompile>
     <ClCompile Include="Inspector.cpp">
       <Filter>源文件\Panels\Inspector</Filter>
+    </ClCompile>
+    <ClCompile Include="AxisBehavior.cpp">
+      <Filter>源文件\Panels\SceneView</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

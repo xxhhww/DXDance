@@ -47,6 +47,14 @@ namespace Windows {
 		return static_cast<EMouseButtonState>(mMouseButtonStates[static_cast<int>(button)]);
 	}
 
+	Math::Vector2 InputManger::GetMousePosition() const {
+		return mMousePosition;
+	}
+
+	Math::Vector2 InputManger::GetMouseRawDelta() const {
+		return mRawDelta;
+	}
+
 	bool InputManger::IsKeyDown(EKey key) const {
 		const EKeyData& keyData = GetKeyData(key);
 		return keyData.down;
@@ -87,10 +95,6 @@ namespace Windows {
 
 	bool InputManger::IsMouseButtonReleased(EMouseButton button) const {
 		return mMouseButtonStates[static_cast<int>(button)];
-	}
-
-	Math::Vector2 InputManger::GetMouseRawDelta() const {
-		return mRawDelta;
 	}
 
 	void InputManger::PreUpdate(float delta) {

@@ -18,7 +18,7 @@ namespace App {
 		const UI::PanelWindowSettings& panelSetting)
 	: UI::PanelWindow(title, opend, panelSetting) {
 		mRenderEngine = &CORESERVICE(Renderer::RenderEngine);
-		mBackImage = &CreateWidget<UI::Image>(0u, Math::Vector2{ 1920.0f, 1080.0f });
+		mBackImage = &CreateWidget<UI::Image>(0u, Math::Vector2{ 979u, 635u });
 		mSceneManger = &CORESERVICE(Core::SceneManger);
 		LoadNewScene("Undefined");
 
@@ -118,6 +118,10 @@ namespace App {
 	}
 
 	void SceneView::Render(float dt) {
+		if (mAvailableSize.x <= 0.0f || mAvailableSize.y <= 0.0f) {
+			return;
+		}
+
 		HandleActorPicking();
 
 		// 更新PerFrameData
@@ -127,21 +131,80 @@ namespace App {
 	}
 
 	Math::Vector2 SceneView::GetAvailableSize() const {
-		Math::Vector2 result = GetSize() - Math::Vector2{ 0.0f, 25.0f }; // 25 == title bar height
+		Math::Vector2 result = GetSize() - Math::Vector2{ 0.0f, 40.0f }; // 40 == 2 * title bar height
 		return result;
 	}
 
 	void SceneView::HandleActorPicking() {
+		auto [mouseX, mouseY] = CORESERVICE(Windows::InputManger).GetMousePosition();
+		mouseY -= 40.0f; // 见GetAvailableSize()，这40是2 * Tile Bar
+		mouseX -= mPosition.x;
+		mouseY -= 7.0f;
+		mouseX -= 7.0f;
+		if (mouseX < 0 || mouseY < 0) {
+			return;
+		}
+
+		std::stringstream ss;
+		ss << mouseX << ", " << mouseY << "\n";
+		OutputDebugStringA(ss.str().c_str());
+
 		RenderSceneForActorPicking();
 
+		auto rtDesc = mPickingRenderTarget->D3DResource()->GetDesc();
+
+		uint8_t* mappedData = mPickingReadback->Map();
+		uint32_t offset = ((rtDesc.Width * GHL::GetFormatStride(rtDesc.Format) + 0x0ff) & ~0x0ff) * mouseY;
+		offset += (uint32_t)mouseX * GHL::GetFormatStride(rtDesc.Format);
+		mappedData += offset;
+
+		if (mappedData[0] != 0 || mappedData[1] != 0 || mappedData[2] != 0) {
+			OutputDebugStringW(L"Hit!!!\n");
+		}
+		else {
+			OutputDebugStringW(L"Not Hit!!!\n");
+		}
 	}
 
 	void SceneView::RenderSceneForActorPicking() {
-		
 		// Create D3D Object First
 		CreateD3DObjectForPicking();
 
+		// Push Current Picking Frame
+		mPickingFrameFence->IncrementExpectedValue();
+		mPickingFrameTracker->PushCurrentFrame(mPickingFrameFence->ExpectedValue());
+
+		// Prepare For Rendering
+		auto* shaderManger = mRenderEngine->mShaderManger.get();
+		auto* axisPickingShader  = shaderManger->GetShader<Renderer::GraphicsShader>("AxisPicking");
+		// auto* actorPickingShader = shaderManger->GetShader<Renderer::GraphicsShader>("ActorPicking");
+		auto& rtvHandle    = mPickingRTDescriptor.GetCpuHandle();
+		FLOAT clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		D3D12_VIEWPORT viewPort{};
+		viewPort.TopLeftX = 0.0f;
+		viewPort.TopLeftY = 0.0f;
+		viewPort.Width = mAvailableSize.x;
+		viewPort.Height = mAvailableSize.y;
+
+		D3D12_RECT rect{};
+		rect.left = 0;
+		rect.top = 0;
+		rect.right = mAvailableSize.x;
+		rect.bottom = mAvailableSize.y;
+
+		GHL::TransitionBarrier renderTargetTransiton(mPickingRenderTarget.get(), GHL::EResourceState::CopySource, GHL::EResourceState::RenderTarget);
+		mPickingCommandList->D3DCommandList()->ResourceBarrier(1u, &renderTargetTransiton.D3DBarrier());
+
+		mPickingCommandList->D3DCommandList()->RSSetViewports(1u, &viewPort);
+		mPickingCommandList->D3DCommandList()->RSSetScissorRects(1u, &rect);
+		mPickingCommandList->D3DCommandList()->ClearRenderTargetView(rtvHandle, clearColor, 1u, &rect);
+		mPickingCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtvHandle, false, nullptr);
+		mPickingCommandList->D3DCommandList()->SetGraphicsRootSignature(shaderManger->GetBaseD3DRootSignature());
+
 		// Render Actors For Picking
+
+		// 设置ActorPicking管线
 
 		auto& inspectorPanel = CORESERVICE(UI::UIManger).GetCanvas()->GetPanel<App::Inspector>("Inspector");
 		if (inspectorPanel.GetFocusActor() != nullptr) {
@@ -153,9 +216,53 @@ namespace App {
 			mAxisPassData.modelMatrix = Math::Matrix4(actorTransform.worldPosition, actorTransform.worldRotation, Math::Vector3{ 1.0f, 1.0f, 1.0f }).Transpose();
 			mAxisPassData.viewMatrix  = mEditorCamera->viewMatrix.Transpose();
 			mAxisPassData.projMatrix  = mEditorCamera->projMatrix.Transpose();
+			mAxisPassData.viewPos     = mEditorTransform->worldPosition;
 
-			// 
+			auto dynamicAllocation = mPickingLinearBufferAllocator->Allocate(sizeof(AxisPassData), 256u);
+			memcpy(dynamicAllocation.cpuAddress, &mAxisPassData, sizeof(AxisPassData));
+
+			// 设置AxisPicking管线
+			mPickingCommandList->D3DCommandList()->SetPipelineState(axisPickingShader->GetD3DPipelineState());
+			mPickingCommandList->D3DCommandList()->SetGraphicsRootConstantBufferView(1u, dynamicAllocation.gpuAddress);
+
+			auto* axisMesh = CORESERVICE(Core::EditorAssetManger).GetMesh("Arrow_Translate");
+			auto  axisVBView = axisMesh->GetVertexBuffer()->GetVBDescriptor();
+			auto  axisIBView = axisMesh->GetIndexBuffer()->GetIBDescriptor();
+			mPickingCommandList->D3DCommandList()->IASetVertexBuffers(0u, 1u, &axisVBView);
+			mPickingCommandList->D3DCommandList()->IASetIndexBuffer(&axisIBView);
+			mPickingCommandList->D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			mPickingCommandList->D3DCommandList()->DrawIndexedInstanced(axisIBView.SizeInBytes / sizeof(uint32_t), 3u, 0u, 0u, 0u);
 		}
+		GHL::TransitionBarrier copySourceTransiton(mPickingRenderTarget.get(), GHL::EResourceState::RenderTarget, GHL::EResourceState::CopySource);
+		mPickingCommandList->D3DCommandList()->ResourceBarrier(1u, &copySourceTransiton.D3DBarrier());
+		
+		// Read back
+		auto srcDesc = mPickingRenderTarget->D3DResource()->GetDesc();
+		// 纹理资源的一行是256字节的倍数
+		uint32_t rowPitch = (srcDesc.Width * GHL::GetFormatStride(srcDesc.Format) + 0x0ff) & ~0x0ff;
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ 0,
+			{ srcDesc.Format, (UINT)srcDesc.Width, srcDesc.Height, srcDesc.DepthOrArraySize, rowPitch } };
+
+		D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(mPickingRenderTarget->D3DResource(), 0);
+		D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(mPickingReadback->D3DResource(), layout);
+		// 录制
+		mPickingCommandList->D3DCommandList()->CopyTextureRegion(
+			&dstLocation,
+			0u, 0u, 0u,
+			&srcLocation, nullptr
+		);
+		mPickingCommandList->Close();
+
+		auto* graphicsQueue = mRenderEngine->mGraphicsQueue.get();
+		graphicsQueue->ExecuteCommandList(mPickingCommandList->D3DCommandList());
+		graphicsQueue->SignalFence(*mPickingFrameFence);
+
+		mPickingFrameFence->Wait();
+		
+		mPickingFrameTracker->PopCompletedFrame(mPickingFrameFence->CompletedValue());
+
+		mPickingCommandListAllocator->Reset();
+		mPickingCommandList->Reset();
 	}
 
 	void SceneView::RegisterEditorRenderPass() {
@@ -167,14 +274,14 @@ namespace App {
 			D3D12_VIEWPORT viewPort{};
 			viewPort.TopLeftX = 0.0f;
 			viewPort.TopLeftY = 0.0f;
-			viewPort.Width = 1920.0f;
-			viewPort.Height = 1080.0f;
+			viewPort.Width = 979u;
+			viewPort.Height = 635u;
 
 			D3D12_RECT rect{};
-			rect.left = 0.0f;
-			rect.top = 0.0f;
-			rect.right = 1920.0f;
-			rect.bottom = 1080.0f;
+			rect.left = 0;
+			rect.top = 0;
+			rect.right = 979;
+			rect.bottom = 635;
 
 			commandList->D3DCommandList()->RSSetViewports(1u, &viewPort);
 			commandList->D3DCommandList()->RSSetScissorRects(1u, &rect);
@@ -202,7 +309,7 @@ namespace App {
 
 	void SceneView::CreateD3DObjectForPicking() {
 		// TODO 应对Resize
-		if (mCommandListAllocator != nullptr) {
+		if (mPickingCommandListAllocator != nullptr) {
 			return;
 		}
 
@@ -210,14 +317,17 @@ namespace App {
 		auto* device = mRenderEngine->mDevice.get();
 		auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
 
-		mCommandListAllocator = std::make_unique<GHL::CommandAllocator>(device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-		mPickingCommandList = std::make_unique<GHL::CommandList>(device, mCommandListAllocator->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_DIRECT);
-		mPickingFence = std::make_unique<GHL::Fence>(device);
+		mPickingFrameTracker          = std::make_unique<Renderer::RingFrameTracker>(1u);
+		mPickingLinearBufferAllocator = std::make_unique<Renderer::LinearBufferAllocator>(device, mPickingFrameTracker.get());
+		mPickingFrameFence            = std::make_unique<GHL::Fence>(device);
+
+		mPickingCommandListAllocator = std::make_unique<GHL::CommandAllocator>(device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+		mPickingCommandList = std::make_unique<GHL::CommandList>(device, mPickingCommandListAllocator->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_DIRECT);
 
 		Renderer::TextureDesc pickingRTDesc{};
 		pickingRTDesc.width  = mAvailableSize.x;
 		pickingRTDesc.height = mAvailableSize.y;
-		pickingRTDesc.format = DXGI_FORMAT_R8_UNORM;
+		pickingRTDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		pickingRTDesc.initialState  = GHL::EResourceState::CopySource;
 		pickingRTDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
 
@@ -227,9 +337,12 @@ namespace App {
 			descriptorAllocator,
 			nullptr);
 
+		mPickingRTDescriptorHeap = std::make_unique<GHL::DescriptorHeap>(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1u);
+		mPickingRTDescriptor     = mPickingRTDescriptorHeap->Allocate(0u);
+		mPickingRenderTarget->BindRTDescriptor(mPickingRTDescriptor);
+
 		Renderer::BufferDesc  pickingRBDesc{};
-		pickingRBDesc.stride;
-		pickingRBDesc.size = pickingRTDesc.width * pickingRTDesc.height * pickingRBDesc.stride;
+		pickingRBDesc.size = GetRequiredIntermediateSize(mPickingRenderTarget->D3DResource(), 0, 1);
 		pickingRBDesc.usage = GHL::EResourceUsage::ReadBack;
 		pickingRBDesc.initialState  = GHL::EResourceState::CopyDestination;
 		pickingRBDesc.expectedState = GHL::EResourceState::CopyDestination;
@@ -240,5 +353,6 @@ namespace App {
 			descriptorAllocator,
 			nullptr
 		);
+		mPickingReadback->Map();
 	}
 }

@@ -29,7 +29,7 @@ namespace App {
 		sceneManger = std::make_unique<Core::SceneManger>(projectAssetPath, projectEnginePath, assetPathDataBase.get());
 
 		// 初始化内核引擎，并将其注册为服务
-		renderEngine = std::make_unique<Renderer::RenderEngine>(nullptr, 1920u, 1080u);
+		renderEngine = std::make_unique<Renderer::RenderEngine>(nullptr, 979u, 635u);
 		Core::ServiceLocator::Provide(*renderEngine.get());
 
 		// 初始化编辑器资源管理器

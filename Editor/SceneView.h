@@ -71,8 +71,6 @@ namespace App {
 		ECS::Camera*	   mEditorCamera;
 		ECS::Transform*    mEditorTransform;
 
-		std::unique_ptr<Renderer::Texture>  mPickingTexture;
-
 		struct AxisPassData {
 		public:
 			Math::Matrix4 modelMatrix;
@@ -82,10 +80,17 @@ namespace App {
 			int           highlightedAxis{ 3 }; // 被鼠标选中的控制轴
 		} mAxisPassData;
 
-		std::unique_ptr<GHL::CommandAllocator> mCommandListAllocator;
+		std::unique_ptr<Renderer::RingFrameTracker>      mPickingFrameTracker;
+		std::unique_ptr<GHL::Fence>                      mPickingFrameFence;
+		std::unique_ptr<Renderer::LinearBufferAllocator> mPickingLinearBufferAllocator;
+
+		std::unique_ptr<GHL::CommandAllocator> mPickingCommandListAllocator;
 		std::unique_ptr<GHL::CommandList>      mPickingCommandList;
-		std::unique_ptr<GHL::Fence>            mPickingFence;
+
 		std::unique_ptr<Renderer::Texture>     mPickingRenderTarget;
+		std::unique_ptr<GHL::DescriptorHeap>   mPickingRTDescriptorHeap;
+		GHL::DescriptorHandle                  mPickingRTDescriptor;
+
 		std::unique_ptr<Renderer::Buffer>      mPickingReadback;
 	};
 

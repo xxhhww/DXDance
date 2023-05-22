@@ -47,18 +47,26 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID)
 
 	float4x4 instanceModelMatrix = PassDataCB.modelMatrix;
 	if(instanceID == 1){
-		instanceModelMatrix *= rotationMatrix(float3(0.0f, 1.0f, 0.0f), radians(-90.0f)); /* X axis */
+		// X axis
+		instanceModelMatrix = mul(rotationMatrix(float3(0.0f, 1.0f, 0.0f), radians(-90.0f)), instanceModelMatrix); /* X axis */
 		output.color = float3(1.0f, 1.0f, 252.0f / 255.0f);
+		// output.color = float3(1.0f, 0.0f, 0.0f);
 	}
 	else if(instanceID == 2){
-		instanceModelMatrix *= rotationMatrix(float3(1.0f, 0.0f, 0.0f), radians(90.0f)); /* Y axis */
+		// Y axis
+		instanceModelMatrix = mul(rotationMatrix(float3(1.0f, 0.0f, 0.0f), radians(90.0f)), instanceModelMatrix);
 		output.color = float3(1.0f, 1.0f, 253.0f / 255.0f);
+		// output.color = float3(0.0f, 1.0f, 0.0f);
 	}
 	else{
+		// Z axis
 		output.color = float3(1.0f, 1.0f, 254.0f / 255.0f);
+		// output.color = float3(0.0f, 0.0f, 1.0f);
 	}
+	float3 modelWorldPosition = instanceModelMatrix._m03_m13_m23;
+	float distanceToCamera = distance(PassDataCB.viewPos.xyz, modelWorldPosition);
 
-	float4 wsPos = mul(float4(input.lsPos, 1.0f), instanceModelMatrix);
+	float4 wsPos = mul(float4(input.lsPos * distanceToCamera * 0.001f, 1.0f), instanceModelMatrix);
 	float4 vsPos = mul(wsPos, PassDataCB.viewMatrix);
 	output.csPos = mul(vsPos, PassDataCB.projMatrix);
 

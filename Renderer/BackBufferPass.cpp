@@ -57,21 +57,21 @@ namespace Renderer {
 				D3D12_VIEWPORT viewPort{};
 				viewPort.TopLeftX = 0.0f;
 				viewPort.TopLeftY = 0.0f;
-				viewPort.Width = 1920.0f;
-				viewPort.Height = 1080.0f;
+				viewPort.Width = 979u;
+				viewPort.Height = 635u;
 
 				D3D12_RECT rect{};
 				rect.left = 0.0f;
 				rect.top = 0.0f;
-				rect.right = 1920.0f;
-				rect.bottom = 1080.0f;
+				rect.right = 979u;
+				rect.bottom = 635u;
 
 				auto* resource = context.resourceStorage->GetResourceByName("FinalOutput");
 				Texture* texture = static_cast<Texture*>(resource->resource);
 				auto* rtv = texture->GetRTDescriptor();
 				D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = rtv->GetCpuHandle();
 
-				FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				FLOAT clearColor[4] = { 0.3f, 0.7f, 0.5f, 1.0f };
 
 				streamTexture->RecordClearFeedback(commandList->D3DCommandList());
 
