@@ -94,7 +94,7 @@ namespace Windows {
 	}
 
 	bool InputManger::IsMouseButtonReleased(EMouseButton button) const {
-		return mMouseButtonStates[static_cast<int>(button)];
+		return !mMouseButtonStates[static_cast<int>(button)];
 	}
 
 	void InputManger::PreUpdate(float delta) {

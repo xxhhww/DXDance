@@ -1,4 +1,6 @@
 #pragma once
+#include "Editor/AxisBehavior.h"
+
 #include "UI/PanelWindow.h"
 
 #include "ECS/CCamera.h"
@@ -79,6 +81,10 @@ namespace App {
 			Math::Vector3 viewPos;
 			int           highlightedAxis{ 3 }; // 被鼠标选中的控制轴
 		} mAxisPassData;
+
+		EAxisOperation mAxisOperation{ EAxisOperation::TRANSLATE };
+		std::vector<Renderer::Mesh*>  mAxisMeshs;
+		std::unique_ptr<AxisBehavior> mAxisBehavior;
 
 		std::unique_ptr<Renderer::RingFrameTracker>      mPickingFrameTracker;
 		std::unique_ptr<GHL::Fence>                      mPickingFrameFence;

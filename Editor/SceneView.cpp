@@ -20,6 +20,17 @@ namespace App {
 		mRenderEngine = &CORESERVICE(Renderer::RenderEngine);
 		mBackImage = &CreateWidget<UI::Image>(0u, Math::Vector2{ 979u, 635u });
 		mSceneManger = &CORESERVICE(Core::SceneManger);
+
+		mAxisMeshs.resize(std::underlying_type<EAxisOperation>::type(EAxisOperation::COUNT));
+		mAxisMeshs[std::underlying_type<EAxisOperation>::type(EAxisOperation::TRANSLATE)] 
+			= CORESERVICE(Core::EditorAssetManger).GetMesh("Arrow_Translate");
+		mAxisMeshs[std::underlying_type<EAxisOperation>::type(EAxisOperation::ROTATE)]
+			= CORESERVICE(Core::EditorAssetManger).GetMesh("Arrow_Rotate");
+		mAxisMeshs[std::underlying_type<EAxisOperation>::type(EAxisOperation::SCALE)]
+			= CORESERVICE(Core::EditorAssetManger).GetMesh("Arrow_Scale");
+
+		mAxisBehavior = std::make_unique<AxisBehavior>();
+
 		LoadNewScene("Undefined");
 
 		RegisterEditorRenderPass();
@@ -136,18 +147,26 @@ namespace App {
 	}
 
 	void SceneView::HandleActorPicking() {
+		if (CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_RBUTTON)) {
+			// 鼠标右键按下，说明在游览状态
+			// 游览状态下不处理Picking
+			return;
+		}
+
 		auto [mouseX, mouseY] = CORESERVICE(Windows::InputManger).GetMousePosition();
-		mouseY -= 40.0f; // 见GetAvailableSize()，这40是2 * Tile Bar
+		mouseY -= 40.0f;	// 见GetAvailableSize()，这40是2 * Tile Bar
 		mouseX -= mPosition.x;
+		// 这里的两个7.0f是指backImage与SceneView之间的空档
 		mouseY -= 7.0f;
 		mouseX -= 7.0f;
+
 		if (mouseX < 0 || mouseY < 0) {
 			return;
 		}
 
-		std::stringstream ss;
-		ss << mouseX << ", " << mouseY << "\n";
-		OutputDebugStringA(ss.str().c_str());
+		if (CORESERVICE(Windows::InputManger).IsMouseButtonReleased(Windows::EMouseButton::MOUSE_LBUTTON)) {
+			mAxisBehavior->StopPicking();
+		}
 
 		RenderSceneForActorPicking();
 
@@ -156,13 +175,49 @@ namespace App {
 		uint8_t* mappedData = mPickingReadback->Map();
 		uint32_t offset = ((rtDesc.Width * GHL::GetFormatStride(rtDesc.Format) + 0x0ff) & ~0x0ff) * mouseY;
 		offset += (uint32_t)mouseX * GHL::GetFormatStride(rtDesc.Format);
-		mappedData += offset;
 
-		if (mappedData[0] != 0 || mappedData[1] != 0 || mappedData[2] != 0) {
-			OutputDebugStringW(L"Hit!!!\n");
-		}
-		else {
-			OutputDebugStringW(L"Not Hit!!!\n");
+		if (offset >= 0) {
+			// 如果offset的值小于0可能会报段错误
+			mappedData += offset;
+			// 获取目标位置的像素值
+			uint8_t pixels[3] = { mappedData[0], mappedData[1], mappedData[2] };
+
+			std::optional<EAxisDirection> axisDirection = mAxisBehavior->IsPicking() ? mAxisBehavior->GetDirection() :
+				(pixels[2] == 252 || pixels[2] == 253 || pixels[2] == 254) ? EAxisDirection(pixels[2] - 252) : std::optional<EAxisDirection>{};
+			
+			int32_t actorID = 0 << 24 | pixels[0] << 16 | pixels[1] << 8 | pixels[2];
+			auto* underActor = mCurrentScene->FindActorByID(actorID);
+
+			// 修改当前高亮的控制轴
+			if (axisDirection.has_value()) {
+				mAxisPassData.highlightedAxis = std::underlying_type<EAxisDirection>::type(*axisDirection);
+			}
+			else {
+				mAxisPassData.highlightedAxis = 3u;
+			}
+
+			// Process Pressed
+			if (CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_LBUTTON)) {
+				auto& inspectorPanel = CORESERVICE(UI::UIManger).GetCanvas()->GetPanel<App::Inspector>("Inspector");
+				if (axisDirection.has_value()) {
+					// 此时必须要有Focus Actor
+					ASSERT_FORMAT(inspectorPanel.GetFocusActor() != nullptr, "No Focus Actor");
+					mAxisBehavior->StartPicking(inspectorPanel.GetFocusActor(), mEditorTransform->worldPosition, *axisDirection, mAxisOperation);
+				}
+				else {
+					if (underActor != nullptr) {
+						inspectorPanel.FocusActor(underActor);
+					}
+					else {
+						inspectorPanel.UnFocusActor();
+					}
+				}
+			}
+
+			// Process Picking
+			if (mAxisBehavior->IsPicking()) {
+				
+			}
 		}
 	}
 
