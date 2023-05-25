@@ -17,6 +17,7 @@ namespace Math {
 		inline Quaternion(const float* pData) : XMFLOAT4(pData) {}
 		inline Quaternion(const XMVECTOR& vec) { XMStoreFloat4(this, vec); }
 		inline Quaternion(XMVECTOR&& vec) { XMStoreFloat4(this, std::move(vec)); }
+
 		// vec3作欧拉角，转换为四元数
 		Quaternion(const Vector3& vec3);
 		Quaternion(const Vector4& vec4);
@@ -29,6 +30,7 @@ namespace Math {
 		Vector3 VecYzx() const;
 		Vector3 VecZxy() const;
 		Vector3 VecZyx() const;
+
 		// 将四元数转换为矩阵
 		Matrix4 RotationMatrix() const;
 
@@ -37,5 +39,9 @@ namespace Math {
 		inline Quaternion LengthSq() const { return XMQuaternionLengthSq(*this); }
 
 		inline operator XMVECTOR() const { return XMLoadFloat4(this); }
+
+		inline Quaternion operator*   (Quaternion q) const { return XMQuaternionMultiply(*this, q); }
+		
+		inline Quaternion& operator*= (Quaternion q)       { *this = *this * q; return *this; }
 	};
 }

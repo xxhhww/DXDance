@@ -185,11 +185,11 @@ namespace App {
 			std::optional<EAxisDirection> axisDirection = mAxisBehavior->IsPicking() ? mAxisBehavior->GetDirection() :
 				(pixels[2] == 252 || pixels[2] == 253 || pixels[2] == 254) ? EAxisDirection(pixels[2] - 252) : std::optional<EAxisDirection>{};
 			
-			int32_t actorID = 0 << 24 | pixels[0] << 16 | pixels[1] << 8 | pixels[2];
+			int32_t actorID = 0 << 24 | pixels[2] << 16 | pixels[1] << 8 | pixels[0];
 			auto* underActor = mCurrentScene->FindActorByID(actorID);
 
 			// 修改当前高亮的控制轴
-			if (axisDirection.has_value()) {
+			if (axisDirection) {
 				mAxisPassData.highlightedAxis = std::underlying_type<EAxisDirection>::type(*axisDirection);
 			}
 			else {
@@ -197,7 +197,7 @@ namespace App {
 			}
 
 			// Process Pressed
-			if (CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_LBUTTON)) {
+			if (IsFocused() && CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_LBUTTON)) {
 				auto& inspectorPanel = CORESERVICE(UI::UIManger).GetCanvas()->GetPanel<App::Inspector>("Inspector");
 				if (axisDirection.has_value()) {
 					// 此时必须要有Focus Actor
@@ -209,14 +209,19 @@ namespace App {
 						inspectorPanel.FocusActor(underActor);
 					}
 					else {
-						inspectorPanel.UnFocusActor();
+						// inspectorPanel.UnFocusActor();
 					}
 				}
 			}
 
 			// Process Picking
 			if (mAxisBehavior->IsPicking()) {
-				
+
+				auto mousePosition = CORESERVICE(Windows::InputManger).GetMousePosition();
+				auto [winWidth, winHeight] = mBackImage->size;
+
+				mAxisBehavior->SetCurrentMousePos(mousePosition);
+				mAxisBehavior->ApplyOperation(mEditorCamera->viewMatrix, mEditorCamera->projMatrix, { static_cast<float>(winWidth), static_cast<float>(winHeight) });
 			}
 		}
 	}
