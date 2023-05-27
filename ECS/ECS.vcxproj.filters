@@ -42,7 +42,7 @@
     <ClInclude Include="CLight.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
-    <ClInclude Include="CTerrainRender.h">
+    <ClInclude Include="CTerrainRenderer.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
   </ItemGroup>

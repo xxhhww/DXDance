@@ -2,13 +2,12 @@
 #include "ECS/IComponent.h"
 #include "ECS/CMeshRenderer.h"
 
-#include "Renderer/Texture.h"
+#include "Renderer/Terrain.h"
 
 namespace ECS {
 	
-	class TerrainRender : public ECS::IComponent {
+	class TerrainRenderer : public ECS::IComponent {
 	public:
-		Renderer::Texture* mHeightMap{ nullptr };
 		RenderLayer mRenderLayer{ RenderLayer::DEFERRED };
 
 	public:

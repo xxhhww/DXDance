@@ -137,7 +137,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="IComponent.h" />
     <ClInclude Include="Metatype.h" />
-    <ClInclude Include="CTerrainRender.h" />
+    <ClInclude Include="CTerrainRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Entity.inl" />
