@@ -246,7 +246,6 @@ namespace Renderer {
 		mSRDescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 		mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mSRDescriptors[subDesc].Get());
 		return mSRDescriptors[subDesc].Get();
-
 	}
 
 	const GHL::DescriptorHandle* Texture::GetRTDescriptor(const TextureSubResourceDesc& subDesc) {

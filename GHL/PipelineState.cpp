@@ -36,9 +36,6 @@ namespace GHL {
 	void ComputePipelineState::Compile() {
 
 		desc.NodeMask = mDevice->GetNodeMask();
-#if defined(DEBUG) || defined(_DEBUG) 
-		desc.Flags = D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG;
-#endif
 		HRASSERT(mDevice->D3DDevice()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&mPipelineState)));
 		mCompiled = true;
 		if (!mDebugName.empty()) {

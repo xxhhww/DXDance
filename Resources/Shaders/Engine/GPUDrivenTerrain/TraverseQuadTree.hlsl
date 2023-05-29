@@ -55,7 +55,8 @@ float2 GetNodeWSPositionXZ(uint2 nodeLoc, uint lod) {
 // 获得Node中心在世界空间下的坐标的XYZ分量
 float3 GetNodeWSPositionXYZ(uint2 nodeLoc, uint lod) {
 	// TODO 等待Node的包围盒构建完毕
-	return float3(0.0f, 0.0f, 0.0f);
+	float2 wsPositionXZ = GetNodeWSPositionXZ(nodeLoc, lod);
+	return float3(wsPositionXZ.x, 0.0f, wsPositionXZ.y);
 }
 
 bool EvaluateNode(uint2 nodeLoc, uint lod) {
@@ -63,8 +64,8 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 	LODDescriptor currLODDescriptor = lodDescriptorList[lod];
 
 	// 对Node进行评估，决定是否对Node进行再次划分
-    float3 wsPositionXZ = GetNodeWSPositionXZ(nodeLoc,lod);
-    float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXZ);
+    float3 wsPositionXYZ = GetNodeWSPositionXYZ(nodeLoc, lod);
+    float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXYZ.xyz);
     float nodeSizeInMeter = currLODDescriptor.nodeSize;
     float f = dis / (nodeSizeInMeter * PassDataCB.nodeEvaluationC.x);
     if( f < 1){
@@ -92,9 +93,9 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
 	if(PassDataCB.currPassLOD > 0 && EvaluateNode(nodeLoc, PassDataCB.currPassLOD)) {
 		// 对Node进行划分
 		nextLODNodeList.Append(nodeLoc * 2);
-		nextLODNodeList.Append(nodeLoc * 2 + uint(1, 0));
-		nextLODNodeList.Append(nodeLoc * 2 + uint(0, 1));
-		nextLODNodeList.Append(nodeLoc * 2 + uint(1, 1));
+		nextLODNodeList.Append(nodeLoc * 2 + uint2(1, 0));
+		nextLODNodeList.Append(nodeLoc * 2 + uint2(0, 1));
+		nextLODNodeList.Append(nodeLoc * 2 + uint2(1, 1));
 		currNodeDescriptor.isBranch = true;
 	}
 	else {

@@ -31,11 +31,11 @@ namespace Renderer {
 	*/
 	struct TextureSubResourceDesc {
 	public:
-
 		bool operator==(const TextureSubResourceDesc& other) const {
 			return firstSlice == other.firstSlice && sliceCount == other.sliceCount && firstMip == other.firstMip && other.mipCount == other.mipCount;
 		}
 
+	public:
 		uint32_t firstSlice = 0u;
 		uint32_t sliceCount = static_cast<uint32_t>(-1); // -1 表示全部
 		uint32_t firstMip = 0u;
@@ -66,8 +66,20 @@ namespace Renderer {
 	* 缓冲子资源描述
 	*/
 	struct BufferSubResourceDesc {
+	public:
+		bool operator==(const BufferSubResourceDesc& other) const {
+			return offset == other.offset && size == other.size;
+		}
+
+	public:
 		size_t offset = 0u;
 		size_t size = static_cast<size_t>(-1);
+	};
+
+	struct BufferSubResourceDescHashFunc {
+		std::size_t operator()(const BufferSubResourceDesc& desc) const {
+			return std::hash<size_t>()(desc.offset) ^ std::hash<size_t>()(desc.size);
+		}
 	};
 
 	using ResourceDescVariant = std::variant<TextureDesc, BufferDesc>;

@@ -201,8 +201,8 @@
     <ClInclude Include="UploaderEngine.h">
       <Filter>头文件\Uploader</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>头文件\Renderer\Terrain</Filter>
+    <ClInclude Include="TerrainPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -326,8 +326,8 @@
     <ClCompile Include="UploaderEngine.cpp">
       <Filter>源文件\Uploader</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>源文件\Renderer\Terrain</Filter>
+    <ClCompile Include="TerrainPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

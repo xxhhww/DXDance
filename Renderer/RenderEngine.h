@@ -25,6 +25,7 @@
 
 #include "GBufferPass.h"
 #include "DeferredLightPass.h"
+#include "TerrainPass.h"
 #include "BackBufferPass.h"
 
 #include "RootConstantsPerFrame.h"
@@ -107,6 +108,7 @@ namespace Renderer {
 
 		// ==========================...RenderPasses...==========================
 		GBufferPass mGBufferPass;
+		TerrainPass mTerrainPass;
 		DeferredLightPass mDeferredLightPass;
 		BackBufferPass mBackBufferPass;
 

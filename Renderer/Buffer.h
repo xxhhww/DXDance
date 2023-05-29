@@ -45,10 +45,10 @@ namespace Renderer {
 		/*
 		* ´´½¨ÃèÊö·û
 		*/
-		void CreateDescriptor() override;
+		void CreateDescriptor() override {}
 
-		inline const auto* GetSRDescriptor()   const { return mSRDescriptor.Get(); }
-		inline const auto* GetUADescriptor()   const { return mUADescriptor.Get(); }
+		const GHL::DescriptorHandle* GetSRDescriptor(const BufferSubResourceDesc& subDesc = BufferSubResourceDesc{});
+		const GHL::DescriptorHandle* GetUADescriptor(const BufferSubResourceDesc& subDesc = BufferSubResourceDesc{});
 
 		inline const auto GetVBDescriptor() const {
 			D3D12_VERTEX_BUFFER_VIEW vbView{};
@@ -68,8 +68,9 @@ namespace Renderer {
 
 	private:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
-		DescriptorHandleWrap mSRDescriptor;
-		DescriptorHandleWrap mUADescriptor;
+
+		std::unordered_map<BufferSubResourceDesc, DescriptorHandleWrap, BufferSubResourceDescHashFunc> mSRDescriptors;
+		std::unordered_map<BufferSubResourceDesc, DescriptorHandleWrap, BufferSubResourceDescHashFunc> mUADescriptors;
 
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		BuddyHeapAllocator::Allocation* mHeapAllocation{ nullptr };

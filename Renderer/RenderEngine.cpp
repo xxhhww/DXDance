@@ -71,6 +71,7 @@ namespace Renderer {
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
 
 		// Ìí¼ÓRenderPass
+		mTerrainPass.AddPass(*mRenderGraph.get());
 		mBackBufferPass.AddPass(*mRenderGraph.get());
 
 		mRenderGraph->Build();

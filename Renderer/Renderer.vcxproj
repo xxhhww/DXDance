@@ -190,7 +190,7 @@
     <ClInclude Include="StreamTextureManger.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TerrainPass.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TileUpdater.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -243,7 +243,7 @@
     <ClCompile Include="StreamTextureManger.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TerrainPass.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TileUpdater.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

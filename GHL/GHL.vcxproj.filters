@@ -105,6 +105,12 @@
     <ClInclude Include="DDS.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="IndirectArgument.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandSignature.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -181,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="GHLTest.cpp">
       <Filter>源文件\Test</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSignature.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="IndirectArgument.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

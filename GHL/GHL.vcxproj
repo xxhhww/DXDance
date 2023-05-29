@@ -133,8 +133,10 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CommandAllocator.h" />
     <ClInclude Include="CommandList.h" />
+    <ClInclude Include="CommandSignature.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDS.h" />
+    <ClInclude Include="IndirectArgument.h" />
     <ClInclude Include="PipelineState.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="DWParam.h" />
@@ -166,7 +168,9 @@
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="CommandList.cpp" />
+    <ClCompile Include="CommandSignature.cpp" />
     <ClCompile Include="GHLTest.cpp" />
+    <ClCompile Include="IndirectArgument.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DebugLayer.cpp" />

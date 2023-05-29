@@ -86,4 +86,11 @@ namespace Renderer {
 		return subresourceRequestedInfo.at(subresourceIndex).expectedStates;
 	}
 
+	Buffer* RenderGraphResource::GetBuffer() const { 
+		return static_cast<Buffer*>(resource); 
+	}
+
+	Texture* RenderGraphResource::GetTexture() const { 
+		return static_cast<Texture*>(resource); 
+	}
 }

@@ -115,91 +115,102 @@ namespace Renderer {
 		mMappedMemory = nullptr;
 	}
 
-	void Buffer::CreateDescriptor() {
-		if (mDescriptorAllocator == nullptr) {
-			return;
-		}
-
+	const GHL::DescriptorHandle* Buffer::GetSRDescriptor(const BufferSubResourceDesc& subDesc) {
 		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
 
-		if (HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::PixelShaderAccess) ||
-			HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::NonPixelShaderAccess)) {
-			// SRView
-			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-			bool isAccelStruct = false;
-			if (bufferDesc.format == DXGI_FORMAT_UNKNOWN) {
-				if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)) {
-					// This is a Raw Buffer
-					srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-					srvDesc.Buffer.FirstElement = 0u;
-					srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
-					srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
-				}
-				else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
-					// This is a Structured Buffer
-					srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-					srvDesc.Buffer.FirstElement = 0u;
-					srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / bufferDesc.stride;
-					srvDesc.Buffer.StructureByteStride = bufferDesc.stride;
-				}
-				else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::AccelerateStruct)) {
-					isAccelStruct = true;
-					srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
-					srvDesc.RaytracingAccelerationStructure.Location = mD3DResource->GetGPUVirtualAddress();
-				}
-			}
-			else {
-				// This is a Typed Buffer
-				uint32_t stride = GHL::GetFormatStride(bufferDesc.format);
-				srvDesc.Format = bufferDesc.format;
-				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		ASSERT_FORMAT(HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::PixelShaderAccess) ||
+			HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::NonPixelShaderAccess), "Unsupport SRDescriptor");
+
+		if (mSRDescriptors.find(subDesc) != mSRDescriptors.end()) {
+			return mSRDescriptors.at(subDesc).Get();
+		}
+
+		// SRView
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+		bool isAccelStruct = false;
+		if (bufferDesc.format == DXGI_FORMAT_UNKNOWN) {
+			if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)) {
+				// This is a Raw Buffer
+				srvDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 				srvDesc.Buffer.FirstElement = 0u;
-				srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / stride;
+				srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_RAW;
+				srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
 			}
-
-			mSRDescriptor = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mSRDescriptor.Get());
+			else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
+				// This is a Structured Buffer
+				srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+				srvDesc.Buffer.FirstElement = 0u;
+				srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / bufferDesc.stride;
+				srvDesc.Buffer.StructureByteStride = bufferDesc.stride;
+			}
+			else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::AccelerateStruct)) {
+				isAccelStruct = true;
+				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+				srvDesc.RaytracingAccelerationStructure.Location = mD3DResource->GetGPUVirtualAddress();
+			}
+		}
+		else {
+			// This is a Typed Buffer
+			uint32_t stride = GHL::GetFormatStride(bufferDesc.format);
+			srvDesc.Format = bufferDesc.format;
+			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+			srvDesc.Buffer.FirstElement = 0u;
+			srvDesc.Buffer.NumElements = (UINT)bufferDesc.size / stride;
 		}
 
-		if (HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)) {
-			// UAView
-			D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
-			uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-			uavDesc.Buffer.FirstElement = 0;
-
-			if (bufferDesc.format == DXGI_FORMAT_UNKNOWN) {
-				if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)) {
-					// This is a Raw Buffer
-					uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-					uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
-					uavDesc.Buffer.FirstElement = 0u;
-					uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
-				}
-				else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
-					// This is a Structured Buffer
-					uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-					uavDesc.Buffer.FirstElement = 0u;
-					uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / bufferDesc.stride;
-					uavDesc.Buffer.StructureByteStride = bufferDesc.stride;
-				}
-				else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::IndirectArgs)) {
-					uavDesc.Format = DXGI_FORMAT_R32_UINT;
-					uavDesc.Buffer.FirstElement = 0u;
-					uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
-				}
-			}
-			else {
-				// This is a Typed Buffer
-				uint32_t stride = GHL::GetFormatStride(bufferDesc.format);
-				uavDesc.Format = bufferDesc.format;
-				uavDesc.Buffer.FirstElement = 0u;
-				uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / stride;
-			}
-
-			mUADescriptor = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-			mDevice->D3DDevice()->CreateUnorderedAccessView(mD3DResource.Get(), nullptr, &uavDesc, *mUADescriptor.Get());
-		}
+		mSRDescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mSRDescriptors[subDesc].Get());
+		return mSRDescriptors[subDesc].Get();
 	}
+
+	const GHL::DescriptorHandle* Buffer::GetUADescriptor(const BufferSubResourceDesc& subDesc) {
+		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
+
+		ASSERT_FORMAT(HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::UnorderedAccess), "Unsupport UADescriptor");
+
+		if (mUADescriptors.find(subDesc) != mUADescriptors.end()) {
+			return mUADescriptors.at(subDesc).Get();
+		}
+
+		// UAView
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		uavDesc.Buffer.FirstElement = 0;
+
+		if (bufferDesc.format == DXGI_FORMAT_UNKNOWN) {
+			if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)) {
+				// This is a Raw Buffer
+				uavDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+				uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_RAW;
+				uavDesc.Buffer.FirstElement = 0u;
+				uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
+			}
+			else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
+				// This is a Structured Buffer
+				uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+				uavDesc.Buffer.FirstElement = 0u;
+				uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / bufferDesc.stride;
+				uavDesc.Buffer.StructureByteStride = bufferDesc.stride;
+			}
+			else if (HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::IndirectArgs)) {
+				uavDesc.Format = DXGI_FORMAT_R32_UINT;
+				uavDesc.Buffer.FirstElement = 0u;
+				uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / sizeof(uint32_t);
+			}
+		}
+		else {
+			// This is a Typed Buffer
+			uint32_t stride = GHL::GetFormatStride(bufferDesc.format);
+			uavDesc.Format = bufferDesc.format;
+			uavDesc.Buffer.FirstElement = 0u;
+			uavDesc.Buffer.NumElements = (UINT)bufferDesc.size / stride;
+		}
+
+		mUADescriptors[subDesc] = mDescriptorAllocator->Allocate(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		mDevice->D3DDevice()->CreateUnorderedAccessView(mD3DResource.Get(), nullptr, &uavDesc, *mUADescriptors[subDesc].Get());
+		return mUADescriptors[subDesc].Get();
+	}
+
 }

@@ -11,6 +11,8 @@
 namespace Renderer {
 
 	class Resource;
+	class Buffer;
+	class Texture;
 
 	class RenderGraphResource {
 	public:
@@ -52,6 +54,16 @@ namespace Renderer {
 		* Get Subresource Requested Info For Target Pass
 		*/
 		GHL::EResourceState GetSubresourceRequestedInfo(uint64_t passNodeIndex, uint32_t subresourceIndex);
+
+		/*
+		* Get Internal Resource With Buffer Type
+		*/
+		Buffer* GetBuffer() const;
+
+		/*
+		* Get Internal Resource With Texture Type
+		*/
+		Texture* GetTexture() const;
 
 	public:
 		RenderGraphResourceID resourceID;
