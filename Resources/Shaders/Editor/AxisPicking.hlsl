@@ -6,7 +6,7 @@ struct PassData {
 	float4x4 viewMatrix;
 	float4x4 projMatrix;
 	float3   viewPos;
-	int      highlightedAxis; // 被鼠标选中的控制轴
+	int      highlightedAxis;
 };
 #define PassDataType PassData
 

@@ -4,6 +4,7 @@
 #include "Tools/StrUtil.h"
 
 #include <fstream>
+#include <filesystem>
 
 namespace GHL {
 
@@ -156,6 +157,12 @@ namespace GHL {
 		if (SUCCEEDED(result->GetOutput(DXC_OUT_SHADER_HASH, IID_PPV_ARGS(hash.GetAddressOf()), nullptr))) {
 			DxcShaderHash* hash_buf = (DxcShaderHash*)hash->GetBufferPointer();
 			memcpy(output.shaderHash, hash_buf->HashDigest, sizeof(uint64_t) * 2);
+		}
+
+		Microsoft::WRL::ComPtr<IDxcBlob> pdbBlob;
+		Microsoft::WRL::ComPtr<IDxcBlobUtf16> pDebugDataPath;
+		if (SUCCEEDED(result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(pdbBlob.GetAddressOf()), pDebugDataPath.GetAddressOf()))) {
+			int i = 32;
 		}
 
 		output.compiledShader.SetDesc(desc);

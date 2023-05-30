@@ -57,7 +57,7 @@ namespace Renderer {
 				_LODDescriptorListProperties.size = lodDescriptors.size() * _LODDescriptorListProperties.stride;
 				_LODDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("LODDescriptorList", _LODDescriptorListProperties);
-				builder.ReadBuffer("LODDescriptorList", ShaderAccessFlag::NonPixelShader);
+				builder.WriteBuffer("LODDescriptorList");
 			},
 			[=](CommandListWrap& commandList, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
@@ -76,17 +76,18 @@ namespace Renderer {
 				passData.nextLODNodeListIndex    = nextLODNodeList->GetUADescriptor()->GetHeapIndex();
 				passData.finalNodeListIndex      = finalNodeList->GetUADescriptor()->GetHeapIndex();
 				passData.nodeDescriptorListIndex = nodeDescriptorList->GetUADescriptor()->GetHeapIndex();
-				passData.lodDescriptorListIndex  = lodDescriptorList->GetSRDescriptor()->GetHeapIndex();
+				passData.lodDescriptorListIndex  = lodDescriptorList->GetUADescriptor()->GetHeapIndex();
 
 				auto dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::PassData), 256u);
 				memcpy(dyAlloc.cpuAddress, &passData, sizeof(TerrainPass::PassData));
 
 				commandList->D3DCommandList()->SetComputeRootSignature(shaderManger->GetBaseD3DRootSignature());
 				commandList->D3DCommandList()->SetPipelineState(shader->GetD3DPipelineState());
+				commandList->D3DCommandList()->SetComputeRootConstantBufferView(0u, resourceStorage->rootConstantsPerFrameAddress);
 				commandList->D3DCommandList()->SetComputeRootConstantBufferView(1u, dyAlloc.gpuAddress);
 
-				if (isDescriptorDirty) {
-					isDescriptorDirty = false;
+				if (!isInitialized) {
+					isInitialized = true;
 					// Node 与 LOD 的 Descriptor由于用户的操作已经发生改变，需要对它们进行更新，记录下更新的命令
 					dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::NodeDescriptor) * nodeDescriptors.size(), 256u);
 					memcpy(dyAlloc.cpuAddress, nodeDescriptors.data(), dyAlloc.size);
@@ -94,10 +95,25 @@ namespace Renderer {
 
 					dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::LODDescriptor) * lodDescriptors.size(), 256u);
 					memcpy(dyAlloc.cpuAddress, lodDescriptors.data(), dyAlloc.size);
-					commandList->D3DCommandList()->CopyBufferRegion(lodDescriptorList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.offset);
+					commandList->D3DCommandList()->CopyBufferRegion(lodDescriptorList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.size);
 				}
 
-				commandList->D3DCommandList()->Dispatch(1u, 1u, 1u);
+				auto clearCounterBufferValue = [&](Renderer::Buffer* dstBuffer, uint32_t value) {
+					dyAlloc = dynamicAllocator->Allocate(sizeof(uint32_t));
+					memcpy(dyAlloc.cpuAddress, &value, dyAlloc.size);
+					commandList->D3DCommandList()->CopyBufferRegion(dstBuffer->GetCounterBuffer()->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
+				};
+				clearCounterBufferValue(currLODNodeList, 5u * 5u);
+				clearCounterBufferValue(nextLODNodeList, 0u);
+				clearCounterBufferValue(finalNodeList, 0u);
+				// clearCounterBufferValue(nodeDescriptorList, maxLOD * maxLOD);
+				// clearCounterBufferValue(lodDescriptorList, maxLOD * maxLOD);
+
+				dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::NodeLocation) * maxLODNodeList.size(), 256u);
+				memcpy(dyAlloc.cpuAddress, maxLODNodeList.data(), dyAlloc.size);
+				commandList->D3DCommandList()->CopyBufferRegion(currLODNodeList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.size);
+				
+				commandList->D3DCommandList()->Dispatch(25u, 1u, 1u);
 			}
 		);
 
@@ -122,7 +138,16 @@ namespace Renderer {
 		}
 		nodeDescriptors.resize(nodeCount);
 
-		isDescriptorDirty = true;
+		for (uint32_t i = 0; i < 5; i++) {
+			for (uint32_t j = 0; j < 5; j++) {
+				NodeLocation nodeLocation;
+				nodeLocation.x = i;
+				nodeLocation.y = j;
+				maxLODNodeList.push_back(nodeLocation);
+			}
+		}
+
+		isInitialized = false;
 	}
 
 }

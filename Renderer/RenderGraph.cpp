@@ -66,6 +66,8 @@ namespace Renderer {
 
 		BuildAliasingBarrier();
 
+		StartTrackingInternalResource();
+
 		mCompiled = true;
 	}
 
@@ -180,6 +182,9 @@ RecordRenderCommand:
 			RenderGraphBuilder builder(passNode, mResourceStorage.get());
 			passNode->renderPass->SetUp(builder, *mShaderManger);
 		}
+	}
+
+	void RenderGraph::StartTrackingInternalResource() {
 		// Start Tracking Internal Resource
 		for (auto& pair : mResourceStorage->GetResources()) {
 			if (!pair.second->imported) {
@@ -196,18 +201,31 @@ RecordRenderCommand:
 			auto* currPassNode = mPassNodes.at(currIndex);
 
 			// 遍历其他所有的PassNode
+			std::unordered_set<SubresourceID> blockedWriteSubresourceIDs;
 			for (size_t otherIndex = currIndex; otherIndex < mPassNodes.size(); otherIndex++) {
 				if (currIndex == otherIndex) continue;
+				blockedWriteSubresourceIDs.clear();
 
 				auto* otherPassNode = mPassNodes.at(otherIndex);
 
 				// 遍历otherPassNode的所有读资源，判断它是否依赖于currPassNode的写资源
 				for (const auto& readSubresourceID : otherPassNode->readSubresources) {
-
 					// 发现资源依赖
-					if (currPassNode->writeSubresources.find(readSubresourceID) != currPassNode->writeSubresources.end()) {
+					if (currPassNode->writeSubresources.find(readSubresourceID) != currPassNode->writeSubresources.end() &&
+						blockedWriteSubresourceIDs.find(readSubresourceID) == blockedWriteSubresourceIDs.end()) {
 						// 存储邻接表
 						mAdjacencyLists.at(currIndex).push_back(otherIndex);
+					}
+				}
+
+				// 遍历otherPassNode的所有写资源，判断它是否依赖于currPassNode的写资源
+				for (const auto& writeSubresourceID : otherPassNode->writeSubresources) {
+					// 发现资源依赖
+					if (currPassNode->writeSubresources.find(writeSubresourceID) != currPassNode->writeSubresources.end()) {
+						// 存储邻接表
+						mAdjacencyLists.at(currIndex).push_back(otherIndex);
+						// 当前节点的写资源被屏蔽，不在后续节点的依赖检测中生效
+						blockedWriteSubresourceIDs.insert(writeSubresourceID);
 					}
 				}
 			}

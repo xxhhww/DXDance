@@ -102,6 +102,11 @@ namespace Renderer {
 		void SetupInternalResource();
 
 		/*
+		* Start Tracking Internal Resource
+		*/
+		void StartTrackingInternalResource();
+
+		/*
 		* 构建邻接表，并添加由资源读写依赖产生的GraphEdge
 		*/
 		void BuildAdjacencyList();

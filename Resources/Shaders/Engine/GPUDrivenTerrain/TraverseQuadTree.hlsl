@@ -81,12 +81,13 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
 	AppendStructuredBuffer<uint2>      nextLODNodeList    = ResourceDescriptorHeap[PassDataCB.nextLODNodeListIndex];
 	AppendStructuredBuffer<uint3>      finalNodeList      = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
 	RWStructuredBuffer<NodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
-	StructuredBuffer<LODDescriptor>    lodDescriptor      = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
-
+	RWStructuredBuffer<LODDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+							
 	// xz平面下的二维坐标
 	uint2 nodeLoc = currLODNodeList.Consume();
 	// 获取当前处理的Node的全局坐标
 	uint nodeGlobalID = GetGlobalNodeId(nodeLoc, PassDataCB.currPassLOD);
+
 	// 根据GID获取NodeDescriptor
 	NodeDescriptor currNodeDescriptor = nodeDescriptorList[nodeGlobalID];
 

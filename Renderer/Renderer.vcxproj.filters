@@ -204,6 +204,9 @@
     <ClInclude Include="TerrainPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="CommandSignatureManger.h">
+      <Filter>头文件\Manger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -328,6 +331,9 @@
     </ClCompile>
     <ClCompile Include="TerrainPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandSignatureManger.cpp">
+      <Filter>源文件\Manger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

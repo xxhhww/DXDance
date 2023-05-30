@@ -29,7 +29,22 @@ namespace Renderer {
 	}
 
 	GHL::ResourceBarrierBatch ResourceStateTracker::TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly) {
-		return GHL::ResourceBarrierBatch{};
+		SubresourceStateList& currentSubresourceStates = GetSubresourceStateListInternal(resource);
+		
+		GHL::ResourceBarrierBatch barrierBatch{};
+		for (uint32_t subresourceIndex = 0; subresourceIndex < currentSubresourceStates.size(); subresourceIndex++) {
+			GHL::EResourceState oldState = currentSubresourceStates[subresourceIndex].subresourceStates;
+
+			if (IsNewStateRedundant(oldState, newState)) {
+				continue;
+			}
+
+			currentSubresourceStates[subresourceIndex].subresourceStates = newState;
+
+			barrierBatch.AddBarrier(GHL::TransitionBarrier{ static_cast<GHL::Resource*>(resource), oldState, newState, subresourceIndex });
+		}
+
+		return barrierBatch;
 	}
 
 	GHL::ResourceBarrierBatch ResourceStateTracker::TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly) {

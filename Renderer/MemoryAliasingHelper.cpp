@@ -1,6 +1,7 @@
 #include "MemoryAliasingHelper.h"
 #include "RenderGraphResource.h"
 #include "RenderGraphResourceStorage.h"
+#include "Math/Helper.h"
 #include <algorithm>
 
 namespace Renderer {
@@ -17,6 +18,8 @@ namespace Renderer {
 		for (auto& resource : mNonAliasedResources) {
 			resource->heapOffset = optimalHeapSize;
 			uint64_t memorySize = resource->GetRequiredMemory();
+			// 需要64k字节对齐
+			memorySize = Math::AlignUp(memorySize, 65536);
 			optimalHeapSize += memorySize;
 		}
 

@@ -151,6 +151,7 @@
     <ClInclude Include="BackBufferPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CommandSignatureManger.h" />
     <ClInclude Include="DataUploader.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -203,6 +204,7 @@
     <ClCompile Include="BackBufferPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CommandSignatureManger.cpp" />
     <ClCompile Include="DataUploader.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>

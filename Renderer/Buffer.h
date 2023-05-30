@@ -66,6 +66,8 @@ namespace Renderer {
 			return ibView;
 		}
 
+		inline Buffer* GetCounterBuffer() const { return mCounterBuffer.get(); }
+
 	private:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 
@@ -76,6 +78,8 @@ namespace Renderer {
 		BuddyHeapAllocator::Allocation* mHeapAllocation{ nullptr };
 
 		uint8_t* mMappedMemory{ nullptr };
+
+		std::unique_ptr<Buffer> mCounterBuffer;
 
 	};
 

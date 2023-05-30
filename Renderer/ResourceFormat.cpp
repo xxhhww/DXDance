@@ -85,6 +85,9 @@ namespace Renderer {
 			},
 			[this](BufferDesc& desc) {
 				if (desc.usage == GHL::EResourceUsage::Default) {
+					if (HasAllFlags(desc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
+						desc.size = Math::AlignUp(desc.size, 65536);;
+					}
 					if (HasAllFlags(desc.expectedState, GHL::EResourceState::RaytracingAccelerationStructure)) {
 						desc.initialState |= GHL::EResourceState::RaytracingAccelerationStructure;
 					}

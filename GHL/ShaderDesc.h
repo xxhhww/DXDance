@@ -45,7 +45,7 @@ namespace GHL {
 		std::string file{ "" };
 		std::string entryPoint{ "" };
 		std::vector<ShaderMacro> macros{};
-		EShaderCompileFlag compileFlag{ EShaderCompileFlag::None };
+		EShaderCompileFlag compileFlag{ EShaderCompileFlag::Debug };
 	};
 
 	std::string GenProfileString(EShaderStage stage, EShaderModel model);

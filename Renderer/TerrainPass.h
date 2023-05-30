@@ -20,7 +20,8 @@ namespace Renderer {
 		};
 
 		struct PassData {
-			Math::Vector3 nodeEvaluationC{ 1.2f, 0.0f, 0.0f };	// 用户控制的节点评估系数	
+			Math::Vector3 nodeEvaluationC{ 1.2f, 0.0f, 0.0f };	// 用户控制的节点评估系数
+			float pad1;
 			Math::Vector2 worldSize{ 10240u, 10240u };			// 世界在XZ轴方向的大小(米)
 			uint32_t currPassLOD;
 			uint32_t currLODNodeListIndex;
@@ -28,7 +29,11 @@ namespace Renderer {
 			uint32_t finalNodeListIndex;
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
-			float pad1;
+		};
+
+		struct NodeLocation {
+			uint32_t x;
+			uint32_t y;
 		};
 
 	public:
@@ -36,16 +41,16 @@ namespace Renderer {
 		uint32_t mostDetailNodeSize{ 64u }; // 最精细的节点的大小(单位: 米)
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;
+		std::vector<NodeLocation>   maxLODNodeList;
 		PassData passData;
 
-		bool isDescriptorDirty{ true }; // 是否需要更新Node与Lod的DescriptorArray
+		bool isInitialized{ false }; // 是否需要更新Node与Lod的DescriptorArray
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
 	private:
 		void UpdateNodeAndLodDescriptorArray();
-
 	};
 
 }
