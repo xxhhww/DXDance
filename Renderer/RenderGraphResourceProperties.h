@@ -19,6 +19,7 @@ namespace Renderer {
 		GHL::EResourceUsage    usage = GHL::EResourceUsage::Default;
 		GHL::ETextureMiscFlag  miscFlag = GHL::ETextureMiscFlag::None;
 		GHL::ClearValue        clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+		bool                   aliased = true;	// 是否以placed的方式创建
 	};
 
 	/*
@@ -30,6 +31,7 @@ namespace Renderer {
 		DXGI_FORMAT            format = DXGI_FORMAT_UNKNOWN;
 		GHL::EResourceUsage    usage = GHL::EResourceUsage::Default;
 		GHL::EBufferMiscFlag   miscFlag = GHL::EBufferMiscFlag::None;
+		bool				   aliased = true;	// 是否以placed的方式创建
 	};
 
 	/*

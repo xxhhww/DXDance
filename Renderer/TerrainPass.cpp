@@ -1,9 +1,16 @@
 #include "TerrainPass.h"
 #include "RenderGraphBuilder.h"
 #include "ShaderManger.h"
+#include "CommandSignatureManger.h"
 #include "LinearBufferAllocator.h"
 
 namespace Renderer {
+
+	struct IndirectCommand {
+		D3D12_GPU_VIRTUAL_ADDRESS frameDataAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS passDataAddress;
+		D3D12_DISPATCH_ARGUMENTS dispatchArguments;
+	};
 
 	void TerrainPass::AddPass(RenderGraph& renderGraph) {
 
@@ -13,15 +20,24 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"TraverseQuadTree",
-			[=](RenderGraphBuilder& builder, ShaderManger& manger) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				// Debug代码，后续要删除
 				builder.WriteRenderTarget("FinalOutput");
 
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				manger.CreateComputeShader("TraverseQuadTree",
+				shaderManger.CreateComputeShader("TraverseQuadTree",
 					[](ComputeStateProxy& proxy) {
 						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TraverseQuadTree.hlsl";
+					});
+
+				commandSignatureManger.CreateCommandSignature("CmdSig_TraverseQuadTree",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectCommand));
 					});
 
 				NewBufferProperties _CurrLODNodeListProperties;
@@ -81,10 +97,14 @@ namespace Renderer {
 				auto dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::PassData), 256u);
 				memcpy(dyAlloc.cpuAddress, &passData, sizeof(TerrainPass::PassData));
 
+				IndirectCommand command{};
+				command.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				command.passDataAddress = dyAlloc.gpuAddress;
+
 				commandList->D3DCommandList()->SetComputeRootSignature(shaderManger->GetBaseD3DRootSignature());
 				commandList->D3DCommandList()->SetPipelineState(shader->GetD3DPipelineState());
-				commandList->D3DCommandList()->SetComputeRootConstantBufferView(0u, resourceStorage->rootConstantsPerFrameAddress);
-				commandList->D3DCommandList()->SetComputeRootConstantBufferView(1u, dyAlloc.gpuAddress);
+				commandList->D3DCommandList()->SetComputeRootConstantBufferView(0u, command.frameDataAddress);
+				commandList->D3DCommandList()->SetComputeRootConstantBufferView(1u, command.passDataAddress);
 
 				if (!isInitialized) {
 					isInitialized = true;
@@ -149,5 +169,4 @@ namespace Renderer {
 
 		isInitialized = false;
 	}
-
 }

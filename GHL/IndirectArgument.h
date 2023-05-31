@@ -30,4 +30,9 @@ namespace GHL {
 	public:
 		IndirectDrawIndexedArgument();
 	};
+
+	class IndirectConstantBufferViewArgument : public IndirectArgument {
+	public:
+		IndirectConstantBufferViewArgument(uint32_t rootParameterIndex);
+	};
 }

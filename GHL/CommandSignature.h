@@ -11,17 +11,23 @@ namespace GHL {
 
 		void AddIndirectArgument(const IndirectArgument& argument);
 
-		void Compile(uint32_t stride, ID3D12RootSignature* rootSignature);
+		void SetByteStride(uint32_t stride);
+
+		void SetRootSignature(ID3D12RootSignature* rootSignature);
+
+		void Compile();
 
 		inline auto* D3DCommandSignature() const { return mSignature.Get(); }
 
 		void SetDebugName(const std::string& name) override;
 
 	private:
+		uint32_t mByteStride;
+		ID3D12RootSignature* mRootSignature{ nullptr };
 		std::vector<D3D12_INDIRECT_ARGUMENT_DESC> mArguments;
 		bool mCompiled{ false };
 		const GHL::Device* mDevice{ nullptr };
-		D3D12_COMMAND_SIGNATURE_DESC mCommandSignatureDesc;
+		D3D12_COMMAND_SIGNATURE_DESC mCommandSignatureDesc{};
 		Microsoft::WRL::ComPtr<ID3D12CommandSignature> mSignature;
 	};
 }

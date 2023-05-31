@@ -30,21 +30,25 @@ namespace Renderer {
 	class PoolDescriptorAllocator;
 	class PoolCommandListAllocator;
 	class ShaderManger;
+	class CommandSignatureManger;
 	class LinearBufferAllocator;
 
 	struct RenderContext {
 	public:
 		RenderContext(
 			ShaderManger* _shaderManger, 
+			CommandSignatureManger* _commandSignatureManger,
 			LinearBufferAllocator* _dynamicAllocator, 
 			RenderGraphResourceStorage* _resourceStorage,
 			StreamTextureManger* _streamTextureManger)
 		: shaderManger(_shaderManger)
+		, commandSignatureManger(_commandSignatureManger)
 		, dynamicAllocator(_dynamicAllocator)
 		, resourceStorage(_resourceStorage)
 		, streamTextureManger(_streamTextureManger) {}
 
 		ShaderManger* shaderManger{ nullptr };
+		CommandSignatureManger* commandSignatureManger{ nullptr };
 		LinearBufferAllocator* dynamicAllocator{ nullptr };
 		RenderGraphResourceStorage* resourceStorage{ nullptr };
 		StreamTextureManger* streamTextureManger{ nullptr };
@@ -62,6 +66,7 @@ namespace Renderer {
 			GHL::CopyQueue* copyQueue,
 			ResourceStateTracker* stateTracker,
 			ShaderManger* shaderManger,
+			CommandSignatureManger* commandSignatureManger,
 			LinearBufferAllocator* dynamicAllocator,
 			StreamTextureManger* streamTextureManger);
 		~RenderGraph() = default;
@@ -168,6 +173,7 @@ namespace Renderer {
 
 		ResourceStateTracker* mResourceStateTracker{ nullptr };
 		ShaderManger* mShaderManger{ nullptr };
+		CommandSignatureManger* mCommandSignatureManger{ nullptr };
 		LinearBufferAllocator* mDynamicAllocator{ nullptr };
 		StreamTextureManger* mStreamTextureManger{ nullptr };
 	};

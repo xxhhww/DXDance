@@ -8,18 +8,19 @@ namespace Renderer {
 
 	class RenderGraphBuilder;
 	class ShaderManger;
+	class CommandSignatureManger;
 	struct RenderContext;
 
 	class RenderGraphPass {
 	public:
-		using SetupFunc   = std::function<void(RenderGraphBuilder& builer, ShaderManger& manger)>;
-		using ExecuteFunc = std::function<void(CommandListWrap& commandList, RenderContext& context)>;
+		using SetupFunc   = std::function<void(RenderGraphBuilder&, ShaderManger&, CommandSignatureManger&)>;
+		using ExecuteFunc = std::function<void(CommandListWrap&, RenderContext&)>;
 
 	public:
 		RenderGraphPass(const std::string& name, SetupFunc&& setup, ExecuteFunc&& execute);
 		~RenderGraphPass() = default;
 
-		void SetUp(RenderGraphBuilder& builder, ShaderManger& manger);
+		void SetUp(RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger);
 		void Execute(CommandListWrap& commandList, RenderContext& context);
 
 	private:

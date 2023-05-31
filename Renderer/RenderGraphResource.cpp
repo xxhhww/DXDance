@@ -41,7 +41,7 @@ namespace Renderer {
 				desc.clearVaule = properties.clearValue;
 				desc.initialState = initialStates;
 				desc.expectedState = expectedStates;
-				desc.supportStream = false;
+				desc.createdMethod = properties.aliased ? GHL::ECreatedMethod::Placed : GHL::ECreatedMethod::Committed;
 
 				resourceFormat.SetTextureDesc(desc);
 			},
@@ -54,6 +54,7 @@ namespace Renderer {
 				desc.miscFlag = properties.miscFlag;
 				desc.initialState = initialStates;
 				desc.expectedState = expectedStates;
+				desc.createdMethod = properties.aliased ? GHL::ECreatedMethod::Placed : GHL::ECreatedMethod::Committed;
 
 				resourceFormat.SetBufferDesc(desc);
 			})
@@ -93,4 +94,20 @@ namespace Renderer {
 	Texture* RenderGraphResource::GetTexture() const { 
 		return static_cast<Texture*>(resource); 
 	}
+
+	bool RenderGraphResource::IsAliased() const {
+		bool aliased = true;
+
+		std::visit(MakeVisitor(
+			[&](const NewTextureProperties& properties) {
+				aliased = properties.aliased;
+			},
+			[&](const NewBufferProperties& properties) {
+				aliased = properties.aliased;
+			})
+			, newResourceProperties);
+
+		return aliased;
+	}
+
 }

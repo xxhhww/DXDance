@@ -26,7 +26,7 @@ namespace Renderer {
 	, mQueuedReadbackFeedback(mFrameTracker->GetMaxSize()) 
 	, mPendingTileEvictions() {
 		ResourceFormat resourceFormat{ mDevice, xeTextureFormat.ConvertTextureDesc() };
-		ASSERT_FORMAT(resourceFormat.GetTextureDesc().supportStream == true, "SupportStream Is False");
+		ASSERT_FORMAT(resourceFormat.GetTextureDesc().createdMethod == GHL::ECreatedMethod::Reserved, "SupportStream Is False");
 
 		mInternalTexture = new Texture(device, resourceFormat, descriptorAllocator, heapAllocator);
 		mPackedMipsFileOffset = mFileFormat.GetPackedMipFileOffset(&mPackedMipsNumBytes, &mPackedMipsUncompressedSize);

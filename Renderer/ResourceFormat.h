@@ -23,7 +23,7 @@ namespace Renderer {
 		GHL::ClearValue        clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 		GHL::EResourceState    initialState = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
-		bool                   supportStream = false;	// 是否使用支持纹理流
+		GHL::ECreatedMethod    createdMethod = GHL::ECreatedMethod::Committed;
 	};
 
 	/*
@@ -60,6 +60,7 @@ namespace Renderer {
 		GHL::EBufferMiscFlag   miscFlag = GHL::EBufferMiscFlag::None;
 		GHL::EResourceState    initialState = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
+		GHL::ECreatedMethod    createdMethod = GHL::ECreatedMethod::Committed;
 	};
 
 	/*

@@ -9,8 +9,8 @@ namespace Renderer {
 	, mExecute(std::forward<ExecuteFunc>(execute)) {}
 
 
-	void RenderGraphPass::SetUp(RenderGraphBuilder& builder, ShaderManger& shaderManger) {
-		mSetup(builder, shaderManger);
+	void RenderGraphPass::SetUp(RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+		mSetup(builder, shaderManger, commandSignatureManger);
 	}
 
 	void RenderGraphPass::Execute(CommandListWrap& commandList, RenderContext& context) {

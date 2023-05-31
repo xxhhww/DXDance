@@ -26,6 +26,7 @@ namespace Renderer {
 		GHL::CopyQueue* copyQueue,
 		ResourceStateTracker* stateTracker,
 		ShaderManger* shaderManger,
+		CommandSignatureManger* commandSignatureManger,
 		LinearBufferAllocator* dynamicAllocator,
 		StreamTextureManger* streamTextureManger)
 	: mFrameTracker(frameTracker) 
@@ -33,7 +34,8 @@ namespace Renderer {
 	, mCommandListAllocator(commandListAllocator)
 	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
 	, mResourceStateTracker(stateTracker) 
-	, mShaderManger(shaderManger) 
+	, mShaderManger(shaderManger)
+	, mCommandSignatureManger(commandSignatureManger)
 	, mDynamicAllocator(dynamicAllocator)
 	, mStreamTextureManger(streamTextureManger) {
 		mCommandQueues.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
@@ -73,7 +75,10 @@ namespace Renderer {
 
 	void RenderGraph::Execute() {
 
-		RenderContext renderContext{ mShaderManger, mDynamicAllocator, mResourceStorage.get(), mStreamTextureManger };
+		RenderContext renderContext{ 
+			mShaderManger, mCommandSignatureManger, mDynamicAllocator, 
+			mResourceStorage.get(), mStreamTextureManger 
+		};
 
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
 
@@ -180,7 +185,7 @@ RecordRenderCommand:
 		// Set up Internal Resource
 		for (auto& passNode : mPassNodes) {
 			RenderGraphBuilder builder(passNode, mResourceStorage.get());
-			passNode->renderPass->SetUp(builder, *mShaderManger);
+			passNode->renderPass->SetUp(builder, *mShaderManger, *mCommandSignatureManger);
 		}
 	}
 

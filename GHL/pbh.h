@@ -94,6 +94,16 @@ namespace GHL {
 		Default
 	};
 
+	/*
+	* 资源被创建的方法
+	*/
+	enum class ECreatedMethod {
+		Committed = 0,
+		Placed = 1,
+		Reserved = 2,
+	};
+
+
 	D3D12_HEAP_TYPE GetD3DHeapType(EResourceUsage usage);
 
 	/*

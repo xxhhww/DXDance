@@ -12,7 +12,7 @@ namespace Renderer {
         desc.height = GetImageHeight();
         desc.mipLevals = GetMipCount();
         desc.format = GetFormat();
-        desc.supportStream = true;
+        desc.createdMethod = GHL::ECreatedMethod::Reserved;
         desc.initialState = GHL::EResourceState::PixelShaderAccess;
         desc.expectedState = GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::CopyDestination;
 

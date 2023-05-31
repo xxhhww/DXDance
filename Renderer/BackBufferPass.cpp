@@ -17,12 +17,12 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"BackBufferPass",
-			[=](RenderGraphBuilder& builder, ShaderManger& manger) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 				builder.WriteRenderTarget("FinalOutput");
 
-				manger.CreateGraphicsShader("BackBufferPass",
+				shaderManger.CreateGraphicsShader("BackBufferPass",
 					[](GraphicsStateProxy& proxy) {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/BackBufferPassTest.hlsl";
 						proxy.psFilepath = proxy.vsFilepath;

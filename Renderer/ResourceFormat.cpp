@@ -58,7 +58,7 @@ namespace Renderer {
 				mResourceDesc.SampleDesc.Count = desc.sampleCount;
 				mResourceDesc.SampleDesc.Quality = 0u;
 
-				if (desc.supportStream) {
+				if (desc.createdMethod == GHL::ECreatedMethod::Reserved) {
 					mResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
 				}
 				else {
@@ -103,6 +103,11 @@ namespace Renderer {
 				}
 				else {
 					ASSERT_FORMAT(false, "Unsupport Resource Usage");
+				}
+
+				if (desc.createdMethod == GHL::ECreatedMethod::Placed) {
+					// Placed Resource 需要 64k字节对齐
+					desc.size = Math::AlignUp(desc.size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 				}
 
 				if (HasAllFlags(desc.miscFlag, GHL::EBufferMiscFlag::ConstantBuffer)) {

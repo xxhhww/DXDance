@@ -65,10 +65,11 @@ namespace Renderer {
 		*/
 		Texture* GetTexture() const;
 
+		bool IsAliased() const;
+
 	public:
 		RenderGraphResourceID resourceID;
 
-		bool aliased { false };
 		bool imported{ false };
 
 		GHL::Heap*	heap{ nullptr };

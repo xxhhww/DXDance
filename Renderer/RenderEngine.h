@@ -20,6 +20,7 @@
 #include "GPUProfiler.h"
 #include "ShaderManger.h"
 #include "StreamTextureManger.h"
+#include "CommandSignatureManger.h"
 
 #include "RenderGraph.h"
 
@@ -101,6 +102,7 @@ namespace Renderer {
 
 		std::unique_ptr<GPUProfiler>			mGPUProfiler;			// Query RenderPass Data
 		std::unique_ptr<ShaderManger>			mShaderManger;			// 着色器管理器
+		std::unique_ptr<CommandSignatureManger> mCommandSignatureManger;// 命令签名管理器
 		std::unique_ptr<ResourceStateTracker>	mResourceStateTracker;	// 资源状态追踪器
 		std::unique_ptr<StreamTextureManger>    mStreamTextureManger;	// 流式纹理管理器
 		// ==========================...RenderGraph...==========================

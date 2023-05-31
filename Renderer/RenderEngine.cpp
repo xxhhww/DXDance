@@ -27,6 +27,7 @@ namespace Renderer {
 		, mSharedMemAllocator(std::make_unique<LinearBufferAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mGPUProfiler(std::make_unique<GPUProfiler>(mDevice.get(), mFrameTracker.get()))
 		, mShaderManger(std::make_unique<ShaderManger>(mDevice.get()))
+		, mCommandSignatureManger(std::make_unique<CommandSignatureManger>(mDevice.get()))
 		, mResourceStateTracker(std::make_unique<ResourceStateTracker>())
 		, mStreamTextureManger(std::make_unique<StreamTextureManger>(
 			mDevice.get(),
@@ -47,6 +48,7 @@ namespace Renderer {
 			mCopyQueue.get(), 
 			mResourceStateTracker.get(),
 			mShaderManger.get(),
+			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
 			mStreamTextureManger.get())) 
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
@@ -112,7 +114,10 @@ namespace Renderer {
 		mRenderGraph->Execute();
 
 		{
-			RenderContext renderContext{ mShaderManger.get(), mSharedMemAllocator.get(), mRenderGraph->GetPipelineResourceStorage(), mStreamTextureManger.get()};
+			RenderContext renderContext{
+				mShaderManger.get(), mCommandSignatureManger.get(), mSharedMemAllocator.get(),
+				mRenderGraph->GetPipelineResourceStorage(), mStreamTextureManger.get() 
+			};
 
 			CommandListWrap commandList = mCommandListAllocator->AllocateGraphicsCommandList();
 			

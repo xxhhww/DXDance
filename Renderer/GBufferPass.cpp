@@ -7,7 +7,7 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"GBufferPass",
-			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
 				NewTextureProperties _GBufferProperties;

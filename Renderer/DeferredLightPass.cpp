@@ -7,7 +7,7 @@ namespace Renderer {
 
 		renderGraph.AddPass(
 			"DeferredLightPass",
-			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger) {
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				NewTextureProperties _DeferredLightOutputProperties;

@@ -17,9 +17,18 @@ namespace Renderer {
 
 	void RenderGraphResourceStorage::BuildAliasing() {
 		for (auto& pair : mRenderGraphResources) {
-			if (pair.second->imported) continue;
+			auto* renderGraphResource = pair.second.get();
 
-			pair.second->BuildResourceFormat();
+			if (renderGraphResource->imported) { 
+				continue;
+			};
+
+			renderGraphResource->BuildResourceFormat();
+
+			if (!renderGraphResource->IsAliased()) {
+				continue;
+			}
+
 			mAliasingHelper->AddResource(pair.second.get());
 		}
 
@@ -33,16 +42,40 @@ namespace Renderer {
 
 		// 为非Imported的资源进行创建工作
 		for (auto& pair : mRenderGraphResources) {
-			if (pair.second->imported) continue;
+			auto* renderGraphResource = pair.second.get();
+
+			if (renderGraphResource->imported) {
+				continue;
+			};
 
 			std::visit(MakeVisitor(
 				[&](const NewTextureProperties& properties) {
-					pair.second->resource = new Texture(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
+					if (renderGraphResource->IsAliased()) {
+						renderGraphResource->resource = new Texture(
+							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, 
+							mHeap.get(), renderGraphResource->heapOffset);
+					}
+					else {
+						// Committed
+						renderGraphResource->resource = new Texture(
+							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, nullptr
+						);
+					}
 				},
 				[&](const NewBufferProperties& properties) {
-					pair.second->resource = new Buffer(mDevice, pair.second->resourceFormat, mDescriptorAllocator, mHeap.get(), pair.second->heapOffset);
+					if (renderGraphResource->IsAliased()) {
+						renderGraphResource->resource = new Buffer(
+							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, 
+							mHeap.get(), renderGraphResource->heapOffset);
+					}
+					else {
+						// Committed
+						renderGraphResource->resource = new Buffer(
+							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, nullptr
+						);
+					}
 				})
-				, pair.second->newResourceProperties);
+				, renderGraphResource->newResourceProperties);
 		}
 	}
 

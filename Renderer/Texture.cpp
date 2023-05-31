@@ -19,7 +19,7 @@ namespace Renderer {
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 
-		if (textureDesc.supportStream) {
+		if (textureDesc.createdMethod == GHL::ECreatedMethod::Reserved) {
 			ASSERT_FORMAT(mHeapAllocator != nullptr, "Texture Created Reserved, HeapAllocator is nullptr");
 		}
 
@@ -38,7 +38,7 @@ namespace Renderer {
 			));
 		}
 		else {
-			if (!textureDesc.supportStream) {
+			if (textureDesc.createdMethod != GHL::ECreatedMethod::Reserved) {
 				// 以放置方式创建该Buffer
 
 				// 在堆上分配
