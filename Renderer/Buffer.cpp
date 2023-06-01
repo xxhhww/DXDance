@@ -58,7 +58,7 @@ namespace Renderer {
 		}
 
 		CreateDescriptor();
-
+		CreateCounterBuffer();
 	}
 
 	Buffer::Buffer(
@@ -83,7 +83,7 @@ namespace Renderer {
 		));
 
 		CreateDescriptor();
-
+		CreateCounterBuffer();
 	}
 
 	Buffer::~Buffer() {
@@ -174,16 +174,6 @@ namespace Renderer {
 			return mUADescriptors.at(subDesc).Get();
 		}
 
-		if (mCounterBuffer == nullptr) {
-			BufferDesc counterBufferDesc{};
-			counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess;
-			counterBufferDesc.miscFlag = GHL::EBufferMiscFlag::RawBuffer;
-			counterBufferDesc.size = 4u;
-			counterBufferDesc.stride = 0u;
-			counterBufferDesc.usage = GHL::EResourceUsage::Default;
-			mCounterBuffer = std::make_unique<Buffer>(mDevice, ResourceFormat{ mDevice, counterBufferDesc }, nullptr, nullptr);
-		}
-
 		// UAView
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
 		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
@@ -223,4 +213,21 @@ namespace Renderer {
 		return mUADescriptors[subDesc].Get();
 	}
 
+	void Buffer::CreateCounterBuffer() {
+		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
+
+		if (!HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)
+			|| HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)
+			|| mCounterBuffer != nullptr) {
+			return;
+		}
+
+		BufferDesc counterBufferDesc{};
+		counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess;
+		counterBufferDesc.miscFlag = GHL::EBufferMiscFlag::RawBuffer;
+		counterBufferDesc.size = 4u;
+		counterBufferDesc.stride = 0u;
+		counterBufferDesc.usage = GHL::EResourceUsage::Default;
+		mCounterBuffer = std::make_unique<Buffer>(mDevice, ResourceFormat{ mDevice, counterBufferDesc }, nullptr, nullptr);
+	}
 }

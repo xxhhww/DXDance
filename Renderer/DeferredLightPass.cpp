@@ -1,5 +1,6 @@
 #include "DeferredLightPass.h"
 #include "RenderGraphBuilder.h"
+#include "CommandBuffer.h"
 
 namespace Renderer {
 
@@ -22,7 +23,7 @@ namespace Renderer {
 				builder.ReadTexture("GBufferNormal", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferMixed", ShaderAccessFlag::NonPixelShader);
 			},
-			[=](CommandListWrap& commandList, RenderContext& context) {
+			[=](CommandBuffer& commandBuffer, RenderContext& context) {
 
 
 			});

@@ -1,5 +1,6 @@
 #include "GBufferPass.h"
 #include "RenderGraphBuilder.h"
+#include "CommandBuffer.h"
 
 namespace Renderer {
 
@@ -30,7 +31,7 @@ namespace Renderer {
 				builder.WriteRenderTarget("GBufferMixed");
 				builder.WriteDepthStencil("GBufferDepth");
 			},
-			[=](CommandListWrap& commandList, RenderContext& context) {
+			[=](CommandBuffer& commandBuffer, RenderContext& context) {
 
 
 			});

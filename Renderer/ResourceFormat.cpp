@@ -33,6 +33,32 @@ namespace Renderer {
 		mResourceDescVariant = desc;
 	}
 
+	bool ResourceFormat::IsBuffer()  const {
+		bool isBuffer = false;
+		std::visit(MakeVisitor(
+			[&](const TextureDesc& desc) {
+				isBuffer = false;
+			},
+			[&](const BufferDesc& desc) {
+				isBuffer = true;
+			})
+			, mResourceDescVariant);
+		return isBuffer;
+	}
+
+	bool ResourceFormat::IsTexture() const {
+		bool isTexture = false;
+		std::visit(MakeVisitor(
+			[&](const TextureDesc& desc) {
+				isTexture = true;
+			},
+			[&](const BufferDesc& desc) {
+				isTexture = false;
+			})
+			, mResourceDescVariant);
+		return isTexture;
+	}
+
 	void ResourceFormat::SetBackBufferStates() {
 		mInitialState = GHL::EResourceState::Present;
 		mExpectedState = (GHL::EResourceState::Present | GHL::EResourceState::RenderTarget);

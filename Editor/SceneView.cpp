@@ -327,7 +327,7 @@ namespace App {
 
 	void SceneView::RegisterEditorRenderPass() {
 		mRenderEngine->mEditorRenderPass += 
-		[this](Renderer::CommandListWrap& commandList, Renderer::RenderContext& renderContext) {
+		[this](Renderer::CommandBuffer& commandBuffer, Renderer::RenderContext& renderContext) {
 			auto* axisRenderShader = renderContext.shaderManger->GetShader<Renderer::GraphicsShader>("AxisRender");
 			auto  finalOutputRTV   = static_cast<Renderer::Texture*>(renderContext.resourceStorage->GetResourceByName("FinalOutput")->resource)->GetRTDescriptor()->GetCpuHandle();
 		
@@ -343,27 +343,27 @@ namespace App {
 			rect.right = 979;
 			rect.bottom = 635;
 
-			commandList->D3DCommandList()->RSSetViewports(1u, &viewPort);
-			commandList->D3DCommandList()->RSSetScissorRects(1u, &rect);
+			commandBuffer.D3DCommandList()->RSSetViewports(1u, &viewPort);
+			commandBuffer.D3DCommandList()->RSSetScissorRects(1u, &rect);
 
-			commandList->D3DCommandList()->OMSetRenderTargets(1u, &finalOutputRTV, false, nullptr);
+			commandBuffer.D3DCommandList()->OMSetRenderTargets(1u, &finalOutputRTV, false, nullptr);
 
-			commandList->D3DCommandList()->SetGraphicsRootSignature(renderContext.shaderManger->GetBaseD3DRootSignature());
-			commandList->D3DCommandList()->SetPipelineState(axisRenderShader->GetD3DPipelineState());
+			commandBuffer.D3DCommandList()->SetGraphicsRootSignature(renderContext.shaderManger->GetBaseD3DRootSignature());
+			commandBuffer.D3DCommandList()->SetPipelineState(axisRenderShader->GetD3DPipelineState());
 
 			auto dynamicAllocation = renderContext.dynamicAllocator->Allocate(sizeof(AxisPassData), 256u);
 			memcpy(dynamicAllocation.cpuAddress, &mAxisPassData, sizeof(AxisPassData));
 
-			commandList->D3DCommandList()->SetGraphicsRootConstantBufferView(0u, renderContext.resourceStorage->rootConstantsPerFrameAddress);
-			commandList->D3DCommandList()->SetGraphicsRootConstantBufferView(1u, dynamicAllocation.gpuAddress);
+			commandBuffer.D3DCommandList()->SetGraphicsRootConstantBufferView(0u, renderContext.resourceStorage->rootConstantsPerFrameAddress);
+			commandBuffer.D3DCommandList()->SetGraphicsRootConstantBufferView(1u, dynamicAllocation.gpuAddress);
 		
 			auto* axisMesh   = CORESERVICE(Core::EditorAssetManger).GetMesh("Arrow_Translate");
 			auto  axisVBView = axisMesh->GetVertexBuffer()->GetVBDescriptor();
 			auto  axisIBView = axisMesh->GetIndexBuffer()->GetIBDescriptor();
-			commandList->D3DCommandList()->IASetVertexBuffers(0u, 1u, &axisVBView);
-			commandList->D3DCommandList()->IASetIndexBuffer(&axisIBView);
-			commandList->D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			commandList->D3DCommandList()->DrawIndexedInstanced(axisIBView.SizeInBytes / sizeof(uint32_t), 3u, 0u, 0u, 0u);
+			commandBuffer.D3DCommandList()->IASetVertexBuffers(0u, 1u, &axisVBView);
+			commandBuffer.D3DCommandList()->IASetIndexBuffer(&axisIBView);
+			commandBuffer.D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.D3DCommandList()->DrawIndexedInstanced(axisIBView.SizeInBytes / sizeof(uint32_t), 3u, 0u, 0u, 0u);
 		};
 	}
 

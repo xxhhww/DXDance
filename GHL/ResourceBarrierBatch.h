@@ -73,6 +73,8 @@ namespace GHL {
 
 		~ResourceBarrierBatch() = default;
 
+		ResourceBarrierBatch& operator+=(const ResourceBarrierBatch& other);
+
 		/*
 		* лМ╪свйт╢фауо
 		*/

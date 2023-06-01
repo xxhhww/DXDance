@@ -14,6 +14,8 @@ namespace Renderer {
 		configurator(*commandSignature);
 
 		commandSignature->Compile();
+
+		mCommandSignatures[name] = std::move(commandSignature);
 	}
 
 }

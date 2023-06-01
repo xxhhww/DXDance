@@ -3,6 +3,7 @@
 #include "ShaderManger.h"
 #include "CommandSignatureManger.h"
 #include "LinearBufferAllocator.h"
+#include "CommandBuffer.h"
 
 namespace Renderer {
 
@@ -40,6 +41,14 @@ namespace Renderer {
 						proxy.SetByteStride(sizeof(IndirectCommand));
 					});
 
+				NewBufferProperties _TraverseQuadTreeIndirectArgsProperties;
+				_TraverseQuadTreeIndirectArgsProperties.stride = sizeof(IndirectCommand);
+				_TraverseQuadTreeIndirectArgsProperties.size = sizeof(IndirectCommand);
+				_TraverseQuadTreeIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_TraverseQuadTreeIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("TraverseQuadTreeIndirectArgs", _TraverseQuadTreeIndirectArgsProperties);
+				builder.WriteBuffer("TraverseQuadTreeIndirectArgs");
+
 				NewBufferProperties _CurrLODNodeListProperties;
 				_CurrLODNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
 				_CurrLODNodeListProperties.size = _NodeListSize * _CurrLODNodeListProperties.stride;
@@ -69,23 +78,24 @@ namespace Renderer {
 				builder.WriteBuffer("NodeDescriptorList");
 
 				NewBufferProperties _LODDescriptorListProperties;
-				_LODDescriptorListProperties.stride = sizeof(LODDescriptor);
+				_LODDescriptorListProperties.stride = sizeof(LodDescriptor);
 				_LODDescriptorListProperties.size = lodDescriptors.size() * _LODDescriptorListProperties.stride;
 				_LODDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("LODDescriptorList", _LODDescriptorListProperties);
 				builder.WriteBuffer("LODDescriptorList");
 			},
-			[=](CommandListWrap& commandList, RenderContext& renderContext) {
-				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage  = renderContext.resourceStorage;
-				auto* shaderManger     = renderContext.shaderManger;
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator       = renderContext.dynamicAllocator;
+				auto* resourceStorage        = renderContext.resourceStorage;
+				auto* commandSignatureManger = renderContext.commandSignatureManger;
+				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("CmdSig_TraverseQuadTree");
 
-				auto* shader = shaderManger->GetShader<ComputeShader>("TraverseQuadTree");
 				auto* currLODNodeList    = resourceStorage->GetResourceByName("CurrLODNodeList")->GetBuffer();
 				auto* nextLODNodeList    = resourceStorage->GetResourceByName("NextLODNodeList")->GetBuffer();
 				auto* finalNodeList      = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
 				auto* nodeDescriptorList = resourceStorage->GetResourceByName("NodeDescriptorList")->GetBuffer();
 				auto* lodDescriptorList  = resourceStorage->GetResourceByName("LODDescriptorList")->GetBuffer();
+				auto* indirectArgs       = resourceStorage->GetResourceByName("TraverseQuadTreeIndirectArgs")->GetBuffer();
 
 				passData.currPassLOD = maxLOD;
 				passData.currLODNodeListIndex    = currLODNodeList->GetUADescriptor()->GetHeapIndex();
@@ -97,43 +107,47 @@ namespace Renderer {
 				auto dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::PassData), 256u);
 				memcpy(dyAlloc.cpuAddress, &passData, sizeof(TerrainPass::PassData));
 
-				IndirectCommand command{};
-				command.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-				command.passDataAddress = dyAlloc.gpuAddress;
+				IndirectCommand indirectCommand{};
+				indirectCommand.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectCommand.passDataAddress = dyAlloc.gpuAddress;
+				indirectCommand.dispatchArguments.ThreadGroupCountX = maxLODNodeList.size();
+				indirectCommand.dispatchArguments.ThreadGroupCountY = 1u;
+				indirectCommand.dispatchArguments.ThreadGroupCountZ = 1u;
 
-				commandList->D3DCommandList()->SetComputeRootSignature(shaderManger->GetBaseD3DRootSignature());
-				commandList->D3DCommandList()->SetPipelineState(shader->GetD3DPipelineState());
-				commandList->D3DCommandList()->SetComputeRootConstantBufferView(0u, command.frameDataAddress);
-				commandList->D3DCommandList()->SetComputeRootConstantBufferView(1u, command.passDataAddress);
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("TraverseQuadTree");
 
 				if (!isInitialized) {
+					commandBuffer.UploadBufferRegion(nodeDescriptorList, 0u, 
+						nodeDescriptors.data(), nodeDescriptors.size() * sizeof(TerrainPass::NodeDescriptor)
+					);
+					commandBuffer.UploadBufferRegion(lodDescriptorList, 0u,
+						lodDescriptors.data(), lodDescriptors.size() * sizeof(TerrainPass::LodDescriptor)
+					);
 					isInitialized = true;
-					// Node 与 LOD 的 Descriptor由于用户的操作已经发生改变，需要对它们进行更新，记录下更新的命令
-					dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::NodeDescriptor) * nodeDescriptors.size(), 256u);
-					memcpy(dyAlloc.cpuAddress, nodeDescriptors.data(), dyAlloc.size);
-					commandList->D3DCommandList()->CopyBufferRegion(nodeDescriptorList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.size);
-
-					dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::LODDescriptor) * lodDescriptors.size(), 256u);
-					memcpy(dyAlloc.cpuAddress, lodDescriptors.data(), dyAlloc.size);
-					commandList->D3DCommandList()->CopyBufferRegion(lodDescriptorList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.size);
 				}
 
-				auto clearCounterBufferValue = [&](Renderer::Buffer* dstBuffer, uint32_t value) {
-					dyAlloc = dynamicAllocator->Allocate(sizeof(uint32_t));
-					memcpy(dyAlloc.cpuAddress, &value, dyAlloc.size);
-					commandList->D3DCommandList()->CopyBufferRegion(dstBuffer->GetCounterBuffer()->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
-				};
-				clearCounterBufferValue(currLODNodeList, 5u * 5u);
-				clearCounterBufferValue(nextLODNodeList, 0u);
-				clearCounterBufferValue(finalNodeList, 0u);
-				// clearCounterBufferValue(nodeDescriptorList, maxLOD * maxLOD);
-				// clearCounterBufferValue(lodDescriptorList, maxLOD * maxLOD);
+				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectCommand, sizeof(IndirectCommand));
+				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
 
-				dyAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::NodeLocation) * maxLODNodeList.size(), 256u);
-				memcpy(dyAlloc.cpuAddress, maxLODNodeList.data(), dyAlloc.size);
-				commandList->D3DCommandList()->CopyBufferRegion(currLODNodeList->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, dyAlloc.size);
-				
-				commandList->D3DCommandList()->Dispatch(25u, 1u, 1u);
+				commandBuffer.UploadBufferRegion(currLODNodeList, 0u,
+					maxLODNodeList.data(), maxLODNodeList.size() * sizeof(TerrainPass::NodeLocation)
+				);
+				commandBuffer.ClearCounterBuffer(currLODNodeList, maxLODNodeList.size());
+
+				commandBuffer.ClearCounterBuffer(nextLODNodeList, 0u);
+				commandBuffer.ClearCounterBuffer(finalNodeList, 0u);
+
+				for (int32_t lod = maxLOD; lod >= 0; lod--) {
+					if (lod != maxLOD) {
+					
+					}
+					// ExecuteIndirect
+					auto indirectArgsBarrierBatch = commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+					commandBuffer.FlushResourceBarrier(indirectArgsBarrierBatch);
+					commandBuffer.D3DCommandList()->ExecuteIndirect(cmdSig, 1u, indirectArgs->D3DResource(), 0u, indirectArgs->GetCounterBuffer()->D3DResource(), 0u);
+				}
 			}
 		);
 
@@ -153,8 +167,9 @@ namespace Renderer {
 
 			lodDescriptor.nodeSize = currDetailNodeSize;
 			lodDescriptor.nodeStartOffset = nodeCount;
+			lodDescriptor.nodeCount = nodeCountPerAxis * nodeCountPerAxis;
 
-			nodeCount += nodeCountPerAxis * nodeCountPerAxis;
+			nodeCount += lodDescriptor.nodeCount;
 		}
 		nodeDescriptors.resize(nodeCount);
 

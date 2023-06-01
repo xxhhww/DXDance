@@ -40,17 +40,20 @@ namespace Renderer {
 			CommandSignatureManger* _commandSignatureManger,
 			LinearBufferAllocator* _dynamicAllocator, 
 			RenderGraphResourceStorage* _resourceStorage,
+			ResourceStateTracker* _resourceStateTracker,
 			StreamTextureManger* _streamTextureManger)
 		: shaderManger(_shaderManger)
 		, commandSignatureManger(_commandSignatureManger)
 		, dynamicAllocator(_dynamicAllocator)
 		, resourceStorage(_resourceStorage)
+		, resourceStateTracker(_resourceStateTracker)
 		, streamTextureManger(_streamTextureManger) {}
 
 		ShaderManger* shaderManger{ nullptr };
 		CommandSignatureManger* commandSignatureManger{ nullptr };
 		LinearBufferAllocator* dynamicAllocator{ nullptr };
 		RenderGraphResourceStorage* resourceStorage{ nullptr };
+		ResourceStateTracker* resourceStateTracker{ nullptr };
 		StreamTextureManger* streamTextureManger{ nullptr };
 	};
 

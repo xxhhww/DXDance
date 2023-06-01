@@ -207,6 +207,9 @@
     <ClInclude Include="CommandSignatureManger.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
+    <ClInclude Include="CommandBuffer.h">
+      <Filter>头文件\Renderer\RenderGraph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -334,6 +337,9 @@
     </ClCompile>
     <ClCompile Include="CommandSignatureManger.cpp">
       <Filter>源文件\Manger</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandBuffer.cpp">
+      <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

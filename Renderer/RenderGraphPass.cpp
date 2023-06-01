@@ -1,5 +1,6 @@
 #include "RenderGraphPass.h"
 #include "RenderGraphBuilder.h"
+#include "CommandBuffer.h"
 
 namespace Renderer {
 
@@ -13,8 +14,8 @@ namespace Renderer {
 		mSetup(builder, shaderManger, commandSignatureManger);
 	}
 
-	void RenderGraphPass::Execute(CommandListWrap& commandList, RenderContext& context) {
-		mExecute(commandList, context);
+	void RenderGraphPass::Execute(CommandBuffer& commandBuffer, RenderContext& context) {
+		mExecute(commandBuffer, context);
 	}
 
 }

@@ -66,7 +66,10 @@ namespace Renderer {
 			return ibView;
 		}
 
-		inline Buffer* GetCounterBuffer() const { return mCounterBuffer.get(); }
+		inline Buffer* GetCounterBuffer() const { return (mCounterBuffer == nullptr) ? nullptr : mCounterBuffer.get(); }
+
+	private:
+		void CreateCounterBuffer();
 
 	private:
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };

@@ -98,8 +98,10 @@ namespace Renderer {
 		void Build();
 
 		void SetTextureDesc(const TextureDesc& desc);
-
 		void SetBufferDesc(const BufferDesc& desc);
+
+		bool IsBuffer()  const;
+		bool IsTexture() const;
 
 		inline const auto& D3DResourceDesc() const { return mResourceDesc; }
 

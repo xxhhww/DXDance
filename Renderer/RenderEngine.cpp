@@ -115,14 +115,19 @@ namespace Renderer {
 
 		{
 			RenderContext renderContext{
-				mShaderManger.get(), mCommandSignatureManger.get(), mSharedMemAllocator.get(),
-				mRenderGraph->GetPipelineResourceStorage(), mStreamTextureManger.get() 
+				mShaderManger.get(), 
+				mCommandSignatureManger.get(), 
+				mSharedMemAllocator.get(),
+				mRenderGraph->GetPipelineResourceStorage(), 
+				mResourceStateTracker.get(), 
+				mStreamTextureManger.get()
 			};
 
-			CommandListWrap commandList = mCommandListAllocator->AllocateGraphicsCommandList();
-			
+			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+
 			// 录制Editor Render Pass命令
-			mEditorRenderPass.Invoke(commandList, renderContext);
+			mEditorRenderPass.Invoke(commandBuffer, renderContext);
 
 			// 将FinalOutput转换为PixelShaderAccess供外部读取
 			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), 0u, GHL::EResourceState::PixelShaderAccess);

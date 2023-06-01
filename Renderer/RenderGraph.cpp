@@ -5,6 +5,7 @@
 #include "RenderGraphItem.h"
 #include "RenderGraphPass.h"
 #include "ResourceStateTracker.h"
+#include "CommandBuffer.h"
 
 #include "PoolCommandListAllocator.h"
 #include "RingFrameTracker.h"
@@ -77,7 +78,7 @@ namespace Renderer {
 
 		RenderContext renderContext{ 
 			mShaderManger, mCommandSignatureManger, mDynamicAllocator, 
-			mResourceStorage.get(), mStreamTextureManger 
+			mResourceStorage.get(), mResourceStateTracker, mStreamTextureManger
 		};
 
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
@@ -142,6 +143,7 @@ RecordRenderCommand:
 						continue;
 					}
 					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+					CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
 					auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 					commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 					auto* currCommandQueue = mCommandQueues.at(queueIndex);
@@ -149,7 +151,7 @@ RecordRenderCommand:
 
 					for (auto& passNode : passNodes) {
 						// ÊÕ¼¯äÖÈ¾ÃüÁî
-						passNode->renderPass->Execute(commandList, renderContext);
+						passNode->renderPass->Execute(commandBuffer, renderContext);
 
 						// Wait Command
 						for (const auto& waitInfo : passNode->waitInfos) {
@@ -192,8 +194,17 @@ RecordRenderCommand:
 	void RenderGraph::StartTrackingInternalResource() {
 		// Start Tracking Internal Resource
 		for (auto& pair : mResourceStorage->GetResources()) {
-			if (!pair.second->imported) {
-				mResourceStateTracker->StartTracking(pair.second->resource);
+			auto* renderGraphResource = pair.second.get();
+			if (!renderGraphResource->imported) {
+				mResourceStateTracker->StartTracking(renderGraphResource->resource);
+
+				// If Resource(Buffer) Has Counter Buffer£¬Start Trcking Counter Buffer.
+				if (renderGraphResource->resourceFormat.IsBuffer()) {
+					auto* counterBuffer = static_cast<Buffer*>(renderGraphResource->resource)->GetCounterBuffer();
+					if (counterBuffer != nullptr) {
+						mResourceStateTracker->StartTracking(counterBuffer);
+					}
+				}
 			}
 		}
 	}

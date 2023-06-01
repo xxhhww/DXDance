@@ -1,6 +1,7 @@
 #include "RenderEngine.h"
 #include "RenderGraph.h"
 #include "RenderGraphBuilder.h"
+#include "CommandBuffer.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -25,7 +26,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             // builder.NewTexture("Tex_0", properties);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
     );
 
     renderGraph.AddPass(
@@ -42,7 +43,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             // builder.NewTexture("Tex_1", properties);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
@@ -57,7 +58,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_0", ShaderAccessFlag::PixelShader);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
@@ -69,7 +70,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             // builder.NewTexture("Tex_3", NewTextureProperties{});
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
@@ -82,7 +83,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_3", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
@@ -93,7 +94,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_0", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.AddPass(
@@ -104,7 +105,7 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             builder.ReadTexture("Tex_1", ShaderAccessFlag::NonPixelShader);
 
         },
-        [=](CommandListWrap& commandList, RenderContext& context) {}
+        [=](CommandBuffer& commandBuffer, RenderContext& context) {}
         );
 
     renderGraph.Build();

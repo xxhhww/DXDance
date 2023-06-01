@@ -23,6 +23,7 @@
 #include "CommandSignatureManger.h"
 
 #include "RenderGraph.h"
+#include "CommandBuffer.h"
 
 #include "GBufferPass.h"
 #include "DeferredLightPass.h"
@@ -121,7 +122,7 @@ namespace Renderer {
 
 		// ==========================...Editor Render Pass...==========================
 		// ±à¼­Æ÷äÖÈ¾Pass£¬ÓÉÍâ²¿×¢²á
-		Tool::Event<CommandListWrap&, RenderContext&> mEditorRenderPass;
+		Tool::Event<CommandBuffer&, RenderContext&> mEditorRenderPass;
 	};
 
 }

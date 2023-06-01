@@ -44,6 +44,11 @@ namespace GHL {
 		AddBarrier(barrier);
 	}
 
+	ResourceBarrierBatch& ResourceBarrierBatch::operator+=(const ResourceBarrierBatch& other) {
+		this->AddBarriers(other);
+		return *this;
+	}
+
 	void ResourceBarrierBatch::AddBarrier(const ResourceBarrier& barrier) {
 		mD3DBarriers.push_back(barrier.D3DBarrier());
 	}
