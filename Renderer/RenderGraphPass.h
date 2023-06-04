@@ -22,6 +22,8 @@ namespace Renderer {
 		void SetUp(RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger);
 		void Execute(CommandBuffer& commandBuffer, RenderContext& context);
 
+		inline const std::string& GetName() const { return mName; }
+
 	private:
 		std::string mName;
 		SetupFunc   mSetup;

@@ -34,12 +34,11 @@ namespace Renderer {
 		GHL::ResourceBarrierBatch barrierBatch{};
 		for (uint32_t subresourceIndex = 0; subresourceIndex < currentSubresourceStates.size(); subresourceIndex++) {
 			GHL::EResourceState oldState = currentSubresourceStates[subresourceIndex].subresourceStates;
+			currentSubresourceStates[subresourceIndex].subresourceStates = newState;
 
 			if (IsNewStateRedundant(oldState, newState)) {
 				continue;
 			}
-
-			currentSubresourceStates[subresourceIndex].subresourceStates = newState;
 
 			barrierBatch.AddBarrier(GHL::TransitionBarrier{ static_cast<GHL::Resource*>(resource), oldState, newState, subresourceIndex });
 		}
@@ -51,13 +50,11 @@ namespace Renderer {
 		SubresourceStateList& currentSubresourceStates = GetSubresourceStateListInternal(resource);
 		ASSERT_FORMAT(subresourceIndex < currentSubresourceStates.size(), "Requested a state change for subresource that doesn't exist");
 		GHL::EResourceState oldState = currentSubresourceStates[subresourceIndex].subresourceStates;
+		currentSubresourceStates[subresourceIndex].subresourceStates = newState;
 
 		if (IsNewStateRedundant(oldState, newState)) {
 			return GHL::ResourceBarrierBatch{};
 		}
-
-		currentSubresourceStates[subresourceIndex].subresourceStates = newState;
-
 		/*
 		if (CanTransitionToStateImplicitly(resource, oldState, newState, tryApplyImplicitly)) {
 			return GHL::ResourceBarrierBatch{};
@@ -77,7 +74,8 @@ namespace Renderer {
 	}
 
 	bool ResourceStateTracker::IsNewStateRedundant(GHL::EResourceState oldState, GHL::EResourceState newState) {
-		return oldState == newState;
+		// return (oldState == newState) || (GHL::IsRWResourceState(oldState) && GHL::IsWriteResourceState(newState));
+		return (oldState == newState);
 	}
 
 }

@@ -30,6 +30,6 @@ namespace GHL {
 	}
 
     const Adapter* AdapterContainer::GetHighPerformanceAdapter() const {
-        return &mHardwareAdapters.at(0);
+        return &mHardwareAdapters.at(1);
     }
 }

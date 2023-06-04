@@ -72,7 +72,7 @@ namespace Renderer {
 				auto* rtv = texture->GetRTDescriptor();
 				D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = rtv->GetCpuHandle();
 
-				FLOAT clearColor[4] = { 0.3f, 0.7f, 0.5f, 1.0f };
+				FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 				streamTexture->RecordClearFeedback(commandList.D3DCommandList());
 
@@ -89,7 +89,6 @@ namespace Renderer {
 				commandList.D3DCommandList()->IASetVertexBuffers(0u, 1u, &vbView);
 				commandList.D3DCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandList.D3DCommandList()->DrawInstanced(6u, 1u, 0u, 0u);
-
 				streamTexture->RecordResolve(commandList.D3DCommandList());
 				streamTexture->RecordReadback(commandList.D3DCommandList());
 			});

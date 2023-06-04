@@ -68,6 +68,7 @@ namespace GHL {
 		Present                         = 1 << 14,
 		DepthRead                       = 1 << 15,
 		DepthWrite                      = 1 << 16,
+		IndexBuffer						= 1 << 17,
 		VertexAndConstantBuffer         = 1 << 18,
 
 		AnyShaderAccess = PixelShaderAccess | NonPixelShaderAccess
@@ -75,6 +76,12 @@ namespace GHL {
 	ENABLE_BITMASK_OPERATORS(EResourceState);
 
 	D3D12_RESOURCE_STATES GetD3DResourceStates(EResourceState state);
+
+	bool IsReadResourceState(EResourceState state);
+
+	bool IsRWResourceState(EResourceState state);
+
+	bool IsWriteResourceState(EResourceState state);
 
 	enum class EGPUQueue : uint8_t {
 		Graphics = 0,

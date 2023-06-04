@@ -7,6 +7,13 @@
 namespace UI {
     bool UIManger::CreateDeviceD3D(HWND hWnd)
     {
+        SUCCEEDED(CreateDXGIFactory(IID_PPV_ARGS(&g_DXGIFactory)));
+
+        uint32_t i = 1;
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+
+        SUCCEEDED(g_DXGIFactory->EnumAdapters1(i, &adapter));
+
         // Setup swap chain
         DXGI_SWAP_CHAIN_DESC1 sd;
         {
@@ -30,8 +37,8 @@ namespace UI {
             pdx12Debug->EnableDebugLayer();
 
         // Create device
-        D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
-        if (D3D12CreateDevice(NULL, featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
+        D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_12_1;
+        if (D3D12CreateDevice(adapter.Get(), featureLevel, IID_PPV_ARGS(&g_pd3dDevice)) != S_OK)
             return false;
 
         if (pdx12Debug != NULL)

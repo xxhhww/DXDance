@@ -33,11 +33,23 @@ namespace Renderer {
 
 		void ClearCounterBuffer(Buffer* buffer, uint32_t value);
 
-		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly = true);
+		void CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer);
+
+		GHL::ResourceBarrierBatch TransitionImmediately(Resource* buffer, GHL::EResourceState newState, bool tryImplicitly = true);
 		
 		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = true);
 
 		void FlushResourceBarrier(const GHL::ResourceBarrierBatch& barrierBatch);
+		
+		/*
+		*   _In_  ID3D12CommandSignature *pCommandSignature,
+            _In_  UINT MaxCommandCount,
+            _In_  ID3D12Resource *pArgumentBuffer,
+            _In_  UINT64 ArgumentBufferOffset,
+            _In_opt_  ID3D12Resource *pCountBuffer,
+            _In_  UINT64 CountBufferOffset
+		*/
+		void ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount);
 
 		ID3D12GraphicsCommandList4* D3DCommandList() const;
 		

@@ -112,14 +112,16 @@ namespace Renderer {
 			[this](BufferDesc& desc) {
 				if (desc.usage == GHL::EResourceUsage::Default) {
 					if (HasAllFlags(desc.miscFlag, GHL::EBufferMiscFlag::StructuredBuffer)) {
-						desc.size = Math::AlignUp(desc.size, 65536);;
+						desc.size = Math::AlignUp(desc.size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);;
 					}
+					/*
 					if (HasAllFlags(desc.expectedState, GHL::EResourceState::RaytracingAccelerationStructure)) {
 						desc.initialState |= GHL::EResourceState::RaytracingAccelerationStructure;
 					}
 					else if (HasAllFlags(desc.expectedState, GHL::EResourceState::IndirectArgument)) {
 						desc.initialState |= GHL::EResourceState::IndirectArgument;
 					}
+					*/
 				}
 				else if (desc.usage == GHL::EResourceUsage::Upload) {
 					desc.initialState |= GHL::EResourceState::GenericRead;

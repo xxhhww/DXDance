@@ -453,12 +453,14 @@ RecordRenderCommand:
 					if (!lastRequiredQueues.empty()) break;
 					lastDlIndex--;
 				}
+				/*
 				if (lastRequiredQueues.empty()) {
 					// 节点写入的资源无人使用
 					auto* targetTransitionNode = currDL->transitionNodePerQueue.at(*currRequiredQueues.begin());
 					targetTransitionNode->expectedSubresourceStatesMap[writeSubresourceID] = currExpectedStates;
 					continue;
 				}
+				*/
 
 				uint8_t targetQueueIndex = *currRequiredQueues.begin();
 				while (targetQueueIndex >= 0) {

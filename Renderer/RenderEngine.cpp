@@ -124,6 +124,7 @@ namespace Renderer {
 			};
 
 			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+
 			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
 
 			// Â¼ÖÆEditor Render PassÃüÁî

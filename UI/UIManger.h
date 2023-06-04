@@ -70,6 +70,7 @@ namespace UI {
 		UINT			g_frameIndex = 0;
 
 		inline static int const	NUM_BACK_BUFFERS = 3;
+		IDXGIFactory2* g_DXGIFactory = NULL;
 		ID3D12Device* g_pd3dDevice = NULL;
 		ID3D12DescriptorHeap* g_pd3dRtvDescHeap = NULL;
 		ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;

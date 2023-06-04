@@ -216,18 +216,22 @@ namespace Renderer {
 	void Buffer::CreateCounterBuffer() {
 		const auto& bufferDesc = mResourceFormat.GetBufferDesc();
 
-		if (!HasAllFlags(bufferDesc.expectedState, GHL::EResourceState::UnorderedAccess)
+		/*
+		* 为每一个在默认堆上的Buffer创建一个CounterBuffer
+		*/
+		if (!HasAllFlags(bufferDesc.usage, GHL::EResourceUsage::Default)
 			|| HasAllFlags(bufferDesc.miscFlag, GHL::EBufferMiscFlag::RawBuffer)
 			|| mCounterBuffer != nullptr) {
 			return;
 		}
 
 		BufferDesc counterBufferDesc{};
-		counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess;
+		counterBufferDesc.initialState = GHL::EResourceState::Common;
+		counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopyDestination | GHL::EResourceState::CopySource | GHL::EResourceState::IndirectArgument;
 		counterBufferDesc.miscFlag = GHL::EBufferMiscFlag::RawBuffer;
 		counterBufferDesc.size = 4u;
 		counterBufferDesc.stride = 0u;
 		counterBufferDesc.usage = GHL::EResourceUsage::Default;
-		mCounterBuffer = std::make_unique<Buffer>(mDevice, ResourceFormat{ mDevice, counterBufferDesc }, nullptr, nullptr);
+		mCounterBuffer = std::make_unique<Buffer>(mDevice, ResourceFormat{ mDevice, counterBufferDesc }, mDescriptorAllocator, nullptr);
 	}
 }

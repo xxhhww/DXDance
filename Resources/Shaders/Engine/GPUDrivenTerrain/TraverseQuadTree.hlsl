@@ -9,14 +9,15 @@ struct NodeDescriptor{
 };
 
 struct LODDescriptor{
-	float nodeSize;         // 该LOD中每一个Node的边长(米)(Node是正方形)
-	float nodeStartOffset;  // 该LOD中的第一个Node的开始偏移量
-	float pad1;
+	uint nodeSize;         // 该LOD中每一个Node的边长(米)(Node是正方形)
+	uint nodeStartOffset;  // 该LOD中的第一个Node的开始偏移量
+	uint nodeCount;
 	float pad2;
 };
 
 struct PassData{
-	float3 nodeEvaluationC;		// 用户控制的节点评估系数	
+	float3 nodeEvaluationC;		// 用户控制的节点评估系数
+	float pad1;
 	float2 worldSize;			// 世界在XZ轴方向的大小(米)
 	uint currPassLOD;
 	uint currLODNodeListIndex;
@@ -24,7 +25,6 @@ struct PassData{
 	uint finalNodeListIndex;
 	uint nodeDescriptorListIndex;
 	uint lodDescriptorListIndex;
-	float pad1;
 };
 #define PassDataType PassData
 
@@ -68,7 +68,7 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
     float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXYZ.xyz);
     float nodeSizeInMeter = currLODDescriptor.nodeSize;
     float f = dis / (nodeSizeInMeter * PassDataCB.nodeEvaluationC.x);
-    if( f < 1){
+    if(f < 1){
         return true;
     }
     return false;

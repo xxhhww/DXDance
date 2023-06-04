@@ -57,6 +57,11 @@ namespace Renderer {
 		RenderGraphResourceID ReadBuffer(const std::string& name, const ShaderAccessFlag& accessFlag);
 
 		/*
+		* 定义当前Pass期望该资源状态为CopyDest
+		*/
+		RenderGraphResourceID WriteCopyDstBuffer(const std::string& name);
+
+		/*
 		* 设置Pass所属的GPU引擎(默认为图形引擎)
 		*/
 		void SetPassExecutionQueue(GHL::EGPUQueue queueIndex = GHL::EGPUQueue::Graphics);

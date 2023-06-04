@@ -22,8 +22,39 @@ namespace GHL {
 		if (HasAllFlags(state, EResourceState::Present)) d3dState |= D3D12_RESOURCE_STATE_PRESENT;
 		if (HasAllFlags(state, EResourceState::DepthRead)) d3dState |= D3D12_RESOURCE_STATE_DEPTH_READ;
 		if (HasAllFlags(state, EResourceState::DepthWrite)) d3dState |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+		if (HasAllFlags(state, EResourceState::IndexBuffer)) d3dState |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
 		if (HasAllFlags(state, EResourceState::VertexAndConstantBuffer)) d3dState |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 		return d3dState;
+	}
+
+	bool IsReadResourceState(EResourceState state) {
+		EResourceState readStates =
+			EResourceState::VertexAndConstantBuffer |
+			EResourceState::IndexBuffer |
+			EResourceState::NonPixelShaderAccess |
+			EResourceState::PixelShaderAccess |
+			EResourceState::IndirectArgument |
+			EResourceState::CopySource |
+			EResourceState::DepthRead;
+
+		return HasAnyFlag(state, readStates);
+	}
+
+	bool IsRWResourceState(EResourceState state) {
+		EResourceState rwStates =
+			EResourceState::UnorderedAccess |
+			EResourceState::DepthWrite;
+
+		return HasAnyFlag(state, rwStates);
+	}
+
+	bool IsWriteResourceState(EResourceState state) {
+		EResourceState writeStates =
+			EResourceState::CopyDestination |
+			EResourceState::RenderTarget |
+			EResourceState::StreamOut;
+
+		return HasAnyFlag(state, writeStates);
 	}
 
 	bool IsStatesSupportedOnQueue(EResourceState state, EGPUQueue queue) {

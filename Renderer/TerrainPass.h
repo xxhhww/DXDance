@@ -6,7 +6,7 @@ namespace Renderer {
 	class TerrainPass {
 	public:
 		struct NodeDescriptor {
-			uint32_t isBranch;
+			uint32_t isBranch = true;
 			float pad1;
 			float pad2;
 			float pad3;

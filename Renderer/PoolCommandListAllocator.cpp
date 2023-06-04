@@ -28,6 +28,7 @@ namespace Renderer {
 		auto* slot = mGraphicsPool.Allocate();
 		if (!slot->userData.commandListIndex) {
 			mGraphicsCommandAllocators.emplace_back(new GHL::CommandAllocator(mDevice, D3D12_COMMAND_LIST_TYPE_DIRECT));
+			mGraphicsCommandAllocators.back()->SetDebugName("Graphics" + std::to_string(slot->id));
 			mGraphicsCommandLists.emplace_back(new GHL::CommandList(mDevice, mGraphicsCommandAllocators.back()->D3DCommandAllocator(), D3D12_COMMAND_LIST_TYPE_DIRECT));
 
 			slot->userData.commandListIndex = mGraphicsCommandLists.size() - 1;
@@ -45,6 +46,7 @@ namespace Renderer {
 		auto* commandListAllocator = mGraphicsCommandAllocators.at(*slot->userData.commandListIndex).get();
 		commandListAllocator->Reset();
 		commandList->Reset();
+		commandListAllocator->SetDebugName("Graphics" + std::to_string(slot->id));
 
 		Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_DIRECT };
 		return CommandListWrap{
@@ -76,6 +78,7 @@ namespace Renderer {
 		auto* commandListAllocator = mComputeCommandAllocators.at(*slot->userData.commandListIndex).get();
 		commandListAllocator->Reset();
 		commandList->Reset();
+		commandListAllocator->SetDebugName("Compute" + std::to_string(slot->id));
 
 		Deallocation deallocation{ slot, D3D12_COMMAND_LIST_TYPE_COMPUTE };
 		return CommandListWrap{

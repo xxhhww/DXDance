@@ -31,7 +31,7 @@ v2p VSMain(a2v input)
 float4 PSMain(v2p input) : SV_TARGET
 {
 	FeedbackTexture2D<SAMPLER_FEEDBACK_MIN_MIP> feedback = ResourceDescriptorHeap[0];
-	Texture2D streamTexture = ResourceDescriptorHeap[6];
+	Texture2D streamTexture = ResourceDescriptorHeap[1];
 
 	feedback.WriteSamplerFeedback(streamTexture, SamplerPointClamp, input.uv);
 

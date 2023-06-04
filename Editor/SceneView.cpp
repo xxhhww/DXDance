@@ -133,7 +133,7 @@ namespace App {
 			return;
 		}
 
-		HandleActorPicking();
+		// HandleActorPicking();
 
 		// ¸üÐÂPerFrameData
 		mRenderEngine->Update(dt, *mEditorCamera, *mEditorTransform);
