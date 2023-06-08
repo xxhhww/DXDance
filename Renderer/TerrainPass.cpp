@@ -16,24 +16,23 @@ namespace Renderer {
 
 	void TerrainPass::AddPass(RenderGraph& renderGraph) {
 
-		uint32_t _NodeListSize = 100u;
+		uint32_t _MaxNodeListSize = 200u;
+		uint32_t _TmpNodeListSize = 50u;
 
 		UpdateNodeAndLodDescriptorArray();
 
 		renderGraph.AddPass(
 			"TraverseQuadTree",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
-				// Debug代码，后续要删除
-				builder.WriteRenderTarget("FinalOutput");
-
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				shaderManger.CreateComputeShader("TraverseQuadTree",
 					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TraverseQuadTree.hlsl";
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
+						proxy.csEntryPoint = "TraverseQuadTree";
 					});
 
-				commandSignatureManger.CreateCommandSignature("CmdSig_TraverseQuadTree",
+				commandSignatureManger.CreateCommandSignature("TraverseQuadTree",
 					[&](GHL::CommandSignature& proxy) {
 						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
 						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
@@ -50,23 +49,23 @@ namespace Renderer {
 				builder.DeclareBuffer("TraverseQuadTreeIndirectArgs", _TraverseQuadTreeIndirectArgsProperties);
 				builder.WriteCopyDstBuffer("TraverseQuadTreeIndirectArgs");
 
-				NewBufferProperties _CurrLODNodeListProperties;
-				_CurrLODNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
-				_CurrLODNodeListProperties.size = _NodeListSize * _CurrLODNodeListProperties.stride;
-				_CurrLODNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				builder.DeclareBuffer("CurrLODNodeList", _CurrLODNodeListProperties);
-				builder.WriteBuffer("CurrLODNodeList");
+				NewBufferProperties _ConsumeNodeListProperties;
+				_ConsumeNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
+				_ConsumeNodeListProperties.size = _TmpNodeListSize * _ConsumeNodeListProperties.stride;
+				_ConsumeNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				builder.DeclareBuffer("ConsumeNodeList", _ConsumeNodeListProperties);
+				builder.WriteBuffer("ConsumeNodeList");
 
-				NewBufferProperties _NextLODNodeListProperties;
-				_NextLODNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
-				_NextLODNodeListProperties.size = _NodeListSize * _NextLODNodeListProperties.stride;
-				_NextLODNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				builder.DeclareBuffer("NextLODNodeList", _NextLODNodeListProperties);
-				builder.WriteBuffer("NextLODNodeList");
+				NewBufferProperties _AppendNodeListProperties;
+				_AppendNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
+				_AppendNodeListProperties.size = _TmpNodeListSize * _AppendNodeListProperties.stride;
+				_AppendNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				builder.DeclareBuffer("AppendNodeList", _AppendNodeListProperties);
+				builder.WriteBuffer("AppendNodeList");
 
 				NewBufferProperties _FinalNodeListProperties;
 				_FinalNodeListProperties.stride = sizeof(uint32_t) * 3u; // uint3
-				_FinalNodeListProperties.size = _NodeListSize * _FinalNodeListProperties.stride;
+				_FinalNodeListProperties.size = _MaxNodeListSize * _FinalNodeListProperties.stride;
 				_FinalNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("FinalNodeList", _FinalNodeListProperties);
 				builder.WriteBuffer("FinalNodeList");
@@ -79,7 +78,7 @@ namespace Renderer {
 				builder.WriteBuffer("NodeDescriptorList");
 
 				NewBufferProperties _LODDescriptorListProperties;
-				_LODDescriptorListProperties.stride = sizeof(LodDescriptor);
+				_LODDescriptorListProperties.stride = sizeof(LODDescriptor);
 				_LODDescriptorListProperties.size = lodDescriptors.size() * _LODDescriptorListProperties.stride;
 				_LODDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("LODDescriptorList", _LODDescriptorListProperties);
@@ -89,18 +88,19 @@ namespace Renderer {
 				auto* dynamicAllocator       = renderContext.dynamicAllocator;
 				auto* resourceStorage        = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
-				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("CmdSig_TraverseQuadTree");
 
-				auto* currLODNodeList    = resourceStorage->GetResourceByName("CurrLODNodeList")->GetBuffer();
-				auto* nextLODNodeList    = resourceStorage->GetResourceByName("NextLODNodeList")->GetBuffer();
+				auto* consumeNodeList    = resourceStorage->GetResourceByName("ConsumeNodeList")->GetBuffer();
+				auto* appendNodeList     = resourceStorage->GetResourceByName("AppendNodeList")->GetBuffer();
 				auto* finalNodeList      = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
 				auto* nodeDescriptorList = resourceStorage->GetResourceByName("NodeDescriptorList")->GetBuffer();
 				auto* lodDescriptorList  = resourceStorage->GetResourceByName("LODDescriptorList")->GetBuffer();
 				auto* indirectArgs       = resourceStorage->GetResourceByName("TraverseQuadTreeIndirectArgs")->GetBuffer();
+				
+				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TraverseQuadTree");
 
 				passData.currPassLOD = maxLOD;
-				passData.currLODNodeListIndex    = currLODNodeList->GetUADescriptor()->GetHeapIndex();
-				passData.nextLODNodeListIndex    = nextLODNodeList->GetUADescriptor()->GetHeapIndex();
+				passData.consumeNodeListIndex    = consumeNodeList->GetUADescriptor()->GetHeapIndex();
+				passData.appendNodeListIndex     = appendNodeList->GetUADescriptor()->GetHeapIndex();
 				passData.finalNodeListIndex      = finalNodeList->GetUADescriptor()->GetHeapIndex();
 				passData.nodeDescriptorListIndex = nodeDescriptorList->GetUADescriptor()->GetHeapIndex();
 				passData.lodDescriptorListIndex  = lodDescriptorList->GetUADescriptor()->GetHeapIndex();
@@ -110,7 +110,7 @@ namespace Renderer {
 
 				IndirectCommand indirectCommand{};
 				indirectCommand.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-				indirectCommand.passDataAddress = passDataAlloc.gpuAddress;
+				indirectCommand.passDataAddress  = passDataAlloc.gpuAddress;
 				indirectCommand.dispatchArguments.ThreadGroupCountX = maxLODNodeList.size();
 				indirectCommand.dispatchArguments.ThreadGroupCountY = 1u;
 				indirectCommand.dispatchArguments.ThreadGroupCountZ = 1u;
@@ -118,8 +118,10 @@ namespace Renderer {
 				commandBuffer.SetComputeRootSignature();
 				commandBuffer.SetComputePipelineState("TraverseQuadTree");
 
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+
 				if (!isInitialized) {
-					auto barrierBatch = commandBuffer.TransitionImmediately(nodeDescriptorList, GHL::EResourceState::CopyDestination);
+					barrierBatch =  commandBuffer.TransitionImmediately(nodeDescriptorList, GHL::EResourceState::CopyDestination);
 					barrierBatch += commandBuffer.TransitionImmediately(lodDescriptorList, GHL::EResourceState::CopyDestination);
 					commandBuffer.FlushResourceBarrier(barrierBatch);
 
@@ -127,48 +129,158 @@ namespace Renderer {
 						nodeDescriptors.data(), nodeDescriptors.size() * sizeof(TerrainPass::NodeDescriptor)
 					);
 					commandBuffer.UploadBufferRegion(lodDescriptorList, 0u,
-						lodDescriptors.data(), lodDescriptors.size() * sizeof(TerrainPass::LodDescriptor)
+						lodDescriptors.data(), lodDescriptors.size() * sizeof(TerrainPass::LODDescriptor)
 					);
 
 					isInitialized = true;
 				}
 
-				auto barrierBatch = commandBuffer.TransitionImmediately(nodeDescriptorList, GHL::EResourceState::UnorderedAccess);
+				
+				barrierBatch =  commandBuffer.TransitionImmediately(nodeDescriptorList, GHL::EResourceState::UnorderedAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(lodDescriptorList, GHL::EResourceState::UnorderedAccess);
-				barrierBatch += commandBuffer.TransitionImmediately(currLODNodeList, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(appendNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectCommand, sizeof(IndirectCommand));
 				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
 
-
-				commandBuffer.UploadBufferRegion(currLODNodeList, 0u,
+				commandBuffer.UploadBufferRegion(consumeNodeList, 0u,
 					maxLODNodeList.data(), maxLODNodeList.size() * sizeof(TerrainPass::NodeLocation)
 				);
-				commandBuffer.ClearCounterBuffer(currLODNodeList, maxLODNodeList.size());
+				commandBuffer.ClearCounterBuffer(consumeNodeList, maxLODNodeList.size());
 
-				commandBuffer.ClearCounterBuffer(nextLODNodeList, 0u);
+				commandBuffer.ClearCounterBuffer(appendNodeList, 0u);
 				commandBuffer.ClearCounterBuffer(finalNodeList, 0u);
 
-				for (int32_t lod = maxLOD; lod >= maxLOD; lod--) {
+				for (int32_t lod = maxLOD; lod >= 0; lod--) {
 					if (lod != maxLOD) {
-					
+						// 更新PassData
+						uint32_t tempValue = passData.consumeNodeListIndex;
+						passData.consumeNodeListIndex = passData.appendNodeListIndex;
+						passData.appendNodeListIndex  = tempValue;
+						passData.currPassLOD = lod;
+
+						passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::PassData), 256u);
+						memcpy(passDataAlloc.cpuAddress, &passData, sizeof(TerrainPass::PassData));
+
+						// 更新IndirectArgs
+						barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
+						barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+						barrierBatch += commandBuffer.TransitionImmediately(appendNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+						commandBuffer.FlushResourceBarrier(barrierBatch);
+
+						commandBuffer.UploadBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 1u, &passDataAlloc.gpuAddress, sizeof(D3D12_GPU_VIRTUAL_ADDRESS));
+						commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 2u, consumeNodeList->GetCounterBuffer(), 0u, sizeof(uint32_t));
+						commandBuffer.ClearCounterBuffer(appendNodeList, 0u);
 					}
 					// ExecuteIndirect
-					auto indirectArgsBarrierBatch = commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
-					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
-					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(nextLODNodeList, GHL::EResourceState::UnorderedAccess);
-					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(nextLODNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
-					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(finalNodeList, GHL::EResourceState::UnorderedAccess);
-					indirectArgsBarrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
-					commandBuffer.FlushResourceBarrier(indirectArgsBarrierBatch);
+					barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+					barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+					barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList, GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(appendNodeList, GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(appendNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(finalNodeList, GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
 
-					commandBuffer.D3DCommandList()->ExecuteIndirect(cmdSig, 1u, indirectArgs->D3DResource(), 0u, indirectArgs->GetCounterBuffer()->D3DResource(), 0u);
+					commandBuffer.ExecuteIndirect("TraverseQuadTree", indirectArgs, 1u);
+				
+					Buffer* tempBuffer = consumeNodeList;
+					consumeNodeList = appendNodeList;
+					appendNodeList = tempBuffer;
 				}
 			}
 		);
 
+		renderGraph.AddPass(
+			"BuildPatches",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
+				// Debug代码，后续要删除
+				builder.WriteRenderTarget("FinalOutput");
 
+				shaderManger.CreateComputeShader("BuildPatches",
+					[](ComputeStateProxy& proxy) {
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
+						proxy.csEntryPoint = "BuildPatches";
+					});
+
+				commandSignatureManger.CreateCommandSignature("BuildPatches",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectCommand));
+					});
+
+				builder.ReadBuffer("FinalNodeList", ShaderAccessFlag::NonPixelShader);
+
+				NewBufferProperties _CulledPatchListProperties{};
+				_CulledPatchListProperties.stride = sizeof(TerrainPass::RenderPatch);
+				_CulledPatchListProperties.size = _MaxNodeListSize * _CulledPatchListProperties.stride;
+				_CulledPatchListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				builder.DeclareBuffer("CulledPatchList", _CulledPatchListProperties);
+				builder.WriteBuffer("CulledPatchList");
+
+				NewBufferProperties _BuildPatchesIndirectArgsProperties{};
+				_BuildPatchesIndirectArgsProperties.stride = sizeof(IndirectCommand);
+				_BuildPatchesIndirectArgsProperties.size = sizeof(IndirectCommand);
+				_BuildPatchesIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_BuildPatchesIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("BuildPatchesIndirectArgs", _BuildPatchesIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("BuildPatchesIndirectArgs");
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator       = renderContext.dynamicAllocator;
+				auto* resourceStorage        = renderContext.resourceStorage;
+				auto* commandSignatureManger = renderContext.commandSignatureManger;
+
+				auto* finalNodeList   = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
+				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* indirectArgs    = resourceStorage->GetResourceByName("BuildPatchesIndirectArgs")->GetBuffer();
+
+				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("BuildPatches");
+
+				passData.finalNodeListIndex   = finalNodeList->GetSRDescriptor()->GetHeapIndex();
+				passData.culledPatchListIndex = culledPatchList->GetUADescriptor()->GetHeapIndex();
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::PassData));
+				memcpy(passDataAlloc.cpuAddress, &passData, sizeof(TerrainPass::PassData));
+
+				IndirectCommand indirectCommand{};
+				indirectCommand.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectCommand.passDataAddress = passDataAlloc.gpuAddress;
+				indirectCommand.dispatchArguments.ThreadGroupCountX = 1u;
+				indirectCommand.dispatchArguments.ThreadGroupCountY = 1u;
+				indirectCommand.dispatchArguments.ThreadGroupCountZ = 1u;
+
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("BuildPatches");
+
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectCommand, sizeof(IndirectCommand));
+				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
+
+				commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 2u, finalNodeList->GetCounterBuffer(), 0u, sizeof(uint32_t));
+
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.ExecuteIndirect("BuildPatches", indirectArgs, 1u);
+			}
+		);
 	}
 
 	void TerrainPass::UpdateNodeAndLodDescriptorArray() {

@@ -51,19 +51,10 @@ namespace Renderer {
 		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(sizeof(uint32_t), 256u);
 		memcpy(dyAlloc.cpuAddress, &value, sizeof(uint32_t));
 
-		// CounterBuffer的状态转换消耗可以忽略不计，因此直接在CommandBuffer内部进行状态转换
-		auto barrierBatch = this->TransitionImmediately(buffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-		this->FlushResourceBarrier(barrierBatch);
-
 		mCommandList->D3DCommandList()->CopyBufferRegion(buffer->GetCounterBuffer()->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
 	}
 
 	void CommandBuffer::CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer) {
-		// CounterBuffer的状态转换消耗可以忽略不计，因此直接在CommandBuffer内部进行状态转换
-		auto barrierBatch = this->TransitionImmediately(dstBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-		barrierBatch += this->TransitionImmediately(srcBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
-		this->FlushResourceBarrier(barrierBatch);
-
 		this->CopyBufferRegion(dstBuffer->GetCounterBuffer(), 0u, srcBuffer->GetCounterBuffer(), 0u, sizeof(uint32_t));
 	}
 
@@ -88,10 +79,6 @@ namespace Renderer {
 
 	void CommandBuffer::ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount) {
 		auto* cmdSig = mRenderContext->commandSignatureManger->GetD3DCommandSignature(name);
-		
-		// CounterBuffer的状态转换消耗可以忽略不计，因此直接在CommandBuffer内部进行状态转换
-		auto barrierBatch = this->TransitionImmediately(argumentBuffer->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
-		this->FlushResourceBarrier(barrierBatch);
 		
 		mCommandList->D3DCommandList()->ExecuteIndirect(cmdSig, maxCommandCount, argumentBuffer->D3DResource(), 0u, argumentBuffer->GetCounterBuffer()->D3DResource(), 0u);
 	}

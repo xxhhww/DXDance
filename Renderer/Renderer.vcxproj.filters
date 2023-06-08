@@ -70,9 +70,6 @@
     <Filter Include="头文件\Uploader">
       <UniqueIdentifier>{9c08e0a5-ef86-4ebf-9611-ffa6fc69c49a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\Terrain">
-      <UniqueIdentifier>{60bdf7e4-dcca-41dd-b409-3946acff289b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\Renderer\Terrain">
       <UniqueIdentifier>{d503db3a-3e67-4964-a225-0c1de2db2ac2}</UniqueIdentifier>
     </Filter>

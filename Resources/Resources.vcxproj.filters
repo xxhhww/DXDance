@@ -35,6 +35,6 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TraverseQuadTree.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainBuilder.hlsl" />
   </ItemGroup>
 </Project>

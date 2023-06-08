@@ -1,6 +1,9 @@
 #ifndef _TraverseQuadTree__
 #define _TraverseQuadTree__
 
+//一个Node拆成8x8个Patch
+#define PATCH_COUNT_PER_NODE_PER_AXIS 8
+
 struct NodeDescriptor{
 	uint isBranch;
 	float pad1;
@@ -16,8 +19,7 @@ struct LODDescriptor{
 };
 
 struct PassData{
-	float3 nodeEvaluationC;		// 用户控制的节点评估系数
-	float pad1;
+	float4 nodeEvaluationC;		// 用户控制的节点评估系数
 	float2 worldSize;			// 世界在XZ轴方向的大小(米)
 	uint currPassLOD;
 	uint currLODNodeListIndex;
@@ -25,7 +27,18 @@ struct PassData{
 	uint finalNodeListIndex;
 	uint nodeDescriptorListIndex;
 	uint lodDescriptorListIndex;
+	uint culledPatchListIndex;
+	float pad1;
+	float pad2;
+	float pad3;
 };
+
+struct RenderPatch{
+	float2 position;
+	uint lod;
+	float pad1;
+};
+
 #define PassDataType PassData
 
 #include "../MainEntryPoint.hlsl"
@@ -75,7 +88,7 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 }
 
 [numthreads(1, 1, 1)]
-void CSMain(uint3 DTid : SV_DispatchThreadID)
+void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 {
 	ConsumeStructuredBuffer<uint2>     currLODNodeList    = ResourceDescriptorHeap[PassDataCB.currLODNodeListIndex];
 	AppendStructuredBuffer<uint2>      nextLODNodeList    = ResourceDescriptorHeap[PassDataCB.nextLODNodeListIndex];
@@ -105,6 +118,37 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
 		currNodeDescriptor.isBranch = false;
 	}
 	nodeDescriptorList[nodeGlobalID] = currNodeDescriptor;
+}
+
+RenderPatch CreatePatch(uint3 nodeLoc,uint2 patchOffset){
+    uint lod = nodeLoc.z;
+
+	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+	LODDescriptor currLODDescriptor = lodDescriptorList[lod];
+
+    float nodeMeterSize = currLODDescriptor.nodeSize;
+    float patchMeterSize = nodeMeterSize / PATCH_COUNT_PER_NODE_PER_AXIS;
+    float2 nodeWSPositionXZ = GetNodeWSPositionXZ(nodeLoc.xy,lod);
+
+    uint2 patchLoc = nodeLoc.xy * PATCH_COUNT_PER_NODE_PER_AXIS + patchOffset;
+
+    RenderPatch patch;
+    patch.lod = lod;
+    patch.position = nodeWSPositionXZ + (patchOffset - (PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f) * patchMeterSize;
+    return patch;
+}
+
+[numthreads(64, 1, 1)]
+void BuildPatches(uint3 id : SV_DispatchThreadID,uint3 groupId:SV_GroupID,uint3 groupThreadId:SV_GroupThreadID)
+{
+	StructuredBuffer<uint3>         finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
+	RWStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+
+	uint3 nodeLoc = finalNodeList[groupId.x];
+    uint2 patchOffset = groupThreadId.xy;
+    //生成Patch
+    RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
+    culledPatchList.Append(patch);
 }
 
 #endif

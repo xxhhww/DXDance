@@ -12,23 +12,26 @@ namespace Renderer {
 			float pad3;
 		};
 
-		struct LodDescriptor {
+		struct LODDescriptor {
 			uint32_t nodeSize;			// 该LOD中每一个Node的边长(米)(Node是正方形)
 			uint32_t nodeStartOffset;	// 该LOD中的第一个Node的开始偏移量
 			uint32_t nodeCount;			// 该LOD中的Node的总个数
-			float pad2;
+			float pad1;
 		};
 
 		struct PassData {
-			Math::Vector3 nodeEvaluationC{ 1.2f, 0.0f, 0.0f };	// 用户控制的节点评估系数
-			float pad1;
-			Math::Vector2 worldSize{ 10240u, 10240u };			// 世界在XZ轴方向的大小(米)
+			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
+			Math::Vector2 worldSize{ 10240u, 10240u };					// 世界在XZ轴方向的大小(米)
 			uint32_t currPassLOD;
-			uint32_t currLODNodeListIndex;
-			uint32_t nextLODNodeListIndex;
+			uint32_t consumeNodeListIndex;
+			uint32_t appendNodeListIndex;
 			uint32_t finalNodeListIndex;
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
+			uint32_t culledPatchListIndex;
+			float pad1;
+			float pad2;
+			float pad3;
 		};
 
 		struct NodeLocation {
@@ -36,15 +39,21 @@ namespace Renderer {
 			uint32_t y;
 		};
 
+		struct RenderPatch {
+			Math::Vector2 position;
+			uint32_t lod;
+			float pad1;
+		};
+
 	public:
 		uint32_t maxLOD{ 5u };	// 最大LOD等级
 		uint32_t mostDetailNodeSize{ 64u }; // 最精细的节点的大小(单位: 米)
 		std::vector<NodeDescriptor> nodeDescriptors;
-		std::vector<LodDescriptor>  lodDescriptors;
+		std::vector<LODDescriptor>  lodDescriptors;
 		std::vector<NodeLocation>   maxLODNodeList;
 		PassData passData;
 
-		bool isInitialized{ false }; // 是否需要更新Node与Lod的DescriptorArray
+		bool isInitialized{ false };
 
 	public:
 		void AddPass(RenderGraph& renderGraph);

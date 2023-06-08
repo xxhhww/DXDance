@@ -41,14 +41,6 @@ namespace Renderer {
 
 		void FlushResourceBarrier(const GHL::ResourceBarrierBatch& barrierBatch);
 		
-		/*
-		*   _In_  ID3D12CommandSignature *pCommandSignature,
-            _In_  UINT MaxCommandCount,
-            _In_  ID3D12Resource *pArgumentBuffer,
-            _In_  UINT64 ArgumentBufferOffset,
-            _In_opt_  ID3D12Resource *pCountBuffer,
-            _In_  UINT64 CountBufferOffset
-		*/
 		void ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount);
 
 		ID3D12GraphicsCommandList4* D3DCommandList() const;

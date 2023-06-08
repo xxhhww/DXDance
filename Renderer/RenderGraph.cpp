@@ -87,8 +87,17 @@ namespace Renderer {
 
 			for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
 				{
-					// Flush Resource Barrier
+					auto* currCommandQueue = mCommandQueues.at(queueIndex);
+					auto* currFence = mFences.at(queueIndex).get();
 					auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
+
+					// Wait Command
+					for (const auto& waitInfo : transitionNode->waitInfos) {
+						if (waitInfo.crossFrame && mFrameTracker->IsFirstFrame()) continue;
+						currCommandQueue->WaitFence(*mFences.at(waitInfo.nodeToWait->executionQueueIndex).get());
+					}
+
+					// Flush Resource Barrier
 					if (transitionNode->expectedSubresourceStatesMap.empty()) {
 						goto RecordRenderCommand;
 					}
@@ -114,15 +123,6 @@ namespace Renderer {
 
 					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
 					commandList->D3DCommandList()->ResourceBarrier(allBatches.Size(), allBatches.D3DBarriers());
-
-					auto* currCommandQueue = mCommandQueues.at(queueIndex);
-					auto* currFence = mFences.at(queueIndex).get();
-
-					// Wait Command
-					for (const auto& waitInfo : transitionNode->waitInfos) {
-						if (waitInfo.crossFrame && mFrameTracker->IsFirstFrame()) continue;
-						currCommandQueue->WaitFence(*mFences.at(waitInfo.nodeToWait->executionQueueIndex).get());
-					}
 
 					// Close And Execute CommandList
 					commandList->Close();
@@ -495,34 +495,34 @@ RecordRenderCommand:
 
 		// 构建由顺序执行产生的GraphEdge
 		{
-		std::vector<std::vector<GraphNode*>> graphNodesPerQueue;
-		graphNodesPerQueue.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
-		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
-			auto* currDL = mDependencyLevelList.at(i).get();
-			auto* lastDL = i == 0u ? nullptr : mDependencyLevelList.at(i - 1u).get();
+			std::vector<std::vector<GraphNode*>> graphNodesPerQueue;
+			graphNodesPerQueue.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
+			for (size_t i = 0; i < mDependencyLevelList.size(); i++) {
+				auto* currDL = mDependencyLevelList.at(i).get();
+				auto* lastDL = i == 0u ? nullptr : mDependencyLevelList.at(i - 1u).get();
 
-			for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
+				for (uint8_t queueIndex = 0u; queueIndex < std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count); queueIndex++) {
 
-				// Add Transiton Node
-				if (!currDL->transitionNodePerQueue.at(queueIndex)->expectedSubresourceStatesMap.empty()) {
-					auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
-					if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
-						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
-						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, transitionNode->graphNodeIndex, false, false);
+					// Add Transiton Node
+					if (!currDL->transitionNodePerQueue.at(queueIndex)->expectedSubresourceStatesMap.empty()) {
+						auto* transitionNode = currDL->transitionNodePerQueue.at(queueIndex);
+						if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
+							auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
+							mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, transitionNode->graphNodeIndex, false, false);
+						}
+						graphNodesPerQueue.at(queueIndex).push_back(transitionNode);
 					}
-					graphNodesPerQueue.at(queueIndex).push_back(transitionNode);
-				}
 
-				// Add Pass Node
-				for (const auto& passNode : currDL->passNodesPerQueue.at(queueIndex)) {
-					if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
-						auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
-						mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, passNode->graphNodeIndex, false, false);
+					// Add Pass Node
+					for (const auto& passNode : currDL->passNodesPerQueue.at(queueIndex)) {
+						if (graphNodesPerQueue.at(queueIndex).size() > 0u) {
+							auto* backGraphNode = graphNodesPerQueue.at(queueIndex).back();
+							mGraphEdges.emplace_back(backGraphNode->graphNodeIndex, passNode->graphNodeIndex, false, false);
+						}
+						graphNodesPerQueue.at(queueIndex).push_back(passNode);
 					}
-					graphNodesPerQueue.at(queueIndex).push_back(passNode);
 				}
 			}
-		}
 		}
 
 	}
