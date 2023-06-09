@@ -1,24 +1,30 @@
-#ifndef _TraverseQuadTree__
-#define _TraverseQuadTree__
+#ifndef _TerrainBuilder__
+#define _TerrainBuilder__
 
 //一个Node拆成8x8个Patch
 #define PATCH_COUNT_PER_NODE_PER_AXIS 8
 
-struct NodeDescriptor{
+struct NodeDescriptor {
 	uint isBranch;
 	float pad1;
 	float pad2;
 	float pad3;
 };
 
-struct LODDescriptor{
+struct LODDescriptor {
 	uint nodeSize;         // 该LOD中每一个Node的边长(米)(Node是正方形)
 	uint nodeStartOffset;  // 该LOD中的第一个Node的开始偏移量
 	uint nodeCount;
 	float pad2;
 };
 
-struct PassData{
+struct RenderPatch {
+	float2 position;
+	uint lod;
+	float pad1;
+};
+
+struct PassData {
 	float4 nodeEvaluationC;		// 用户控制的节点评估系数
 	float2 worldSize;			// 世界在XZ轴方向的大小(米)
 	uint currPassLOD;
@@ -31,12 +37,6 @@ struct PassData{
 	float pad1;
 	float pad2;
 	float pad3;
-};
-
-struct RenderPatch{
-	float2 position;
-	uint lod;
-	float pad1;
 };
 
 #define PassDataType PassData
@@ -135,19 +135,21 @@ RenderPatch CreatePatch(uint3 nodeLoc,uint2 patchOffset){
     RenderPatch patch;
     patch.lod = lod;
     patch.position = nodeWSPositionXZ + (patchOffset - (PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f) * patchMeterSize;
-    return patch;
+    patch.pad1 = 0.0f;
+	return patch;
 }
 
-[numthreads(64, 1, 1)]
-void BuildPatches(uint3 id : SV_DispatchThreadID,uint3 groupId:SV_GroupID,uint3 groupThreadId:SV_GroupThreadID)
+[numthreads(8, 8, 1)]
+void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID)
 {
-	StructuredBuffer<uint3>         finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
-	RWStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	StructuredBuffer<uint3>             finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
+	AppendStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
 
 	uint3 nodeLoc = finalNodeList[groupId.x];
     uint2 patchOffset = groupThreadId.xy;
     //生成Patch
     RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
+
     culledPatchList.Append(patch);
 }
 

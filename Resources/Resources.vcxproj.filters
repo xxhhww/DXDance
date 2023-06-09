@@ -36,5 +36,7 @@
   <ItemGroup>
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainBuilder.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader.hlsl" />
   </ItemGroup>
 </Project>

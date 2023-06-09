@@ -1,7 +1,14 @@
 #pragma once
+#include <DirectStorage/dstorage.h>
 #include "RenderGraph.h"
 
+namespace GHL {
+	class Device;
+	class Fence;
+}
+
 namespace Renderer {
+	class Mesh;
 
 	class TerrainPass {
 	public:
@@ -19,7 +26,7 @@ namespace Renderer {
 			float pad1;
 		};
 
-		struct PassData {
+		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
 			Math::Vector2 worldSize{ 10240u, 10240u };					// 世界在XZ轴方向的大小(米)
 			uint32_t currPassLOD;
@@ -28,6 +35,13 @@ namespace Renderer {
 			uint32_t finalNodeListIndex;
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
+			uint32_t culledPatchListIndex;
+			float pad1;
+			float pad2;
+			float pad3;
+		};
+
+		struct TerrainRendererPassData {
 			uint32_t culledPatchListIndex;
 			float pad1;
 			float pad2;
@@ -46,19 +60,26 @@ namespace Renderer {
 		};
 
 	public:
+		bool isInitialized{ false };
 		uint32_t maxLOD{ 5u };	// 最大LOD等级
 		uint32_t mostDetailNodeSize{ 64u }; // 最精细的节点的大小(单位: 米)
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;
 		std::vector<NodeLocation>   maxLODNodeList;
-		PassData passData;
+		TerrainBuilderPassData  terrainBuilderPassData;
+		TerrainRendererPassData terrainRendererPassData;
 
-		bool isInitialized{ false };
+		std::unique_ptr<Renderer::Mesh> patchMesh;
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
+		void InitializePass(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, GHL::Device* device);
+
 	private:
+		/*
+		* 更新节点和LOD的描述数组
+		*/
 		void UpdateNodeAndLodDescriptorArray();
 	};
 
