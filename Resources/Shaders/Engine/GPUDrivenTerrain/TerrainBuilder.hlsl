@@ -58,10 +58,10 @@ float2 GetNodeWSPositionXZ(uint2 nodeLoc, uint lod) {
 	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
 	LODDescriptor currLODDescriptor = lodDescriptorList[lod];
 
-	float nodeSizeInMeter   = currLODDescriptor.nodeSize;	// 单位： /米
+	float nodeMeterSize   = currLODDescriptor.nodeSize;	// 单位： /米
 	float nodeCountPerRow   = PassDataCB.worldSize.x / currLODDescriptor.nodeSize;	// 单位： /个
 	float nodeCountPerCol   = PassDataCB.worldSize.y / currLODDescriptor.nodeSize;	// 单位： /个
-    float2 nodeWSPositionXZ = ((float2)nodeLoc - float2((nodeCountPerRow - 1) * 0.5f, (nodeCountPerCol - 1) * 0.5f)) * nodeSizeInMeter;
+    float2 nodeWSPositionXZ = ((float2)nodeLoc - float2((nodeCountPerRow - 1.0f) * 0.5f, (nodeCountPerCol - 1.0f) * 0.5f)) * nodeMeterSize;
     return nodeWSPositionXZ;
 }
 
@@ -79,8 +79,8 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 	// 对Node进行评估，决定是否对Node进行再次划分
     float3 wsPositionXYZ = GetNodeWSPositionXYZ(nodeLoc, lod);
     float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXYZ.xyz);
-    float nodeSizeInMeter = currLODDescriptor.nodeSize;
-    float f = dis / (nodeSizeInMeter * PassDataCB.nodeEvaluationC.x);
+    float nodeMeterSize = currLODDescriptor.nodeSize;
+    float f = dis / (nodeMeterSize * PassDataCB.nodeEvaluationC.x);
     if(f < 1){
         return true;
     }
@@ -104,7 +104,8 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 	// 根据GID获取NodeDescriptor
 	NodeDescriptor currNodeDescriptor = nodeDescriptorList[nodeGlobalID];
 
-	if(PassDataCB.currPassLOD > 0 && EvaluateNode(nodeLoc, PassDataCB.currPassLOD)) {
+	bool needBranch = EvaluateNode(nodeLoc, PassDataCB.currPassLOD);
+	if(PassDataCB.currPassLOD > 0 && needBranch) {
 		// 对Node进行划分
 		nextLODNodeList.Append(nodeLoc * 2);
 		nextLODNodeList.Append(nodeLoc * 2 + uint2(1, 0));
@@ -112,7 +113,10 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 		nextLODNodeList.Append(nodeLoc * 2 + uint2(1, 1));
 		currNodeDescriptor.isBranch = true;
 	}
-	else {
+	if(PassDataCB.currPassLOD == 0 || 
+	(PassDataCB.currPassLOD == 1 && needBranch == false) || 
+	(PassDataCB.currPassLOD == 2 && needBranch == false) || 
+	(PassDataCB.currPassLOD == 3 && needBranch == false)) {
 		// 不对Node进行划分，则是最终确定需要渲染的Node
 		finalNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
 		currNodeDescriptor.isBranch = false;
@@ -120,7 +124,7 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 	nodeDescriptorList[nodeGlobalID] = currNodeDescriptor;
 }
 
-RenderPatch CreatePatch(uint3 nodeLoc,uint2 patchOffset){
+RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset){
     uint lod = nodeLoc.z;
 
 	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
@@ -134,7 +138,7 @@ RenderPatch CreatePatch(uint3 nodeLoc,uint2 patchOffset){
 
     RenderPatch patch;
     patch.lod = lod;
-    patch.position = nodeWSPositionXZ + (patchOffset - (PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f) * patchMeterSize;
+    patch.position = nodeWSPositionXZ + ((float2)patchOffset - (PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f) * patchMeterSize;
     patch.pad1 = 0.0f;
 	return patch;
 }

@@ -111,6 +111,12 @@
     <ClInclude Include="CommandSignature.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Viewport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Rect.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -192,6 +198,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="IndirectArgument.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Rect.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

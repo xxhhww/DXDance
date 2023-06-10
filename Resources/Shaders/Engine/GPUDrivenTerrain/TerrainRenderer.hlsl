@@ -29,19 +29,65 @@ struct a2v {
 struct v2p {
 	float4 csPos : SV_POSITION;
 	float2 uv : TEXCOORD;
+	float2 position : PATCHPOS;
+	uint lod : LOD;
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
+	StructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+
+	static uint count = 0u;
+
 	v2p output;
+
+	RenderPatch patch = culledPatchList[instanceID];
+	uint lod = patch.lod;
+	float scale = pow(2,lod);
+	input.lsPos.xz *= scale;
+	input.lsPos.xz += patch.position;
+
+
 	output.csPos = float4(input.lsPos, 1.0f);
 	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.ViewProjection);
 	output.uv = input.uv;
+	output.position = patch.position;
+	output.lod = lod;
 
 	return output;
 }
 
 float4 PSMain(v2p input) : SV_TARGET {
-	return float4(0.3f, 0.7f, 0.5f, 1.0f);
+	
+	if(input.lod == 0 || input.lod == 2 || input.lod == 4) {
+		if(input.position.x > 0 && input.position.y > 0){
+			return float4(1.0f, 0.0f, 0.0f, 1.0f);
+		}
+		else if(input.position.x > 0 && input.position.y < 0){
+			return float4(0.0f, 1.0f, 0.0f, 1.0f);
+		}
+		else if(input.position.x < 0 && input.position.y > 0){
+			return float4(0.0f, 0.0f, 1.0f, 1.0f);
+		}
+		else if(input.position.x < 0 && input.position.y < 0){
+			return float4(0.5f, 0.5f, 0.5f, 1.0f);
+		}
+	}
+	else if(input.lod == 1 || input.lod == 3 || input.lod == 5) {
+		if(input.position.x < 0 && input.position.y < 0){
+			return float4(1.0f, 0.0f, 0.0f, 1.0f);
+		}
+		else if(input.position.x < 0 && input.position.y > 0){
+			return float4(0.0f, 1.0f, 0.0f, 1.0f);
+		}
+		else if(input.position.x > 0 && input.position.y < 0){
+			return float4(0.0f, 0.0f, 1.0f, 1.0f);
+		}
+		else if(input.position.x > 0 && input.position.y > 0){
+			return float4(0.5f, 0.5f, 0.5f, 1.0f);
+		}
+	}
+
+	return float4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 #endif

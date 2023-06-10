@@ -37,6 +37,77 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->SetPipelineState(pipelineState);
 	}
 
+	void CommandBuffer::SetViewport(const GHL::Viewport& viewport) {
+		auto d3dObject = viewport.D3DViewport();
+		mCommandList->D3DCommandList()->RSSetViewports(1u, &d3dObject);
+	}
+
+	void CommandBuffer::SetScissorRect(const GHL::Rect& rect) {
+		auto d3dObject = rect.D3DRect();
+		mCommandList->D3DCommandList()->RSSetScissorRects(1u, &d3dObject);
+	}
+
+	void CommandBuffer::SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology) {
+		mCommandList->D3DCommandList()->IASetPrimitiveTopology(topology);
+	}
+
+	void CommandBuffer::SetRenderTarget(Texture* rtTexture) {
+		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
+		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, nullptr);
+	}
+
+	void CommandBuffer::SetRenderTarget(Texture* rtTexture, Texture* dsTexture) {
+		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
+		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+
+		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, &dsHandle);
+	}
+
+	void CommandBuffer::ClearRenderTarget(Texture* rtTexture, float* clearColor, std::optional<GHL::Rect> rect) {
+		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
+		float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		if (rect != std::nullopt) {
+			auto d3dObject = rect->D3DRect();
+			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, (clearColor == nullptr) ? defaultClearColor : clearColor, 1u, &d3dObject);
+		}
+		else {
+			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, (clearColor == nullptr) ? defaultClearColor : clearColor, 0u, nullptr);
+		}
+	}
+
+	void CommandBuffer::ClearDepth(Texture* dsTexture, float clearDepth, std::optional<GHL::Rect> rect) {
+		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+		if (rect != std::nullopt) {
+			auto d3dObject = rect->D3DRect();
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_DEPTH, clearDepth, 0u, 1u, &d3dObject);
+		}
+		else {
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_DEPTH, clearDepth, 0u, 0u, nullptr);
+		}
+	}
+
+	void CommandBuffer::ClearStencil(Texture* dsTexture, uint8_t clearStencil, std::optional<GHL::Rect> rect) {
+		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+		if (rect != std::nullopt) {
+			auto d3dObject = rect->D3DRect();
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_STENCIL, 0.0f, clearStencil, 1u, &d3dObject);
+		}
+		else {
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_STENCIL, 0.0f, clearStencil, 0u, nullptr);
+		}
+	}
+
+	void CommandBuffer::ClearDepthStencil(Texture* dsTexture, float clearDepth, uint8_t clearStencil, std::optional<GHL::Rect> rect) {
+		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+		if (rect != std::nullopt) {
+			auto d3dObject = rect->D3DRect();
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, clearDepth, clearStencil, 1u, &d3dObject);
+		}
+		else {
+			mCommandList->D3DCommandList()->ClearDepthStencilView(dsHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, clearDepth, clearStencil, 0u, nullptr);
+		}
+	}
+
 	void CommandBuffer::UploadBufferRegion(Buffer* dstBuffer, uint64_t dstOffset, void* srcData, uint64_t srcSize) {
 		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(srcSize, 256u);
 		memcpy(dyAlloc.cpuAddress, srcData, srcSize);

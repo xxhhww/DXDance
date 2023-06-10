@@ -47,7 +47,7 @@ namespace ECS {
 		, cameraType(CameraType::RenderCamera)
 		, mainCamera(false)
 		, rotationSpeed(0.05f)
-		, translationSpeed(0.5f) {
+		, translationSpeed(10.0f) {
 
 			frustum.nearZ = 1.0f;
 			frustum.farZ = 1000.0f;

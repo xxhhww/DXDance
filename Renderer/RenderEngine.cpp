@@ -72,6 +72,10 @@ namespace Renderer {
 
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
 
+		// ³õÊ¼»¯RenderPass
+		mTerrainPass.InitializePass(mUploaderEngine->GetMemoryCopyQueue(), mUploaderEngine->GetCopyFence(), mDevice.get());
+
+
 		// Ìí¼ÓRenderPass
 		mTerrainPass.AddPass(*mRenderGraph.get());
 		mBackBufferPass.AddPass(*mRenderGraph.get());

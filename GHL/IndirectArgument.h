@@ -35,4 +35,15 @@ namespace GHL {
 	public:
 		IndirectConstantBufferViewArgument(uint32_t rootParameterIndex);
 	};
+
+	class IndirectVertexBufferViewArgument : public IndirectArgument {
+	public:
+		IndirectVertexBufferViewArgument(uint32_t slot = 0u);
+	};
+
+	class IndirectIndexBufferViewArgument : public IndirectArgument {
+	public:
+		IndirectIndexBufferViewArgument();
+	};
+
 }

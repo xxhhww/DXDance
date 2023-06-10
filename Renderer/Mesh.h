@@ -72,9 +72,11 @@ namespace Renderer {
 		*/
 		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
-		inline auto* GetVertexBuffer() const { return mVertexBuffer.get(); }
+		inline const auto& GetVertexCount() const { return mVertexCount; }
+		inline const auto& GetIndexCount()  const { return mIndexCount;  }
 
-		inline auto* GetIndexBuffer()  const { return mIndexBuffer.get(); }
+		inline auto* GetVertexBuffer() const { return mVertexBuffer.get(); }
+		inline auto* GetIndexBuffer()  const { return mIndexBuffer.get();  }
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

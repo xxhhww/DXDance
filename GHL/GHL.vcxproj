@@ -152,6 +152,7 @@
     <ClInclude Include="Heap.h" />
     <ClInclude Include="pbh.h" />
     <ClInclude Include="QueryHeap.h" />
+    <ClInclude Include="Rect.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceBarrierBatch.h" />
     <ClInclude Include="ResourceDesc.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="ShaderCompiler.h" />
     <ClInclude Include="ShaderDesc.h" />
     <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="Viewport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Adapter.cpp" />
@@ -182,6 +184,7 @@
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="pbh.cpp" />
     <ClCompile Include="QueryHeap.cpp" />
+    <ClCompile Include="Rect.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceBarrierBatch.cpp" />
     <ClCompile Include="RootParameter.cpp" />
@@ -190,6 +193,7 @@
     <ClCompile Include="ShaderCompiler.cpp" />
     <ClCompile Include="ShaderDesc.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Math\Math.vcxproj">

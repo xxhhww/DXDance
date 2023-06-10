@@ -337,7 +337,7 @@ namespace UI {
             g_pd3dCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&g_pd3dCommandList);
 
             g_pSwapChain->Present(1, 0); // Present with vsync
-            //g_pSwapChain->Present(0, 0); // Present without vsync
+            // g_pSwapChain->Present(0, 0); // Present without vsync
 
             UINT64 fenceValue = g_fenceLastSignaledValue + 1;
             g_pd3dCommandQueue->Signal(g_fence, fenceValue);

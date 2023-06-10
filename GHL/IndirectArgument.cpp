@@ -20,4 +20,12 @@ namespace GHL {
 		mArgument.ConstantBufferView.RootParameterIndex = rootParameterIndex;
 	}
 
+	IndirectVertexBufferViewArgument::IndirectVertexBufferViewArgument(uint32_t slot)
+	: IndirectArgument(D3D12_INDIRECT_ARGUMENT_TYPE_VERTEX_BUFFER_VIEW) {
+		mArgument.VertexBuffer.Slot = slot;
+	};
+
+	IndirectIndexBufferViewArgument::IndirectIndexBufferViewArgument()
+	: IndirectArgument(D3D12_INDIRECT_ARGUMENT_TYPE_INDEX_BUFFER_VIEW) {};
+
 }

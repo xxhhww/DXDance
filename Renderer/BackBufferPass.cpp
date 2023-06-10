@@ -74,12 +74,13 @@ namespace Renderer {
 
 				FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
+				/*
 				streamTexture->RecordClearFeedback(commandList.D3DCommandList());
 
 				commandList.D3DCommandList()->RSSetViewports(1u, &viewPort);
 				commandList.D3DCommandList()->RSSetScissorRects(1u, &rect);
 
-				commandList.D3DCommandList()->ClearRenderTargetView(cpuHandle, clearColor, 1u, &rect);
+				// commandList.D3DCommandList()->ClearRenderTargetView(cpuHandle, clearColor, 1u, &rect);
 				commandList.D3DCommandList()->OMSetRenderTargets(1u, &cpuHandle, false, nullptr);
 
 				commandList.D3DCommandList()->SetGraphicsRootSignature(shaderManger->GetBaseD3DRootSignature());
@@ -91,6 +92,7 @@ namespace Renderer {
 				commandList.D3DCommandList()->DrawInstanced(6u, 1u, 0u, 0u);
 				streamTexture->RecordResolve(commandList.D3DCommandList());
 				streamTexture->RecordReadback(commandList.D3DCommandList());
+				*/
 			});
 	}
 

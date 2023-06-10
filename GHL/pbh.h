@@ -191,6 +191,10 @@ namespace GHL {
 	using ColorClearValue = Math::Vector4;
 
 	struct DepthStencilClearValue {
+		DepthStencilClearValue(float _depth, uint8_t _stencil)
+		: depth(_depth)
+		, stencil(_stencil) {}
+
 		float depth;
 		uint8_t stencil;
 	};
