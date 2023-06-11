@@ -34,9 +34,9 @@ namespace GHL {
 		void ResizeBuffer();
 
 		/*
-		* 
+		* Present
 		*/
-		void Present();
+		void Present(uint32_t syncInterval);
 
 		/*
 		* Get·½·¨
@@ -52,6 +52,8 @@ namespace GHL {
 		inline const auto& GetHeight()                    const { return mHeight; }
 
 		DXGI_FORMAT GetBackBufferFormat() const;
+
+		uint32_t GetCurrentBackBufferIndex() const;
 
 	private:
 		DXGI_SWAP_CHAIN_DESC1 mDesc{};

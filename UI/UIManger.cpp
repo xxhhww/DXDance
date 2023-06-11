@@ -22,13 +22,13 @@ namespace UI {
             sd.Width = 0;
             sd.Height = 0;
             sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-            sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+            sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+            sd.BufferUsage = DXGI_USAGE_BACK_BUFFER;
             sd.SampleDesc.Count = 1;
             sd.SampleDesc.Quality = 0;
             sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-            sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-            sd.Scaling = DXGI_SCALING_STRETCH;
+            // sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+            sd.Scaling = DXGI_SCALING_NONE;
             sd.Stereo = FALSE;
         }
 
@@ -304,10 +304,8 @@ namespace UI {
 
             std::filesystem::directory_entry directory("E:\\DXDanceProj\\Assets");
 
- 
-
             ImGui::Render();
-
+            
             FrameContext* frameCtx = WaitForNextFrameResources();
             UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
             frameCtx->CommandAllocator->Reset();
@@ -335,7 +333,7 @@ namespace UI {
             g_pd3dCommandList->Close();
 
             g_pd3dCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&g_pd3dCommandList);
-
+            
             g_pSwapChain->Present(1, 0); // Present with vsync
             // g_pSwapChain->Present(0, 0); // Present without vsync
 

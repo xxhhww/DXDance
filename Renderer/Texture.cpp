@@ -104,7 +104,7 @@ namespace Renderer {
 	}
 
 	Texture::~Texture() {
-
+		int i = 32;
 	}
 
 	const GHL::DescriptorHandle* Texture::GetDSDescriptor(const TextureSubResourceDesc& subDesc) {

@@ -35,6 +35,10 @@ namespace Renderer {
 
 		void SetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY topology);
 
+		void SetVertexBuffer(uint32_t startSlot, Buffer* vBuffer);
+
+		void SetIndexBuffer(Buffer* iBuffer);
+
 		void SetRenderTarget(Texture* rtTexture);
 
 		void SetRenderTarget(Texture* rtTexture, Texture* dsTexture);

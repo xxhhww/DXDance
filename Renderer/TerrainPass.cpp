@@ -230,7 +230,7 @@ namespace Renderer {
 
 				NewBufferProperties _CulledPatchListProperties{};
 				_CulledPatchListProperties.stride = sizeof(TerrainPass::RenderPatch);
-				_CulledPatchListProperties.size = _MaxNodeListSize * _CulledPatchListProperties.stride;
+				_CulledPatchListProperties.size = _MaxNodeListSize * _CulledPatchListProperties.stride * 64;
 				_CulledPatchListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("CulledPatchList", _CulledPatchListProperties);
 				builder.WriteBuffer("CulledPatchList");
@@ -306,7 +306,7 @@ namespace Renderer {
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-						;
+						proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 					});
 
 				commandSignatureManger.CreateCommandSignature("TerrainRenderer",
@@ -392,8 +392,7 @@ namespace Renderer {
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("TerrainRenderer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				commandBuffer.ExecuteIndirect("TerrainRenderer", indirectArgs, 1u);
-				
+				commandBuffer.ExecuteIndirect("TerrainRenderer", indirectArgs, 1u);	
 			}
 		);
 	}

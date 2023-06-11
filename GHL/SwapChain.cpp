@@ -67,13 +67,13 @@ namespace GHL {
 	}
 
 	void SwapChain::ResizeBuffer() {
-
-
-
 	}
 
-	void SwapChain::Present() {
-		HRASSERT(mSwapChain->Present(0, 0));
+	void SwapChain::Present(uint32_t syncInterval) {
+		HRASSERT(mSwapChain->Present(syncInterval, 0));
 	}
 
+	uint32_t SwapChain::GetCurrentBackBufferIndex() const {
+		return mSwapChain->GetCurrentBackBufferIndex();
+	}
 }

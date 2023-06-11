@@ -26,7 +26,9 @@ namespace Renderer {
 
 	public:
 		RingFrameTracker(size_t maxSize);
-		~RingFrameTracker() = default;
+		~RingFrameTracker() {
+			int i = 32;
+		}
 
 		/*
 		* 向双向队列中压入当前帧所对应的FrameAttribute
@@ -50,6 +52,8 @@ namespace Renderer {
 		*/
 		void AddFrameCompletedCallBack(const FrameCompletedCallBack& callBack);
 
+
+		bool IsEmpty() const;
 
 		bool IsFull() const;
 		

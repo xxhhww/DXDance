@@ -51,6 +51,16 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->IASetPrimitiveTopology(topology);
 	}
 
+	void CommandBuffer::SetVertexBuffer(uint32_t startSlot, Buffer* vBuffer) {
+		auto vbView = vBuffer->GetVBDescriptor();
+		mCommandList->D3DCommandList()->IASetVertexBuffers(startSlot, 1u, &vbView);
+	}
+
+	void CommandBuffer::SetIndexBuffer(Buffer* iBuffer) {
+		auto ibView = iBuffer->GetIBDescriptor();
+		mCommandList->D3DCommandList()->IASetIndexBuffer(&ibView);
+	}
+
 	void CommandBuffer::SetRenderTarget(Texture* rtTexture) {
 		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
 		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, nullptr);

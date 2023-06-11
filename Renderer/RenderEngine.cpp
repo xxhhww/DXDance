@@ -57,7 +57,52 @@ namespace Renderer {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);
 			for (uint32_t i = 0; i < numBackBuffers; i++) {
 				mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(i), mDescriptorAllocator.get()));
+				mResourceStateTracker->StartTracking(mBackBuffers.at(i).get());
 			}
+			mShaderManger->CreateGraphicsShader("OutputBackBuffer",
+				[&](GraphicsStateProxy& proxy) {
+					proxy.rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
+					proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/OutputBackBuffer/OutputBackBuffer.hlsl";
+					proxy.psFilepath = proxy.vsFilepath;
+				});
+
+			std::vector<Vertex> vertices;
+			vertices.resize(6u);
+			vertices[0].position = Math::Vector3{ -1.0f, 1.0f, 0.0f };
+			vertices[1].position = Math::Vector3{ 1.0f, -1.0f, 0.0f };
+			vertices[2].position = Math::Vector3{ -1.0f, -1.0f, 0.0f };
+			vertices[3].position = Math::Vector3{ -1.0f, 1.0f, 0.0f };
+			vertices[4].position = Math::Vector3{ 1.0f, 1.0f, 0.0f };
+			vertices[5].position = Math::Vector3{ 1.0f, -1.0f, 0.0f };
+			vertices[0].uv = Math::Vector2{ 0.0f, 0.0f };
+			vertices[1].uv = Math::Vector2{ 1.0f, 1.0f };
+			vertices[2].uv = Math::Vector2{ 0.0f, 1.0f };
+			vertices[3].uv = Math::Vector2{ 0.0f, 0.0f };
+			vertices[4].uv = Math::Vector2{ 1.0f, 0.0f };
+			vertices[5].uv = Math::Vector2{ 1.0f, 1.0f };
+
+			std::vector<uint32_t> indices = { 0, 1, 2, 3 };
+
+			Renderer::BufferDesc vbDesc{};
+			vbDesc.stride = sizeof(Renderer::Vertex);
+			vbDesc.size = vbDesc.stride * vertices.size();
+			vbDesc.usage = GHL::EResourceUsage::Default;
+
+			Renderer::BufferDesc ibDesc{};
+			ibDesc.stride = sizeof(uint32_t);
+			ibDesc.size = ibDesc.stride * indices.size();
+			ibDesc.usage = GHL::EResourceUsage::Default;
+
+			mOutputQuadMesh = std::make_unique<Renderer::Mesh>(
+				mDevice.get(),
+				ResourceFormat{ mDevice.get(), vbDesc },
+				ResourceFormat{ mDevice.get(), ibDesc },
+				nullptr, nullptr
+				);
+
+			indices.clear();
+			mOutputQuadMesh->LoadDataFromMemory(mUploaderEngine->GetMemoryCopyQueue(),
+				mUploaderEngine->GetCopyFence(), vertices, indices);
 		}
 
 		// 创建FinalOutput纹理
@@ -83,6 +128,27 @@ namespace Renderer {
 		mRenderGraph->Build();
 
 		mStreamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
+	}
+
+	RenderEngine::~RenderEngine() {
+		// 等待当前帧全部渲染完成
+		uint64_t expectedValue = mRenderFrameFence->ExpectedValue() + 1u;
+		mRenderFrameFence->Wait();
+		mFrameTracker->PopCompletedFrame(mRenderFrameFence->CompletedValue());
+
+		// 此时FrameTracker中维护的FrameAttributeRing必定为空
+		ASSERT_FORMAT(mFrameTracker->IsEmpty(), "FrameTracker Is Not Empty");
+
+		// 压入一个新帧用来做资源的析构
+		mFrameTracker->PushCurrentFrame(expectedValue);
+
+		// 确保一些对象先析构
+		mBackBuffers.clear();
+		mFinalOutput = nullptr;
+		mStreamTextureManger = nullptr;
+
+		// 弹出该帧并执行帧完成后的回调函数
+		mFrameTracker->PopCompletedFrame(expectedValue);
 	}
 
 	void RenderEngine::Resize(uint64_t width, uint64_t height) {
@@ -117,29 +183,58 @@ namespace Renderer {
 
 		mRenderGraph->Execute();
 
+		RenderContext renderContext{
+			mShaderManger.get(),
+			mCommandSignatureManger.get(),
+			mSharedMemAllocator.get(),
+			mRenderGraph->GetPipelineResourceStorage(),
+			mResourceStateTracker.get(),
+			mStreamTextureManger.get()
+		};
 		{
-			RenderContext renderContext{
-				mShaderManger.get(), 
-				mCommandSignatureManger.get(), 
-				mSharedMemAllocator.get(),
-				mRenderGraph->GetPipelineResourceStorage(), 
-				mResourceStateTracker.get(), 
-				mStreamTextureManger.get()
-			};
-
 			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
-
 			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
 
 			// 录制Editor Render Pass命令
 			mEditorRenderPass.Invoke(commandBuffer, renderContext);
 
-			// 将FinalOutput转换为PixelShaderAccess供外部读取
+			// 将FinalOutput转换为PixelShaderAccess供GPU读取
 			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), 0u, GHL::EResourceState::PixelShaderAccess);
 			
 			commandList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
 			commandList->Close();
 			mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+		}
+
+		if (mWindowHandle != nullptr) {
+			{
+				uint64_t srvIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+				commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+				CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+
+				auto  currentBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+				auto* currentBackBuffer = mBackBuffers.at(currentBackBufferIndex).get();
+				auto barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::RenderTarget);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+				commandBuffer.ClearRenderTarget(currentBackBuffer);
+				commandBuffer.SetRenderTarget(currentBackBuffer);
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
+				commandBuffer.SetGraphicsRootSignature();
+				commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
+				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				commandBuffer.SetVertexBuffer(0u, mOutputQuadMesh->GetVertexBuffer());
+				commandBuffer.D3DCommandList()->DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
+				barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandList->Close();
+				mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+				
+				mSwapChain->Present(1u);
+			}
 		}
 
 		// 压入渲染命令完成后的围栏

@@ -8,29 +8,26 @@
 #include "ECS/CCamera.h"
 #include "ECS/CTransform.h"
 
-#include "UploaderEngine.h"
+#include "Renderer/UploaderEngine.h"
+#include "Renderer/RingFrameTracker.h"
+#include "Renderer/BuddyHeapAllocator.h"
+#include "Renderer/PoolDescriptorAllocator.h"
+#include "Renderer/PoolCommandListAllocator.h"
+#include "Renderer/LinearBufferAllocator.h"
+#include "Renderer/GPUProfiler.h"
+#include "Renderer/ShaderManger.h"
+#include "Renderer/StreamTextureManger.h"
+#include "Renderer/CommandSignatureManger.h"
 
-#include "RingFrameTracker.h"
+#include "Renderer/RenderGraph.h"
+#include "Renderer/CommandBuffer.h"
+#include "Renderer/GBufferPass.h"
+#include "Renderer/DeferredLightPass.h"
+#include "Renderer/TerrainPass.h"
+#include "Renderer/BackBufferPass.h"
+#include "Renderer/RootConstantsPerFrame.h"
 
-#include "BuddyHeapAllocator.h"
-#include "PoolDescriptorAllocator.h"
-#include "PoolCommandListAllocator.h"
-#include "LinearBufferAllocator.h"
-
-#include "GPUProfiler.h"
-#include "ShaderManger.h"
-#include "StreamTextureManger.h"
-#include "CommandSignatureManger.h"
-
-#include "RenderGraph.h"
-#include "CommandBuffer.h"
-
-#include "GBufferPass.h"
-#include "DeferredLightPass.h"
-#include "TerrainPass.h"
-#include "BackBufferPass.h"
-
-#include "RootConstantsPerFrame.h"
+#include "Renderer/Mesh.h"
 
 #include "Tools/Event.h"
 
@@ -51,7 +48,7 @@ namespace Renderer {
 		RenderEngine& operator=(const RenderEngine& other) = delete;
 		RenderEngine& operator=(RenderEngine&& other) = default;
 
-		~RenderEngine() = default;
+		~RenderEngine();
 
 		void Resize(uint64_t width, uint64_t height);
 
@@ -123,6 +120,9 @@ namespace Renderer {
 		// ==========================...Editor Render Pass...==========================
 		// ±à¼­Æ÷äÖÈ¾Pass£¬ÓÉÍâ²¿×¢²á
 		Tool::Event<CommandBuffer&, RenderContext&> mEditorRenderPass;
+
+		// ==========================...For Output BackBuffer Pass...==========================
+		std::unique_ptr<Renderer::Mesh> mOutputQuadMesh;
 	};
 
 }

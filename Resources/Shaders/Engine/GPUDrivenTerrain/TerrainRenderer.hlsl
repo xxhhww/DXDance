@@ -36,8 +36,6 @@ struct v2p {
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
 
-	static uint count = 0u;
-
 	v2p output;
 
 	RenderPatch patch = culledPatchList[instanceID];
@@ -71,6 +69,7 @@ float4 PSMain(v2p input) : SV_TARGET {
 		else if(input.position.x < 0 && input.position.y < 0){
 			return float4(0.5f, 0.5f, 0.5f, 1.0f);
 		}
+		return float4(1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	else if(input.lod == 1 || input.lod == 3 || input.lod == 5) {
 		if(input.position.x < 0 && input.position.y < 0){
@@ -85,9 +84,10 @@ float4 PSMain(v2p input) : SV_TARGET {
 		else if(input.position.x > 0 && input.position.y > 0){
 			return float4(0.5f, 0.5f, 0.5f, 1.0f);
 		}
+		return float4(1.0f, 0.0f, 1.0f, 1.0f);
 	}
-
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+	return float4(1.0f, 1.0f, 0.0f, 1.0f);
+	
 }
 
 #endif

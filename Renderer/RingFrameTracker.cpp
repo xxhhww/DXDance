@@ -42,6 +42,10 @@ namespace Renderer {
         mCompletedCallBacks.push_back(callBack);
     }
 
+    bool RingFrameTracker::IsEmpty() const {
+        return mUsedSize == 0u;
+    }
+
 	bool RingFrameTracker::IsFull() const {
         return mUsedSize == mMaxSize;
 	}

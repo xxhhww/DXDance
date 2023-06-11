@@ -74,7 +74,6 @@ namespace Renderer {
 
 				FLOAT clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-				/*
 				streamTexture->RecordClearFeedback(commandList.D3DCommandList());
 
 				commandList.D3DCommandList()->RSSetViewports(1u, &viewPort);
@@ -92,7 +91,6 @@ namespace Renderer {
 				commandList.D3DCommandList()->DrawInstanced(6u, 1u, 0u, 0u);
 				streamTexture->RecordResolve(commandList.D3DCommandList());
 				streamTexture->RecordReadback(commandList.D3DCommandList());
-				*/
 			});
 	}
 

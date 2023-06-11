@@ -113,10 +113,7 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 		nextLODNodeList.Append(nodeLoc * 2 + uint2(1, 1));
 		currNodeDescriptor.isBranch = true;
 	}
-	if(PassDataCB.currPassLOD == 0 || 
-	(PassDataCB.currPassLOD == 1 && needBranch == false) || 
-	(PassDataCB.currPassLOD == 2 && needBranch == false) || 
-	(PassDataCB.currPassLOD == 3 && needBranch == false)) {
+	else {
 		// 不对Node进行划分，则是最终确定需要渲染的Node
 		finalNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
 		currNodeDescriptor.isBranch = false;

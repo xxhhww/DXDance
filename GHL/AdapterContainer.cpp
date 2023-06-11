@@ -1,5 +1,6 @@
 #include "AdapterContainer.h"
 #include "Tools/Assert.h"
+#include "Tools/StrUtil.h"
 #include <algorithm>
 
 namespace GHL {
@@ -30,6 +31,16 @@ namespace GHL {
 	}
 
     const Adapter* AdapterContainer::GetHighPerformanceAdapter() const {
-        return &mHardwareAdapters.at(1);
+        for (uint32_t i = 0; i < mHardwareAdapters.size(); i++) {
+            DXGI_ADAPTER_DESC1 desc{};
+            mHardwareAdapters.at(i).DXGIAdapter()->GetDesc1(&desc);
+            std::wstring description(desc.Description);
+            size_t offset = description.find(L"NVIDIA GeForce RTX 3060 Laptop GPU");
+            if (description.find(L"NVIDIA GeForce RTX 3060 Laptop GPU") != std::wstring::npos) {
+                return &mHardwareAdapters.at(i);
+            }
+        }
+        ASSERT_FORMAT(false, "HighPerformanceAdapter Not Found");
+        return nullptr;
     }
 }
