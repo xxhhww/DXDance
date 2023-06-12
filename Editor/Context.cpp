@@ -1,5 +1,6 @@
 #include "Context.h"
 #include "Core/ServiceLocator.h"
+#include "GHL/DebugLayer.h"
 
 namespace App {
 	/*
@@ -18,9 +19,6 @@ namespace App {
 		// 初始化输入设备管理
 		inputManger = std::make_unique<Windows::InputManger>(window.get());
 
-		// 初始化UI管理
-		uiManger = std::make_unique<UI::UIManger>(window.get(), UI::UIStyle::DARK);
-
 		// 初始化定时器
 		clock = std::make_unique<Tool::Clock>();
 
@@ -28,11 +26,16 @@ namespace App {
 		assetPathDataBase = std::make_unique<Core::AssetPathDataBase>("Undefined");
 		sceneManger = std::make_unique<Core::SceneManger>(projectAssetPath, projectEnginePath, assetPathDataBase.get());
 
-		// 初始化内核引擎，并将其注册为服务
+		
+		// 初始化内核渲染器，并将其注册为服务
+		GHL::EnableDebugLayer();
 		renderEngine = std::make_unique<Renderer::RenderEngine>(nullptr, 979u, 635u);
 		Core::ServiceLocator::Provide(*renderEngine.get());
 
-		// 初始化编辑器资源管理器
+		// 初始化UI管理器(初始化时需要访问内核渲染器做D3D对象初始化)
+		uiManger = std::make_unique<UI::UIManger>(UI::UIStyle::DARK, window.get(), renderEngine->mDevice.get(), renderEngine->mGraphicsQueue.get());
+
+		// 初始化编辑器资源管理器(初始化时需要访问内核渲染器)
 		editorAssetManger = std::make_unique<Core::EditorAssetManger>("E:/MyProject/DXDance/Resources");
 
 		// 注册服务

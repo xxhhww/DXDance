@@ -59,6 +59,10 @@ namespace Renderer {
 		return mTextureStorages.at(filepath).get();
 	}
 
+	void StreamTextureManger::Destory() {
+		mTextureStorages.clear();
+	}
+
 	void StreamTextureManger::FrameCompletedCallback(uint8_t frameIndex) {
 		for (auto& pair : mTextureStorages) {
 			pair.second->FrameCompletedCallback(frameIndex);

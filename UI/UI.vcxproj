@@ -248,6 +248,9 @@
     <None Include="Pluginable.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GHL\GHL.vcxproj">
+      <Project>{ee8df10c-9bea-4b8d-9921-68e186f813cf}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Tools\Tools.vcxproj">
       <Project>{174efee4-0e95-429f-bcde-8a04e5ecbee8}</Project>
     </ProjectReference>

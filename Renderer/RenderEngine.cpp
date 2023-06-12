@@ -131,24 +131,6 @@ namespace Renderer {
 	}
 
 	RenderEngine::~RenderEngine() {
-		// 等待当前帧全部渲染完成
-		uint64_t expectedValue = mRenderFrameFence->ExpectedValue() + 1u;
-		mRenderFrameFence->Wait();
-		mFrameTracker->PopCompletedFrame(mRenderFrameFence->CompletedValue());
-
-		// 此时FrameTracker中维护的FrameAttributeRing必定为空
-		ASSERT_FORMAT(mFrameTracker->IsEmpty(), "FrameTracker Is Not Empty");
-
-		// 压入一个新帧用来做资源的析构
-		mFrameTracker->PushCurrentFrame(expectedValue);
-
-		// 确保一些对象先析构
-		mBackBuffers.clear();
-		mFinalOutput = nullptr;
-		mStreamTextureManger = nullptr;
-
-		// 弹出该帧并执行帧完成后的回调函数
-		mFrameTracker->PopCompletedFrame(expectedValue);
 	}
 
 	void RenderEngine::Resize(uint64_t width, uint64_t height) {

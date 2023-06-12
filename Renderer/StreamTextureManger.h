@@ -34,6 +34,8 @@ namespace Renderer {
 
 		StreamTexture* Request(const std::string& filepath);
 
+		void Destory();
+
 	private:
 		/*
 		* 渲染帧完成后的回调函数
@@ -49,7 +51,7 @@ namespace Renderer {
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 		RingFrameTracker* mFrameTracker{ nullptr };
-		IDStorageFactory* mDStorageFactory;
+		IDStorageFactory* mDStorageFactory{ nullptr };
 		std::unique_ptr<DataUploader> mDataUploader;
 		std::unique_ptr<TileUpdater>  mTileUpdater;
 

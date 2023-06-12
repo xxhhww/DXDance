@@ -6,13 +6,18 @@
 
 #include "GHL/pbh.h"
 
+namespace GHL {
+	class Device;
+	class GraphicsQueue;
+}
+
 namespace UI {
 	class UIManger {
 	public:
 		/*
 		* ImGUi与Imnodes的初始化，依赖于窗口类与D3D相关类(设备、描述符堆、描述符等)
 		*/
-		UIManger(Windows::Window* window, UIStyle style);
+		UIManger(UIStyle style, Windows::Window* window, GHL::Device* device, GHL::GraphicsQueue* graphicsQueue);
 
 		/*
 		* ImGui与Imnodes的析构，画布(Canvas)的析构由Editor类完成
@@ -43,7 +48,7 @@ namespace UI {
 		* D3D相关
 		*/
 		inline auto* GetSRDescriptorHeap() const { return g_pd3dSrvDescHeap; }
-		inline auto  GetSRVIncrementSize() const { return g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV); }
+		size_t GetSRVIncrementSize() const;
 
 	private:
 		Canvas* mCanvas{ nullptr };
@@ -71,10 +76,12 @@ namespace UI {
 
 		inline static int const	NUM_BACK_BUFFERS = 3;
 		IDXGIFactory2* g_DXGIFactory = NULL;
-		ID3D12Device* g_pd3dDevice = NULL;
+		
+		GHL::Device* mDevice{ nullptr };
+		GHL::GraphicsQueue* mGraphicsQueue{ nullptr };
+
 		ID3D12DescriptorHeap* g_pd3dRtvDescHeap = NULL;
 		ID3D12DescriptorHeap* g_pd3dSrvDescHeap = NULL;
-		ID3D12CommandQueue* g_pd3dCommandQueue = NULL;
 		ID3D12GraphicsCommandList*	g_pd3dCommandList = NULL;
 		ID3D12Fence* g_fence = NULL;
 		HANDLE                       g_fenceEvent = NULL;

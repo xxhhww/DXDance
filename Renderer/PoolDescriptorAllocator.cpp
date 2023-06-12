@@ -31,7 +31,7 @@ namespace Renderer {
 				slot->userData.indexInHeap = mCBSRUADescriptors.size() - 1u;
 				handlePtr = mCBSRUADescriptors.back().get();
 			}
-
+			 
 			Deallocation deallocation{ slot, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
 			return DescriptorHandleWrap{
 				handlePtr,
