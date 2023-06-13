@@ -51,7 +51,8 @@ namespace Renderer {
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
 			mStreamTextureManger.get())) 
-		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) {
+		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
+		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
 
 		if (windowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);
@@ -208,7 +209,7 @@ namespace Renderer {
 				commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandBuffer.SetVertexBuffer(0u, mOutputQuadMesh->GetVertexBuffer());
-				commandBuffer.D3DCommandList()->DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
+				commandBuffer.DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
 				barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
@@ -235,6 +236,86 @@ namespace Renderer {
 		}
 
 		// 检测并处理渲染帧是否完成
+		mFrameTracker->PopCompletedFrame(mRenderFrameFence->CompletedValue());
+	}
+
+	void RenderEngine::DoOfflineTask() {
+		// 压入新的渲染帧(执行渲染操作是为了能在PIX中对离线任务进行调试)
+		mRenderFrameFence->IncrementExpectedValue();
+		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
+
+		RenderContext renderContext{
+			mShaderManger.get(),
+			mCommandSignatureManger.get(),
+			mSharedMemAllocator.get(),
+			mRenderGraph->GetPipelineResourceStorage(),
+			mResourceStateTracker.get(),
+			mStreamTextureManger.get()
+		};
+
+		if (mOfflineTaskPass.GetListenerCount() != 0u) {
+			// 标识新的任务帧
+			mOfflineFence->IncrementExpectedValue();
+
+			{
+				auto commandList = mCommandListAllocator->AllocateComputeCommandList();
+				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+				commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+				CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+
+				// 录制Offline Task Pass命令
+				mOfflineTaskPass.Invoke(commandBuffer, renderContext);
+
+				// 执行离线任务
+				commandList->Close();
+				mComputeQueue->ExecuteCommandList(commandList->D3DCommandList());
+
+				// 设置完成后的达到的值
+				mComputeQueue->SignalFence(*mOfflineFence.get());
+			}
+
+			// 同步等待离线任务的完成
+			mOfflineFence->Wait();
+
+			// 调用离线任务完成后的回调
+			mOfflineCompletedCallback.Invoke();
+		}
+
+		ASSERT_FORMAT(mWindowHandle != nullptr, "Offline Task Configuration Error: Window Handle Missing");
+		{
+			uint64_t srvIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+
+			auto  currentBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
+			auto* currentBackBuffer = mBackBuffers.at(currentBackBufferIndex).get();
+			auto barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::RenderTarget);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.ClearRenderTarget(currentBackBuffer);
+			commandBuffer.SetRenderTarget(currentBackBuffer);
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.SetVertexBuffer(0u, mOutputQuadMesh->GetVertexBuffer());
+			commandBuffer.DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
+			barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandList->Close();
+			mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+
+			mSwapChain->Present(1u);
+
+			// 设置完成后的达到的值
+			mGraphicsQueue->SignalFence(*mRenderFrameFence.get());
+		}
+
+		// 同步等待渲染帧的完成
+		mRenderFrameFence->Wait();
 		mFrameTracker->PopCompletedFrame(mRenderFrameFence->CompletedValue());
 	}
 

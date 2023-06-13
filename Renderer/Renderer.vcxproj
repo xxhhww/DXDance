@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -113,7 +113,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dstorage.lib;assimp-vc142-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dstorage.lib;assimp-vc142-mt.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\DXDance\ThirdParty\lib\DirectStorage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -168,6 +168,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MinMaxHeightMapGenerator.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RootConstantsPerFrame.h" />
@@ -222,6 +223,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MemoryAliasingHelper.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MinMaxHeightMapGenerator.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
     <ClCompile Include="PoolCommandListAllocator.cpp" />

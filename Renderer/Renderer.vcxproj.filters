@@ -73,6 +73,12 @@
     <Filter Include="源文件\Renderer\Terrain">
       <UniqueIdentifier>{d503db3a-3e67-4964-a225-0c1de2db2ac2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\OfflineTaskHepler">
+      <UniqueIdentifier>{cde3fb0c-b36d-483c-8684-7d0d166c6551}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\OfflineTaskHelper">
+      <UniqueIdentifier>{dcf5abf5-2edf-4349-b87e-aa24d75c9937}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -207,6 +213,9 @@
     <ClInclude Include="CommandBuffer.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
+    <ClInclude Include="MinMaxHeightMapGenerator.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -337,6 +346,9 @@
     </ClCompile>
     <ClCompile Include="CommandBuffer.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
+    </ClCompile>
+    <ClCompile Include="MinMaxHeightMapGenerator.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

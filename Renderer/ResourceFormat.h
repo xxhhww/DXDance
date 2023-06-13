@@ -103,6 +103,8 @@ namespace Renderer {
 		bool IsBuffer()  const;
 		bool IsTexture() const;
 
+		bool CanUseClearValue();
+
 		inline const auto& D3DResourceDesc() const { return mResourceDesc; }
 
 		inline const auto& GetAlignment()           const { return mAlignment; }

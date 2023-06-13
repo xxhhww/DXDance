@@ -117,6 +117,9 @@
     <ClInclude Include="Rect.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -204,6 +207,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Rect.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -37,6 +37,14 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->SetPipelineState(pipelineState);
 	}
 
+	void CommandBuffer::SetGraphicsRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress) {
+		mCommandList->D3DCommandList()->SetGraphicsRootConstantBufferView(rootParamIndex, gpuAddress);
+	}
+
+	void CommandBuffer::SetComputeRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress) {
+		mCommandList->D3DCommandList()->SetComputeRootConstantBufferView(rootParamIndex, gpuAddress);
+	}
+
 	void CommandBuffer::SetViewport(const GHL::Viewport& viewport) {
 		auto d3dObject = viewport.D3DViewport();
 		mCommandList->D3DCommandList()->RSSetViewports(1u, &d3dObject);
@@ -156,6 +164,15 @@ namespace Renderer {
 		}
 
 		mCommandList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
+	}
+
+	void CommandBuffer::DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation) {
+		mCommandList->D3DCommandList()->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
+	}
+
+
+	void CommandBuffer::Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ) {
+		mCommandList->D3DCommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);
 	}
 
 	void CommandBuffer::ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount) {

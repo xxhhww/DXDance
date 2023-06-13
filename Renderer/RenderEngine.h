@@ -59,6 +59,8 @@ namespace Renderer {
 
 		void Render();
 
+		void DoOfflineTask();
+
 		void BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
 	public:
@@ -123,6 +125,12 @@ namespace Renderer {
 
 		// ==========================...For Output BackBuffer Pass...==========================
 		std::unique_ptr<Renderer::Mesh> mOutputQuadMesh;
+
+		// ==========================...Offline Task Pass...==========================
+		// 渲染器离线任务，由外部注册
+		std::unique_ptr<GHL::Fence> mOfflineFence;	// 离线任务栅栏
+		Tool::Event<CommandBuffer&, RenderContext&> mOfflineTaskPass;
+		Tool::Event<> mOfflineCompletedCallback;
 	};
 
 }

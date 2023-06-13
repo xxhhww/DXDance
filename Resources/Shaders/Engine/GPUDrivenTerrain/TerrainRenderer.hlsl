@@ -55,7 +55,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 float4 PSMain(v2p input) : SV_TARGET {
-	
+	/*
 	if(input.lod == 0 || input.lod == 2 || input.lod == 4) {
 		if(input.position.x > 0 && input.position.y > 0){
 			return float4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -85,6 +85,25 @@ float4 PSMain(v2p input) : SV_TARGET {
 			return float4(0.5f, 0.5f, 0.5f, 1.0f);
 		}
 		return float4(1.0f, 0.0f, 1.0f, 1.0f);
+	}
+	*/
+	if(input.lod == 0u){
+		return float4(0.5f, 0.5f, 0.5f, 1.0f);
+	}
+	else if(input.lod == 1u){
+		return float4(0.0f, 0.0f, 1.0f, 1.0f);
+	}
+	else if(input.lod == 2u){
+		return float4(1.0f, 0.0f, 0.0f, 1.0f);
+	}
+	else if(input.lod == 3u){
+		return float4(0.0f, 1.0f, 0.0f, 1.0f);
+	}
+	else if(input.lod == 4u){
+		return float4(1.0f, 1.0f, 0.0f, 1.0f);
+	}
+	else if(input.lod == 5u){
+		return float4(0.0f, 1.0f, 1.0f, 1.0f);
 	}
 	return float4(1.0f, 1.0f, 0.0f, 1.0f);
 	

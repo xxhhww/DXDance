@@ -39,5 +39,6 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader.hlsl" />
     <FxCompile Include="Shaders\Engine\OutputBackBuffer\OutputBackBuffer.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\MinMaxHeightMapGenerator.hlsl" />
   </ItemGroup>
 </Project>

@@ -29,6 +29,10 @@ namespace Renderer {
 
 		void SetComputePipelineState(const std::string& name);
 
+		void SetGraphicsRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
+
+		void SetComputeRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
+
 		void SetViewport(const GHL::Viewport& viewport);
 
 		void SetScissorRect(const GHL::Rect& rect);
@@ -60,12 +64,15 @@ namespace Renderer {
 
 		void CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer);	
 		
-		GHL::ResourceBarrierBatch TransitionImmediately(Resource* buffer, GHL::EResourceState newState, bool tryImplicitly = true);
+		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly = true);
 		
 		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = true);
 
 		void FlushResourceBarrier(const GHL::ResourceBarrierBatch& barrierBatch);
 		
+		void DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation);
+
+		void Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
 
 		void ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount);
 

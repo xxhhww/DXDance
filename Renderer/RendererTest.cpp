@@ -1,7 +1,8 @@
-#include "RenderEngine.h"
-#include "RenderGraph.h"
-#include "RenderGraphBuilder.h"
-#include "CommandBuffer.h"
+#include "Renderer/RenderEngine.h"
+#include "Renderer/RenderGraph.h"
+#include "Renderer/RenderGraphBuilder.h"
+#include "Renderer/CommandBuffer.h"
+#include "Renderer/MinMaxHeightMapGenerator.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -16,6 +17,9 @@
 
 using namespace Renderer;
 using namespace Windows;
+
+static uint32_t sWindowWidth = 979u;
+static uint32_t sWindowHeight = 635u;
 
 void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
     RenderGraph& renderGraph = *renderEngine.mRenderGraph.get();
@@ -117,12 +121,12 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
     renderGraph.Build();
 }
 
-int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+void RunRenderer() {
     GHL::EnableDebugLayer();
 
     WindowSetting setting{};
-    setting.width = 979u;
-    setting.height = 635u;
+    setting.width = sWindowWidth;
+    setting.height = sWindowHeight;
     setting.fullscreen = false;
     setting.maximized = false;
     Window window{ setting };
@@ -244,8 +248,8 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
             camera.up = XMVector3Cross(camera.lookUp, camera.right);
 
             updateCameraMatrix(camera, transform);
-        });
-        
+            });
+
         renderEngine.Update(0.0f, editorCamera, editorTransform);
         renderEngine.Render();
 
@@ -253,6 +257,57 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 
         clock.Update();
     }
+}
 
-    return 0;
+void DoOfflineTask() {
+    GHL::EnableDebugLayer();
+
+    WindowSetting setting{};
+    setting.width = sWindowWidth;
+    setting.height = sWindowHeight;
+    setting.fullscreen = false;
+    setting.maximized = false;
+    Window window{ setting };
+
+    RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
+    MinMaxHeightMapGenerator _MinMaxHeightMapGenerator;
+    _MinMaxHeightMapGenerator.Initialize(
+        "E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_2.png",
+        &renderEngine
+    );
+    renderEngine.mOfflineTaskPass += std::bind(
+        &MinMaxHeightMapGenerator::Generate, &_MinMaxHeightMapGenerator, 
+        std::placeholders::_1, std::placeholders::_2);
+
+    renderEngine.mOfflineCompletedCallback += std::bind(
+        &MinMaxHeightMapGenerator::OnCompleted, &_MinMaxHeightMapGenerator
+    );
+
+    Tool::Clock clock;
+    bool done = false;
+    while (!done) {
+        // Poll and handle messages (inputs, window resize, etc.)
+        // See the WndProc() function below for our to dispatch events to the Win32 backend.
+        MSG msg;
+        while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) {
+                done = true;
+            }
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
+        if (done) {
+            break;
+        }
+
+        renderEngine.DoOfflineTask();
+        clock.Update();
+    }
+
+}
+
+int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+
+    // RunRenderer();
+    DoOfflineTask();
 }

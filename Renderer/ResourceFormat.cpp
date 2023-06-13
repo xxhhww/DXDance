@@ -59,6 +59,20 @@ namespace Renderer {
 		return isTexture;
 	}
 
+	bool ResourceFormat::CanUseClearValue() {
+		if (IsBuffer()) {
+			return false;
+		}
+
+		const auto& textureDesc = GetTextureDesc();
+		bool result =
+			HasAnyFlag(textureDesc.expectedState, GHL::EResourceState::RenderTarget) ||
+			HasAnyFlag(textureDesc.expectedState, GHL::EResourceState::DepthRead) ||
+			HasAnyFlag(textureDesc.expectedState, GHL::EResourceState::DepthWrite);
+
+		return result;
+	}
+
 	void ResourceFormat::SetBackBufferStates() {
 		mInitialState = GHL::EResourceState::Present;
 		mExpectedState = (GHL::EResourceState::Present | GHL::EResourceState::RenderTarget);
