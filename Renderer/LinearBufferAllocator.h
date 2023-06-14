@@ -24,9 +24,6 @@ namespace Renderer {
 		LinearAllocation Allocate(size_t size, size_t alignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
 	private:
-		/*
-		* µ÷¶ÈLinearBuffer
-		*/
 		void ScheduleLinearBuffer();
 
 		void CleanUpPendingDeallocation(uint8_t frameIndex);

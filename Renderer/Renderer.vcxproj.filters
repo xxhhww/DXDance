@@ -213,7 +213,10 @@
     <ClInclude Include="CommandBuffer.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="MinMaxHeightMapGenerator.h">
+    <ClInclude Include="TerrainOfflineTask.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
+    <ClInclude Include="FormatConverter.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
   </ItemGroup>
@@ -347,7 +350,10 @@
     <ClCompile Include="CommandBuffer.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="MinMaxHeightMapGenerator.cpp">
+    <ClCompile Include="TerrainOfflineTask.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="FormatConverter.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>

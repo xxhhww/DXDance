@@ -119,7 +119,7 @@ namespace Renderer {
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
 
 		// 初始化RenderPass
-		mTerrainPass.InitializePass(mUploaderEngine->GetMemoryCopyQueue(), mUploaderEngine->GetCopyFence(), mDevice.get());
+		mTerrainPass.InitializePass(this);
 
 
 		// 添加RenderPass
@@ -254,9 +254,8 @@ namespace Renderer {
 		};
 
 		if (mOfflineTaskPass.GetListenerCount() != 0u) {
-			// 标识新的任务帧
+			// 标识新的任务
 			mOfflineFence->IncrementExpectedValue();
-
 			{
 				auto commandList = mCommandListAllocator->AllocateComputeCommandList();
 				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
@@ -273,11 +272,9 @@ namespace Renderer {
 				// 设置完成后的达到的值
 				mComputeQueue->SignalFence(*mOfflineFence.get());
 			}
-
 			// 同步等待离线任务的完成
 			mOfflineFence->Wait();
 
-			// 调用离线任务完成后的回调
 			mOfflineCompletedCallback.Invoke();
 		}
 
@@ -322,5 +319,4 @@ namespace Renderer {
 	void RenderEngine::BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle) {
 		mFinalOutput->BindSRDescriptor(cpuHandle);
 	}
-
 }

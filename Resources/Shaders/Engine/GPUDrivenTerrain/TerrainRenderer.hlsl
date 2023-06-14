@@ -8,7 +8,10 @@ struct RenderPatch {
 };
 
 struct PassData {
+	float2 worldSize;
+	uint heightScale;
 	uint culledPatchListIndex;
+	uint heightMapIndex;
 	float pad1;
 	float pad2;
 	float pad3;
@@ -35,6 +38,7 @@ struct v2p {
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	Texture2D<float4> heightMap = ResourceDescriptorHeap[PassDataCB.heightMapIndex];
 
 	v2p output;
 
@@ -44,6 +48,9 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	input.lsPos.xz *= scale;
 	input.lsPos.xz += patch.position;
 
+	float2 heightUV = (input.lsPos.xz + (PassDataCB.worldSize * 0.5f) + 0.5f) / (PassDataCB.worldSize + 1.0f);
+	float height = heightMap.SampleLevel(SamplerLinearClamp, heightUV, 0u).r;
+	input.lsPos.y = height * PassDataCB.heightScale;
 
 	output.csPos = float4(input.lsPos, 1.0f);
 	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.ViewProjection);

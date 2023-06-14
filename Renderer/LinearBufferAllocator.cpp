@@ -68,7 +68,6 @@ namespace Renderer {
 			mAvailableBuffers.push(deallocation);
 		}
 		mPendingDeallocations[frameIndex].clear();
-
 	}
 
 }

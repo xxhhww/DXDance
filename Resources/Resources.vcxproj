@@ -147,7 +147,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\MinMaxHeightMapGenerator.hlsl">
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

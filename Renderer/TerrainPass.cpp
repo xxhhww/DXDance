@@ -1,9 +1,12 @@
-#include "TerrainPass.h"
-#include "RenderGraphBuilder.h"
-#include "ShaderManger.h"
-#include "CommandSignatureManger.h"
-#include "LinearBufferAllocator.h"
-#include "CommandBuffer.h"
+#include "Renderer/TerrainPass.h"
+#include "Renderer/RenderEngine.h"
+#include "Renderer/RenderGraphBuilder.h"
+
+#include "Renderer/FormatConverter.h"
+
+#include "DirectXTex/DirectXTex.h"
+
+#include "GHL/Box.h"
 
 namespace Renderer {
 
@@ -112,6 +115,7 @@ namespace Renderer {
 				terrainBuilderPassData.finalNodeListIndex      = finalNodeList->GetUADescriptor()->GetHeapIndex();
 				terrainBuilderPassData.nodeDescriptorListIndex = nodeDescriptorList->GetUADescriptor()->GetHeapIndex();
 				terrainBuilderPassData.lodDescriptorListIndex  = lodDescriptorList->GetUADescriptor()->GetHeapIndex();
+				terrainBuilderPassData.minmaxHeightMapIndex = minmaxHeightMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainBuilderPassData), 256u);
 				memcpy(passDataAlloc.cpuAddress, &terrainBuilderPassData, sizeof(TerrainPass::TerrainBuilderPassData));
@@ -149,6 +153,7 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(appendNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(minmaxHeightMap.get(), GHL::EResourceState::NonPixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
@@ -185,6 +190,7 @@ namespace Renderer {
 						commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 2u, consumeNodeList->GetCounterBuffer(), 0u, sizeof(uint32_t));
 						commandBuffer.ClearCounterBuffer(appendNodeList, 0u);
 					}
+
 					// ExecuteIndirect
 					barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
 					barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
@@ -352,7 +358,8 @@ namespace Renderer {
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
-				
+				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
+
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &terrainRendererPassData, sizeof(TerrainPass::TerrainRendererPassData));
 
@@ -370,6 +377,7 @@ namespace Renderer {
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch += commandBuffer.TransitionImmediately(heightMap.get(), GHL::EResourceState::PixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 				
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
@@ -398,7 +406,6 @@ namespace Renderer {
 	}
 
 	void TerrainPass::UpdateNodeAndLodDescriptorArray() {
-		
 		uint32_t nodeCount{ 0u };
 
 		lodDescriptors.resize(maxLOD + 1u);
@@ -428,60 +435,153 @@ namespace Renderer {
 		isInitialized = false;
 	}
 
-	void TerrainPass::InitializePass(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, GHL::Device* device) {
+	void TerrainPass::InitializePass(RenderEngine* renderEngine) {
+		auto* device = renderEngine->mDevice.get();
+		auto* copyDsQueue = renderEngine->mUploaderEngine->GetMemoryCopyQueue();
+		auto* copyFence = renderEngine->mUploaderEngine->GetCopyFence();
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
+
 		// Load PatchMesh From Memory
-		uint32_t size = 16u;
-		float sizePerGrid = 0.5f;
-		float totalMeterSize = size * sizePerGrid;
-		float gridCount = size * size;
-		float triangleCount = gridCount * 2u;
+		{
+			uint32_t size = 16u;
+			float sizePerGrid = 0.5f;
+			float totalMeterSize = size * sizePerGrid;
+			float gridCount = size * size;
+			float triangleCount = gridCount * 2u;
 
-		float vOffset = -totalMeterSize * 0.5f;
+			float vOffset = -totalMeterSize * 0.5f;
 
-		std::vector<Vertex> vertices;
-		float uvStrip = 1.0f / size;
-		for (uint32_t z = 0u; z <= size; z++) {
-			for (uint32_t x = 0u; x <= size; x++) {
-				vertices.emplace_back(
-					Math::Vector3{ vOffset + x * 0.5f, 0u, vOffset + z * 0.5f },
-					Math::Vector2{ x * uvStrip, z * uvStrip },
-					Math::Vector3{}, Math::Vector3{}, Math::Vector3{}
-				);
+			std::vector<Vertex> vertices;
+			float uvStrip = 1.0f / size;
+			for (uint32_t z = 0u; z <= size; z++) {
+				for (uint32_t x = 0u; x <= size; x++) {
+					vertices.emplace_back(
+						Math::Vector3{ vOffset + x * 0.5f, 0u, vOffset + z * 0.5f },
+						Math::Vector2{ x * uvStrip, z * uvStrip },
+						Math::Vector3{}, Math::Vector3{}, Math::Vector3{}
+					);
+				}
 			}
+
+			std::vector<uint32_t> indices;
+			indices.resize(triangleCount * 3u);
+			for (uint32_t gridIndex = 0u; gridIndex < gridCount; gridIndex++) {
+				uint32_t offset = gridIndex * 6u;
+				uint32_t vIndex = (gridIndex / size) * (size + 1u) + (gridIndex % size);
+
+				indices[offset] = vIndex;
+				indices[offset + 1u] = vIndex + size + 1u;
+				indices[offset + 2u] = vIndex + 1u;
+				indices[offset + 3u] = vIndex + 1u;
+				indices[offset + 4u] = vIndex + size + 1u;
+				indices[offset + 5u] = vIndex + size + 2u;
+			}
+
+			Renderer::BufferDesc vbDesc{};
+			vbDesc.stride = sizeof(Renderer::Vertex);
+			vbDesc.size = vbDesc.stride * vertices.size();
+			vbDesc.usage = GHL::EResourceUsage::Default;
+
+			Renderer::BufferDesc ibDesc{};
+			ibDesc.stride = sizeof(uint32_t);
+			ibDesc.size = ibDesc.stride * indices.size();
+			ibDesc.usage = GHL::EResourceUsage::Default;
+
+			patchMesh = std::make_unique<Renderer::Mesh>(
+				device,
+				ResourceFormat{ device, vbDesc },
+				ResourceFormat{ device, ibDesc },
+				nullptr,
+				nullptr);
+
+			patchMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
 		}
 
-		std::vector<uint32_t> indices;
-		indices.resize(triangleCount * 3u);
-		for (uint32_t gridIndex = 0u; gridIndex < gridCount; gridIndex++) {
-			uint32_t offset = gridIndex * 6u;
-			uint32_t vIndex = (gridIndex / size) * (size + 1u) + (gridIndex % size);
+		// Load MinMaxHeightMap From Memory(目前读取的DDS文件，后续将DDS转换为XET)
+		{
+			DirectX::ScratchImage baseImage;
+			HRASSERT(DirectX::LoadFromDDSFile(
+				L"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap_2.dds",
+				DirectX::DDS_FLAGS_NONE,
+				nullptr,
+				baseImage
+			));
 
-			indices[offset] = vIndex;
-			indices[offset + 1u] = vIndex + size + 1u;
-			indices[offset + 2u] = vIndex + 1u;
-			indices[offset + 3u] = vIndex + 1u;
-			indices[offset + 4u] = vIndex + size + 1u;
-			indices[offset + 5u] = vIndex + size + 2u;
+			Renderer::TextureDesc _MinMaxHeightMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
+			_MinMaxHeightMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
+			minmaxHeightMap = std::make_unique<Texture>(
+				device,
+				ResourceFormat{ device, _MinMaxHeightMapDesc },
+				descriptorAllocator,
+				nullptr
+				);
+
+			// 上传数据到显存
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_MULTIPLE_SUBRESOURCES;
+			request.Source.Memory.Source = baseImage.GetPixels();
+			request.Source.Memory.Size = baseImage.GetPixelsSize();
+			request.Destination.MultipleSubresources.FirstSubresource = 0u;
+			request.Destination.MultipleSubresources.Resource = minmaxHeightMap->D3DResource();
+			request.UncompressedSize = baseImage.GetPixelsSize();
+
+			copyDsQueue->EnqueueRequest(&request);
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
+
+			baseImage.Release();
+
+			resourceStateTracker->StartTracking(minmaxHeightMap.get());
 		}
 
-		Renderer::BufferDesc vbDesc{};
-		vbDesc.stride = sizeof(Renderer::Vertex);
-		vbDesc.size = vbDesc.stride * vertices.size();
-		vbDesc.usage = GHL::EResourceUsage::Default;
+		// Load HeightMap From Memory(目前读取的PNG文件，后续将PNG转换为XET)
+		{
+			DirectX::ScratchImage baseImage;
+			HRASSERT(DirectX::LoadFromWICFile(
+				L"E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_2.png",
+				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+				nullptr,
+				baseImage
+			));
 
-		Renderer::BufferDesc ibDesc{};
-		ibDesc.stride = sizeof(uint32_t);
-		ibDesc.size = ibDesc.stride * indices.size();
-		ibDesc.usage = GHL::EResourceUsage::Default;
+			Renderer::TextureDesc _HeightMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
+			_HeightMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
+			heightMap = std::make_unique<Texture>(
+				device,
+				ResourceFormat{ device, _HeightMapDesc },
+				descriptorAllocator,
+				nullptr
+				);
 
-		patchMesh = std::make_unique<Renderer::Mesh>(
-			device,
-			ResourceFormat{ device, vbDesc },
-			ResourceFormat{ device, ibDesc },
-			nullptr,
-			nullptr);
+			// 上传数据到显存
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
+			request.Source.Memory.Source = baseImage.GetPixels();
+			request.Source.Memory.Size = baseImage.GetPixelsSize();
+			request.Destination.Texture.Region = GHL::Box{
+				0u, _HeightMapDesc.width, 0u, _HeightMapDesc.height, 0u, _HeightMapDesc.depth
+			}.D3DBox();
+			request.Destination.Texture.SubresourceIndex = 0u;
+			request.Destination.Texture.Resource = heightMap->D3DResource();
+			request.UncompressedSize = baseImage.GetPixelsSize();
 
-		patchMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
+			copyDsQueue->EnqueueRequest(&request);
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
+
+			baseImage.Release();
+
+			resourceStateTracker->StartTracking(heightMap.get());
+		}
 	}
 
 }

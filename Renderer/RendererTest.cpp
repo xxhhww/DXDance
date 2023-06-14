@@ -2,7 +2,7 @@
 #include "Renderer/RenderGraph.h"
 #include "Renderer/RenderGraphBuilder.h"
 #include "Renderer/CommandBuffer.h"
-#include "Renderer/MinMaxHeightMapGenerator.h"
+#include "Renderer/TerrainOfflineTask.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -147,14 +147,14 @@ void RunRenderer() {
 
     // EditorCamera
     ECS::Camera editorCamera;
-
+    editorCamera.frustum.farZ = 5000.0f;
     editorCamera.lookUp = Math::Vector3{ 0.0339f, -0.2368f, 0.9709f };
     editorCamera.right = Math::Vector3{ 0.9993f, 0.0f, -0.0348f };
     editorCamera.up = Math::Vector3{ 0.00826f, 0.9715f, 0.2367f };
 
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 4.4f;
-    editorTransform.worldPosition.y = 3.6f;
+    editorTransform.worldPosition.y = 900.0f;
     editorTransform.worldPosition.z = -21.7f;
 
     // 更新编辑摄像机与渲染摄像机的矩阵数据
@@ -270,17 +270,17 @@ void DoOfflineTask() {
     Window window{ setting };
 
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
-    MinMaxHeightMapGenerator _MinMaxHeightMapGenerator;
-    _MinMaxHeightMapGenerator.Initialize(
+    TerrainOfflineTask _TerrainOfflineTask;
+    _TerrainOfflineTask.Initialize(
         "E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_2.png",
         &renderEngine
     );
     renderEngine.mOfflineTaskPass += std::bind(
-        &MinMaxHeightMapGenerator::Generate, &_MinMaxHeightMapGenerator, 
+        &TerrainOfflineTask::Generate, &_TerrainOfflineTask,
         std::placeholders::_1, std::placeholders::_2);
 
     renderEngine.mOfflineCompletedCallback += std::bind(
-        &MinMaxHeightMapGenerator::OnCompleted, &_MinMaxHeightMapGenerator
+        &TerrainOfflineTask::OnCompleted, &_TerrainOfflineTask
     );
 
     Tool::Clock clock;
@@ -308,6 +308,6 @@ void DoOfflineTask() {
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 
-    // RunRenderer();
-    DoOfflineTask();
+    RunRenderer();
+    // DoOfflineTask();
 }

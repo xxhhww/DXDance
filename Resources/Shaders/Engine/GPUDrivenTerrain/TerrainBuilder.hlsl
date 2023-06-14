@@ -27,6 +27,7 @@ struct RenderPatch {
 struct PassData {
 	float4 nodeEvaluationC;		// 用户控制的节点评估系数
 	float2 worldSize;			// 世界在XZ轴方向的大小(米)
+	uint heightScale;
 	uint currPassLOD;
 	uint currLODNodeListIndex;
 	uint nextLODNodeListIndex;
@@ -34,9 +35,8 @@ struct PassData {
 	uint nodeDescriptorListIndex;
 	uint lodDescriptorListIndex;
 	uint culledPatchListIndex;
+	uint minmaxHeightMapIndex;
 	float pad1;
-	float pad2;
-	float pad3;
 };
 
 #define PassDataType PassData
@@ -67,9 +67,12 @@ float2 GetNodeWSPositionXZ(uint2 nodeLoc, uint lod) {
 
 // 获得Node中心在世界空间下的坐标的XYZ分量
 float3 GetNodeWSPositionXYZ(uint2 nodeLoc, uint lod) {
-	// TODO 等待Node的包围盒构建完毕
+	Texture2D<float> minmaxHeightMap = ResourceDescriptorHeap[PassDataCB.minmaxHeightMapIndex];
+
 	float2 wsPositionXZ = GetNodeWSPositionXZ(nodeLoc, lod);
-	return float3(wsPositionXZ.x, 0.0f, wsPositionXZ.y);
+	float2 minMaxHeight = MinMaxHeightTexture.mips[lod + 3][nodeLoc].xy;
+    float y = (minMaxHeight.x + minMaxHeight.y) * 0.5 * PassDataCB.heightScale;
+	return float3(wsPositionXZ.x, y, wsPositionXZ.y);
 }
 
 bool EvaluateNode(uint2 nodeLoc, uint lod) {

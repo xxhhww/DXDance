@@ -9,6 +9,7 @@ namespace GHL {
 
 namespace Renderer {
 	class Mesh;
+	class RenderEngine;
 
 	class TerrainPass {
 	public:
@@ -29,6 +30,7 @@ namespace Renderer {
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
 			Math::Vector2 worldSize{ 10240u, 10240u };					// 世界在XZ轴方向的大小(米)
+			uint32_t heightScale = 2048u;
 			uint32_t currPassLOD;
 			uint32_t consumeNodeListIndex;
 			uint32_t appendNodeListIndex;
@@ -36,13 +38,15 @@ namespace Renderer {
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
+			uint32_t minmaxHeightMapIndex;
 			float pad1;
-			float pad2;
-			float pad3;
 		};
 
 		struct TerrainRendererPassData {
+			Math::Vector2 worldSize{ 10240u, 10240u };
+			uint32_t heightScale = 2048u;
 			uint32_t culledPatchListIndex;
+			uint32_t heightMapIndex;
 			float pad1;
 			float pad2;
 			float pad3;
@@ -70,11 +74,13 @@ namespace Renderer {
 		TerrainRendererPassData terrainRendererPassData;
 
 		std::unique_ptr<Renderer::Mesh> patchMesh;
+		std::unique_ptr<Renderer::Texture> minmaxHeightMap;
+		std::unique_ptr<Renderer::Texture> heightMap;
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
-		void InitializePass(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, GHL::Device* device);
+		void InitializePass(RenderEngine* renderEngine);
 
 	private:
 		/*
