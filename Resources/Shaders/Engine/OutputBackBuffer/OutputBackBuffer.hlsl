@@ -1,7 +1,7 @@
 #ifndef _OutputBackBuffer__
 #define _OutputBackBuffer__
 
-#include "../MainEntryPoint.hlsl"
+#include "../Base/MainEntryPoint.hlsl"
 
 struct a2v {
 	float3 lsPos     : POSITION;

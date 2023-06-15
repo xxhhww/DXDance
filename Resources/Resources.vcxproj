@@ -147,6 +147,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shaders\Engine\GBufferPass.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -197,13 +209,13 @@
     <None Include="Shaders\Engine\BackBufferPassTest.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Engine\BaseEngineLayout.hlsl">
+    <None Include="Shaders\Engine\Base\BaseEngineLayout.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Engine\Camera.hlsl">
+    <None Include="Shaders\Engine\Base\Camera.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\Engine\MainEntryPoint.hlsl">
+    <None Include="Shaders\Engine\Base\MainEntryPoint.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

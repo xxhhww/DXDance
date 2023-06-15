@@ -15,7 +15,7 @@ struct PassData {
 
 #define PassDataType PassData
 
-#include "../MainEntryPoint.hlsl"
+#include "../Base/MainEntryPoint.hlsl"
 
 struct a2v {
 	float3 lsPos     : POSITION;

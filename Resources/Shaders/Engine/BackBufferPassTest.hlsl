@@ -1,7 +1,7 @@
 #ifndef _BackBufferPassTest__
 #define _BackBufferPassTest__
 
-#include "MainEntryPoint.hlsl"
+#include "Base/MainEntryPoint.hlsl"
 
 struct a2v 
 {

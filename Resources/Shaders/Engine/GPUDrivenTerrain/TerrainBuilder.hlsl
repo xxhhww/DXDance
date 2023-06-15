@@ -20,7 +20,7 @@ struct PassData {
 
 #define PassDataType PassData
 
-#include "../MainEntryPoint.hlsl"
+#include "../Base/MainEntryPoint.hlsl"
 
 // 根据Node的索引获得Node的全局ID
 uint GetGlobalNodeId(uint2 nodeLoc, uint lod) {

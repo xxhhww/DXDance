@@ -14,7 +14,7 @@ struct PassData {
 
 #define PassDataType PassData
 
-#include "../MainEntryPoint.hlsl"
+#include "../Base/MainEntryPoint.hlsl"
 
 [numthreads(8, 8, 1)]
 void GenMinMaxHeightMap (uint3 id : SV_DispatchThreadID) {

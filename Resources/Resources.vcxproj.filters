@@ -17,9 +17,9 @@
   <ItemGroup>
     <None Include="Shaders\Editor\AxisPicking.hlsl" />
     <None Include="Shaders\Engine\BackBufferPassTest.hlsl" />
-    <None Include="Shaders\Engine\BaseEngineLayout.hlsl" />
-    <None Include="Shaders\Engine\Camera.hlsl" />
-    <None Include="Shaders\Engine\MainEntryPoint.hlsl" />
+    <None Include="Shaders\Engine\Base\BaseEngineLayout.hlsl" />
+    <None Include="Shaders\Engine\Base\Camera.hlsl" />
+    <None Include="Shaders\Engine\Base\MainEntryPoint.hlsl" />
     <None Include="Models\Arrow_Picking.fbx" />
     <None Include="Models\Arrow_Rotate.fbx" />
     <None Include="Models\Arrow_Scale.fbx" />
@@ -40,5 +40,7 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader.hlsl" />
     <FxCompile Include="Shaders\Engine\OutputBackBuffer\OutputBackBuffer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl" />
+    <FxCompile Include="Shaders\Engine\GBufferPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl" />
   </ItemGroup>
 </Project>
