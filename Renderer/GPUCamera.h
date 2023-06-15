@@ -30,8 +30,10 @@ namespace Renderer {
         Math::Vector4 front;
         // 16 byte boundary
         Math::Vector2 uvJitter;
-        uint32_t pad0__;
-        uint32_t pad1__;
+        uint32_t pad0;
+        uint32_t pad1;
+        // 16 byte boundary
+        Math::Vector4 planes[6];
     };
 
 }

@@ -20,8 +20,16 @@ struct LODDescriptor {
 
 struct RenderPatch {
 	float2 position;
+	float2 minMaxHeight;
 	uint lod;
 	float pad1;
+	float pad2;
+	float pad3;
+};
+
+struct BoundingBox {
+    float4 minPosition;
+    float4 maxPosition;
 };
 
 struct PassData {
@@ -35,7 +43,7 @@ struct PassData {
 	uint nodeDescriptorListIndex;
 	uint lodDescriptorListIndex;
 	uint culledPatchListIndex;
-	uint minmaxHeightMapIndex;
+	uint minMaxHeightMapIndex;
 	float pad1;
 };
 
@@ -67,11 +75,11 @@ float2 GetNodeWSPositionXZ(uint2 nodeLoc, uint lod) {
 
 // 获得Node中心在世界空间下的坐标的XYZ分量
 float3 GetNodeWSPositionXYZ(uint2 nodeLoc, uint lod) {
-	Texture2D<float> minmaxHeightMap = ResourceDescriptorHeap[PassDataCB.minmaxHeightMapIndex];
+	Texture2D<float4> minMaxHeightMap = ResourceDescriptorHeap[PassDataCB.minMaxHeightMapIndex];
 
 	float2 wsPositionXZ = GetNodeWSPositionXZ(nodeLoc, lod);
-	float2 minMaxHeight = MinMaxHeightTexture.mips[lod + 3][nodeLoc].xy;
-    float y = (minMaxHeight.x + minMaxHeight.y) * 0.5 * PassDataCB.heightScale;
+	float2 minMaxHeight = minMaxHeightMap.mips[lod + 3][nodeLoc].xy;
+    float y = (minMaxHeight.x + minMaxHeight.y) * 0.5f * PassDataCB.heightScale;
 	return float3(wsPositionXZ.x, y, wsPositionXZ.y);
 }
 
@@ -128,8 +136,9 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset){
     uint lod = nodeLoc.z;
 
 	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+	Texture2D<float4> minMaxHeightMap = ResourceDescriptorHeap[PassDataCB.minMaxHeightMapIndex];
 	LODDescriptor currLODDescriptor = lodDescriptorList[lod];
-
+	
     float nodeMeterSize = currLODDescriptor.nodeSize;
     float patchMeterSize = nodeMeterSize / PATCH_COUNT_PER_NODE_PER_AXIS;
     float2 nodeWSPositionXZ = GetNodeWSPositionXZ(nodeLoc.xy,lod);
@@ -139,9 +148,77 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset){
     RenderPatch patch;
     patch.lod = lod;
     patch.position = nodeWSPositionXZ + ((float2)patchOffset - (PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f) * patchMeterSize;
-    patch.pad1 = 0.0f;
+    patch.minMaxHeight = minMaxHeightMap.mips[lod][patchLoc].rg * PassDataCB.heightScale + float2(-5.0f, 5.0f);
+	patch.pad1 = 0.0f;
+	patch.pad2 = 0.0f;
+	patch.pad3 = 0.0f;
 	return patch;
 }
+
+/*
+* 计算Patch的包围盒
+*/
+BoundingBox GetPatchBoundingBox(RenderPatch patch){
+	uint lod = patch.lod;
+
+	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+	LODDescriptor currLODDescriptor = lodDescriptorList[lod];
+
+	float nodeMeterSize = currLODDescriptor.nodeSize;
+    float patchExtentSize = nodeMeterSize / (PATCH_COUNT_PER_NODE_PER_AXIS * 2.0f);
+
+    BoundingBox boundingBox;
+    float4 minPosition = float4(0.0f, 0.0f, 0.0f, 0.0f); 
+	float4 maxPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    minPosition.xz = patch.position - patchExtentSize;
+    maxPosition.xz = patch.position + patchExtentSize;
+    minPosition.y = patch.minMaxHeight.x;
+    maxPosition.y = patch.minMaxHeight.y;
+
+    boundingBox.minPosition = minPosition;
+    boundingBox.maxPosition = maxPosition;
+    return boundingBox;
+}
+
+//测试是否在平面的外侧
+bool IsPositionOutSidePlane(float4 plane, float3 position){
+    return dot(plane.xyz, position) + plane.w < 0; 
+}
+
+bool IsAABBOutSidePlane(float4 plane, float4 minPosition, float4 maxPosition) {
+    return 
+	IsPositionOutSidePlane(plane, minPosition.xyz) &&
+    IsPositionOutSidePlane(plane, maxPosition.xyz) &&
+    IsPositionOutSidePlane(plane, float3(minPosition.x, minPosition.y, maxPosition.z)) &&
+    IsPositionOutSidePlane(plane, float3(minPosition.x, maxPosition.y, minPosition.z)) &&
+    IsPositionOutSidePlane(plane, float3(minPosition.x, maxPosition.y, maxPosition.z)) &&
+    IsPositionOutSidePlane(plane, float3(maxPosition.x, minPosition.y, maxPosition.z)) &&
+    IsPositionOutSidePlane(plane, float3(maxPosition.x, maxPosition.y, minPosition.z)) &&
+    IsPositionOutSidePlane(plane, float3(maxPosition.x, minPosition.y, minPosition.z));
+}
+
+/*
+* 使用摄像机的视锥体进行裁剪
+*/
+bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
+	return
+	IsAABBOutSidePlane(plane[0], boundingBox.minPosition, boundingBox.maxPosition) ||
+	IsAABBOutSidePlane(plane[1], boundingBox.minPosition, boundingBox.maxPosition) ||
+	IsAABBOutSidePlane(plane[2], boundingBox.minPosition, boundingBox.maxPosition) ||
+	IsAABBOutSidePlane(plane[3], boundingBox.minPosition, boundingBox.maxPosition) ||
+	IsAABBOutSidePlane(plane[4], boundingBox.minPosition, boundingBox.maxPosition) ||
+	IsAABBOutSidePlane(plane[5], boundingBox.minPosition, boundingBox.maxPosition);
+}
+
+bool Cull(BoundingBox boundingBox) {
+    if(FrustumCull(FrameDataCB.CurrentRenderCamera.Planes, boundingBox)) {
+        return true;
+    }
+    return false;
+}
+
+
 
 [numthreads(8, 8, 1)]
 void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID)
@@ -151,8 +228,16 @@ void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, ui
 
 	uint3 nodeLoc = finalNodeList[groupId.x];
     uint2 patchOffset = groupThreadId.xy;
-    //生成Patch
+    // 生成Patch
     RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
+
+	// 计算Patch的包围盒
+	BoundingBox boundingBox = GetPatchBoundingBox(patch);
+
+	// 裁剪Patch
+	if(Cull(boundingBox)) {
+		return;
+	}
 
     culledPatchList.Append(patch);
 }

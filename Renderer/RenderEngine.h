@@ -34,7 +34,6 @@
 #include <memory>
 
 namespace Renderer {
-
 	/*
 	* 每一个渲染帧进行如下处理
 	* Push新的帧 --- 如需，构建RenderGraph --- 录制帧命令 --- 提交帧命令 --- 检测帧队列的完成情况 --- 通知依赖于帧完成情况的管理器(如GPUProfiler TileUpdateManger等) --- 移至下一帧(可能需要等待GPU)
@@ -132,5 +131,4 @@ namespace Renderer {
 		Tool::Event<CommandBuffer&, RenderContext&> mOfflineTaskPass;
 		Tool::Event<> mOfflineCompletedCallback;
 	};
-
 }

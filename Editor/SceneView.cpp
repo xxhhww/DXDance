@@ -44,8 +44,17 @@ namespace App {
 	void SceneView::LoadNewScene(const std::string& path) {
 		mSceneManger->CreateEmptyScene("Undefined");
 		mCurrentScene = mSceneManger->GetCurrentScene();
+
 		mEditorCamera = &mCurrentScene->editorCamera;
+		mEditorCamera->translationSpeed *= 25.0f;
 		mEditorTransform = &mCurrentScene->editorTransform;
+		mEditorTransform->worldPosition = Math::Vector3{ 0.0f, 750.0f, 0.0f };
+
+		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
+			if (camera.cameraType == ECS::CameraType::RenderCamera) {
+				transform.worldPosition = Math::Vector3{ 0.0f, 720.0f, 0.0f };
+			}
+		});
 	}
 
 	void SceneView::Update(float dt) {
@@ -133,7 +142,7 @@ namespace App {
 			return;
 		}
 
-		// HandleActorPicking();
+		HandleActorPicking();
 
 		// ¸üÐÂPerFrameData
 		mRenderEngine->Update(dt, *mEditorCamera, *mEditorTransform);

@@ -503,10 +503,11 @@ namespace Renderer {
 			DirectX::ScratchImage baseImage;
 			HRASSERT(DirectX::LoadFromDDSFile(
 				L"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap_2.dds",
-				DirectX::DDS_FLAGS_NONE,
+				DirectX::DDS_FLAGS_FORCE_DX10_EXT,
 				nullptr,
 				baseImage
 			));
+			
 
 			Renderer::TextureDesc _MinMaxHeightMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
 			_MinMaxHeightMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
@@ -517,18 +518,46 @@ namespace Renderer {
 				nullptr
 				);
 
-			// 上传数据到显存
-			DSTORAGE_REQUEST request = {};
-			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_MULTIPLE_SUBRESOURCES;
-			request.Source.Memory.Source = baseImage.GetPixels();
-			request.Source.Memory.Size = baseImage.GetPixelsSize();
-			request.Destination.MultipleSubresources.FirstSubresource = 0u;
-			request.Destination.MultipleSubresources.Resource = minmaxHeightMap->D3DResource();
-			request.UncompressedSize = baseImage.GetPixelsSize();
+			uint32_t subresourceCount = minmaxHeightMap->GetResourceFormat().SubresourceCount();
+			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+			std::vector<uint32_t> numRows(subresourceCount);
+			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+			uint64_t requiredSize = 0u;
+			auto d3dResDesc = minmaxHeightMap->GetResourceFormat().D3DResourceDesc();
+			device->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
-			copyDsQueue->EnqueueRequest(&request);
+			// 上传数据到显存
+			uint32_t imageCount = baseImage.GetImageCount();
+			for (uint32_t i = 0; i < subresourceCount; i++) {
+				auto* image = baseImage.GetImage(i, 0u, 0u);
+
+				uint8_t* temp = new uint8_t[placedLayouts.at(i).Footprint.RowPitch * numRows[i]];
+				for (uint32_t rowIndex = 0u; rowIndex < numRows[i]; rowIndex++) {
+					uint32_t realByteOffset = rowIndex * placedLayouts.at(i).Footprint.RowPitch;
+					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
+					memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
+				}
+				
+				uint32_t mis2 = pow(2, i);
+
+				DSTORAGE_REQUEST request = {};
+				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
+				request.Source.Memory.Source = temp;
+				request.Source.Memory.Size = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+				request.Destination.Texture.Resource = minmaxHeightMap->D3DResource();
+				request.Destination.Texture.Region = GHL::Box{
+					0u, static_cast<uint32_t>(image->width), 
+					0u, static_cast<uint32_t>(image->height), 
+					0u, 1u
+				}.D3DBox();
+				request.Destination.Texture.SubresourceIndex = i;
+				request.UncompressedSize = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+
+				copyDsQueue->EnqueueRequest(&request);
+			}
 			copyFence->IncrementExpectedValue();
 			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
 			copyDsQueue->Submit();

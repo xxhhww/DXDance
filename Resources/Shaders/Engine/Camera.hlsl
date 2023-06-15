@@ -29,6 +29,8 @@ struct Camera
     float2 UVJitter;
     uint32_t Pad0__;
     uint32_t Pad1__;
+    // 16 byte boundary
+    float4 Planes[6];
 };
 
 #endif

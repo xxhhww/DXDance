@@ -129,12 +129,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Color.h" />
+    <ClInclude Include="Frustum.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Vector.cpp" />

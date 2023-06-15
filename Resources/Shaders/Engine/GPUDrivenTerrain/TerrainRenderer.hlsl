@@ -3,8 +3,11 @@
 
 struct RenderPatch {
 	float2 position;
+	float2 minMaxHeight;
 	uint lod;
 	float pad1;
+	float pad2;
+	float pad3;
 };
 
 struct PassData {

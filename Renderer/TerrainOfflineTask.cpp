@@ -307,6 +307,7 @@ namespace Renderer {
 
     void TerrainOfflineTask::OnCompleted() {
         // 离线任务完成，将结果保存到磁盘中
+        uint32_t startMipLevel = 0u;
         uint32_t subresourceCount = mMinMaxHeightMap->GetResourceFormat().SubresourceCount();
         std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
         std::vector<uint32_t> numRows(subresourceCount);
@@ -317,7 +318,7 @@ namespace Renderer {
             placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
         std::vector<DirectX::Image> images(subresourceCount);
-        for (uint32_t i = 0u; i < subresourceCount; i++) {
+        for (uint32_t i = startMipLevel; i < subresourceCount; i++) {
             auto& image = images.at(i);
             auto& placedLayout = placedLayouts.at(i);
 
@@ -333,7 +334,7 @@ namespace Renderer {
         }
 
         DirectX::TexMetadata metadata = GetTexMetadata(mMinMaxHeightMap->GetResourceFormat().GetTextureDesc());
-        DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_NONE, L"MinMaxHeightMap.dds");
+        DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_FORCE_DX10_EXT, L"MinMaxHeightMap_2.dds");
     }
 
     Renderer::TextureDesc TerrainOfflineTask::GetTextureDesc(const DirectX::TexMetadata& metadata) {
@@ -360,6 +361,7 @@ namespace Renderer {
         DirectX::TexMetadata metadata{};
         metadata.width = textureDesc.width;
         metadata.height = textureDesc.height;
+        metadata.depth = textureDesc.depth;
         metadata.arraySize = textureDesc.arraySize;
         metadata.mipLevels = textureDesc.mipLevals;
         metadata.miscFlags =

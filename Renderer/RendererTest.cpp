@@ -139,7 +139,7 @@ void RunRenderer() {
     // MainCamera(RenderCamera)
     auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
     auto& cTransform = mainCamera.GetComponent<ECS::Transform>();
-    cTransform.worldPosition = Math::Vector3{ 0.0f, 10.0f, -3.0f };
+    cTransform.worldPosition = Math::Vector3{ 0.0f, 710.0f, 0.0f };
     cTransform.worldRotation.y = 45.0f;
     auto& cCamera = mainCamera.AddComponent<ECS::Camera>();
     cCamera.cameraType = ECS::CameraType::RenderCamera;
@@ -148,14 +148,11 @@ void RunRenderer() {
     // EditorCamera
     ECS::Camera editorCamera;
     editorCamera.frustum.farZ = 5000.0f;
-    editorCamera.lookUp = Math::Vector3{ 0.0339f, -0.2368f, 0.9709f };
-    editorCamera.right = Math::Vector3{ 0.9993f, 0.0f, -0.0348f };
-    editorCamera.up = Math::Vector3{ 0.00826f, 0.9715f, 0.2367f };
-
+    editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
-    editorTransform.worldPosition.x = 4.4f;
-    editorTransform.worldPosition.y = 900.0f;
-    editorTransform.worldPosition.z = -21.7f;
+    editorTransform.worldPosition.x = 0.0f;
+    editorTransform.worldPosition.y = 750.0f;
+    editorTransform.worldPosition.z = 0.0f;
 
     // 更新编辑摄像机与渲染摄像机的矩阵数据
     auto updateCameraMatrix = [](ECS::Camera& camera, ECS::Transform& transform) {

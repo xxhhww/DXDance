@@ -45,7 +45,6 @@ namespace Core {
 
 		Actor* mainCamera = mCurrScene->CreateActor("MainCamera");
 		auto& cTransform = mainCamera->GetComponent<ECS::Transform>();
-		cTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
 		auto& cCamera = mainCamera->AddComponent<ECS::Camera>();
 		cCamera.cameraType = ECS::CameraType::RenderCamera;
 		cCamera.mainCamera = true;

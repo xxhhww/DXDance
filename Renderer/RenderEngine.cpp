@@ -1,9 +1,11 @@
-#include "RenderEngine.h"
-#include "GBufferPass.h"
-#include "DeferredLightPass.h"
-#include "BackBufferPass.h"
+#include "Renderer/RenderEngine.h"
+#include "Renderer/GBufferPass.h"
+#include "Renderer/DeferredLightPass.h"
+#include "Renderer/BackBufferPass.h"
 
 #include "ECS/Entity.h"
+
+#include "Math/Frustum.h"
 
 namespace Renderer {
 
@@ -150,6 +152,10 @@ namespace Renderer {
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
+				Math::Frustum::BuildFrustumPlanes(
+					camera.viewMatrix * camera.projMatrix,
+					mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.planes
+				);
 			}
 		});
 	}

@@ -59,8 +59,11 @@ namespace Renderer {
 
 		struct RenderPatch {
 			Math::Vector2 position;
+			Math::Vector2 minMaxHeight;
 			uint32_t lod;
 			float pad1;
+			float pad2;
+			float pad3;
 		};
 
 	public:
