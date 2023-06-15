@@ -1,14 +1,7 @@
 #ifndef _TerrainRenderer__
 #define _TerrainRenderer__
 
-struct RenderPatch {
-	float2 position;
-	float2 minMaxHeight;
-	uint lod;
-	float pad1;
-	float pad2;
-	float pad3;
-};
+#include "PublicHeader.hlsl"
 
 struct PassData {
 	float2 worldSize;
