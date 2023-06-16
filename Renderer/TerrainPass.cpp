@@ -37,21 +37,6 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				shaderManger.CreateComputeShader("TraverseQuadTree",
-					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
-						proxy.csEntryPoint = "TraverseQuadTree";
-					});
-
-				commandSignatureManger.CreateCommandSignature("TraverseQuadTree",
-					[&](GHL::CommandSignature& proxy) {
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
-						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
-						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
-						proxy.SetByteStride(sizeof(IndirectDispatch));
-					});
-
 				NewBufferProperties _TraverseQuadTreeIndirectArgsProperties;
 				_TraverseQuadTreeIndirectArgsProperties.stride = sizeof(IndirectDispatch);
 				_TraverseQuadTreeIndirectArgsProperties.size = sizeof(IndirectDispatch);
@@ -94,6 +79,21 @@ namespace Renderer {
 				_LODDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("LODDescriptorList", _LODDescriptorListProperties);
 				builder.WriteBuffer("LODDescriptorList");
+
+				shaderManger.CreateComputeShader("TraverseQuadTree",
+					[](ComputeStateProxy& proxy) {
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
+						proxy.csEntryPoint = "TraverseQuadTree";
+					});
+
+				commandSignatureManger.CreateCommandSignature("TraverseQuadTree",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDispatch));
+					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator       = renderContext.dynamicAllocator;
@@ -216,21 +216,6 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				shaderManger.CreateComputeShader("BuildPatches",
-					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
-						proxy.csEntryPoint = "BuildPatches";
-					});
-
-				commandSignatureManger.CreateCommandSignature("BuildPatches",
-					[&](GHL::CommandSignature& proxy) {
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
-						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
-						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
-						proxy.SetByteStride(sizeof(IndirectDispatch));
-					});
-
 				builder.ReadBuffer("LODDescriptorList", ShaderAccessFlag::NonPixelShader);
 				builder.ReadBuffer("FinalNodeList", ShaderAccessFlag::NonPixelShader);
 
@@ -248,6 +233,21 @@ namespace Renderer {
 				_BuildPatchesIndirectArgsProperties.aliased = false;
 				builder.DeclareBuffer("BuildPatchesIndirectArgs", _BuildPatchesIndirectArgsProperties);
 				builder.WriteCopyDstBuffer("BuildPatchesIndirectArgs");
+
+				shaderManger.CreateComputeShader("BuildPatches",
+					[](ComputeStateProxy& proxy) {
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainBuilder.hlsl";
+						proxy.csEntryPoint = "BuildPatches";
+					});
+
+				commandSignatureManger.CreateCommandSignature("BuildPatches",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDispatch));
+					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator       = renderContext.dynamicAllocator;
@@ -304,8 +304,31 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				builder.WriteRenderTarget("FinalOutput");
+				// builder.WriteRenderTarget("FinalOutput");
+				builder.WriteRenderTarget("GBufferAlbedo");
+				builder.WriteRenderTarget("GBufferPosition");
+				builder.WriteRenderTarget("GBufferNormal");
+				builder.WriteRenderTarget("GBufferMRE");
+				builder.WriteDepthStencil("GBufferDepth");
+				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
+				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
+				_TerrainRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
+				_TerrainRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
+				_TerrainRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_TerrainRendererIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("TerrainRendererIndirectArgs", _TerrainRendererIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("TerrainRendererIndirectArgs");
+
+				/*
+				NewTextureProperties _TempDepthTextureProperties{};
+				_TempDepthTextureProperties.width = 979u;
+				_TempDepthTextureProperties.height = 635u;
+				_TempDepthTextureProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				_TempDepthTextureProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				builder.DeclareTexture("TempDepthTexture", _TempDepthTextureProperties);
+				builder.WriteDepthStencil("TempDepthTexture");
+				*/
 				shaderManger.CreateGraphicsShader("TerrainRenderer",
 					[](GraphicsStateProxy& proxy) {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer.hlsl";
@@ -313,6 +336,12 @@ namespace Renderer {
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 						proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+						proxy.renderTargetFormatArray = {
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R8G8B8A8_UNORM
+						};
 					});
 
 				commandSignatureManger.CreateCommandSignature("TerrainRenderer",
@@ -325,35 +354,21 @@ namespace Renderer {
 						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
 						proxy.SetByteStride(sizeof(IndirectDrawIndexed));
 					});
-
-				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
-
-				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
-				_TerrainRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
-				_TerrainRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
-				_TerrainRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_TerrainRendererIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("TerrainRendererIndirectArgs", _TerrainRendererIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("TerrainRendererIndirectArgs");
-
-				NewTextureProperties _TempDepthTextureProperties{};
-				_TempDepthTextureProperties.width = 979u;
-				_TempDepthTextureProperties.height = 635u;
-				_TempDepthTextureProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				_TempDepthTextureProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
-				builder.DeclareTexture("TempDepthTexture", _TempDepthTextureProperties);
-				builder.WriteDepthStencil("TempDepthTexture");
-
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				auto* finalOutput     = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
+				// auto* finalOutput     = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
+				auto* gbufferAlbedo   = resourceStorage->GetResourceByName("GBufferAlbedo")->GetTexture();
+				auto* gbufferPosition = resourceStorage->GetResourceByName("GBufferPosition")->GetTexture();
+				auto* gbufferNormal   = resourceStorage->GetResourceByName("GBufferNormal")->GetTexture();
+				auto* gbufferMRE      = resourceStorage->GetResourceByName("GBufferMRE")->GetTexture();
+				auto* gbufferDepth    = resourceStorage->GetResourceByName("GBufferDepth")->GetTexture();
+				// auto* tempDepthTex    = resourceStorage->GetResourceByName("TempDepthTexture")->GetTexture();
 				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs    = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
-				auto* tempDepthTex    = resourceStorage->GetResourceByName("TempDepthTexture")->GetTexture();
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
@@ -392,9 +407,12 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
-				commandBuffer.ClearRenderTarget(finalOutput);
-				commandBuffer.ClearDepth(tempDepthTex, 1.0f);
-				commandBuffer.SetRenderTarget(finalOutput, tempDepthTex);
+				// commandBuffer.ClearRenderTarget(finalOutput);
+				// commandBuffer.ClearDepth(tempDepthTex, 1.0f);
+				// commandBuffer.SetRenderTarget(finalOutput, gbufferDepth);
+				commandBuffer.SetRenderTargets(
+					{ gbufferAlbedo, gbufferPosition, gbufferNormal, gbufferMRE }, 
+					gbufferDepth);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
 				commandBuffer.SetGraphicsRootSignature();

@@ -41,8 +41,16 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->SetGraphicsRootConstantBufferView(rootParamIndex, gpuAddress);
 	}
 
+	void CommandBuffer::SetGraphicsRootSRV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress) {
+		mCommandList->D3DCommandList()->SetGraphicsRootShaderResourceView(rootParamIndex, gpuAddress);
+	}
+
 	void CommandBuffer::SetComputeRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress) {
 		mCommandList->D3DCommandList()->SetComputeRootConstantBufferView(rootParamIndex, gpuAddress);
+	}
+
+	void CommandBuffer::SetComputeRootSRV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress) {
+		mCommandList->D3DCommandList()->SetComputeRootShaderResourceView(rootParamIndex, gpuAddress);
 	}
 
 	void CommandBuffer::SetViewport(const GHL::Viewport& viewport) {
@@ -77,8 +85,17 @@ namespace Renderer {
 	void CommandBuffer::SetRenderTarget(Texture* rtTexture, Texture* dsTexture) {
 		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
 		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
-
 		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, &dsHandle);
+	}
+
+	void CommandBuffer::SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture) {
+		uint32_t numRTVs = rtTextures.size();
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtHandles(numRTVs);
+		for (uint32_t i = 0; i < numRTVs; i++) {
+			rtHandles[i] = rtTextures[i]->GetRTDescriptor()->GetCpuHandle();
+		}
+		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+		mCommandList->D3DCommandList()->OMSetRenderTargets(numRTVs, rtHandles.data(), false, &dsHandle);
 	}
 
 	void CommandBuffer::ClearRenderTarget(Texture* rtTexture, float* clearColor, std::optional<GHL::Rect> rect) {

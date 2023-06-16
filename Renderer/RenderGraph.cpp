@@ -1,14 +1,14 @@
-#include "RenderGraph.h"
-#include "RenderGraphBuilder.h"
-#include "RenderGraphResource.h"
-#include "RenderGraphResourceStorage.h"
-#include "RenderGraphItem.h"
-#include "RenderGraphPass.h"
-#include "ResourceStateTracker.h"
-#include "CommandBuffer.h"
+#include "Renderer/RenderGraph.h"
+#include "Renderer/RenderGraphBuilder.h"
+#include "Renderer/RenderGraphResource.h"
+#include "Renderer/RenderGraphResourceStorage.h"
+#include "Renderer/RenderGraphItem.h"
+#include "Renderer/RenderGraphPass.h"
+#include "Renderer/ResourceStateTracker.h"
+#include "Renderer/CommandBuffer.h"
 
-#include "PoolCommandListAllocator.h"
-#include "RingFrameTracker.h"
+#include "Renderer/PoolCommandListAllocator.h"
+#include "Renderer/RingFrameTracker.h"
 
 #include "GHL/CommandQueue.h"
 
@@ -39,15 +39,20 @@ namespace Renderer {
 	, mCommandSignatureManger(commandSignatureManger)
 	, mDynamicAllocator(dynamicAllocator)
 	, mStreamTextureManger(streamTextureManger) {
-		mCommandQueues.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
-		mCommandQueues.at(0u) = graphicsQueue;
-		mCommandQueues.at(1u) = computeQueue;
-		mCommandQueues.at(2u) = copyQueue;
+		uint32_t queueCount = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count);
+		uint32_t graphicsQueueIndex = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Graphics);
+		uint32_t computeQueueIndex  = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Compute);
+		uint32_t copyQueueIndex     = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Copy);
 
-		mFences.resize(std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count));
-		mFences.at(0u) = std::make_unique<GHL::Fence>(device);
-		mFences.at(1u) = std::make_unique<GHL::Fence>(device);
-		mFences.at(2u) = std::make_unique<GHL::Fence>(device);
+		mCommandQueues.resize(queueCount);
+		mCommandQueues.at(graphicsQueueIndex) = graphicsQueue;
+		mCommandQueues.at(computeQueueIndex)  = computeQueue;
+		mCommandQueues.at(copyQueueIndex)     = copyQueue;
+
+		mFences.resize(queueCount);
+		mFences.at(graphicsQueueIndex) = std::make_unique<GHL::Fence>(device);
+		mFences.at(computeQueueIndex)  = std::make_unique<GHL::Fence>(device);
+		mFences.at(copyQueueIndex)     = std::make_unique<GHL::Fence>(device);
 	}
 
 	void RenderGraph::Build() {

@@ -21,15 +21,17 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
+				builder.WriteRenderTarget("FinalOutput");
+				/*
 				shaderManger.CreateGraphicsShader("BackBufferPass",
 					[](GraphicsStateProxy& proxy) {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/BackBufferPassTest.hlsl";
 						proxy.psFilepath = proxy.vsFilepath;
 					});
-
-				builder.WriteRenderTarget("FinalOutput");
+				*/
 			},
 			[=](CommandBuffer& commandList, RenderContext& context) {
+				/*
 				auto* streamTexture = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 				uint32_t srvIndex = streamTexture->GetInternalResource()->GetSRDescriptor()->GetHeapIndex();
 
@@ -91,6 +93,7 @@ namespace Renderer {
 				commandList.D3DCommandList()->DrawInstanced(6u, 1u, 0u, 0u);
 				streamTexture->RecordResolve(commandList.D3DCommandList());
 				streamTexture->RecordReadback(commandList.D3DCommandList());
+				*/
 			});
 	}
 

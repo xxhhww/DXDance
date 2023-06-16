@@ -7,8 +7,7 @@
 // Root descriptors(64 - bit GPU virtual addresses) cost 2 DWORDs each.
 // Static samplers do not have any cost in the size of the root signature.
 
-struct Dummy
-{
+struct Dummy {
     int D;
 };
 
@@ -24,8 +23,13 @@ struct Dummy
 #define PassDataType Dummy
 #endif
 
-ConstantBuffer<FrameDataType> FrameDataCB : register(b0, space10);
-ConstantBuffer<PassDataType>  PassDataCB  : register(b1, space10);
+#ifndef LightDataType
+#define LightDataType Dummy
+#endif
+
+ConstantBuffer<FrameDataType>   FrameDataCB : register(b0, space10);
+ConstantBuffer<PassDataType>    PassDataCB  : register(b1, space10);
+StructuredBuffer<LightDataType> LightDataSB : register(t0, space10);
 
 SamplerState SamplerPointWrap : register(s0);
 SamplerState SamplerPointClamp : register(s1);

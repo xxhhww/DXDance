@@ -1,7 +1,7 @@
 #ifndef _TerrainBuilder__
 #define _TerrainBuilder__
 
-#include "PublicHeader.hlsl"
+#include "PublicHeader_Terrain.hlsl"
 
 struct PassData {
 	float4 nodeEvaluationC;		// 用户控制的节点评估系数
@@ -15,7 +15,7 @@ struct PassData {
 	uint lodDescriptorListIndex;
 	uint culledPatchListIndex;
 	uint minMaxHeightMapIndex;
-	float pad1;
+	uint useFrustumCull;
 };
 
 #define PassDataType PassData
@@ -70,8 +70,7 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 }
 
 [numthreads(1, 1, 1)]
-void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
-{
+void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 	ConsumeStructuredBuffer<uint2>     currLODNodeList    = ResourceDescriptorHeap[PassDataCB.currLODNodeListIndex];
 	AppendStructuredBuffer<uint2>      nextLODNodeList    = ResourceDescriptorHeap[PassDataCB.nextLODNodeListIndex];
 	AppendStructuredBuffer<uint3>      finalNodeList      = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
@@ -103,7 +102,7 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID)
 	nodeDescriptorList[nodeGlobalID] = currNodeDescriptor;
 }
 
-RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset){
+RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset) {
     uint lod = nodeLoc.z;
 
 	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
@@ -129,7 +128,7 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset){
 /*
 * 计算Patch的包围盒
 */
-BoundingBox GetPatchBoundingBox(RenderPatch patch){
+BoundingBox GetPatchBoundingBox(RenderPatch patch) {
 	uint lod = patch.lod;
 
 	StructuredBuffer<LODDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
@@ -153,7 +152,7 @@ BoundingBox GetPatchBoundingBox(RenderPatch patch){
 }
 
 //测试是否在平面的外侧
-bool IsPositionOutSidePlane(float4 plane, float3 position){
+bool IsPositionOutSidePlane(float4 plane, float3 position) {
     return dot(plane.xyz, position) + plane.w < 0; 
 }
 
@@ -183,17 +182,18 @@ bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
 }
 
 bool Cull(BoundingBox boundingBox) {
-    if(FrustumCull(FrameDataCB.CurrentRenderCamera.Planes, boundingBox)) {
-        return true;
-    }
+	if(PassDataCB.useFrustumCull){
+		if(FrustumCull(FrameDataCB.CurrentRenderCamera.Planes, boundingBox)) {
+			return true;
+		}
+	}
     return false;
 }
 
 
 
 [numthreads(8, 8, 1)]
-void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID)
-{
+void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID) {
 	StructuredBuffer<uint3>             finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
 	AppendStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
 

@@ -36,6 +36,12 @@ namespace Tool {
 		WaitForSingleObject(mAllCompletedEvent, INFINITE);
 	}
 
+	void TaskProxy::RunAllTaskInCurrentThread() {
+		for (auto& t : mTasks) {
+			t.Run();
+		}
+	}
+
 	void TaskProxy::TaskCompleted() {
 		// 原子操作，不会遗漏
 		mCompletedTaskCount++;

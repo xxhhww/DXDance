@@ -49,6 +49,7 @@ void TestECS() {
         compB.a = i;
         sum += i;
     }
+    uint32_t cc = Entity::GetEntityCount<CompA>();
 
     for (int32_t i = 0; i < 500; i++) {
         Entity entity{ i };
@@ -88,6 +89,9 @@ void TestECS() {
             }
             });
     }
+
+    uint32_t coco = Entity::GetEntityCount<CompA, CompB, CompC>();
+    int i = 32;
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {

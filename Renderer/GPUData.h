@@ -4,8 +4,7 @@
 
 namespace Renderer {
 
-    struct GPUCamera
-    {
+    struct GPUCamera {
         Math::Vector4 position;
         // 16 byte boundary
         Math::Matrix4 view;
@@ -36,4 +35,10 @@ namespace Renderer {
         Math::Vector4 planes[6];
     };
 
+    struct GPULight {
+        Math::Vector4 position;
+        Math::Vector4 direction;
+        Math::Vector3 color;
+        uint32_t lightType;
+    };
 }

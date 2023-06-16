@@ -37,10 +37,11 @@
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainBuilder.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader_Terrain.hlsl" />
     <FxCompile Include="Shaders\Engine\OutputBackBuffer\OutputBackBuffer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl" />
-    <FxCompile Include="Shaders\Engine\GBufferPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\StandardGBufferPass.hlsl" />
     <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\Light.hlsl" />
   </ItemGroup>
 </Project>

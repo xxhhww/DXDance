@@ -39,7 +39,7 @@ namespace Renderer {
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
 			uint32_t minmaxHeightMapIndex;
-			float pad1;
+			uint32_t useFrustumCull = 1u;
 		};
 
 		struct TerrainRendererPassData {
@@ -47,8 +47,8 @@ namespace Renderer {
 			uint32_t heightScale = 2048u;
 			uint32_t culledPatchListIndex;
 			uint32_t heightMapIndex;
-			float pad1;
-			float pad2;
+			uint32_t diffuseMapIndex;
+			uint32_t normalMapIndex;
 			float pad3;
 		};
 
@@ -91,5 +91,4 @@ namespace Renderer {
 		*/
 		void UpdateNodeAndLodDescriptorArray();
 	};
-
 }

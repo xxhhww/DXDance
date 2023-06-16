@@ -1,8 +1,7 @@
 #ifndef _Camera__
 #define _Camera__
 
-struct Camera
-{
+struct Camera {
     float4 Position;
     // 16 byte boundary
     float4x4 View;

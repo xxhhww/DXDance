@@ -62,6 +62,12 @@ namespace Renderer {
 
 		void BindFinalOuputSRV(D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle);
 
+	private:
+		/*
+		* ¸üÐÂLights
+		*/
+		void UpdateLights();
+
 	public:
 		// ==========================...ÔÓÏî...==========================
 		HWND mWindowHandle{ nullptr };

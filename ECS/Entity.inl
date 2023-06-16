@@ -271,6 +271,60 @@ namespace ECS {
 		processor.RunAllTask();
 	}
 
+	template<typename F>
+	static void Entity::ForeachInCurrentThread(F&& task) {
+		Processor<F> processor;
+		for (auto& pair : sArchetypeMap) {
+			Archetype& archetype = pair.second;
+			// archetype没有Chunk
+			if (archetype.chunkListHead == nullptr) continue;
+			// 检测archetype与lambda是否匹配
+			bool isMatch{ true };
+			for (uint32_t i = 0; i < processor.sArity; i++) {
+				if (!archetype.header.HasMetatype(processor.sHashArray[i])) {
+					isMatch = false;
+					break;
+				}
+			}
+			// 遍历archetype下的所有Chunk
+			if (isMatch) {
+				Chunk* pCurrChunk = archetype.chunkListHead;
+				while (pCurrChunk != nullptr) {
+					processor.AddTask(pCurrChunk, task);
+					pCurrChunk = pCurrChunk->header.next;
+				}
+			}
+		}
+		processor.RunAllTaskInCurrentThread();
+	}
+
+	template<typename ...Comps>
+	static uint32_t Entity::GetEntityCount() {
+		Counter<Comps...> counter;
+		for (auto& pair : sArchetypeMap) {
+			Archetype& archetype = pair.second;
+			// archetype没有Chunk
+			if (archetype.chunkListHead == nullptr) continue;
+			// 检测archetype与lambda是否匹配
+			bool isMatch{ true };
+			for (uint32_t i = 0; i < counter.sArity; i++) {
+				if (!archetype.header.HasMetatype(counter.sHashArray[i])) {
+					isMatch = false;
+					break;
+				}
+			}
+			// 遍历archetype下的所有Chunk
+			if (isMatch) {
+				Chunk* pCurrChunk = archetype.chunkListHead;
+				while (pCurrChunk != nullptr) {
+					counter.Tick(pCurrChunk);
+					pCurrChunk = pCurrChunk->header.next;
+				}
+			}
+		}
+		return counter.itemCount;
+	}
+
 	template<typename Comp>
 	static const Metatype* Entity::SolveMetatype() {
 		// 编译期计算Hash值

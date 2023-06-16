@@ -1,5 +1,5 @@
-#ifndef _PublicHeader__
-#define _PublicHeader__
+#ifndef _PublicHeader_Terrain__
+#define _PublicHeader_Terrain__
 
 //一个Node拆成8x8个Patch
 #define PATCH_COUNT_PER_NODE_PER_AXIS 8

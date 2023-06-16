@@ -54,11 +54,17 @@ namespace Renderer {
 						renderGraphResource->resource = new Texture(
 							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, 
 							mHeap.get(), renderGraphResource->heapOffset);
+						renderGraphResource->resource->SetDebugName(
+							renderGraphResource->resourceID.GetName()
+						);
 					}
 					else {
 						// Committed
 						renderGraphResource->resource = new Texture(
 							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, nullptr
+						);
+						renderGraphResource->resource->SetDebugName(
+							renderGraphResource->resourceID.GetName()
 						);
 					}
 				},
@@ -67,11 +73,17 @@ namespace Renderer {
 						renderGraphResource->resource = new Buffer(
 							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, 
 							mHeap.get(), renderGraphResource->heapOffset);
+						renderGraphResource->resource->SetDebugName(
+							renderGraphResource->resourceID.GetName()
+						);
 					}
 					else {
 						// Committed
 						renderGraphResource->resource = new Buffer(
 							mDevice, renderGraphResource->resourceFormat, mDescriptorAllocator, nullptr
+						);
+						renderGraphResource->resource->SetDebugName(
+							renderGraphResource->resourceID.GetName()
 						);
 					}
 				})

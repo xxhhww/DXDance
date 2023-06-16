@@ -2,6 +2,7 @@
 #define _MainEntryPoint__
 
 #include "Camera.hlsl"
+#include "Light.hlsl"
 
 struct FrameData {
     Camera CurrentEditorCamera;
@@ -12,6 +13,7 @@ struct FrameData {
 };
 
 #define FrameDataType FrameData
+#define LightDataType LightData
 
 #include "BaseEngineLayout.hlsl"
 

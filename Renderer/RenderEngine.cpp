@@ -4,11 +4,11 @@
 #include "Renderer/BackBufferPass.h"
 
 #include "ECS/Entity.h"
+#include "ECS/CLight.h"
 
 #include "Math/Frustum.h"
 
 namespace Renderer {
-
 	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers)
 		: mWindowHandle(windowHandle)
 		, mOutputWidth(width)
@@ -55,6 +55,10 @@ namespace Renderer {
 			mStreamTextureManger.get())) 
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
 		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
+
+		mGraphicsQueue->SetDebugName("GraphicsQueue");
+		mComputeQueue->SetDebugName("ComputeQueue");
+		mCopyQueue->SetDebugName("CopyQueue");
 
 		if (windowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);
@@ -113,9 +117,10 @@ namespace Renderer {
 		_FinalOutputDesc.width = width;
 		_FinalOutputDesc.height = height;
 		_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget);
+		_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget | GHL::EResourceState::UnorderedAccess);
 		_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 		mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
+		mFinalOutput->SetDebugName("FinalOutput");
 		mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
 
 		mResourceStateTracker->StartTracking(mFinalOutput.get());
@@ -123,10 +128,11 @@ namespace Renderer {
 		// 初始化RenderPass
 		mTerrainPass.InitializePass(this);
 
-
 		// 添加RenderPass
-		mTerrainPass.AddPass(*mRenderGraph.get());
-		mBackBufferPass.AddPass(*mRenderGraph.get());
+		mGBufferPass.AddPass(*mRenderGraph);
+		mTerrainPass.AddPass(*mRenderGraph);
+		mDeferredLightPass.AddPass(*mRenderGraph);
+		mBackBufferPass.AddPass(*mRenderGraph);
 
 		mRenderGraph->Build();
 
@@ -158,6 +164,21 @@ namespace Renderer {
 				);
 			}
 		});
+
+		UpdateLights();
+	}
+
+	void RenderEngine::UpdateLights() {
+		mPipelineResourceStorage->rootLightDataPerFrame.clear();
+
+		// 在当前线程内部逐一遍历实体集合
+		ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Light& light) {
+			auto& gpuLightData = mPipelineResourceStorage->rootLightDataPerFrame.emplace_back();
+			gpuLightData.position = transform.worldPosition;
+			gpuLightData.direction = transform.worldRotation;
+			gpuLightData.color = light.mColor;
+			gpuLightData.lightType = std::underlying_type<ECS::LightType>::type(light.mLightType);
+		});
 	}
 
 	void RenderEngine::Render() {
@@ -165,10 +186,18 @@ namespace Renderer {
 		mRenderFrameFence->IncrementExpectedValue();
 		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
 
+		auto rootDataAllocation = LinearAllocation{};
 		// RootConstantsDataPerFrame
-		auto dynamicAllocation = mSharedMemAllocator->Allocate(sizeof(RootConstantsPerFrame), 256u);
-		memcpy(dynamicAllocation.cpuAddress, &mPipelineResourceStorage->rootConstantsPerFrame, sizeof(RootConstantsPerFrame));
-		mPipelineResourceStorage->rootConstantsPerFrameAddress = dynamicAllocation.gpuAddress;
+		rootDataAllocation = mSharedMemAllocator->Allocate(sizeof(RootConstantsPerFrame));
+		memcpy(rootDataAllocation.cpuAddress, &mPipelineResourceStorage->rootConstantsPerFrame, sizeof(RootConstantsPerFrame));
+		mPipelineResourceStorage->rootConstantsPerFrameAddress = rootDataAllocation.gpuAddress;
+
+		// RootGPULightDataPerFrame
+		size_t lightDataByteSize = 
+			sizeof(GPULight) * mPipelineResourceStorage->rootLightDataPerFrame.size();
+		rootDataAllocation = mSharedMemAllocator->Allocate(lightDataByteSize);
+		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootLightDataPerFrame.data(), lightDataByteSize);
+		mPipelineResourceStorage->rootLightDataPerFrameAddress = rootDataAllocation.gpuAddress;
 
 		mRenderGraph->Execute();
 

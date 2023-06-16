@@ -74,6 +74,27 @@ namespace ECS {
 		void RunAllTask() {
 			proxy.RunAllTask();
 		}
+
+		/*
+		* 在当前线程运行任务
+		*/
+		void RunAllTaskInCurrentThread() {
+			proxy.RunAllTaskInCurrentThread();
+		}
+	};
+
+	template<typename ...Comps>
+	struct Counter {
+		static constexpr int sArity = sizeof...(Comps);								// lambda参数个数;
+		static constexpr size_t sHashArray[] = { MetatypeHashHelper::Build<Comps>()... };		// lambda参数所对应的反射对象的哈希值
+		uint32_t itemCount = 0u;
+
+		/*
+		* 元素计数
+		*/
+		void Tick(Chunk* chunk) {
+			itemCount += (chunk->header.validCount);
+		}
 	};
 
 	class Entity {
@@ -176,6 +197,19 @@ namespace ECS {
 		*/
 		template<typename F>
 		static void Foreach(F&& task);
+
+		/*
+		* 在当前线程内进行遍历
+		*/
+		template<typename F>
+		static void ForeachInCurrentThread(F&& task);
+
+		/*
+		* 获取目标组件的个数
+		*/
+		template<typename ...Comps>
+		static uint32_t GetEntityCount();
+
 	private:
 		/*
 		* 解算组件反射

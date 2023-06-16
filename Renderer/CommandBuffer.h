@@ -31,7 +31,11 @@ namespace Renderer {
 
 		void SetGraphicsRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
 
+		void SetGraphicsRootSRV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
+
 		void SetComputeRootCBV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
+
+		void SetComputeRootSRV(uint32_t rootParamIndex, D3D12_GPU_VIRTUAL_ADDRESS gpuAddress);
 
 		void SetViewport(const GHL::Viewport& viewport);
 
@@ -47,6 +51,7 @@ namespace Renderer {
 
 		void SetRenderTarget(Texture* rtTexture, Texture* dsTexture);
 
+		void SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture);
 
 		void ClearRenderTarget(Texture* rtTexture, float* color = nullptr, std::optional<GHL::Rect> rect = std::nullopt);
 

@@ -56,6 +56,11 @@ namespace Tool {
 		*/
 		void RunAllTask();
 
+		/*
+		* 在当前线程内运行全部任务
+		*/
+		void RunAllTaskInCurrentThread();
+
 	private:
 		/*
 		* 一个任务完成时触发改函数

@@ -1,5 +1,5 @@
 #pragma once
-#include "GPUCamera.h"
+#include "Renderer/GPUData.h"
 
 namespace Renderer {
 

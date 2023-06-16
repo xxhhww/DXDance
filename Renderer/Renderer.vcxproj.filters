@@ -52,9 +52,6 @@
     <Filter Include="源文件\Renderer\RenderPass">
       <UniqueIdentifier>{2d48d8fc-12d1-4594-9fb5-a35db837f511}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Components">
-      <UniqueIdentifier>{efa90fce-3b24-470a-955f-224ba19e465e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\GPUData">
       <UniqueIdentifier>{da1d3731-8b6f-46cf-9de5-84c56f76e5c1}</UniqueIdentifier>
     </Filter>
@@ -69,9 +66,6 @@
     </Filter>
     <Filter Include="头文件\Uploader">
       <UniqueIdentifier>{9c08e0a5-ef86-4ebf-9611-ffa6fc69c49a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Renderer\Terrain">
-      <UniqueIdentifier>{d503db3a-3e67-4964-a225-0c1de2db2ac2}</UniqueIdentifier>
     </Filter>
     <Filter Include="头文件\OfflineTaskHepler">
       <UniqueIdentifier>{cde3fb0c-b36d-483c-8684-7d0d166c6551}</UniqueIdentifier>
@@ -168,7 +162,7 @@
     <ClInclude Include="RootConstantsPerFrame.h">
       <Filter>头文件\GPUData</Filter>
     </ClInclude>
-    <ClInclude Include="GPUCamera.h">
+    <ClInclude Include="GPUData.h">
       <Filter>头文件\GPUData</Filter>
     </ClInclude>
     <ClInclude Include="RingFrameTracker.h">

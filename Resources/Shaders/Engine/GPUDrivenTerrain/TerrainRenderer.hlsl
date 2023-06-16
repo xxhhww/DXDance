@@ -1,15 +1,15 @@
 #ifndef _TerrainRenderer__
 #define _TerrainRenderer__
 
-#include "PublicHeader.hlsl"
+#include "PublicHeader_Terrain.hlsl"
 
 struct PassData {
 	float2 worldSize;
 	uint heightScale;
 	uint culledPatchListIndex;
 	uint heightMapIndex;
-	float pad1;
-	float pad2;
+	uint diffuseMapIndex;
+	uint normalMapIndex;
 	float pad3;
 };
 
@@ -30,6 +30,13 @@ struct v2p {
 	float2 uv : TEXCOORD;
 	float2 position : PATCHPOS;
 	uint lod : LOD;
+};
+
+struct p2o {
+	float4 albedo   : SV_Target0;
+    float4 position : SV_Target1;	// world space position
+    float4 normal   : SV_Target2;	// world space normal
+    float4 mre      : SV_Target3;	// Metallic + Roughness + Emission
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
@@ -57,59 +64,36 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	return output;
 }
 
-float4 PSMain(v2p input) : SV_TARGET {
-	/*
-	if(input.lod == 0 || input.lod == 2 || input.lod == 4) {
-		if(input.position.x > 0 && input.position.y > 0){
-			return float4(1.0f, 0.0f, 0.0f, 1.0f);
-		}
-		else if(input.position.x > 0 && input.position.y < 0){
-			return float4(0.0f, 1.0f, 0.0f, 1.0f);
-		}
-		else if(input.position.x < 0 && input.position.y > 0){
-			return float4(0.0f, 0.0f, 1.0f, 1.0f);
-		}
-		else if(input.position.x < 0 && input.position.y < 0){
-			return float4(0.5f, 0.5f, 0.5f, 1.0f);
-		}
-		return float4(1.0f, 1.0f, 1.0f, 1.0f);
+p2o PSMain(v2p input) {
+	p2o output;
+	output.albedo   = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	output.position = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	output.normal   = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	output.mre      = float4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	if(input.lod == 0u) {
+		output.albedo = float4(0.5f, 0.5f, 0.5f, 1.0f);
 	}
-	else if(input.lod == 1 || input.lod == 3 || input.lod == 5) {
-		if(input.position.x < 0 && input.position.y < 0){
-			return float4(1.0f, 0.0f, 0.0f, 1.0f);
-		}
-		else if(input.position.x < 0 && input.position.y > 0){
-			return float4(0.0f, 1.0f, 0.0f, 1.0f);
-		}
-		else if(input.position.x > 0 && input.position.y < 0){
-			return float4(0.0f, 0.0f, 1.0f, 1.0f);
-		}
-		else if(input.position.x > 0 && input.position.y > 0){
-			return float4(0.5f, 0.5f, 0.5f, 1.0f);
-		}
-		return float4(1.0f, 0.0f, 1.0f, 1.0f);
+	else if(input.lod == 1u) {
+		output.albedo = float4(0.0f, 0.0f, 1.0f, 1.0f);
 	}
-	*/
-	if(input.lod == 0u){
-		return float4(0.5f, 0.5f, 0.5f, 1.0f);
+	else if(input.lod == 2u) {
+		output.albedo = float4(1.0f, 0.0f, 0.0f, 1.0f);
 	}
-	else if(input.lod == 1u){
-		return float4(0.0f, 0.0f, 1.0f, 1.0f);
+	else if(input.lod == 3u) {
+		output.albedo = float4(0.0f, 1.0f, 0.0f, 1.0f);
 	}
-	else if(input.lod == 2u){
-		return float4(1.0f, 0.0f, 0.0f, 1.0f);
+	else if(input.lod == 4u) {
+		output.albedo = float4(1.0f, 1.0f, 0.0f, 1.0f);
 	}
-	else if(input.lod == 3u){
-		return float4(0.0f, 1.0f, 0.0f, 1.0f);
+	else if(input.lod == 5u) {
+		output.albedo = float4(0.0f, 1.0f, 1.0f, 1.0f);
 	}
-	else if(input.lod == 4u){
-		return float4(1.0f, 1.0f, 0.0f, 1.0f);
+	else { 
+		output.albedo = float4(1.0f, 1.0f, 0.0f, 1.0f);
 	}
-	else if(input.lod == 5u){
-		return float4(0.0f, 1.0f, 1.0f, 1.0f);
-	}
-	return float4(1.0f, 1.0f, 0.0f, 1.0f);
-	
+
+	return output;
 }
 
 #endif

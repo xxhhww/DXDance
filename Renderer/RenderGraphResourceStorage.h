@@ -46,6 +46,9 @@ namespace Renderer {
 		RootConstantsPerFrame rootConstantsPerFrame;
 		D3D12_GPU_VIRTUAL_ADDRESS rootConstantsPerFrameAddress;
 
+		std::vector<GPULight> rootLightDataPerFrame;
+		D3D12_GPU_VIRTUAL_ADDRESS rootLightDataPerFrameAddress;
+
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };

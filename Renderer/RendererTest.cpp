@@ -9,8 +9,9 @@
 
 #include "GHL/DebugLayer.h"
 
-#include "ECS/CCamera.h"
 #include "ECS/CTransform.h"
+#include "ECS/CCamera.h"
+#include "ECS/CLight.h"
 #include "ECS/Entity.h"
 
 #include "Tools/Clock.h"
@@ -136,6 +137,15 @@ void RunRenderer() {
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
     // Test_RenderGraphBuildDAG(renderEngine);
 
+    // EditorCamera
+    ECS::Camera editorCamera;
+    editorCamera.frustum.farZ = 5000.0f;
+    editorCamera.translationSpeed *= 10.0f;
+    ECS::Transform editorTransform;
+    editorTransform.worldPosition.x = 0.0f;
+    editorTransform.worldPosition.y = 750.0f;
+    editorTransform.worldPosition.z = 0.0f;
+
     // MainCamera(RenderCamera)
     auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
     auto& cTransform = mainCamera.GetComponent<ECS::Transform>();
@@ -145,14 +155,11 @@ void RunRenderer() {
     cCamera.cameraType = ECS::CameraType::RenderCamera;
     cCamera.mainCamera = true;
 
-    // EditorCamera
-    ECS::Camera editorCamera;
-    editorCamera.frustum.farZ = 5000.0f;
-    editorCamera.translationSpeed *= 10.0f;
-    ECS::Transform editorTransform;
-    editorTransform.worldPosition.x = 0.0f;
-    editorTransform.worldPosition.y = 750.0f;
-    editorTransform.worldPosition.z = 0.0f;
+    // DirectionalLight
+    auto directionalLight = ECS::Entity::Create<ECS::Transform, ECS::Light>();
+    auto& cLight = directionalLight.GetComponent<ECS::Light>();
+    cLight.mColor = Math::Color{ 1.0f, 0.9f, 1.0f };
+    cLight.mLightType = ECS::LightType::DIRECTIONAL;
 
     // 更新编辑摄像机与渲染摄像机的矩阵数据
     auto updateCameraMatrix = [](ECS::Camera& camera, ECS::Transform& transform) {

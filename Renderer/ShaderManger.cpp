@@ -9,6 +9,7 @@ namespace Renderer {
 		mBaseRootSignature->InitStaticSampler();
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 0u, 10u });
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 1u, 10u });
+		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootShaderResourceParameter{ 0u, 10u });
 		mBaseRootSignature->Compile();
 	}
 
