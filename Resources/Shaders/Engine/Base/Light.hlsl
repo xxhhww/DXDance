@@ -1,7 +1,7 @@
 #ifndef _Light__
 #define _Light__
 
-struct LightData {
+struct Light {
 	float4 position;
 	float4 direction;
 	float3 color;

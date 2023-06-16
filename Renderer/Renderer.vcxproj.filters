@@ -150,7 +150,7 @@
     <ClInclude Include="DeferredLightPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="BackBufferPass.h">
+    <ClInclude Include="FinalBarrierPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -290,7 +290,7 @@
     <ClCompile Include="DeferredLightPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="BackBufferPass.cpp">
+    <ClCompile Include="FinalBarrierPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="Resource.cpp">

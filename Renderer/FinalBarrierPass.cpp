@@ -1,11 +1,9 @@
-#include "BackBufferPass.h"
-#include "RenderGraphBuilder.h"
-#include "ShaderManger.h"
-#include "LinearBufferAllocator.h"
-#include "CommandBuffer.h"
+#include "Renderer/FinalBarrierPass.h"
+#include "Renderer/RenderGraphBuilder.h"
 
 namespace Renderer {
 
+	/*
 	struct TempVertex {
 		Math::Vector3 pos;
 		Math::Vector2 uv;
@@ -13,8 +11,9 @@ namespace Renderer {
 		Math::Vector3 tangent;
 		Math::Vector3 bitangent;
 	};
+	*/
 
-	void BackBufferPass::AddPass(RenderGraph& renderGraph) {
+	void FinalBarrierPass::AddPass(RenderGraph& renderGraph) {
 
 		renderGraph.AddPass(
 			"BackBufferPass",
@@ -31,6 +30,7 @@ namespace Renderer {
 				*/
 			},
 			[=](CommandBuffer& commandList, RenderContext& context) {
+				// Do nothing
 				/*
 				auto* streamTexture = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 				uint32_t srvIndex = streamTexture->GetInternalResource()->GetSRDescriptor()->GetHeapIndex();

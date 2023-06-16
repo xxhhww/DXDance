@@ -13,7 +13,7 @@ struct FrameData {
 };
 
 #define FrameDataType FrameData
-#define LightDataType LightData
+#define LightDataType Light
 
 #include "BaseEngineLayout.hlsl"
 

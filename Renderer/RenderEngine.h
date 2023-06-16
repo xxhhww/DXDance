@@ -24,7 +24,7 @@
 #include "Renderer/GBufferPass.h"
 #include "Renderer/DeferredLightPass.h"
 #include "Renderer/TerrainPass.h"
-#include "Renderer/BackBufferPass.h"
+#include "Renderer/FinalBarrierPass.h"
 #include "Renderer/RootConstantsPerFrame.h"
 
 #include "Renderer/Mesh.h"
@@ -117,7 +117,7 @@ namespace Renderer {
 		GBufferPass mGBufferPass;
 		TerrainPass mTerrainPass;
 		DeferredLightPass mDeferredLightPass;
-		BackBufferPass mBackBufferPass;
+		FinalBarrierPass mFinalBarrierPass;
 
 		// ==========================...PipelineResources...==========================
 		std::unique_ptr<Texture> mFinalOutput;

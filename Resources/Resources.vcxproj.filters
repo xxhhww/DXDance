@@ -43,5 +43,6 @@
     <FxCompile Include="Shaders\Engine\StandardGBufferPass.hlsl" />
     <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Light.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\LightUtil.hlsl" />
   </ItemGroup>
 </Project>

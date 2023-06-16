@@ -151,7 +151,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BackBufferPass.h" />
+    <ClInclude Include="FinalBarrierPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CommandBuffer.h" />
@@ -207,7 +207,7 @@
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BackBufferPass.cpp" />
+    <ClCompile Include="FinalBarrierPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />

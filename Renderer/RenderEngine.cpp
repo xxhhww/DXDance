@@ -1,7 +1,4 @@
 #include "Renderer/RenderEngine.h"
-#include "Renderer/GBufferPass.h"
-#include "Renderer/DeferredLightPass.h"
-#include "Renderer/BackBufferPass.h"
 
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
@@ -132,7 +129,7 @@ namespace Renderer {
 		mGBufferPass.AddPass(*mRenderGraph);
 		mTerrainPass.AddPass(*mRenderGraph);
 		mDeferredLightPass.AddPass(*mRenderGraph);
-		mBackBufferPass.AddPass(*mRenderGraph);
+		mFinalBarrierPass.AddPass(*mRenderGraph);
 
 		mRenderGraph->Build();
 

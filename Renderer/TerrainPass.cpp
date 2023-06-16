@@ -410,11 +410,14 @@ namespace Renderer {
 				// commandBuffer.ClearRenderTarget(finalOutput);
 				// commandBuffer.ClearDepth(tempDepthTex, 1.0f);
 				// commandBuffer.SetRenderTarget(finalOutput, gbufferDepth);
+				auto& gbufferAlbedoDesc = gbufferAlbedo->GetResourceFormat().GetTextureDesc();
+				uint16_t width  = static_cast<uint16_t>(gbufferAlbedoDesc.width);
+				uint16_t height = static_cast<uint16_t>(gbufferAlbedoDesc.height);
 				commandBuffer.SetRenderTargets(
 					{ gbufferAlbedo, gbufferPosition, gbufferNormal, gbufferMRE }, 
 					gbufferDepth);
-				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
-				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("TerrainRenderer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

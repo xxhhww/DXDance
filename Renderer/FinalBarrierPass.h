@@ -3,7 +3,7 @@
 
 namespace Renderer {
 
-	class BackBufferPass {
+	class FinalBarrierPass {
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
