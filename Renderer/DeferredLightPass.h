@@ -6,19 +6,20 @@ namespace Renderer {
 	class DeferredLightPass {
 	public:
 		struct DeferredLightPassData {
-			uint32_t _GBufferAlbedoIndex;
-			uint32_t _GBufferPositionIndex;
-			uint32_t _GBufferNormalIndex;
-			uint32_t _GBufferMREIndex;
-			uint32_t _FinalOutputIndex;
+			uint32_t gBufferAlbedoMetalnessMapIndex;
+			uint32_t gBufferPositionEmissionMapIndex;
+			uint32_t gBufferNormalRoughnessMapIndex;
+			uint32_t gBufferViewDepthMapIndex;
+			uint32_t finalOutputMapIndex;
 			float pad1;
 			float pad2;
 			float pad3;
 		};
 
-		DeferredLightPassData _DeferredLightPassData;
+		DeferredLightPassData deferredLightPassData;
 
 		inline static uint32_t smThreadSizeInGroup = 8u;
+
 	public:
 		void AddPass(RenderGraph& renderGraph);
 	};

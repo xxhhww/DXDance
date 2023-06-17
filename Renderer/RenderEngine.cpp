@@ -1,7 +1,10 @@
 #include "Renderer/RenderEngine.h"
+#include "Renderer/FormatConverter.h"
 
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
+
+#include "GHL/Box.h"
 
 #include "Math/Frustum.h"
 
@@ -39,17 +42,17 @@ namespace Renderer {
 			mUploaderEngine->GetMemoryCopyQueue()))
 		, mRenderGraph(std::make_unique<RenderGraph>(
 			mDevice.get(),
-			mFrameTracker.get(), 
-			mDescriptorAllocator.get(), 
-			mCommandListAllocator.get(), 
-			mGraphicsQueue.get(), 
-			mComputeQueue.get(), 
-			mCopyQueue.get(), 
+			mFrameTracker.get(),
+			mDescriptorAllocator.get(),
+			mCommandListAllocator.get(),
+			mGraphicsQueue.get(),
+			mComputeQueue.get(),
+			mCopyQueue.get(),
 			mResourceStateTracker.get(),
 			mShaderManger.get(),
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
-			mStreamTextureManger.get())) 
+			mStreamTextureManger.get()))
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
 		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
 
@@ -72,12 +75,12 @@ namespace Renderer {
 
 			std::vector<Vertex> vertices;
 			vertices.resize(6u);
-			vertices[0].position = Math::Vector3{ -1.0f, 1.0f, 0.0f };
-			vertices[1].position = Math::Vector3{ 1.0f, -1.0f, 0.0f };
+			vertices[0].position = Math::Vector3{ -1.0f, 1.0f, 0.0f  };
+			vertices[1].position = Math::Vector3{ 1.0f, -1.0f, 0.0f  };
 			vertices[2].position = Math::Vector3{ -1.0f, -1.0f, 0.0f };
-			vertices[3].position = Math::Vector3{ -1.0f, 1.0f, 0.0f };
-			vertices[4].position = Math::Vector3{ 1.0f, 1.0f, 0.0f };
-			vertices[5].position = Math::Vector3{ 1.0f, -1.0f, 0.0f };
+			vertices[3].position = Math::Vector3{ -1.0f, 1.0f, 0.0f  };
+			vertices[4].position = Math::Vector3{ 1.0f, 1.0f, 0.0f   };
+			vertices[5].position = Math::Vector3{ 1.0f, -1.0f, 0.0f  };
 			vertices[0].uv = Math::Vector2{ 0.0f, 0.0f };
 			vertices[1].uv = Math::Vector2{ 1.0f, 1.0f };
 			vertices[2].uv = Math::Vector2{ 0.0f, 1.0f };
@@ -110,29 +113,110 @@ namespace Renderer {
 		}
 
 		// 创建FinalOutput纹理
-		TextureDesc _FinalOutputDesc{};
-		_FinalOutputDesc.width = width;
-		_FinalOutputDesc.height = height;
-		_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget | GHL::EResourceState::UnorderedAccess);
-		_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-		mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
-		mFinalOutput->SetDebugName("FinalOutput");
-		mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
+		{
+			TextureDesc _FinalOutputDesc{};
+			_FinalOutputDesc.width = width;
+			_FinalOutputDesc.height = height;
+			_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget | GHL::EResourceState::UnorderedAccess);
+			_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
+			mFinalOutput->SetDebugName("FinalOutput");
+			mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
 
-		mResourceStateTracker->StartTracking(mFinalOutput.get());
+			mResourceStateTracker->StartTracking(mFinalOutput.get());
+		}
+
+		// 创建BlueNoise3D纹理
+		{
+			DirectX::ScratchImage baseImage;
+			HRASSERT(DirectX::LoadFromDDSFile(
+				L"E:/MyProject/DXDance/Resources/Textures/BlueNoise3D.dds",
+				DirectX::DDS_FLAGS_NONE,
+				nullptr,
+				baseImage
+			));
+
+			Renderer::TextureDesc _BlueNoise3DMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
+			_BlueNoise3DMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::PixelShaderAccess;
+			mBlueNoise3DMap = std::make_unique<Texture>(
+				mDevice.get(),
+				ResourceFormat{ mDevice.get(), _BlueNoise3DMapDesc },
+				mDescriptorAllocator.get(),
+				nullptr
+				);
+
+			/*
+			// 获取纹理GPU存储信息
+			uint32_t subresourceCount = mBlueNoise3DMap->GetResourceFormat().SubresourceCount();
+			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+			std::vector<uint32_t> numRows(subresourceCount);
+			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+			uint64_t requiredSize = 0u;
+			auto d3dResDesc = mBlueNoise3DMap->GetResourceFormat().D3DResourceDesc();
+			mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, 1u, 0u,
+				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
+
+			// 上传数据至显存
+			auto* copyDsQueue = mUploaderEngine->GetMemoryCopyQueue();
+			auto* copyFence = mUploaderEngine->GetCopyFence();
+			for (uint32_t i = 0; i < subresourceCount; i++) {
+				auto* image = baseImage.GetImage(0u, 0u, 16u);
+
+				uint8_t* temp = new uint8_t[placedLayouts.at(i).Footprint.RowPitch * numRows[i]];
+				for (uint32_t rowIndex = 0u; rowIndex < numRows[i]; rowIndex++) {
+					uint32_t realByteOffset = rowIndex * placedLayouts.at(i).Footprint.RowPitch;
+					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
+					memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
+				}
+
+				DSTORAGE_REQUEST request = {};
+				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
+				request.Source.Memory.Source = temp;
+				request.Source.Memory.Size = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+				request.Destination.Texture.Resource = mBlueNoise3DMap->D3DResource();
+				request.Destination.Texture.Region = GHL::Box {
+					0u, static_cast<uint32_t>(image->width),
+					0u, static_cast<uint32_t>(image->height),
+					0u, 1u
+				}.D3DBox();
+				request.Destination.Texture.SubresourceIndex = i;
+				request.UncompressedSize = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+
+				copyDsQueue->EnqueueRequest(&request);
+			}
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
+			*/
+
+			baseImage.Release();
+
+			mBlueNoise3DMap->SetDebugName("BlueNoise3DMap");
+			mBlueNoise3DMapID = mRenderGraph->ImportResource("BlueNoise3DMap", mBlueNoise3DMap.get());
+
+			mResourceStateTracker->StartTracking(mBlueNoise3DMap.get());
+		}
 
 		// 初始化RenderPass
-		mTerrainPass.InitializePass(this);
+		{
+			mTerrainPass.InitializePass(this);
+		}
 
-		// 添加RenderPass
-		mGBufferPass.AddPass(*mRenderGraph);
-		mTerrainPass.AddPass(*mRenderGraph);
-		mDeferredLightPass.AddPass(*mRenderGraph);
-		mFinalBarrierPass.AddPass(*mRenderGraph);
+		// 添加RenderPass并构建RenderGraph
+		{
+			mGBufferPass.AddPass(*mRenderGraph);
+			mTerrainPass.AddPass(*mRenderGraph);
+			mDeferredLightPass.AddPass(*mRenderGraph);
+			mFinalBarrierPass.AddPass(*mRenderGraph);
 
-		mRenderGraph->Build();
+			mRenderGraph->Build();
+		}
 
+		// Other
 		mStreamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 	}
 
@@ -204,7 +288,8 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			mStreamTextureManger.get()
+			mStreamTextureManger.get(),
+			mFrameTracker.get()
 		};
 		{
 			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
@@ -282,7 +367,8 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			mStreamTextureManger.get()
+			mStreamTextureManger.get(),
+			mFrameTracker.get()
 		};
 
 		if (mOfflineTaskPass.GetListenerCount() != 0u) {

@@ -169,6 +169,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Resource.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MemoryAliasingHelper.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="RngSeedGenerationPass.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />

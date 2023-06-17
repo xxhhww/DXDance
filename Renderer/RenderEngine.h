@@ -122,6 +122,9 @@ namespace Renderer {
 		// ==========================...PipelineResources...==========================
 		std::unique_ptr<Texture> mFinalOutput;
 		RenderGraphResourceID mFinalOutputID;
+		std::unique_ptr<Texture> mBlueNoise3DMap;
+		RenderGraphResourceID mBlueNoise3DMapID;
+
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
 
 		// ==========================...Editor Render Pass...==========================

@@ -64,6 +64,7 @@ namespace Renderer {
 		inline const auto& GetTail()               const { return mTail; }
 		inline const auto& GetMaxSize()            const { return mMaxSize; }
 		inline const auto& GetUsedSize()           const { return mFrameAttributes.size(); }
+		inline const auto& GetCurrFrameNumber()    const { return mCurrFrameNumer; }
 		inline const auto& IsFirstFrame()          const { return mFirstFrame; }
 		inline const auto& GetCurrFrameIndex()     const { return mFrameAttributes.back().frameIndex; }
 		inline const auto& GetCurrFrameAttribute() const { return mFrameAttributes.back(); }
@@ -80,6 +81,7 @@ namespace Renderer {
 		size_t mTail{ 0u };
 		size_t mMaxSize{ 0u };
 		size_t mUsedSize{ 0u };
+		size_t mCurrFrameNumer{ 0u };
 		bool mFirstFrame{ true };
 		bool mRequireFlip{ false };
 		std::vector<NewFramePushedCallBack> mNewFramePushedCallBacks;

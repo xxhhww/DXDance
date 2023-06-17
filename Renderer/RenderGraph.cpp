@@ -82,8 +82,13 @@ namespace Renderer {
 	void RenderGraph::Execute() {
 
 		RenderContext renderContext{ 
-			mShaderManger, mCommandSignatureManger, mDynamicAllocator, 
-			mResourceStorage.get(), mResourceStateTracker, mStreamTextureManger
+			mShaderManger, 
+			mCommandSignatureManger, 
+			mDynamicAllocator, 
+			mResourceStorage.get(), 
+			mResourceStateTracker, 
+			mStreamTextureManger, 
+			mFrameTracker
 		};
 
 		for (size_t i = 0; i < mDependencyLevelList.size(); i++) {

@@ -8,6 +8,7 @@ namespace Renderer {
 	void RingFrameTracker::PushCurrentFrame(uint64_t expectedValue) {
         if (mRequireFlip) mFirstFrame = false;
         if (mFirstFrame) mRequireFlip = true;
+        ++mCurrFrameNumer;
 
         mFrameAttributes.emplace_back(expectedValue, Allocate(1u), 1u);
         

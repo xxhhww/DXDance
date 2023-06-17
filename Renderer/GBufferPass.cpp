@@ -17,26 +17,37 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				NewTextureProperties _GBufferProperties;
-				_GBufferProperties.width  = finalOutputDesc.width;
-				_GBufferProperties.height = finalOutputDesc.height;
-				_GBufferProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				_GBufferProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-				builder.DeclareTexture("GBufferAlbedo", _GBufferProperties);
-				builder.DeclareTexture("GBufferPosition", _GBufferProperties);
-				builder.DeclareTexture("GBufferNormal", _GBufferProperties);
-				builder.WriteRenderTarget("GBufferAlbedo");
-				builder.WriteRenderTarget("GBufferPosition");
-				builder.WriteRenderTarget("GBufferNormal");
+				NewTextureProperties _GBufferAlbedoMetalnessProperties{};
+				_GBufferAlbedoMetalnessProperties.width = finalOutputDesc.width;
+				_GBufferAlbedoMetalnessProperties.height = finalOutputDesc.height;
+				_GBufferAlbedoMetalnessProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_GBufferAlbedoMetalnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferAlbedoMetalness", _GBufferAlbedoMetalnessProperties);
+				builder.WriteRenderTarget("GBufferAlbedoMetalness");
 
-				_GBufferProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				builder.DeclareTexture("GBufferMRE", _GBufferProperties);
-				builder.WriteRenderTarget("GBufferMRE");
+				NewTextureProperties _GBufferPositionEmissionProperties{};
+				_GBufferPositionEmissionProperties.width  = finalOutputDesc.width;
+				_GBufferPositionEmissionProperties.height = finalOutputDesc.height;
+				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+				_GBufferPositionEmissionProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferPositionEmission", _GBufferPositionEmissionProperties);
+				builder.WriteRenderTarget("GBufferPositionEmission");
 
-				_GBufferProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				_GBufferProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
-				builder.DeclareTexture("GBufferDepth", _GBufferProperties);
-				builder.WriteDepthStencil("GBufferDepth");
+				NewTextureProperties _GBufferNormalRoughnessProperties{};
+				_GBufferNormalRoughnessProperties.width = finalOutputDesc.width;
+				_GBufferNormalRoughnessProperties.height = finalOutputDesc.height;
+				_GBufferNormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+				_GBufferNormalRoughnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferNormalRoughness", _GBufferNormalRoughnessProperties);
+				builder.WriteRenderTarget("GBufferNormalRoughness");
+
+				NewTextureProperties _GBufferViewDepthProperties{};
+				_GBufferViewDepthProperties.width = finalOutputDesc.width;
+				_GBufferViewDepthProperties.height = finalOutputDesc.height;
+				_GBufferViewDepthProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				_GBufferViewDepthProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				builder.DeclareTexture("GBufferViewDepth", _GBufferViewDepthProperties);
+				builder.WriteDepthStencil("GBufferViewDepth");
 
 				shaderManger.CreateGraphicsShader("GBufferPass",
 					[](GraphicsStateProxy& proxy) {
@@ -44,11 +55,10 @@ namespace Renderer {
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-						proxy.renderTargetFormatArray = { 
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R8G8B8A8_UNORM
+						proxy.renderTargetFormatArray = {
+							DXGI_FORMAT_R8G8B8A8_UNORM,
+							DXGI_FORMAT_R16G16B16A16_UNORM,
+							DXGI_FORMAT_R16G16B16A16_UNORM,
 						};
 					});
 			},
@@ -57,17 +67,15 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				auto* gbufferAlbedo = resourceStorage->GetResourceByName("GBufferAlbedo")->GetTexture();
-				auto* gbufferPosition = resourceStorage->GetResourceByName("GBufferPosition")->GetTexture();
-				auto* gbufferNormal = resourceStorage->GetResourceByName("GBufferNormal")->GetTexture();
-				auto* gbufferMRE = resourceStorage->GetResourceByName("GBufferMRE")->GetTexture();
-				auto* gbufferDepth = resourceStorage->GetResourceByName("GBufferDepth")->GetTexture();
+				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 
-				commandBuffer.ClearRenderTarget(gbufferAlbedo);
-				commandBuffer.ClearRenderTarget(gbufferPosition);
-				commandBuffer.ClearRenderTarget(gbufferNormal);
-				commandBuffer.ClearRenderTarget(gbufferMRE);
-				commandBuffer.ClearDepth(gbufferDepth, 1.0f);
+				commandBuffer.ClearRenderTarget(gBufferAlbedoMetalness);
+				commandBuffer.ClearRenderTarget(gBufferPositionEmission);
+				commandBuffer.ClearRenderTarget(gBufferNormalRoughness);
+				commandBuffer.ClearDepth(gBufferViewDepth, 1.0f);
 			});
 	}
 

@@ -304,12 +304,10 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				// builder.WriteRenderTarget("FinalOutput");
-				builder.WriteRenderTarget("GBufferAlbedo");
-				builder.WriteRenderTarget("GBufferPosition");
-				builder.WriteRenderTarget("GBufferNormal");
-				builder.WriteRenderTarget("GBufferMRE");
-				builder.WriteDepthStencil("GBufferDepth");
+				builder.WriteRenderTarget("GBufferAlbedoMetalness");
+				builder.WriteRenderTarget("GBufferPositionEmission");
+				builder.WriteRenderTarget("GBufferNormalRoughness");
+				builder.WriteDepthStencil("GBufferViewDepth");
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
 				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
@@ -320,15 +318,6 @@ namespace Renderer {
 				builder.DeclareBuffer("TerrainRendererIndirectArgs", _TerrainRendererIndirectArgsProperties);
 				builder.WriteCopyDstBuffer("TerrainRendererIndirectArgs");
 
-				/*
-				NewTextureProperties _TempDepthTextureProperties{};
-				_TempDepthTextureProperties.width = 979u;
-				_TempDepthTextureProperties.height = 635u;
-				_TempDepthTextureProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				_TempDepthTextureProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
-				builder.DeclareTexture("TempDepthTexture", _TempDepthTextureProperties);
-				builder.WriteDepthStencil("TempDepthTexture");
-				*/
 				shaderManger.CreateGraphicsShader("TerrainRenderer",
 					[](GraphicsStateProxy& proxy) {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer.hlsl";
@@ -337,10 +326,9 @@ namespace Renderer {
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 						proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 						proxy.renderTargetFormatArray = {
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R8G8B8A8_UNORM
+							DXGI_FORMAT_R8G8B8A8_UNORM,
+							DXGI_FORMAT_R16G16B16A16_UNORM,
+							DXGI_FORMAT_R16G16B16A16_UNORM,
 						};
 					});
 
@@ -360,15 +348,12 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				// auto* finalOutput     = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
-				auto* gbufferAlbedo   = resourceStorage->GetResourceByName("GBufferAlbedo")->GetTexture();
-				auto* gbufferPosition = resourceStorage->GetResourceByName("GBufferPosition")->GetTexture();
-				auto* gbufferNormal   = resourceStorage->GetResourceByName("GBufferNormal")->GetTexture();
-				auto* gbufferMRE      = resourceStorage->GetResourceByName("GBufferMRE")->GetTexture();
-				auto* gbufferDepth    = resourceStorage->GetResourceByName("GBufferDepth")->GetTexture();
-				// auto* tempDepthTex    = resourceStorage->GetResourceByName("TempDepthTexture")->GetTexture();
-				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
-				auto* indirectArgs    = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
+				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* culledPatchList         = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* indirectArgs            = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
@@ -407,15 +392,12 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
-				// commandBuffer.ClearRenderTarget(finalOutput);
-				// commandBuffer.ClearDepth(tempDepthTex, 1.0f);
-				// commandBuffer.SetRenderTarget(finalOutput, gbufferDepth);
-				auto& gbufferAlbedoDesc = gbufferAlbedo->GetResourceFormat().GetTextureDesc();
-				uint16_t width  = static_cast<uint16_t>(gbufferAlbedoDesc.width);
-				uint16_t height = static_cast<uint16_t>(gbufferAlbedoDesc.height);
+				auto& gBufferAlbedoMetalnessDesc = gBufferAlbedoMetalness->GetResourceFormat().GetTextureDesc();
+				uint16_t width  = static_cast<uint16_t>(gBufferAlbedoMetalnessDesc.width);
+				uint16_t height = static_cast<uint16_t>(gBufferAlbedoMetalnessDesc.height);
 				commandBuffer.SetRenderTargets(
-					{ gbufferAlbedo, gbufferPosition, gbufferNormal, gbufferMRE }, 
-					gbufferDepth);
+					{ gBufferAlbedoMetalness, gBufferPositionEmission, gBufferNormalRoughness }, 
+					gBufferViewDepth);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 				commandBuffer.SetGraphicsRootSignature();
@@ -549,7 +531,6 @@ namespace Renderer {
 				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
 			// 上传数据到显存
-			uint32_t imageCount = baseImage.GetImageCount();
 			for (uint32_t i = 0; i < subresourceCount; i++) {
 				auto* image = baseImage.GetImage(i, 0u, 0u);
 
@@ -559,8 +540,6 @@ namespace Renderer {
 					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
 					memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
 				}
-				
-				uint32_t mis2 = pow(2, i);
 
 				DSTORAGE_REQUEST request = {};
 				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
@@ -569,7 +548,7 @@ namespace Renderer {
 				request.Source.Memory.Source = temp;
 				request.Source.Memory.Size = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
 				request.Destination.Texture.Resource = minmaxHeightMap->D3DResource();
-				request.Destination.Texture.Region = GHL::Box{
+				request.Destination.Texture.Region = GHL::Box {
 					0u, static_cast<uint32_t>(image->width), 
 					0u, static_cast<uint32_t>(image->height), 
 					0u, 1u

@@ -205,7 +205,14 @@ namespace Renderer {
 
 		std::visit(MakeVisitor(
 			[&](const TextureDesc& desc) {
-				subresourceCount = desc.mipLevals;
+				switch (desc.dimension) {
+				case GHL::ETextureDimension::Texture1D:
+				case GHL::ETextureDimension::Texture2D:
+				case GHL::ETextureDimension::Texture3D:
+					subresourceCount = desc.mipLevals;
+				default:
+					ASSERT_FORMAT(false, "Unsupported Texture Dimension");
+				}
 			},
 			[&](const BufferDesc& desc) {
 				subresourceCount = 1u;

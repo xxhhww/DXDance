@@ -2,11 +2,11 @@
 #define _DeferredLightPass__
 
 struct PassData {
-	uint _GBufferAlbedoMapIndex;
-	uint _GBufferPositionMapIndex;
-	uint _GBufferNormalMapIndex;
-	uint _GBufferMREMapIndex;
-	uint _FinalOutputMapIndex;
+	uint gBufferAlbedoMetalnessMapIndex;
+	uint gBufferPositionEmissionMapIndex;
+	uint gBufferNormalRoughnessMapIndex;
+	uint gBufferViewDepthMapIndex;
+	uint finalOutputMapIndex;
 	float pad1;
 	float pad2;
 	float pad3;
@@ -18,14 +18,14 @@ struct PassData {
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
-	Texture2D<float4> _GBufferAlbedoMap   = ResourceDescriptorHeap[PassDataCB._GBufferAlbedoMapIndex];
-	Texture2D<float4> _GBufferPositionMap = ResourceDescriptorHeap[PassDataCB._GBufferPositionMapIndex];
-	Texture2D<float4> _GBufferNormalMap   = ResourceDescriptorHeap[PassDataCB._GBufferNormalMapIndex];
-	Texture2D<float4> _GBufferMREMap      = ResourceDescriptorHeap[PassDataCB._GBufferMREMapIndex];
-	RWTexture2D<float4> _FinalOutputMap   = ResourceDescriptorHeap[PassDataCB._FinalOutputMapIndex];
+	Texture2D<float4> gBufferAlbedoMetalnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferAlbedoMetalnessMapIndex];
+	Texture2D<float4> gBufferPositionEmissionMap = ResourceDescriptorHeap[PassDataCB.gBufferPositionEmissionMapIndex];
+	Texture2D<float4> gBufferNormalRoughnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferNormalRoughnessMapIndex];
+	Texture2D<float4> gBufferViewDepthMap        = ResourceDescriptorHeap[PassDataCB.gBufferViewDepthMapIndex];
+	RWTexture2D<float4> finalOutputMap           = ResourceDescriptorHeap[PassDataCB.finalOutputMapIndex];
 
 	uint2 coord = dispatchThreadID.xy;
-	_FinalOutputMap[coord] = _GBufferAlbedoMap[coord];
+	finalOutputMap[coord] = gBufferAlbedoMetalnessMap[coord];
 }
 
 #endif

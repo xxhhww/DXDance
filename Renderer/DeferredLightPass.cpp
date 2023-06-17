@@ -13,10 +13,10 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				builder.ReadTexture("GBufferAlbedo", ShaderAccessFlag::NonPixelShader);
-				builder.ReadTexture("GBufferPosition", ShaderAccessFlag::NonPixelShader);
-				builder.ReadTexture("GBufferNormal", ShaderAccessFlag::NonPixelShader);
-				builder.ReadTexture("GBufferMRE", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("GBufferAlbedoMetalness", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("GBufferPositionEmission", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("GBufferNormalRoughness", ShaderAccessFlag::NonPixelShader);
+				builder.ReadDepthStencil("GBufferViewDepth");
 				builder.WriteTexture("FinalOutput");
 
 				shaderManger.CreateComputeShader("DeferredLightPass",
@@ -29,20 +29,20 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				auto* gbufferAlbedo = resourceStorage->GetResourceByName("GBufferAlbedo")->GetTexture();
-				auto* gbufferPosition = resourceStorage->GetResourceByName("GBufferPosition")->GetTexture();
-				auto* gbufferNormal = resourceStorage->GetResourceByName("GBufferNormal")->GetTexture();
-				auto* gbufferMRE = resourceStorage->GetResourceByName("GBufferMRE")->GetTexture();
-				auto* finalOutput = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
+				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* finalOutput             = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
 
-				_DeferredLightPassData._GBufferAlbedoIndex   = gbufferAlbedo->GetSRDescriptor()->GetHeapIndex();
-				_DeferredLightPassData._GBufferPositionIndex = gbufferPosition->GetSRDescriptor()->GetHeapIndex();
-				_DeferredLightPassData._GBufferNormalIndex   = gbufferNormal->GetSRDescriptor()->GetHeapIndex();
-				_DeferredLightPassData._GBufferMREIndex      = gbufferMRE->GetSRDescriptor()->GetHeapIndex();
-				_DeferredLightPassData._FinalOutputIndex     = finalOutput->GetUADescriptor()->GetHeapIndex();
+				deferredLightPassData.gBufferAlbedoMetalnessMapIndex   = gBufferAlbedoMetalness->GetSRDescriptor()->GetHeapIndex();
+				deferredLightPassData.gBufferPositionEmissionMapIndex  = gBufferPositionEmission->GetSRDescriptor()->GetHeapIndex();
+				deferredLightPassData.gBufferNormalRoughnessMapIndex   = gBufferNormalRoughness->GetSRDescriptor()->GetHeapIndex();
+				deferredLightPassData.gBufferViewDepthMapIndex         = gBufferViewDepth->GetDSDescriptor()->GetHeapIndex();
+				deferredLightPassData.finalOutputMapIndex              = finalOutput->GetUADescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(DeferredLightPassData));
-				memcpy(passDataAlloc.cpuAddress, &_DeferredLightPassData, sizeof(DeferredLightPassData));
+				memcpy(passDataAlloc.cpuAddress, &deferredLightPassData, sizeof(DeferredLightPassData));
 
 				auto& finalOutputDesc = finalOutput->GetResourceFormat().GetTextureDesc();
 				uint32_t threadGroupCountX = (finalOutputDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;

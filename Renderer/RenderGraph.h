@@ -41,13 +41,15 @@ namespace Renderer {
 			LinearBufferAllocator* _dynamicAllocator, 
 			RenderGraphResourceStorage* _resourceStorage,
 			ResourceStateTracker* _resourceStateTracker,
-			StreamTextureManger* _streamTextureManger)
+			StreamTextureManger* _streamTextureManger,
+			RingFrameTracker* _ringFrameTracker)
 		: shaderManger(_shaderManger)
 		, commandSignatureManger(_commandSignatureManger)
 		, dynamicAllocator(_dynamicAllocator)
 		, resourceStorage(_resourceStorage)
 		, resourceStateTracker(_resourceStateTracker)
-		, streamTextureManger(_streamTextureManger) {}
+		, streamTextureManger(_streamTextureManger) 
+		, frameTracker(_ringFrameTracker) {}
 
 		ShaderManger* shaderManger{ nullptr };
 		CommandSignatureManger* commandSignatureManger{ nullptr };
@@ -55,6 +57,7 @@ namespace Renderer {
 		RenderGraphResourceStorage* resourceStorage{ nullptr };
 		ResourceStateTracker* resourceStateTracker{ nullptr };
 		StreamTextureManger* streamTextureManger{ nullptr };
+		RingFrameTracker* frameTracker{ nullptr };
 	};
 
 	class RenderGraph {

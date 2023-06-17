@@ -43,6 +43,12 @@
     <FxCompile Include="Shaders\Engine\StandardGBufferPass.hlsl" />
     <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Light.hlsl" />
-    <FxCompile Include="Shaders\Engine\Base\LightUtil.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\BRDFHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\Constants.hlsl" />
+    <FxCompile Include="Shaders\Engine\Math\Trig.hlsl" />
+    <FxCompile Include="Shaders\Engine\Math\Matrix.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\Shading.hlsl" />
+    <FxCompile Include="Shaders\Engine\RngSeedGenerationPass.hlsl" />
   </ItemGroup>
 </Project>

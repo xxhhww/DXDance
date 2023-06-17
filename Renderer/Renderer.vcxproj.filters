@@ -213,6 +213,9 @@
     <ClInclude Include="FormatConverter.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
+    <ClInclude Include="RngSeedGenerationPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -349,6 +352,9 @@
     </ClCompile>
     <ClCompile Include="FormatConverter.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="RngSeedGenerationPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
