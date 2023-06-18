@@ -8,9 +8,9 @@ struct PassData {
 	uint heightScale;
 	uint culledPatchListIndex;
 	uint heightMapIndex;
-	uint diffuseMapIndex;
+	uint albedoMapIndex;
 	uint normalMapIndex;
-	float pad3;
+	uint lodDebug;
 };
 
 #define PassDataType PassData
@@ -27,8 +27,9 @@ struct a2v {
 
 struct v2p {
 	float4 csPos : SV_POSITION;
+	float3 wsPos : POSITION1;
 	float2 uv : TEXCOORD;
-	float2 position : PATCHPOS;
+	float2 position : POSITION2;
 	uint lod : LOD;
 };
 
@@ -56,7 +57,8 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 
 	output.csPos = float4(input.lsPos, 1.0f);
 	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.ViewProjection);
-	output.uv = input.uv;
+	output.wsPos = input.lsPos;
+	output.uv = heightUV;
 	output.position = patch.position;
 	output.lod = lod;
 
@@ -64,31 +66,39 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 p2o PSMain(v2p input) {
-	p2o output;
-	output.albedoMetalness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	output.positionEmission = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	output.normalRoughness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	Texture2D<float4> albedoMap = ResourceDescriptorHeap[PassDataCB.albedoMapIndex];
+	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
 
+	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
 	if(input.lod == 0u) {
-		output.albedoMetalness = float4(0.5f, 0.5f, 0.5f, 1.0f);
+		lodDebugColor = float3(0.5f, 0.5f, 0.5f);
 	}
 	else if(input.lod == 1u) {
-		output.albedoMetalness = float4(0.0f, 0.0f, 1.0f, 1.0f);
+		lodDebugColor = float3(0.0f, 0.0f, 1.0f);
 	}
 	else if(input.lod == 2u) {
-		output.albedoMetalness = float4(1.0f, 0.0f, 0.0f, 1.0f);
+		lodDebugColor = float3(1.0f, 0.0f, 0.0f);
 	}
 	else if(input.lod == 3u) {
-		output.albedoMetalness = float4(0.0f, 1.0f, 0.0f, 1.0f);
+		lodDebugColor = float3(0.0f, 1.0f, 0.0f);
 	}
 	else if(input.lod == 4u) {
-		output.albedoMetalness = float4(1.0f, 1.0f, 0.0f, 1.0f);
+		lodDebugColor = float3(1.0f, 1.0f, 0.0f);
 	}
 	else if(input.lod == 5u) {
-		output.albedoMetalness = float4(0.0f, 1.0f, 1.0f, 1.0f);
+		lodDebugColor = float3(0.0f, 1.0f, 1.0f);
 	}
 	else { 
-		output.albedoMetalness = float4(1.0f, 1.0f, 0.0f, 1.0f);
+		lodDebugColor = float3(1.0f, 1.0f, 0.0f);
+	}
+
+	p2o output;
+	output.albedoMetalness  = float4(albedoMap.SampleLevel(SamplerAnisotropicClamp, input.uv, 0).rgb, 1.0f);
+	output.positionEmission = float4(input.wsPos, 1.0f);
+	output.normalRoughness  = float4(normalMap.SampleLevel(SamplerAnisotropicClamp, input.uv, 0).rgb, 1.0f);
+
+	if(PassDataCB.lodDebug) {
+		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.3f + lodDebugColor * 0.7f;
 	}
 
 	return output;

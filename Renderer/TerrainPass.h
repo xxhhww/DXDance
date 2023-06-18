@@ -47,9 +47,9 @@ namespace Renderer {
 			uint32_t heightScale = 2048u;
 			uint32_t culledPatchListIndex;
 			uint32_t heightMapIndex;
-			uint32_t diffuseMapIndex;
+			uint32_t albedoMapIndex;
 			uint32_t normalMapIndex;
-			float pad3;
+			uint32_t lodDebug{ 0u };
 		};
 
 		struct NodeLocation {

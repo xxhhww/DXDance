@@ -324,7 +324,6 @@ namespace Renderer {
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-						proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_UNORM,
@@ -359,6 +358,8 @@ namespace Renderer {
 
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.albedoMapIndex = albedoMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.normalMapIndex = normalMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &terrainRendererPassData, sizeof(TerrainPass::TerrainRendererPassData));
