@@ -78,6 +78,8 @@ namespace Renderer {
 
 		std::unique_ptr<Renderer::Mesh> patchMesh;
 		std::unique_ptr<Renderer::Texture> minmaxHeightMap;
+		std::unique_ptr<Renderer::Texture> albedoMap;
+		std::unique_ptr<Renderer::Texture> normalMap;
 		std::unique_ptr<Renderer::Texture> heightMap;
 
 	public:

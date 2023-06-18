@@ -311,7 +311,6 @@ void DoOfflineTask() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
-
     RunRenderer();
     // DoOfflineTask();
 }

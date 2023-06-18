@@ -210,6 +210,7 @@ namespace Renderer {
 				case GHL::ETextureDimension::Texture2D:
 				case GHL::ETextureDimension::Texture3D:
 					subresourceCount = desc.mipLevals;
+					break;
 				default:
 					ASSERT_FORMAT(false, "Unsupported Texture Dimension");
 				}

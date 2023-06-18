@@ -7,11 +7,23 @@
 
 #include "GHL/CommandList.h"
 
+#include "Tools/StrUtil.h"
+
+#include <pix_win.h>
+
 namespace Renderer {
 
 	CommandBuffer::CommandBuffer(GHL::CommandList* commandList, RenderContext* renderContext)
 	: mCommandList(commandList)
 	, mRenderContext(renderContext) {}
+
+	void CommandBuffer::PIXBeginEvent(const std::string& name) {
+		::PIXBeginEvent(mCommandList->D3DCommandList(), 0, Tool::StrUtil::UTF8ToWString(name).c_str());
+	}
+
+	void CommandBuffer::PIXEndEvent() {
+		::PIXEndEvent(mCommandList->D3DCommandList());
+	}
 
 	void CommandBuffer::SetGraphicsRootSignature(const std::string& name) {
 		auto* shaderManger = mRenderContext->shaderManger;

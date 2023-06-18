@@ -16,7 +16,7 @@ namespace Renderer {
 	void FinalBarrierPass::AddPass(RenderGraph& renderGraph) {
 
 		renderGraph.AddPass(
-			"BackBufferPass",
+			"FinalBarrierPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 

@@ -21,6 +21,10 @@ namespace Renderer {
 		CommandBuffer(GHL::CommandList* commandList, RenderContext* renderContext);
 		~CommandBuffer() = default;
 
+		void PIXBeginEvent(const std::string& name);
+
+		void PIXEndEvent();
+
 		void SetGraphicsRootSignature(const std::string& name = "");
 
 		void SetComputeRootSignature(const std::string& name = "");

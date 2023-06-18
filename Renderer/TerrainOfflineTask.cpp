@@ -269,7 +269,7 @@ namespace Renderer {
             commandBuffer.Dispatch(threadGroupCountX, threadGroupCountY, 1u);
         }
 
-        // Final Pass: Copy Texture Region
+        // Fourth Pass: Copy MinMaxHeightMap From VideoMemory To SharedMemory
         {
             auto barrierBatch = GHL::ResourceBarrierBatch{};
             barrierBatch = commandBuffer.TransitionImmediately(mMinMaxHeightMap.get(), GHL::EResourceState::CopySource);
@@ -303,38 +303,110 @@ namespace Renderer {
                 );
             }
         }
+
+        // Fifth Pass: Copy NormalMap From VideoMemory To SharedMemory
+        {
+            auto barrierBatch = GHL::ResourceBarrierBatch{};
+            barrierBatch = commandBuffer.TransitionImmediately(mNormalMap.get(), GHL::EResourceState::CopySource);
+            barrierBatch += commandBuffer.TransitionImmediately(mNormalMapReadback.get(), GHL::EResourceState::CopyDestination);
+            commandBuffer.FlushResourceBarrier(barrierBatch);
+
+            uint32_t subresourceCount = mNormalMap->GetResourceFormat().SubresourceCount();
+            std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+            std::vector<uint32_t> numRows(subresourceCount);
+            std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+            uint64_t requiredSize = 0u;
+            auto d3dResDesc = mNormalMap->GetResourceFormat().D3DResourceDesc();
+            mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+                placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
+
+            for (uint32_t i = 0u; i < subresourceCount; i++) {
+                auto& placedLayout = placedLayouts.at(i);
+
+                // 将数据从显存复制到共享内存
+                auto rbPlacedLayout = placedLayout;
+                rbPlacedLayout.Footprint.RowPitch = (rbPlacedLayout.Footprint.RowPitch + 0x0ff) & ~0x0ff;
+
+                D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(mNormalMap->D3DResource(), i);
+                D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(mNormalMapReadback->D3DResource(), rbPlacedLayout);
+
+                commandBuffer.D3DCommandList()->CopyTextureRegion(
+                    &dstLocation,
+                    0u, 0u, 0u,
+                    &srcLocation,
+                    nullptr
+                );
+            }
+        }
     }
 
     void TerrainOfflineTask::OnCompleted() {
         // 离线任务完成，将结果保存到磁盘中
-        uint32_t startMipLevel = 0u;
-        uint32_t subresourceCount = mMinMaxHeightMap->GetResourceFormat().SubresourceCount();
-        std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
-        std::vector<uint32_t> numRows(subresourceCount);
-        std::vector<uint64_t> rowSizesInBytes(subresourceCount);
-        uint64_t requiredSize = 0u;
-        auto d3dResDesc = mMinMaxHeightMap->GetResourceFormat().D3DResourceDesc();
-        mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
-            placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
-        std::vector<DirectX::Image> images(subresourceCount);
-        for (uint32_t i = startMipLevel; i < subresourceCount; i++) {
-            auto& image = images.at(i);
-            auto& placedLayout = placedLayouts.at(i);
+        // 1. MinMaxHeightMap
+        {
+            uint32_t startMipLevel = 0u;
+            uint32_t subresourceCount = mMinMaxHeightMap->GetResourceFormat().SubresourceCount();
+            std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+            std::vector<uint32_t> numRows(subresourceCount);
+            std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+            uint64_t requiredSize = 0u;
+            auto d3dResDesc = mMinMaxHeightMap->GetResourceFormat().D3DResourceDesc();
+            mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+                placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
-            image.width = placedLayout.Footprint.Width;
-            image.height = placedLayout.Footprint.Height;
-            image.format = placedLayout.Footprint.Format;
-            image.rowPitch = placedLayout.Footprint.RowPitch;
-            image.slicePitch = image.rowPitch * numRows.at(i);
-            image.pixels = new uint8_t[image.slicePitch];
+            std::vector<DirectX::Image> images(subresourceCount);
+            for (uint32_t i = startMipLevel; i < subresourceCount; i++) {
+                auto& image = images.at(i);
+                auto& placedLayout = placedLayouts.at(i);
 
-            // 将数据从共享内存复制到内存堆上
-            memcpy(image.pixels, mMinMaxHeightMapReadback->Map() + placedLayout.Offset, image.slicePitch);
+                image.width = placedLayout.Footprint.Width;
+                image.height = placedLayout.Footprint.Height;
+                image.format = placedLayout.Footprint.Format;
+                image.rowPitch = placedLayout.Footprint.RowPitch;
+                image.slicePitch = image.rowPitch * numRows.at(i);
+                image.pixels = new uint8_t[image.slicePitch];
+
+                // 将数据从共享内存复制到内存堆上
+                memcpy(image.pixels, mMinMaxHeightMapReadback->Map() + placedLayout.Offset, image.slicePitch);
+            }
+
+            DirectX::TexMetadata metadata = GetTexMetadata(mMinMaxHeightMap->GetResourceFormat().GetTextureDesc());
+            DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_NONE, L"MinMaxHeightMap_2.dds");
         }
 
-        DirectX::TexMetadata metadata = GetTexMetadata(mMinMaxHeightMap->GetResourceFormat().GetTextureDesc());
-        DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_FORCE_DX10_EXT, L"MinMaxHeightMap_2.dds");
+        // 2. NormalMap
+        {
+            uint32_t startMipLevel = 0u;
+            uint32_t subresourceCount = mNormalMap->GetResourceFormat().SubresourceCount();
+            std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+            std::vector<uint32_t> numRows(subresourceCount);
+            std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+            uint64_t requiredSize = 0u;
+            auto d3dResDesc = mNormalMap->GetResourceFormat().D3DResourceDesc();
+            mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+                placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
+
+            std::vector<DirectX::Image> images(subresourceCount);
+            for (uint32_t i = startMipLevel; i < subresourceCount; i++) {
+                auto& image = images.at(i);
+                auto& placedLayout = placedLayouts.at(i);
+
+                image.width = placedLayout.Footprint.Width;
+                image.height = placedLayout.Footprint.Height;
+                image.format = placedLayout.Footprint.Format;
+                image.rowPitch = placedLayout.Footprint.RowPitch;
+                image.slicePitch = image.rowPitch * numRows.at(i);
+                image.pixels = new uint8_t[image.slicePitch];
+
+                // 将数据从共享内存复制到内存堆上
+                memcpy(image.pixels, mNormalMapReadback->Map() + placedLayout.Offset, image.slicePitch);
+            }
+
+            DirectX::TexMetadata metadata = GetTexMetadata(mNormalMap->GetResourceFormat().GetTextureDesc());
+            DirectX::SaveToWICFile(images.data(), images.size(), WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), L"NormalMap_2.png");
+            // DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_NONE, L"NormalMap_2.dds");
+        }
     }
 
     Renderer::TextureDesc TerrainOfflineTask::GetTextureDesc(const DirectX::TexMetadata& metadata) {

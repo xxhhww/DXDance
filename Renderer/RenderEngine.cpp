@@ -146,7 +146,6 @@ namespace Renderer {
 				nullptr
 				);
 
-			/*
 			// 获取纹理GPU存储信息
 			uint32_t subresourceCount = mBlueNoise3DMap->GetResourceFormat().SubresourceCount();
 			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
@@ -158,16 +157,18 @@ namespace Renderer {
 				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
 
 			// 上传数据至显存
+			uint8_t* temp = new uint8_t[requiredSize];
 			auto* copyDsQueue = mUploaderEngine->GetMemoryCopyQueue();
 			auto* copyFence = mUploaderEngine->GetCopyFence();
-			for (uint32_t i = 0; i < subresourceCount; i++) {
-				auto* image = baseImage.GetImage(0u, 0u, 16u);
+			for (uint32_t subresourceIndex = 0u; subresourceIndex < subresourceCount; subresourceIndex++) {
+				for (uint32_t sliceIndex = 0u; sliceIndex < d3dResDesc.DepthOrArraySize; sliceIndex++) {
+					auto* image = baseImage.GetImage(0u, 0u, sliceIndex);
 
-				uint8_t* temp = new uint8_t[placedLayouts.at(i).Footprint.RowPitch * numRows[i]];
-				for (uint32_t rowIndex = 0u; rowIndex < numRows[i]; rowIndex++) {
-					uint32_t realByteOffset = rowIndex * placedLayouts.at(i).Footprint.RowPitch;
-					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
-					memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
+					for (uint32_t rowIndex = 0u; rowIndex < numRows[subresourceIndex]; rowIndex++) {
+						uint32_t realByteOffset = rowIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch + sliceIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch * numRows[subresourceIndex];
+						uint32_t fakeByteOffset = rowIndex * image->rowPitch;
+						memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
+					}
 				}
 
 				DSTORAGE_REQUEST request = {};
@@ -175,15 +176,15 @@ namespace Renderer {
 				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
 				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
 				request.Source.Memory.Source = temp;
-				request.Source.Memory.Size = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+				request.Source.Memory.Size = requiredSize;
 				request.Destination.Texture.Resource = mBlueNoise3DMap->D3DResource();
 				request.Destination.Texture.Region = GHL::Box {
-					0u, static_cast<uint32_t>(image->width),
-					0u, static_cast<uint32_t>(image->height),
-					0u, 1u
+					0u, placedLayouts.at(subresourceIndex).Footprint.Width,
+					0u, placedLayouts.at(subresourceIndex).Footprint.Height,
+					0u, placedLayouts.at(subresourceIndex).Footprint.Depth
 				}.D3DBox();
-				request.Destination.Texture.SubresourceIndex = i;
-				request.UncompressedSize = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
+				request.Destination.Texture.SubresourceIndex = subresourceIndex;
+				request.UncompressedSize = requiredSize;
 
 				copyDsQueue->EnqueueRequest(&request);
 			}
@@ -191,7 +192,6 @@ namespace Renderer {
 			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
 			copyDsQueue->Submit();
 			copyFence->Wait();
-			*/
 
 			baseImage.Release();
 
@@ -210,6 +210,7 @@ namespace Renderer {
 		{
 			mGBufferPass.AddPass(*mRenderGraph);
 			mTerrainPass.AddPass(*mRenderGraph);
+			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mDeferredLightPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 
@@ -258,8 +259,11 @@ namespace Renderer {
 			gpuLightData.position = transform.worldPosition;
 			gpuLightData.direction = transform.worldRotation;
 			gpuLightData.color = light.mColor;
-			gpuLightData.lightType = std::underlying_type<ECS::LightType>::type(light.mLightType);
+			gpuLightData.type = std::underlying_type<ECS::LightType>::type(light.mLightType);
 		});
+
+		mPipelineResourceStorage->rootConstantsPerFrame.lightSize =
+			mPipelineResourceStorage->rootLightDataPerFrame.size();
 	}
 
 	void RenderEngine::Render() {
@@ -296,12 +300,16 @@ namespace Renderer {
 			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
 
 			// 录制Editor Render Pass命令
+			commandBuffer.PIXBeginEvent("EditorRenderPass");
 			mEditorRenderPass.Invoke(commandBuffer, renderContext);
+			commandBuffer.PIXEndEvent();
 
 			// 将FinalOutput转换为PixelShaderAccess供GPU读取
-			GHL::ResourceBarrierBatch barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), 0u, GHL::EResourceState::PixelShaderAccess);
-			
-			commandList->D3DCommandList()->ResourceBarrier(barrierBatch.Size(), barrierBatch.D3DBarriers());
+			commandBuffer.PIXBeginEvent("FinalOutputBarrierPass");
+			auto barrierBatch = mResourceStateTracker->TransitionImmediately(mFinalOutput.get(), GHL::EResourceState::PixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.PIXEndEvent();
+
 			commandList->Close();
 			mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 		}
@@ -313,6 +321,7 @@ namespace Renderer {
 				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 				commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 				CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+				commandBuffer.PIXBeginEvent("OutputBackBufferPass");
 
 				auto  currentBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 				auto* currentBackBuffer = mBackBuffers.at(currentBackBufferIndex).get();
@@ -330,6 +339,7 @@ namespace Renderer {
 				barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
+				commandBuffer.PIXEndEvent();
 				commandList->Close();
 				mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 				

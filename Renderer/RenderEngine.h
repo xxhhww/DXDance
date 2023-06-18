@@ -21,11 +21,13 @@
 
 #include "Renderer/RenderGraph.h"
 #include "Renderer/CommandBuffer.h"
-#include "Renderer/GBufferPass.h"
-#include "Renderer/DeferredLightPass.h"
-#include "Renderer/TerrainPass.h"
-#include "Renderer/FinalBarrierPass.h"
 #include "Renderer/RootConstantsPerFrame.h"
+
+#include "Renderer/GBufferPass.h"
+#include "Renderer/TerrainPass.h"
+#include "Renderer/RngSeedGenerationPass.h"
+#include "Renderer/DeferredLightPass.h"
+#include "Renderer/FinalBarrierPass.h"
 
 #include "Renderer/Mesh.h"
 
@@ -116,6 +118,7 @@ namespace Renderer {
 		// ==========================...RenderPasses...==========================
 		GBufferPass mGBufferPass;
 		TerrainPass mTerrainPass;
+		RngSeedGenerationPass mRngSeedGenerationPass;
 		DeferredLightPass mDeferredLightPass;
 		FinalBarrierPass mFinalBarrierPass;
 

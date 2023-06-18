@@ -7,6 +7,6 @@ struct GBufferSurface {
     float3 normal;      // world space normal
     float roughness;
     float metalness;
-}
+};
 
 #endif

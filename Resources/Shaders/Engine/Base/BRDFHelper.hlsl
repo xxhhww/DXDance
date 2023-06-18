@@ -1,9 +1,9 @@
 #ifndef _BRDFHelper__
 #define _BRDFHelper__
 
-#include "Constatns.hlsl"
 #include "GBufferHelper.hlsl"
 #include "../Math/Trig.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 // Following Wo, Wi, Wm are vectors in tangent space of the surface 
 

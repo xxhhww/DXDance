@@ -5,7 +5,7 @@ struct PassData {
     uint rngSeedMapIndex;
     uint blueNoise3DMapSize;
     uint blueNoise3DMapDepth;
-    uint frameNumber;
+    uint currFrameNumber;
 };
 
 #define PassDataType PassData
@@ -19,9 +19,9 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupThreadID : 
     uint2 coord = dispatchThreadID.xy;
 
     uint4 rngSeed = uint4(
-        coord.x % PassDataCB.blueNoiseTexSize,
-        coord.y % PassDataCB.blueNoiseTexSize,
-        PassDataCB.frameNumber % PassDataCB.blueNoiseTexDepth,
+        coord.x % PassDataCB.blueNoise3DMapSize,
+        coord.y % PassDataCB.blueNoise3DMapSize,
+        PassDataCB.currFrameNumber % PassDataCB.blueNoise3DMapDepth,
         false);
 
     rngSeedMap[coord] = rngSeed;

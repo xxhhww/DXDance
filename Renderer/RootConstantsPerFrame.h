@@ -13,6 +13,11 @@ namespace Renderer {
 
 		GPUCamera currentRenderCamera;
 		GPUCamera previousRenderCamera;
+
+		uint32_t lightSize;
+		float pad1;
+		float pad2;
+		float pad3;
 	};
 
 }

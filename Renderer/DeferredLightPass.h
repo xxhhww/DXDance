@@ -6,14 +6,15 @@ namespace Renderer {
 	class DeferredLightPass {
 	public:
 		struct DeferredLightPassData {
+			Math::Vector4 halton;
+			uint32_t rngSeedMapIndex;
+			uint32_t blueNoise3DMapIndex;
 			uint32_t gBufferAlbedoMetalnessMapIndex;
 			uint32_t gBufferPositionEmissionMapIndex;
 			uint32_t gBufferNormalRoughnessMapIndex;
 			uint32_t gBufferViewDepthMapIndex;
 			uint32_t finalOutputMapIndex;
 			float pad1;
-			float pad2;
-			float pad3;
 		};
 
 		DeferredLightPassData deferredLightPassData;

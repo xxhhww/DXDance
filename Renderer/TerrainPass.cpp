@@ -568,6 +568,91 @@ namespace Renderer {
 			resourceStateTracker->StartTracking(minmaxHeightMap.get());
 		}
 
+		// Load AlbedoMap From Memory
+		{
+			DirectX::ScratchImage baseImage;
+			HRASSERT(DirectX::LoadFromWICFile(
+				L"E:/MyProject/DXDance/Resources/Textures/TerrainAlbedoMap_2.png",
+				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+				nullptr,
+				baseImage
+			));
+
+			Renderer::TextureDesc _AlbedoMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
+			_AlbedoMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
+			albedoMap = std::make_unique<Texture>(
+				device,
+				ResourceFormat{ device, _AlbedoMapDesc },
+				descriptorAllocator,
+				nullptr
+				);
+
+			// 上传数据到显存
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
+			request.Source.Memory.Source = baseImage.GetPixels();
+			request.Source.Memory.Size = baseImage.GetPixelsSize();
+			request.Destination.Texture.Region = GHL::Box{
+				0u, _AlbedoMapDesc.width, 0u, _AlbedoMapDesc.height, 0u, _AlbedoMapDesc.depth
+			}.D3DBox();
+			request.Destination.Texture.SubresourceIndex = 0u;
+			request.Destination.Texture.Resource = albedoMap->D3DResource();
+			request.UncompressedSize = baseImage.GetPixelsSize();
+
+			copyDsQueue->EnqueueRequest(&request);
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
+
+			baseImage.Release();
+		}
+
+		// Load NormalMap From Memory
+		{
+			DirectX::ScratchImage baseImage;
+			HRASSERT(DirectX::LoadFromWICFile(
+				L"E:/MyProject/DXDance/Resources/Textures/TerrainNormalMap_2.png",
+				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+				nullptr,
+				baseImage
+			));
+
+			Renderer::TextureDesc _NormalMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
+			_NormalMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
+			normalMap = std::make_unique<Texture>(
+				device,
+				ResourceFormat{ device, _NormalMapDesc },
+				descriptorAllocator,
+				nullptr
+				);
+
+			// 上传数据到显存
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
+			request.Source.Memory.Source = baseImage.GetPixels();
+			request.Source.Memory.Size = baseImage.GetPixelsSize();
+			request.Destination.Texture.Region = GHL::Box{
+				0u, _NormalMapDesc.width, 0u, _NormalMapDesc.height, 0u, _NormalMapDesc.depth
+			}.D3DBox();
+			request.Destination.Texture.SubresourceIndex = 0u;
+			request.Destination.Texture.Resource = normalMap->D3DResource();
+			request.UncompressedSize = baseImage.GetPixelsSize();
+
+			copyDsQueue->EnqueueRequest(&request);
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
+
+			baseImage.Release();
+		}
+		
+
 		// Load HeightMap From Memory(目前读取的PNG文件，后续将PNG转换为XET)
 		{
 			DirectX::ScratchImage baseImage;

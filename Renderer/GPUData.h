@@ -39,6 +39,6 @@ namespace Renderer {
         Math::Vector4 position;
         Math::Vector4 direction;
         Math::Vector3 color;
-        uint32_t lightType;
+        uint32_t type;
     };
 }

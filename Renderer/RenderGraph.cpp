@@ -152,16 +152,21 @@ RecordRenderCommand:
 					if (passNodes.empty()) {
 						continue;
 					}
-					auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
-					CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
-					auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
-					commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+
 					auto* currCommandQueue = mCommandQueues.at(queueIndex);
 					auto* currFence = mFences.at(queueIndex).get();
 
 					for (auto& passNode : passNodes) {
+						// 创建CommandList
+						auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
+						CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+						auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+						commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+						
 						// 收集渲染命令
+						commandBuffer.PIXBeginEvent(passNode->renderPass->GetName());
 						passNode->renderPass->Execute(commandBuffer, renderContext);
+						commandBuffer.PIXEndEvent();
 
 						// Wait Command
 						for (const auto& waitInfo : passNode->waitInfos) {
@@ -401,7 +406,12 @@ RecordRenderCommand:
 
 					lastDL = mDependencyLevelList.at(lastDlIndex).get();
 					GetSubresourceRequestion(lastDL, readSubresourceID, lastExpectedStates, lastRequiredQueues);
-					if (!lastRequiredQueues.empty()) break;
+					if (!lastRequiredQueues.empty()) {
+						break;
+					}
+					else {
+						lastDlIndex -= 1;
+					}
 				}
 				if (lastRequiredQueues.empty()) {
 					ASSERT_FORMAT(false, "Subresource Never Existed!");
