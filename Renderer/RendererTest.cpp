@@ -12,6 +12,7 @@
 #include "ECS/CTransform.h"
 #include "ECS/CCamera.h"
 #include "ECS/CLight.h"
+#include "ECS/CSky.h"
 #include "ECS/Entity.h"
 
 #include "Tools/Clock.h"
@@ -147,19 +148,26 @@ void RunRenderer() {
     editorTransform.worldPosition.z = 0.0f;
 
     // MainCamera(RenderCamera)
-    auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
-    auto& cTransform = mainCamera.GetComponent<ECS::Transform>();
-    cTransform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
-    cTransform.worldRotation.y = 45.0f;
-    auto& cCamera = mainCamera.AddComponent<ECS::Camera>();
-    cCamera.cameraType = ECS::CameraType::RenderCamera;
-    cCamera.mainCamera = true;
+    {
+        auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
+        
+        auto& transform = mainCamera.GetComponent<ECS::Transform>();
+        transform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
 
-    // DirectionalLight
-    auto directionalLight = ECS::Entity::Create<ECS::Transform, ECS::Light>();
-    auto& cLight = directionalLight.GetComponent<ECS::Light>();
-    cLight.mColor = Math::Color{ 1.0f, 0.9f, 1.0f };
-    cLight.mLightType = ECS::LightType::DIRECTIONAL;
+        auto& camera = mainCamera.GetComponent<ECS::Camera>();
+        camera.cameraType = ECS::CameraType::RenderCamera;
+        camera.mainCamera = true;
+    }
+
+    // Sky
+    {
+        auto skyEntity = ECS::Entity::Create<ECS::Transform, ECS::Sky>();
+        
+        auto& transform = skyEntity.GetComponent<ECS::Transform>();
+        transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
+
+        auto& sky = skyEntity.GetComponent<ECS::Sky>();
+    }
 
     // 更新编辑摄像机与渲染摄像机的矩阵数据
     auto updateCameraMatrix = [](ECS::Camera& camera, ECS::Transform& transform) {

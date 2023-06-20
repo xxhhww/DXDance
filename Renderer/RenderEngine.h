@@ -66,7 +66,12 @@ namespace Renderer {
 
 	private:
 		/*
-		* 更新Lights
+		* 更新Sky(包括Sun Light)
+		*/
+		void UpdateSky();
+
+		/*
+		* 更新Lights(不包括Sun Light)
 		*/
 		void UpdateLights();
 

@@ -3,10 +3,12 @@
 
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
+#include "ECS/CSky.h"
 
 #include "GHL/Box.h"
 
 #include "Math/Frustum.h"
+#include "Math/Common.h"
 
 namespace Renderer {
 	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers)
@@ -229,6 +231,10 @@ namespace Renderer {
 	}
 
 	void RenderEngine::Update(float dt, const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform) {
+		// 清理工作
+		mPipelineResourceStorage->rootLightDataPerFrame.clear();
+		
+		// 更新工作
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position = cameraTransform.worldPosition;
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix.Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix.Transpose();
@@ -247,19 +253,77 @@ namespace Renderer {
 			}
 		});
 
+		UpdateSky();
 		UpdateLights();
 	}
 
-	void RenderEngine::UpdateLights() {
-		mPipelineResourceStorage->rootLightDataPerFrame.clear();
+	void RenderEngine::UpdateSky() {
+		ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Sky& sky) {
 
+			Math::Vector3 sunDirection = Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(transform.worldRotation.RotationMatrix());
+			sunDirection.z *= (-1);
+
+			// Different sky model states seem to require elevation angles 
+			// in different frames of reference, which is really confusing.
+			float elevationPiOver2AtHorizon = std::acos(sunDirection.y);
+			float elevationPiOver2AtZenith = DirectX::XM_PIDIV2 - elevationPiOver2AtHorizon;
+			float turbidity = 1.7f;
+
+			uint32_t totalSampleCount = sky.skySpectrum.GetSamples().size();
+
+			// Vertical sample angle. For one ray it's just equal to elevation.
+			float theta = elevationPiOver2AtHorizon;
+
+			// Angle between the sun direction and sample direction.
+			// Since we have only one sample for simplicity, the angle is 0.
+			float gamma = 0.0;
+
+			// We compute spectrum for the middle ray at the center of the Sun's disk.
+			// For simplicity, we ignore limb darkening.
+			for (uint64_t i = 0; i < totalSampleCount; ++i) {
+				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(elevationPiOver2AtHorizon, turbidity, sky.groundAlbedoSpectrum[i]);
+				float wavelength = Math::Mix(sky.skySpectrum.LowestWavelength(), sky.skySpectrum.HighestWavelength(), i / float(totalSampleCount));
+				sky.skySpectrum[i] = float(arhosekskymodel_solar_radiance(skyState, theta, gamma, wavelength));
+				arhosekskymodelstate_free(skyState);
+			}
+
+			if (sky.skyModelStateR)
+				arhosekskymodelstate_free(sky.skyModelStateR);
+
+			if (sky.skyModelStateG)
+				arhosekskymodelstate_free(sky.skyModelStateG);
+
+			if (sky.skyModelStateB)
+				arhosekskymodelstate_free(sky.skyModelStateB);
+
+			Math::Vector3 sunLuminance = sky.skySpectrum.ToRGB();
+			Math::Vector3 sunIlluminance = sunLuminance * ECS::SunSolidAngle; // Dividing by 1 / PDF
+
+			// Found it on internet, without it the illuminance is too small.
+			// Account for luminous efficacy, coordinate system scaling (100, wtf???)
+			float multiplier = 1;
+			sky.sunIlluminance = sunIlluminance * multiplier;
+			sky.sunLuminance = sunLuminance * multiplier;
+
+			sky.skyModelStateR = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.x, elevationPiOver2AtZenith);
+			sky.skyModelStateG = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.y, elevationPiOver2AtZenith);
+			sky.skyModelStateB = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.z, elevationPiOver2AtZenith);
+		
+			// Sun Light
+			auto& gpuLightData = mPipelineResourceStorage->rootLightDataPerFrame.emplace_back();
+			gpuLightData.position = Math::Vector4{ sunDirection, ECS::SunDiskArea };
+			gpuLightData.color = sky.sunIlluminance;
+			gpuLightData.type = std::underlying_type<ECS::LightType>::type(ECS::LightType::Sun);
+		});
+	}
+
+	void RenderEngine::UpdateLights() {
 		// 在当前线程内部逐一遍历实体集合
 		ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Light& light) {
 			auto& gpuLightData = mPipelineResourceStorage->rootLightDataPerFrame.emplace_back();
 			gpuLightData.position = transform.worldPosition;
-			gpuLightData.direction = transform.worldRotation;
-			gpuLightData.color = light.mColor;
-			gpuLightData.type = std::underlying_type<ECS::LightType>::type(light.mLightType);
+			gpuLightData.color = light.color;
+			gpuLightData.type = std::underlying_type<ECS::LightType>::type(light.lightType);
 		});
 
 		mPipelineResourceStorage->rootConstantsPerFrame.lightSize =

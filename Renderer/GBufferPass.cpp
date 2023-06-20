@@ -28,7 +28,7 @@ namespace Renderer {
 				NewTextureProperties _GBufferPositionEmissionProperties{};
 				_GBufferPositionEmissionProperties.width  = finalOutputDesc.width;
 				_GBufferPositionEmissionProperties.height = finalOutputDesc.height;
-				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				_GBufferPositionEmissionProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 				builder.DeclareTexture("GBufferPositionEmission", _GBufferPositionEmissionProperties);
 				builder.WriteRenderTarget("GBufferPositionEmission");
@@ -36,7 +36,7 @@ namespace Renderer {
 				NewTextureProperties _GBufferNormalRoughnessProperties{};
 				_GBufferNormalRoughnessProperties.width = finalOutputDesc.width;
 				_GBufferNormalRoughnessProperties.height = finalOutputDesc.height;
-				_GBufferNormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_UNORM;
+				_GBufferNormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				_GBufferNormalRoughnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 				builder.DeclareTexture("GBufferNormalRoughness", _GBufferNormalRoughnessProperties);
 				builder.WriteRenderTarget("GBufferNormalRoughness");
@@ -57,8 +57,8 @@ namespace Renderer {
 						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
-							DXGI_FORMAT_R16G16B16A16_UNORM,
-							DXGI_FORMAT_R16G16B16A16_UNORM,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
 						};
 					});
 			},

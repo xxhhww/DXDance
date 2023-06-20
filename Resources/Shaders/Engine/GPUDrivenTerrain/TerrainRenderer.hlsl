@@ -106,7 +106,7 @@ p2o PSMain(v2p input) {
 	output.normalRoughness  = float4(SampleNormal(input.uv), 1.0f);
 
 	if(PassDataCB.lodDebug) {
-		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.3f + lodDebugColor * 0.7f;
+		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.7f + lodDebugColor * 0.3f;
 	}
 
 	return output;

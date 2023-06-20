@@ -129,19 +129,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ArHosekSkyModel.h" />
+    <ClInclude Include="ArHosekSkyModelData_CIEXYZ.h" />
+    <ClInclude Include="ArHosekSkyModelData_RGB.h" />
+    <ClInclude Include="ArHosekSkyModelData_Spectral.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="Halton.h" />
     <ClInclude Include="Helper.h" />
+    <ClInclude Include="hosek.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Spectrum.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ArHosekSkyModel.cc" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Halton.cpp" />
+    <ClCompile Include="hosek.cc" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Spectrum.cpp" />

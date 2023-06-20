@@ -49,29 +49,30 @@ void ShadeWithSunLight(
     float3 viewDirection,
     inout ShadingResult shadingResult) {
     
-    float3 sunDirection;
-    float3 sunIlluminance;
-    float3 sunLuminance;
-    float sunDiskArea;
+    float3 sunDirection = sun.position.xyz;
+    float  sunDiskArea = sun.position.w;
+    float3 sunIlluminance = sun.color;
+    // float3 sunLuminance = float3(0.0f, 0.0f, 0.0f);
 
     float3 wi = sunDirection;
     float3 wo = viewDirection;
     float3 wm = normalize(wo + wi);
     float3 brdf = CookTorranceBRDF(wo, wi, wm, gBufferSurface);
 
-    float pdf = 1.0f / sunDiskArea;
+    // float pdf = 1.0f / sunDiskArea;
     shadingResult.analyticUnshadowedOutgoingLuminance += sunIlluminance * brdf;
 
+    /*
     uint raysPerLight = 1u;
     float oneOverPDFOverRayCount = 1.0 / pdf / raysPerLight;
-
     [unroll]
     for (uint rayIdx = 0; rayIdx < raysPerLight; ++rayIdx) {
         float4 randomNumbers = RandomNumbersForLight(randomSequences, rayIdx);
-        // shadingResult.rayLightIntersectionData[rayIdx] = PackRaySunIntersectionRandomNumbers(randomNumbers[rayIdx]);
+        shadingResult.rayLightIntersectionData[rayIdx] = PackRaySunIntersectionRandomNumbers(randomNumbers[rayIdx]);
         shadingResult.rayPDFs[rayIdx] = pdf;
         shadingResult.stochasticUnshadowedOutgoingLuminance[rayIdx] = brdf * sunLuminance * oneOverPDFOverRayCount;
     }
+    */
 }
 
 #endif

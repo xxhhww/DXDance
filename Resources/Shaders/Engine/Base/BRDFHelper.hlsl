@@ -61,9 +61,9 @@ float NormalDistributionTrowbridgeReitzGGXAnisotropic(float3 wm, float ax, float
 
 // Note on G2 meaning: to effectively approximate the geometry we need to take account 
 // of both the view direction (geometry obstruction) and the light direction vector (geometry shadowing).
-float HeightCorrelatedSmithGGXG2(float NDotV, float NDotL, float a) {
+float HeightCorrelatedSmithGGXG2(float NdotV, float NdotL, float a) {
     float absDotNV = abs(NdotV);
-    float absDotNL = abs(NDotL);
+    float absDotNL = abs(NdotL);
     float a2 = a * a;
 
     // height-correlated masking function
@@ -144,7 +144,7 @@ float3 CookTorranceBRDF(float3 wo, float3 wi, float3 wm, GBufferSurface surface)
     float NdotH = saturate(dot(normal, wm));
 
     float NDF = NormalDistributionTrowbridgeReitzGGXIsotropic(NdotH, roughness2);
-    float G = HeightCorrelatedSmithGGXG2(NDotV, NDotL, roughness2);
+    float G = HeightCorrelatedSmithGGXG2(NdotV, NdotL, roughness2);
 
     const float BaseDielectricReflectivity = 0.04f;
 

@@ -84,9 +84,9 @@ namespace Math {
 		Matrix4 ScalingMatrix() const;
 
 		// 将三维向量看作点进行矩阵变换
-		Vector4 PointTransform(const Matrix4& matrix) const;
+		Vector4 TransformAsPoint(const Matrix4& matrix) const;
 		// 将三维向量看作向量进行矩阵变换
-		Vector4 NormalTransform(const Matrix4& matrix) const;
+		Vector4 TransformAsVector(const Matrix4& matrix) const;
 
 		inline operator XMVECTOR() const { return XMLoadFloat3(this); }
 		inline operator int() const { return int(this->x); }

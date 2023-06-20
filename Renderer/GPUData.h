@@ -37,7 +37,6 @@ namespace Renderer {
 
     struct GPULight {
         Math::Vector4 position;
-        Math::Vector4 direction;
         Math::Vector3 color;
         uint32_t type;
     };

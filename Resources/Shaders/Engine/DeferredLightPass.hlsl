@@ -45,20 +45,20 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
     randomSequences.halton    = PassDataCB.halton;
 	
 	float3 viewDirection = normalize(FrameDataCB.CurrentEditorCamera.Position.xyz - gBufferSurface.position.xyz);
-	float3x3 surfaceWorldToTangent = transpose(RotationMatrix3x3(gBufferSurface.normal));
 
 	ShadingResult shadingResult = ZeroShadingResult();
+
 	for(uint i = 0u; i < FrameDataCB.lightSize; i++) {
 		Light light = LightDataSB[i];
 
 		if(light.type == 0) {
 			// Sun Light
-			ShadeWithSunLight(gBufferSurface, light, randomSequences, viewDirection, surfaceWorldToTangent, shadingResult);
+			ShadeWithSunLight(gBufferSurface, light, randomSequences, viewDirection, shadingResult);
 		}
 	}
 
 
-	finalOutputMap[coord] = gBufferAlbedoMetalnessMap[coord];
+	finalOutputMap[coord] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
 }
 
 #endif

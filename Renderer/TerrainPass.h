@@ -49,7 +49,7 @@ namespace Renderer {
 			uint32_t culledPatchListIndex;
 			uint32_t heightMapIndex;
 			uint32_t normalMapIndex;
-			uint32_t lodDebug{ 0u };
+			uint32_t lodDebug{ 1u };
 			float pad1;
 		};
 

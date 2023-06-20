@@ -20,8 +20,8 @@ namespace Math {
 	Matrix4 Vector3::RotationMatrix() const { return XMMatrixRotationRollPitchYaw(x, y, z); }
 	Matrix4 Vector3::ScalingMatrix() const { return XMMatrixScaling(x, y, z); }
 
-	Vector4 Vector3::PointTransform(const Matrix4& matrix) const { return Vector4(*this, 1.0f) * matrix; }
-	Vector4 Vector3::NormalTransform(const Matrix4& matrix) const { return Vector4(*this, 0.0f) * matrix; }
+	Vector4 Vector3::TransformAsPoint (const Matrix4& matrix) const { return Vector4(*this, 1.0f) * matrix; }
+	Vector4 Vector3::TransformAsVector(const Matrix4& matrix) const { return Vector4(*this, 0.0f) * matrix; }
 
 	Vector4 Vector4::operator*(const Matrix4& mat) { return XMVector4Transform(*this, mat); }
 }
