@@ -10,6 +10,8 @@ struct PassData {
     uint normalMapIndex; // From HeightMap
     uint heightMapWidth;
     uint heightMapHeight;
+    float2 worldMeterSize;
+    float worldHeightScale;
 };
 
 #define PassDataType PassData
@@ -55,7 +57,10 @@ float3 GetPosition(uint2 coord) {
     uint w = PassDataCB.heightMapWidth;
     uint h = PassDataCB.heightMapHeight;
     float height = heightMap[coord].r;
-    return float3(coord.x * 1.0f / w, height, coord.y * 1.0f / h); 
+    float3 fakePos = float3(coord.x * 1.0f / w, height, coord.y * 1.0f / h);
+    float3 realPos = float3(fakePos.x * 2.0f - 1.0f, height, fakePos.z * 2.0f - 1.0f);
+    return float3(realPos.x * (PassDataCB.worldMeterSize.x / 2), realPos.y * PassDataCB.worldHeightScale, realPos.z * (PassDataCB.worldMeterSize.y / 2));
+    // return float3(coord.x * 1.0f / w, height, coord.y * 1.0f / h);
 }
 
 float3 GetNormal(float3 v1, float3 v2) {

@@ -276,7 +276,7 @@ void DoOfflineTask() {
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
     TerrainOfflineTask _TerrainOfflineTask;
     _TerrainOfflineTask.Initialize(
-        "E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_1.png",
+        "E:/MyProject/DXDance/Resources/Textures/HeightMap.png",
         &renderEngine
     );
     renderEngine.mOfflineTaskPass += std::bind(

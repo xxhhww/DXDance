@@ -44,14 +44,16 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
     randomSequences.blueNoise = blueNoise3DMap[rngSeedMap[coord].xyz];
     randomSequences.halton    = PassDataCB.halton;
 	
-	float3 viewDirection = normalize(FrameDataCB.CurrentRenderCamera.Position.xyz - gBufferSurface.position.xyz);
+	float3 viewDirection = normalize(FrameDataCB.CurrentEditorCamera.Position.xyz - gBufferSurface.position.xyz);
 	float3x3 surfaceWorldToTangent = transpose(RotationMatrix3x3(gBufferSurface.normal));
 
-	for(uint i = 0u; i < FrameDataCB.lightSize; ++i){
+	ShadingResult shadingResult = ZeroShadingResult();
+	for(uint i = 0u; i < FrameDataCB.lightSize; i++) {
 		Light light = LightDataSB[i];
 
 		if(light.type == 0) {
 			// Sun Light
+			ShadeWithSunLight(gBufferSurface, light, randomSequences, viewDirection, surfaceWorldToTangent, shadingResult);
 		}
 	}
 

@@ -20,6 +20,9 @@ namespace Renderer {
         uint32_t normalMapIndex = 0u;
         uint32_t heightMapWidth = 0u;
         uint32_t heightMapHeight = 0u;
+        Math::Vector2 worldMeterSize{ 5120u, 5120u };
+        float worldHeightScale{ 2048u };
+        float pad1;
     };
 
 	void TerrainOfflineTask::Initialize(const std::string& filename, RenderEngine* renderEngine) {

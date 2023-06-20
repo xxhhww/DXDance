@@ -16,6 +16,15 @@ struct ShadingResult {
     float4x3 stochasticUnshadowedOutgoingLuminance;
 };
 
+ShadingResult ZeroShadingResult() {
+    ShadingResult result;
+    result.rayLightIntersectionData = 0;
+    result.analyticUnshadowedOutgoingLuminance = 0.0;
+    result.rayPDFs = 0.0;
+    result.stochasticUnshadowedOutgoingLuminance = 0.0;
+    return result;
+}
+
 float4 RandomNumbersForLight(RandomSequences randomSequences, uint rayIndex) {
     // Used for 2D position on light/BRDF
     float u1 = frac(randomSequences.halton.r + randomSequences.blueNoise.r);
@@ -38,15 +47,15 @@ void ShadeWithSunLight(
     Light sun,
     RandomSequences randomSequences,
     float3 viewDirection,
-    float3x3 surfaceWorldToTangent,
     inout ShadingResult shadingResult) {
     
     float3 sunDirection;
     float3 sunIlluminance;
     float3 sunLuminance;
     float sunDiskArea;
-    float3 wi = mul(sunDirection, surfaceWorldToTangent);
-    float3 wo = mul(viewDirection, surfaceWorldToTangent);
+
+    float3 wi = sunDirection;
+    float3 wo = viewDirection;
     float3 wm = normalize(wo + wi);
     float3 brdf = CookTorranceBRDF(wo, wi, wm, gBufferSurface);
 

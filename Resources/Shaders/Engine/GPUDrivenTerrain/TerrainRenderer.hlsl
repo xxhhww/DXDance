@@ -66,9 +66,17 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	return output;
 }
 
-p2o PSMain(v2p input) {
+float3 SampleNormal(float2 uv){
 	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
 
+    float3 normal;
+    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0).xy * 2.0f - 1.0f;
+    normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
+
+    return normal;
+}
+
+p2o PSMain(v2p input) {
 	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
 	if(input.lod == 0u) {
 		lodDebugColor = float3(0.5f, 0.5f, 0.5f);
@@ -93,9 +101,9 @@ p2o PSMain(v2p input) {
 	}
 
 	p2o output;
-	output.albedoMetalness  = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	output.albedoMetalness  = float4(0.5f, 0.5f, 0.5f, 0.0f);
 	output.positionEmission = float4(input.wsPos, 1.0f);
-	output.normalRoughness  = float4(normalMap.SampleLevel(SamplerAnisotropicWrap, input.uv, 0).rgb, 1.0f);
+	output.normalRoughness  = float4(SampleNormal(input.uv), 1.0f);
 
 	if(PassDataCB.lodDebug) {
 		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.3f + lodDebugColor * 0.7f;

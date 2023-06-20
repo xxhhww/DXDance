@@ -133,6 +133,7 @@
     <ClInclude Include="CCamera.h" />
     <ClInclude Include="CLight.h" />
     <ClInclude Include="CMeshRenderer.h" />
+    <ClInclude Include="CSky.h" />
     <ClInclude Include="CTransform.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="IComponent.h" />

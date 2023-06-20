@@ -29,9 +29,9 @@ float3 FresnelSchlick(float3 f0, float3 f90, float cosPhi) {
 // Trowbridge-Reitz GGX normal distribution function
 // Statistically approximates the ratio of microfacets aligned to some (halfway) vector h
 //
-float NormalDistributionTrowbridgeReitzGGXIsotropic(float3 wm, float alpha) {
+float NormalDistributionTrowbridgeReitzGGXIsotropic(float NdotH, float alpha) {
     float a2 = alpha * alpha;
-    float NdotH2 = Cos2Theta(wm);
+    float NdotH2 = NdotH * NdotH;
 
     float nom = a2;
     float denom = (NdotH2 * (a2 - 1.0f) + 1.0f);
@@ -61,9 +61,9 @@ float NormalDistributionTrowbridgeReitzGGXAnisotropic(float3 wm, float ax, float
 
 // Note on G2 meaning: to effectively approximate the geometry we need to take account 
 // of both the view direction (geometry obstruction) and the light direction vector (geometry shadowing).
-float HeightCorrelatedSmithGGXG2(float3 wo, float3 wi, float a) {
-    float absDotNV = AbsCosTheta(wo);
-    float absDotNL = AbsCosTheta(wi);
+float HeightCorrelatedSmithGGXG2(float NDotV, float NDotL, float a) {
+    float absDotNV = abs(NdotV);
+    float absDotNL = abs(NDotL);
     float a2 = a * a;
 
     // height-correlated masking function
@@ -126,17 +126,25 @@ float3 DiffuseBRDFForGI(float3 viewDirection, GBufferSurface surface) {
     return diffuse;
 }
 
+/*
+wo: view   direction
+wi: light  direction
+wm: middle vector
+*/
 float3 CookTorranceBRDF(float3 wo, float3 wi, float3 wm, GBufferSurface surface) {
     // Based on observations by Disney and adopted by Epic Games
     // the lighting looks more correct squaring the roughness
     // in both the geometry and normal distribution function.
-    float roughness2 = surface.roughness * surface.roughness;
-    float NdotL = saturate(CosTheta(wi));
-    float NdotV = saturate(CosTheta(wo));
-    float NdotH = saturate(CosTheta(wm));
 
-    float NDF = NormalDistributionTrowbridgeReitzGGXIsotropic(wm, roughness2);
-    float G = HeightCorrelatedSmithGGXG2(wo, wi, roughness2);
+    float roughness2 = surface.roughness * surface.roughness;
+    float3 normal = surface.normal;
+
+    float NdotL = saturate(dot(normal, wi));
+    float NdotV = saturate(dot(normal, wo));
+    float NdotH = saturate(dot(normal, wm));
+
+    float NDF = NormalDistributionTrowbridgeReitzGGXIsotropic(NdotH, roughness2);
+    float G = HeightCorrelatedSmithGGXG2(NDotV, NDotL, roughness2);
 
     const float BaseDielectricReflectivity = 0.04f;
 

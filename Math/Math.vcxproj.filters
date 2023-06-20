@@ -36,6 +36,12 @@
     <ClInclude Include="Halton.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Spectrum.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector.cpp">
@@ -51,6 +57,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Halton.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Spectrum.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

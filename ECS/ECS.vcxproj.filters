@@ -45,6 +45,9 @@
     <ClInclude Include="CTerrainRenderer.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
+    <ClInclude Include="CSky.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Metatype.inl">
