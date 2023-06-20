@@ -22,7 +22,7 @@ namespace Renderer {
 		inline auto* GetCopyFence()       const { return mCopyFence.get(); }
 	
 	private:
-		inline static const uint32_t mStagingBufferSizeMB = 128u;
+		inline static const uint32_t mStagingBufferSizeMB = 512u;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

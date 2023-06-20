@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectStorage/dstorage.h>
+#include <vector>
 #include "RenderGraph.h"
 
 namespace GHL {
@@ -29,8 +30,8 @@ namespace Renderer {
 
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
-			Math::Vector2 worldSize{ 10240u, 10240u };					// 世界在XZ轴方向的大小(米)
-			uint32_t heightScale = 2048u;
+			Math::Vector2 worldMeterSize{ 5120u, 5120u };					// 世界在XZ轴方向的大小(米)
+			uint32_t heightScale{ 2048u };
 			uint32_t currPassLOD;
 			uint32_t consumeNodeListIndex;
 			uint32_t appendNodeListIndex;
@@ -39,17 +40,17 @@ namespace Renderer {
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
 			uint32_t minmaxHeightMapIndex;
-			uint32_t useFrustumCull = 1u;
+			uint32_t useFrustumCull{ 0u };
 		};
 
 		struct TerrainRendererPassData {
-			Math::Vector2 worldSize{ 10240u, 10240u };
-			uint32_t heightScale = 2048u;
+			Math::Vector2 worldMeterSize{ 5120u, 5120u };
+			uint32_t heightScale{ 2048u };
 			uint32_t culledPatchListIndex;
 			uint32_t heightMapIndex;
-			uint32_t albedoMapIndex;
 			uint32_t normalMapIndex;
-			uint32_t lodDebug{ 0u };
+			uint32_t lodDebug{ 1u };
+			float pad1;
 		};
 
 		struct NodeLocation {
@@ -68,8 +69,10 @@ namespace Renderer {
 
 	public:
 		bool isInitialized{ false };
-		uint32_t maxLOD{ 5u };	// 最大LOD等级
-		uint32_t mostDetailNodeSize{ 64u }; // 最精细的节点的大小(单位: 米)
+		Math::Vector2 worldMeterSize{ 5120u, 5120u };
+		float worldHeightScale{ 2048u };
+		uint32_t maxLOD{ 4u };	// 最大LOD等级
+		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;
 		std::vector<NodeLocation>   maxLODNodeList;
@@ -78,7 +81,7 @@ namespace Renderer {
 
 		std::unique_ptr<Renderer::Mesh> patchMesh;
 		std::unique_ptr<Renderer::Texture> minmaxHeightMap;
-		std::unique_ptr<Renderer::Texture> albedoMap;
+		// std::unique_ptr<Renderer::Texture> albedoMap;
 		std::unique_ptr<Renderer::Texture> normalMap;
 		std::unique_ptr<Renderer::Texture> heightMap;
 

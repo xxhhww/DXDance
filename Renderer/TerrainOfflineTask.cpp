@@ -14,7 +14,7 @@ namespace Renderer {
     struct GenMinMaxHeightMapPassData {
         uint32_t heightMapIndex = 0u;
         uint32_t minMaxHeightMapIndex = 0u;
-        float patchTexScale = 0.0f; // MostDetailedPatch网格(1280 * 1280)相对于当前HeightMap的缩放
+        float patchTexScale = 0.0f; // MostDetailedPatch网格(640 * 640)相对于当前HeightMap的缩放
         uint32_t inMipMapIndex = 0u;
         uint32_t outMipMapIndex = 0u;
         uint32_t normalMapIndex = 0u;
@@ -57,6 +57,7 @@ namespace Renderer {
             );
 
         // 上传数据到显存
+
         DSTORAGE_REQUEST request = {};
 
         request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
@@ -64,15 +65,15 @@ namespace Renderer {
         request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
 
         request.Source.Memory.Source = baseImage.GetPixels();
-        request.Source.Memory.Size = baseImage.GetPixelsSize();
+        request.Source.Memory.Size = mHeightMap->GetResourceFormat().GetSizeInBytes();
         request.Destination.Texture.Resource = mHeightMap->D3DResource();
         request.Destination.Texture.Region = GHL::Box{
             0u, _HeightMapDesc.width, 0u, _HeightMapDesc.height, 0u, _HeightMapDesc.depth
         }.D3DBox();
         request.Destination.Texture.SubresourceIndex = 0u;
 
-        request.UncompressedSize = baseImage.GetPixelsSize();
-
+        request.UncompressedSize = mHeightMap->GetResourceFormat().GetSizeInBytes();
+        
         copyDsQueue->EnqueueRequest(&request);
         copyFence->IncrementExpectedValue();
         copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
@@ -205,8 +206,8 @@ namespace Renderer {
             commandBuffer.SetComputePipelineState("GenMinMaxHeightMap");
             commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
             commandBuffer.Dispatch(
-                smMostDetailedPatchSize / smThreadSizeInGroup1,
-                smMostDetailedPatchSize / smThreadSizeInGroup1,
+                (smMostDetailedPatchSize + smThreadSizeInGroup1 - 1) / smThreadSizeInGroup1,
+                (smMostDetailedPatchSize + smThreadSizeInGroup1 - 1) / smThreadSizeInGroup1,
                 1u
             );
         }
@@ -237,7 +238,7 @@ namespace Renderer {
                 commandBuffer.FlushResourceBarrier(barrierBatch);
 
                 uint32_t mis2 = pow(2, i + 1u);
-                uint32_t threadGroupCountX = (smMostDetailedPatchSize / mis2) / smThreadSizeInGroup2;
+                uint32_t threadGroupCountX = ((smMostDetailedPatchSize / mis2) + smThreadSizeInGroup2 - 1u) / smThreadSizeInGroup2;
                 uint32_t threadGroupCountY = threadGroupCountX;
 
                 commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
@@ -372,7 +373,7 @@ namespace Renderer {
             }
 
             DirectX::TexMetadata metadata = GetTexMetadata(mMinMaxHeightMap->GetResourceFormat().GetTextureDesc());
-            DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_NONE, L"MinMaxHeightMap_2.dds");
+            DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_FORCE_DX10_EXT, L"MinMaxHeightMap_1.dds");
         }
 
         // 2. NormalMap
@@ -404,7 +405,7 @@ namespace Renderer {
             }
 
             DirectX::TexMetadata metadata = GetTexMetadata(mNormalMap->GetResourceFormat().GetTextureDesc());
-            DirectX::SaveToWICFile(images.data(), images.size(), WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), L"NormalMap_2.png");
+            DirectX::SaveToWICFile(images.data(), images.size(), WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), L"NormalMap_1.png");
             // DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_NONE, L"NormalMap_2.dds");
         }
     }

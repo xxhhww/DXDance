@@ -109,6 +109,8 @@ namespace Renderer {
 				
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TraverseQuadTree");
 
+				terrainBuilderPassData.worldMeterSize = worldMeterSize;
+				terrainBuilderPassData.heightScale = worldHeightScale;
 				terrainBuilderPassData.currPassLOD = maxLOD;
 				terrainBuilderPassData.consumeNodeListIndex    = consumeNodeList->GetUADescriptor()->GetHeapIndex();
 				terrainBuilderPassData.appendNodeListIndex     = appendNodeList->GetUADescriptor()->GetHeapIndex();
@@ -261,6 +263,8 @@ namespace Renderer {
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("BuildPatches");
 
+				terrainBuilderPassData.worldMeterSize = worldMeterSize;
+				terrainBuilderPassData.heightScale = worldHeightScale;
 				terrainBuilderPassData.lodDescriptorListIndex = lodDescriptorList->GetSRDescriptor()->GetHeapIndex();
 				terrainBuilderPassData.finalNodeListIndex     = finalNodeList->GetSRDescriptor()->GetHeapIndex();
 				terrainBuilderPassData.culledPatchListIndex   = culledPatchList->GetUADescriptor()->GetHeapIndex();
@@ -356,9 +360,10 @@ namespace Renderer {
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
+				terrainRendererPassData.worldMeterSize = worldMeterSize;
+				terrainRendererPassData.heightScale = worldHeightScale;
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
-				terrainRendererPassData.albedoMapIndex = albedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.normalMapIndex = normalMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
@@ -416,8 +421,8 @@ namespace Renderer {
 		for (int32_t i = maxLOD; i >= 0; i--) {
 			auto& lodDescriptor = lodDescriptors.at(i);
 
-			uint32_t currDetailNodeSize = mostDetailNodeSize * pow(2, i);
-			uint32_t nodeCountPerAxis = terrainBuilderPassData.worldSize.x / currDetailNodeSize;
+			uint32_t currDetailNodeSize = mostDetailNodeMeterSize * pow(2, i);
+			uint32_t nodeCountPerAxis = terrainBuilderPassData.worldMeterSize.x / currDetailNodeSize;
 
 			lodDescriptor.nodeSize = currDetailNodeSize;
 			lodDescriptor.nodeStartOffset = nodeCount;
@@ -506,8 +511,8 @@ namespace Renderer {
 		{
 			DirectX::ScratchImage baseImage;
 			HRASSERT(DirectX::LoadFromDDSFile(
-				L"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap_2.dds",
-				DirectX::DDS_FLAGS_FORCE_DX10_EXT,
+				L"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap.dds",
+				DirectX::DDS_FLAGS_NONE,
 				nullptr,
 				baseImage
 			));
@@ -569,53 +574,11 @@ namespace Renderer {
 			resourceStateTracker->StartTracking(minmaxHeightMap.get());
 		}
 
-		// Load AlbedoMap From Memory
+		// Load NormalMap From File
 		{
 			DirectX::ScratchImage baseImage;
 			HRASSERT(DirectX::LoadFromWICFile(
-				L"E:/MyProject/DXDance/Resources/Textures/TerrainAlbedoMap_2.png",
-				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-
-			Renderer::TextureDesc _AlbedoMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_AlbedoMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
-			albedoMap = std::make_unique<Texture>(
-				device,
-				ResourceFormat{ device, _AlbedoMapDesc },
-				descriptorAllocator,
-				nullptr
-				);
-
-			// 上传数据到显存
-			DSTORAGE_REQUEST request = {};
-			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-			request.Source.Memory.Source = baseImage.GetPixels();
-			request.Source.Memory.Size = baseImage.GetPixelsSize();
-			request.Destination.Texture.Region = GHL::Box{
-				0u, _AlbedoMapDesc.width, 0u, _AlbedoMapDesc.height, 0u, _AlbedoMapDesc.depth
-			}.D3DBox();
-			request.Destination.Texture.SubresourceIndex = 0u;
-			request.Destination.Texture.Resource = albedoMap->D3DResource();
-			request.UncompressedSize = baseImage.GetPixelsSize();
-
-			copyDsQueue->EnqueueRequest(&request);
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			baseImage.Release();
-		}
-
-		// Load NormalMap From Memory
-		{
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromWICFile(
-				L"E:/MyProject/DXDance/Resources/Textures/TerrainNormalMap_2.png",
+				L"E:/MyProject/DXDance/Resources/Textures/NormalMap.png",
 				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
 				nullptr,
 				baseImage
@@ -654,11 +617,11 @@ namespace Renderer {
 		}
 		
 
-		// Load HeightMap From Memory(目前读取的PNG文件，后续将PNG转换为XET)
+		// Load HeightMap From File
 		{
 			DirectX::ScratchImage baseImage;
 			HRASSERT(DirectX::LoadFromWICFile(
-				L"E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_2.png",
+				L"E:/MyProject/DXDance/Resources/Textures/HeightMap.png",
 				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
 				nullptr,
 				baseImage

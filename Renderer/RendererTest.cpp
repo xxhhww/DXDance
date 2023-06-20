@@ -143,13 +143,13 @@ void RunRenderer() {
     editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
-    editorTransform.worldPosition.y = 750.0f;
+    editorTransform.worldPosition.y = 1000.0f;
     editorTransform.worldPosition.z = 0.0f;
 
     // MainCamera(RenderCamera)
     auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
     auto& cTransform = mainCamera.GetComponent<ECS::Transform>();
-    cTransform.worldPosition = Math::Vector3{ 0.0f, 710.0f, 0.0f };
+    cTransform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
     cTransform.worldRotation.y = 45.0f;
     auto& cCamera = mainCamera.AddComponent<ECS::Camera>();
     cCamera.cameraType = ECS::CameraType::RenderCamera;
@@ -276,7 +276,7 @@ void DoOfflineTask() {
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
     TerrainOfflineTask _TerrainOfflineTask;
     _TerrainOfflineTask.Initialize(
-        "E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_2.png",
+        "E:/MyProject/DXDance/Resources/Textures/TerrainHeightMap_1.png",
         &renderEngine
     );
     renderEngine.mOfflineTaskPass += std::bind(

@@ -8,9 +8,9 @@ struct PassData {
 	uint heightScale;
 	uint culledPatchListIndex;
 	uint heightMapIndex;
-	uint albedoMapIndex;
 	uint normalMapIndex;
 	uint lodDebug;
+	float pad1;
 };
 
 #define PassDataType PassData
@@ -52,7 +52,8 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	input.lsPos.xz += patch.position;
 
 	float2 heightUV = (input.lsPos.xz + (PassDataCB.worldSize * 0.5f) + 0.5f) / (PassDataCB.worldSize + 1.0f);
-	float height = heightMap.SampleLevel(SamplerLinearClamp, heightUV, 0u).r;
+	heightUV *= 1.0f;
+	float height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
 	input.lsPos.y = height * PassDataCB.heightScale;
 
 	output.csPos = float4(input.lsPos, 1.0f);
@@ -66,7 +67,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 p2o PSMain(v2p input) {
-	Texture2D<float4> albedoMap = ResourceDescriptorHeap[PassDataCB.albedoMapIndex];
 	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
 
 	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
@@ -93,9 +93,9 @@ p2o PSMain(v2p input) {
 	}
 
 	p2o output;
-	output.albedoMetalness  = float4(albedoMap.SampleLevel(SamplerAnisotropicClamp, input.uv, 0).rgb, 1.0f);
+	output.albedoMetalness  = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	output.positionEmission = float4(input.wsPos, 1.0f);
-	output.normalRoughness  = float4(normalMap.SampleLevel(SamplerAnisotropicClamp, input.uv, 0).rgb, 1.0f);
+	output.normalRoughness  = float4(normalMap.SampleLevel(SamplerAnisotropicWrap, input.uv, 0).rgb, 1.0f);
 
 	if(PassDataCB.lodDebug) {
 		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.3f + lodDebugColor * 0.7f;
