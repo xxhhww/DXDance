@@ -107,13 +107,19 @@ namespace Renderer {
 
 		inline const auto& D3DResourceDesc() const { return mResourceDesc; }
 
-		inline const auto& GetAlignment()           const { return mAlignment; }
-		inline const auto& GetSizeInBytes()         const { return mSizeInBytes; }
-		inline const auto& GetResourceDescVariant() const { return mResourceDescVariant; }
-		inline const auto& GetTextureDesc()         const { return std::get<TextureDesc>(mResourceDescVariant); }
-		inline const auto& GetBufferDesc()          const { return std::get<BufferDesc>(mResourceDescVariant); }
-		inline const auto& GetInitialState()        const { return mInitialState; }
-		inline const auto& GetExpectedState()       const { return mExpectedState; }
+		inline const auto& GetAlignment()              const { return mAlignment; }
+		inline const auto& GetSizeInBytes()            const { return mSizeInBytes; }
+		inline const auto& GetResourceDescVariant()    const { return mResourceDescVariant; }
+		inline const auto& GetTextureDesc()            const { return std::get<TextureDesc>(mResourceDescVariant); }
+		inline const auto& GetBufferDesc()             const { return std::get<BufferDesc>(mResourceDescVariant); }
+		inline const auto& GetInitialState()           const { return mInitialState; }
+		inline const auto& GetExpectedState()          const { return mExpectedState; }
+
+		/*
+		* Get ClearColor
+		*/
+		inline const auto& GetColorClearValue()        const { return std::get<GHL::ColorClearValue>(GetTextureDesc().clearVaule); }
+		inline const auto& GetDepthStencilClearValue() const { return std::get<GHL::DepthStencilClearValue>(GetTextureDesc().clearVaule); }
 
 		uint32_t SubresourceCount() const;
 

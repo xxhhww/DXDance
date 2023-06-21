@@ -26,6 +26,7 @@
 #include "Renderer/GBufferPass.h"
 #include "Renderer/TerrainPass.h"
 #include "Renderer/RngSeedGenerationPass.h"
+#include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
 #include "Renderer/FinalBarrierPass.h"
 
@@ -124,6 +125,7 @@ namespace Renderer {
 		GBufferPass mGBufferPass;
 		TerrainPass mTerrainPass;
 		RngSeedGenerationPass mRngSeedGenerationPass;
+		SkyGenerationPass mSkyGenerationPass;
 		DeferredLightPass mDeferredLightPass;
 		FinalBarrierPass mFinalBarrierPass;
 

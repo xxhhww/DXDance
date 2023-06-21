@@ -29,7 +29,7 @@ namespace Renderer {
 					});
 				*/
 			},
-			[=](CommandBuffer& commandList, RenderContext& context) {
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				// Do nothing
 				/*
 				auto* streamTexture = context.streamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");

@@ -25,9 +25,10 @@ struct v2p {
 };
 
 struct p2o {
-	float4 albedoMetalness  : SV_Target0;
-    float4 positionEmission : SV_Target1;	// world space position
-    float4 normalRoughness  : SV_Target2;	// world space normal
+	float4 albedoMetalness  : SV_TARGET0;
+    float4 positionEmission : SV_TARGET1;	// world space position
+    float4 normalRoughness  : SV_TARGET2;	// world space normal
+	float  viewDepth        : SV_TARGET3;
 };
 
 v2p VSMain(a2v input) {
@@ -46,6 +47,7 @@ p2o PSMain(v2p input) {
 	output.albedoMetalness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	output.positionEmission = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	output.normalRoughness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	output.viewDepth = 5000.0f;
 
 	return output;
 }

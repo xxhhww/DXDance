@@ -50,5 +50,7 @@
     <FxCompile Include="Shaders\Engine\RngSeedGenerationPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\MathCommon.hlsl" />
+    <FxCompile Include="Shaders\Engine\SkyGenerationPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\Utils.hlsl" />
   </ItemGroup>
 </Project>

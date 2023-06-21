@@ -44,10 +44,18 @@ namespace Renderer {
 				NewTextureProperties _GBufferViewDepthProperties{};
 				_GBufferViewDepthProperties.width = finalOutputDesc.width;
 				_GBufferViewDepthProperties.height = finalOutputDesc.height;
-				_GBufferViewDepthProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				_GBufferViewDepthProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				_GBufferViewDepthProperties.format = DXGI_FORMAT_R32_FLOAT;
+				_GBufferViewDepthProperties.clearValue = GHL::ColorClearValue{ std::numeric_limits<float>::max() };
 				builder.DeclareTexture("GBufferViewDepth", _GBufferViewDepthProperties);
-				builder.WriteDepthStencil("GBufferViewDepth");
+				builder.WriteRenderTarget("GBufferViewDepth");
+
+				NewTextureProperties _GBufferDepthStencilProperties{};
+				_GBufferDepthStencilProperties.width = finalOutputDesc.width;
+				_GBufferDepthStencilProperties.height = finalOutputDesc.height;
+				_GBufferDepthStencilProperties.format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				_GBufferDepthStencilProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				builder.DeclareTexture("GBufferDepthStencil", _GBufferDepthStencilProperties);
+				builder.WriteDepthStencil("GBufferDepthStencil");
 
 				shaderManger.CreateGraphicsShader("GBufferPass",
 					[](GraphicsStateProxy& proxy) {
@@ -59,6 +67,7 @@ namespace Renderer {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R32_FLOAT
 						};
 					});
 			},
@@ -71,11 +80,13 @@ namespace Renderer {
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 
 				commandBuffer.ClearRenderTarget(gBufferAlbedoMetalness);
 				commandBuffer.ClearRenderTarget(gBufferPositionEmission);
 				commandBuffer.ClearRenderTarget(gBufferNormalRoughness);
-				commandBuffer.ClearDepth(gBufferViewDepth, 1.0f);
+				commandBuffer.ClearRenderTarget(gBufferViewDepth);
+				commandBuffer.ClearDepth(gBufferDepthStencil, 1.0f);
 			});
 	}
 

@@ -19,10 +19,12 @@ namespace Renderer {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				builder.ReadTexture("RngSeedMap", ShaderAccessFlag::NonPixelShader);
+				// builder.ReadTexture("BlueNoise3DMap", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("SkyLuminance", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferAlbedoMetalness", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferPositionEmission", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferNormalRoughness", ShaderAccessFlag::NonPixelShader);
-				builder.ReadDepthStencil("GBufferViewDepth");
+				builder.ReadTexture("GBufferViewDepth", ShaderAccessFlag::NonPixelShader);
 				builder.WriteTexture("FinalOutput");
 
 				NewTextureProperties _DeferredLightingRayPDFsProperties;
@@ -51,25 +53,29 @@ namespace Renderer {
 
 				auto* rngSeedMap              = resourceStorage->GetResourceByName("RngSeedMap")->GetTexture();
 				auto* blueNoise3DMap          = resourceStorage->GetResourceByName("BlueNoise3DMap")->GetTexture();
+				auto* skyLuminance            = resourceStorage->GetResourceByName("SkyLuminance")->GetTexture();
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* finalOutput             = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
+				auto& finalOutputDesc = finalOutput->GetResourceFormat().GetTextureDesc();
 
 				deferredLightPassData.halton                           = Math::Halton::Sequence(0, 3).data();
 				deferredLightPassData.rngSeedMapIndex                  = rngSeedMap->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.blueNoise3DMapIndex              = blueNoise3DMap->GetSRDescriptor()->GetHeapIndex();
+				deferredLightPassData.skyLuminanceMapIndex             = skyLuminance->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferAlbedoMetalnessMapIndex   = gBufferAlbedoMetalness->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferPositionEmissionMapIndex  = gBufferPositionEmission->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferNormalRoughnessMapIndex   = gBufferNormalRoughness->GetSRDescriptor()->GetHeapIndex();
-				deferredLightPassData.gBufferViewDepthMapIndex         = gBufferViewDepth->GetDSDescriptor()->GetHeapIndex();
+				deferredLightPassData.gBufferViewDepthMapIndex         = gBufferViewDepth->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.finalOutputMapIndex              = finalOutput->GetUADescriptor()->GetHeapIndex();
+				deferredLightPassData.finalOutputMapSizeX              = finalOutputDesc.width;
+				deferredLightPassData.finalOutputMapSizeY              = finalOutputDesc.height;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(DeferredLightPassData));
 				memcpy(passDataAlloc.cpuAddress, &deferredLightPassData, sizeof(DeferredLightPassData));
 
-				auto& finalOutputDesc = finalOutput->GetResourceFormat().GetTextureDesc();
 				uint32_t threadGroupCountX = (finalOutputDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 				uint32_t threadGroupCountY = (finalOutputDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 

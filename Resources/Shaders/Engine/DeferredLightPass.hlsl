@@ -5,19 +5,36 @@ struct PassData {
 	float4 halton;
 	uint rngSeedMapIndex;
 	uint blueNoise3DMapIndex;
+	uint skyLuminanceMapIndex;
 	uint gBufferAlbedoMetalnessMapIndex;
 	uint gBufferPositionEmissionMapIndex;
 	uint gBufferNormalRoughnessMapIndex;
 	uint gBufferViewDepthMapIndex;
 	uint finalOutputMapIndex;
+	uint2 finalOutputMapSize;
 	float pad1;
+	float pad2;
 };
 
 #define PassDataType PassData
 
 #include "Base/MainEntryPoint.hlsl"
 #include "Base/ShadingCommon.hlsl"
+#include "Base/Utils.hlsl"
 #include "Math/Matrix.hlsl"
+
+ShadingResult GetSkyShadingResult(float2 pixelUV) {
+	Texture2D<float4> skyLuminanceMap = ResourceDescriptorHeap[PassDataCB.skyLuminanceMapIndex];
+
+    float3 pointInfronOfCamera = NDCDepthToWorldPosition(1.0, pixelUV, FrameDataCB.CurrentEditorCamera);
+    float3 worldViewDirection = normalize(pointInfronOfCamera - FrameDataCB.CurrentEditorCamera.Position.xyz);
+    float2 skyUV = (OctEncode(worldViewDirection) + 1.0) * 0.5;
+    float3 luminance = skyLuminanceMap.SampleLevel(SamplerLinearClamp, skyUV, 0).rgb;
+
+    ShadingResult result = ZeroShadingResult();
+    result.analyticUnshadowedOutgoingLuminance = luminance;
+    return result;
+}
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
@@ -29,24 +46,33 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	Texture2D<float4> gBufferViewDepthMap        = ResourceDescriptorHeap[PassDataCB.gBufferViewDepthMapIndex];
 	RWTexture2D<float4> finalOutputMap           = ResourceDescriptorHeap[PassDataCB.finalOutputMapIndex];
 
-	uint2 coord = dispatchThreadID.xy;
+	uint2 pixelIndex = dispatchThreadID.xy;
+	uint2 pixelUV = TexelIndexToUV(pixelIndex, PassDataCB.finalOutputMapSize);
 	
 	GBufferSurface gBufferSurface;
-	gBufferSurface.albedo    = gBufferAlbedoMetalnessMap[coord].xyz;
-	gBufferSurface.position  = gBufferPositionEmissionMap[coord].xyz;
-	gBufferSurface.normal    = gBufferNormalRoughnessMap[coord].xyz;
-	gBufferSurface.roughness = gBufferNormalRoughnessMap[coord].w;
-	gBufferSurface.metalness = gBufferAlbedoMetalnessMap[coord].w;
+	gBufferSurface.albedo    = gBufferAlbedoMetalnessMap[pixelIndex].xyz;
+	gBufferSurface.position  = gBufferPositionEmissionMap[pixelIndex].xyz;
+	gBufferSurface.normal    = gBufferNormalRoughnessMap[pixelIndex].xyz;
+	gBufferSurface.roughness = gBufferNormalRoughnessMap[pixelIndex].w;
+	gBufferSurface.metalness = gBufferAlbedoMetalnessMap[pixelIndex].w;
+	float viewDepth = gBufferViewDepthMap[pixelIndex].x;
 
-	bool emission = gBufferPositionEmissionMap[coord].w;
+	ShadingResult shadingResult = ZeroShadingResult();
+
+	// Sky Detection
+	if (viewDepth >= FrameDataCB.CurrentEditorCamera.FarPlane) {
+        shadingResult = GetSkyShadingResult(pixelUV);
+		finalOutputMap[pixelIndex] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
+        return;
+    }
+
+	bool emission = gBufferPositionEmissionMap[pixelIndex].w;
 
 	RandomSequences randomSequences;
-    randomSequences.blueNoise = blueNoise3DMap[rngSeedMap[coord].xyz];
+    randomSequences.blueNoise = blueNoise3DMap[rngSeedMap[pixelIndex].xyz];
     randomSequences.halton    = PassDataCB.halton;
 	
 	float3 viewDirection = normalize(FrameDataCB.CurrentEditorCamera.Position.xyz - gBufferSurface.position.xyz);
-
-	ShadingResult shadingResult = ZeroShadingResult();
 
 	for(uint i = 0u; i < FrameDataCB.lightSize; i++) {
 		Light light = LightDataSB[i];
@@ -57,8 +83,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 		}
 	}
 
-
-	finalOutputMap[coord] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
+	finalOutputMap[pixelIndex] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
 }
 
 #endif

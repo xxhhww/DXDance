@@ -57,7 +57,7 @@ namespace Renderer {
 
 		void SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture);
 
-		void ClearRenderTarget(Texture* rtTexture, float* color = nullptr, std::optional<GHL::Rect> rect = std::nullopt);
+		void ClearRenderTarget(Texture* rtTexture, std::optional<Math::Vector4> optClearColor = std::nullopt, std::optional<GHL::Rect> optRect = std::nullopt);
 
 		void ClearDepth(Texture* dsTexture, float clearDepth, std::optional<GHL::Rect> rect = std::nullopt);
 

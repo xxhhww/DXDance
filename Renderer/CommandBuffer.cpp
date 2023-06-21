@@ -110,15 +110,21 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->OMSetRenderTargets(numRTVs, rtHandles.data(), false, &dsHandle);
 	}
 
-	void CommandBuffer::ClearRenderTarget(Texture* rtTexture, float* clearColor, std::optional<GHL::Rect> rect) {
+	void CommandBuffer::ClearRenderTarget(Texture* rtTexture, std::optional<Math::Vector4> optClearColor, std::optional<GHL::Rect> optRect) {
 		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
-		float defaultClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		if (rect != std::nullopt) {
-			auto d3dObject = rect->D3DRect();
-			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, (clearColor == nullptr) ? defaultClearColor : clearColor, 1u, &d3dObject);
+		Math::Vector4 clearColor = (optClearColor == std::nullopt) ?
+			rtTexture->GetResourceFormat().GetColorClearValue() : (*optClearColor);
+
+		float realClearColor[4] = {
+			clearColor.x, clearColor.y, clearColor.z, clearColor.w 
+		};
+
+		if (optRect != std::nullopt) {
+			auto d3dObject = optRect->D3DRect();
+			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, realClearColor, 1u, &d3dObject);
 		}
 		else {
-			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, (clearColor == nullptr) ? defaultClearColor : clearColor, 0u, nullptr);
+			mCommandList->D3DCommandList()->ClearRenderTargetView(rtHandle, realClearColor, 0u, nullptr);
 		}
 	}
 

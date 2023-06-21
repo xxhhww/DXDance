@@ -1,6 +1,7 @@
 #pragma once
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
+#include <array>
 
 namespace Renderer {
 
@@ -39,5 +40,10 @@ namespace Renderer {
         Math::Vector4 position;
         Math::Vector3 color;
         uint32_t type;
+    };
+
+    struct GPUArHosekSkyModelState {
+        std::array<std::array<float, 12>, 3> configs;
+        Math::Vector4 radiances;
     };
 }

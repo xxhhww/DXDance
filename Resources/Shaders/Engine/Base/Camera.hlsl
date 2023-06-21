@@ -32,4 +32,33 @@ struct Camera {
     float4 Planes[6];
 };
 
+float3 NDCDepthToViewPosition(
+    float hyperbolicDepth, // Depth value after viewport transformation in [0; 1] range
+    float2 ssuv, // Normalized screen-space (texture) coordinates [0; 1]
+    Camera camera) {
+    // Have to invert Y due to DirectX convention for [0, 0] to be at the TOP left
+    float2 uv = float2(ssuv.x, 1.0 - ssuv.y);
+
+    float z = hyperbolicDepth;
+    float2 xy = uv * 2.0 - 1.0;
+
+    float4 ndcPosition = float4(xy, z, 1.0);
+    float4 viewSpacePosition = mul(ndcPosition, camera.InverseProjection);
+
+    // Perspective division
+    viewSpacePosition /= viewSpacePosition.w;
+
+    return viewSpacePosition.xyz;
+}
+
+float3 NDCDepthToWorldPosition(
+    float hyperbolicDepth, // Depth value after viewport transformation in [0; 1] range
+    float2 ssuv, // Normalized screen-space (texture) coordinates [0; 1]
+    Camera camera) {
+    float4 viewSpacePosition = float4(NDCDepthToViewPosition(hyperbolicDepth, ssuv, camera), 1.0);
+    float4 worldSpacePosition = mul(viewSpacePosition, camera.InverseView);
+
+    return worldSpacePosition.xyz;
+}
+
 #endif

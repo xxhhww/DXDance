@@ -84,7 +84,7 @@ namespace GHL {
 	bool IsWriteResourceState(EResourceState state);
 
 	enum class EGPUQueue : uint8_t {
-		Graphics = 0,
+		Graphics = 0,	// Graphics也能使用计算管线
 		Compute = 1,
 		Copy = 2,
 		Count = 3

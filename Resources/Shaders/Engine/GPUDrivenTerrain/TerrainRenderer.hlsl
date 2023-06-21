@@ -28,15 +28,17 @@ struct a2v {
 struct v2p {
 	float4 csPos : SV_POSITION;
 	float3 wsPos : POSITION1;
+	float3 vsPos : POSITION2;
 	float2 uv : TEXCOORD;
-	float2 position : POSITION2;
+	float2 position : POSITION3;
 	uint lod : LOD;
 };
 
 struct p2o {
-	float4 albedoMetalness  : SV_Target0;
-    float4 positionEmission : SV_Target1;	// world space position
-    float4 normalRoughness  : SV_Target2;	// world space normal
+	float4 albedoMetalness  : SV_TARGET0;
+    float4 positionEmission : SV_TARGET1;	// world space position
+    float4 normalRoughness  : SV_TARGET2;	// world space normal
+	float  viewDepth        : SV_TARGET3;
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
@@ -56,9 +58,9 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	float height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
 	input.lsPos.y = height * PassDataCB.heightScale;
 
-	output.csPos = float4(input.lsPos, 1.0f);
-	output.csPos = mul(output.csPos, FrameDataCB.CurrentEditorCamera.ViewProjection);
 	output.wsPos = input.lsPos;
+	output.vsPos = mul(float4(input.lsPos, 1.0f), FrameDataCB.CurrentEditorCamera.View).xyz;
+	output.csPos = mul(float4(input.lsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjection);
 	output.uv = heightUV;
 	output.position = patch.position;
 	output.lod = lod;
@@ -104,6 +106,7 @@ p2o PSMain(v2p input) {
 	output.albedoMetalness  = float4(0.5f, 0.5f, 0.5f, 0.0f);
 	output.positionEmission = float4(input.wsPos, 1.0f);
 	output.normalRoughness  = float4(SampleNormal(input.uv), 1.0f);
+	output.viewDepth        = input.vsPos.z;
 
 	if(PassDataCB.lodDebug) {
 		output.albedoMetalness.xyz = output.albedoMetalness.xyz * 0.7f + lodDebugColor * 0.3f;

@@ -213,6 +213,7 @@ namespace Renderer {
 			mGBufferPass.AddPass(*mRenderGraph);
 			mTerrainPass.AddPass(*mRenderGraph);
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
+			mSkyGenerationPass.AddPass(*mRenderGraph);
 			mDeferredLightPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 
@@ -239,6 +240,9 @@ namespace Renderer {
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix.Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix.Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.viewProjection = (editorCamera.viewMatrix * editorCamera.projMatrix).Transpose();
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseView = editorCamera.viewMatrix.Inverse().Transpose();
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseProjection = editorCamera.projMatrix.Inverse().Transpose();
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.farPlane = editorCamera.frustum.farZ;
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
@@ -246,6 +250,9 @@ namespace Renderer {
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.farPlane = camera.frustum.farZ;
 				Math::Frustum::BuildFrustumPlanes(
 					camera.viewMatrix * camera.projMatrix,
 					mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.planes
@@ -260,9 +267,8 @@ namespace Renderer {
 	void RenderEngine::UpdateSky() {
 		ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Sky& sky) {
 
-			Math::Vector3 sunDirection = Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(transform.worldRotation.RotationMatrix());
-			sunDirection.z *= (-1);
-
+			const Math::Vector3 sunDirection = Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(transform.worldRotation.RotationMatrix());
+			
 			// Different sky model states seem to require elevation angles 
 			// in different frames of reference, which is really confusing.
 			float elevationPiOver2AtHorizon = std::acos(sunDirection.y);
@@ -282,7 +288,7 @@ namespace Renderer {
 			// For simplicity, we ignore limb darkening.
 			for (uint64_t i = 0; i < totalSampleCount; ++i) {
 				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(elevationPiOver2AtHorizon, turbidity, sky.groundAlbedoSpectrum[i]);
-				float wavelength = Math::Mix(sky.skySpectrum.LowestWavelength(), sky.skySpectrum.HighestWavelength(), i / float(totalSampleCount));
+				float wavelength = Math::Mix(sky.skySpectrum.LowestWavelength(), sky.skySpectrum.HighestWavelength(), (float)i / float(totalSampleCount));
 				sky.skySpectrum[i] = float(arhosekskymodel_solar_radiance(skyState, theta, gamma, wavelength));
 				arhosekskymodelstate_free(skyState);
 			}
@@ -301,7 +307,7 @@ namespace Renderer {
 
 			// Found it on internet, without it the illuminance is too small.
 			// Account for luminous efficacy, coordinate system scaling (100, wtf???)
-			float multiplier = 1;
+			float multiplier = 1.0f;
 			sky.sunIlluminance = sunIlluminance * multiplier;
 			sky.sunLuminance = sunLuminance * multiplier;
 

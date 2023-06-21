@@ -1,6 +1,11 @@
 #ifndef _MathCommon__
 #define _MathCommon__
 
+// Its definition is: one candela is the luminous intensity, in a given direction, of a source
+// that emits monochromatic radiation at a frequency of 540THz(i.e a wavelength of 555nm) and whose
+// radiant intensity in that direction is 1 / 683 watts per steradian., meaning that Km = 683.
+static const float StandardLuminousEfficacy = 683.0f;
+
 static const float PI = 3.1415926535897932384626433832795;
 
 float  Square(float v)  { return v * v; }
