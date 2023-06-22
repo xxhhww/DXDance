@@ -30,8 +30,8 @@ namespace Renderer {
         Math::Vector4 front;
         // 16 byte boundary
         Math::Vector2 uvJitter;
-        uint32_t pad0;
         uint32_t pad1;
+        uint32_t pad2;
         // 16 byte boundary
         Math::Vector4 planes[6];
     };
@@ -45,5 +45,17 @@ namespace Renderer {
     struct GPUArHosekSkyModelState {
         std::array<std::array<float, 12>, 3> configs;
         Math::Vector4 radiances;
+    };
+
+    struct GPUGTTonemappingParameters {
+        float maximumLuminance = 270.0; // Your typical SDR monitor max luminance
+        float contrast = 1.0;
+        float linearSectionStart = 0.22;
+        float linearSectionLength = 0.4;
+        // 16 byte boundary
+        float blackTightness = 1.33;
+        float minimumBrightness = 0.0;
+        float pad1;
+        float pad2;
     };
 }

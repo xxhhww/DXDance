@@ -219,6 +219,9 @@
     <ClInclude Include="SkyGenerationPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="ToneMappingPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -360,6 +363,9 @@
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="SkyGenerationPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="ToneMappingPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

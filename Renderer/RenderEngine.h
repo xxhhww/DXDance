@@ -3,6 +3,7 @@
 #include "GHL/Device.h"
 #include "GHL/Adapter.h"
 #include "GHL/AdapterContainer.h"
+#include "GHL/Display.h"
 #include "GHL/CommandQueue.h"
 
 #include "ECS/CCamera.h"
@@ -28,6 +29,7 @@
 #include "Renderer/RngSeedGenerationPass.h"
 #include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
+#include "Renderer/ToneMappingPass.h"
 #include "Renderer/FinalBarrierPass.h"
 
 #include "Renderer/Mesh.h"
@@ -86,7 +88,7 @@ namespace Renderer {
 		// ==========================...GPU设备...==========================
 		std::unique_ptr<GHL::AdapterContainer> mAdapterContainer; // 适配器容器
 		const GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
-
+		const GHL::Display* mSelectedDisplay; // 显示器
 		std::unique_ptr<GHL::Device> mDevice;
 
 		// ==========================...UploadEngine...==========================
@@ -122,12 +124,13 @@ namespace Renderer {
 		std::unique_ptr<RenderGraph> mRenderGraph;
 
 		// ==========================...RenderPasses...==========================
-		GBufferPass mGBufferPass;
-		TerrainPass mTerrainPass;
-		RngSeedGenerationPass mRngSeedGenerationPass;
-		SkyGenerationPass mSkyGenerationPass;
-		DeferredLightPass mDeferredLightPass;
-		FinalBarrierPass mFinalBarrierPass;
+		GBufferPass				mGBufferPass;
+		TerrainPass				mTerrainPass;
+		RngSeedGenerationPass	mRngSeedGenerationPass;
+		SkyGenerationPass		mSkyGenerationPass;
+		DeferredLightPass		mDeferredLightPass;
+		ToneMappingPass			mToneMappingPass;
+		FinalBarrierPass		mFinalBarrierPass;
 
 		// ==========================...PipelineResources...==========================
 		std::unique_ptr<Texture> mFinalOutput;

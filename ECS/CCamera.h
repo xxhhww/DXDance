@@ -13,6 +13,11 @@ namespace ECS {
 
 	class Camera : public ECS::IComponent {
 	public:
+		using FStop = float;
+		using ISO = float;
+		using EV = float;
+
+	public:
 		// 摄像机空间的基向量
 		Math::Vector3 lookUp;
 		Math::Vector3 right;
@@ -39,6 +44,27 @@ namespace ECS {
 		Math::Matrix4 viewMatrix;	// 视图变换矩阵
 		Math::Matrix4 projMatrix;	// 投影变换矩阵
 
+		/// Relative aperture. Controls how wide the aperture is opened. Impacts the depth of field.
+		FStop mLenseAperture;
+
+		/// Sensor sensitivity/gain. Controls how photons are counted / quantized on the digital sensor.
+		ISO mFilmSpeed;
+
+		/// Controls how long the aperture is opened. Impacts the motion blur.
+		float mShutterTime;
+
+	public:
+		inline EV GetExposureValue100() const {
+			// EV number is defined as:
+			// 2^ EV_s = N^2 / t and EV_s = EV_100 + log2 (S /100)
+			// This gives
+			// EV_s = log2 (N^2 / t)
+			// EV_100 + log2 (S /100) = log2 (N^2 / t)
+			// EV_100 = log2 (N^2 / t) - log2 (S /100)
+			// EV_100 = log2 (N^2 / t . 100 / S)
+			return std::log2((mLenseAperture * mLenseAperture) / mShutterTime * 100.0 / mFilmSpeed);
+		}
+
 	public:
 		Camera()
 		: lookUp(0.0f, 0.0f, 1.0f)
@@ -52,10 +78,14 @@ namespace ECS {
 			frustum.nearZ = 1.0f;
 			frustum.farZ = 1000.0f;
 			frustum.aspect = 1920.0f / 1080.0f;
-			frustum.fovY = 0.25f * DirectX::XM_PI;
+			frustum.fovY = 0.5f * DirectX::XM_PI;
 
 			viewMatrix = Math::Matrix4();
 			projMatrix = Math::Matrix4();
+
+			mLenseAperture = 1.6f;
+			mFilmSpeed = 100.0f;
+			mShutterTime = 1.0f / 125.0f;
 		}
 
 

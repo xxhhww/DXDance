@@ -11,6 +11,7 @@
 #include "Renderer/RingFrameTracker.h"
 
 #include "GHL/CommandQueue.h"
+#include "GHL/Display.h"
 
 #include "Tools/Assert.h"
 #include "Tools/TaskProxy.h"
@@ -18,6 +19,7 @@
 namespace Renderer {
 
 	RenderGraph::RenderGraph(
+		const GHL::Display* display,
 		const GHL::Device* device, 
 		RingFrameTracker* frameTracker, 
 		PoolDescriptorAllocator* descriptorAllocator, 
@@ -30,7 +32,9 @@ namespace Renderer {
 		CommandSignatureManger* commandSignatureManger,
 		LinearBufferAllocator* dynamicAllocator,
 		StreamTextureManger* streamTextureManger)
-	: mFrameTracker(frameTracker) 
+	: mDisplay(display)
+	, mDevice(device)
+	, mFrameTracker(frameTracker) 
 	, mDescriptorAllocator(descriptorAllocator)
 	, mCommandListAllocator(commandListAllocator)
 	, mResourceStorage(std::make_unique<RenderGraphResourceStorage>(device, descriptorAllocator)) 
@@ -81,7 +85,9 @@ namespace Renderer {
 
 	void RenderGraph::Execute() {
 
-		RenderContext renderContext{ 
+		RenderContext renderContext{
+			mDisplay,
+			mDevice,
 			mShaderManger, 
 			mCommandSignatureManger, 
 			mDynamicAllocator, 

@@ -52,5 +52,9 @@
     <FxCompile Include="Shaders\Engine\Math\MathCommon.hlsl" />
     <FxCompile Include="Shaders\Engine\SkyGenerationPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Utils.hlsl" />
+    <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\ColorSpaceHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\Exposure.hlsl" />
   </ItemGroup>
 </Project>

@@ -45,9 +45,11 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	Texture2D<float4> gBufferNormalRoughnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferNormalRoughnessMapIndex];
 	Texture2D<float4> gBufferViewDepthMap        = ResourceDescriptorHeap[PassDataCB.gBufferViewDepthMapIndex];
 	RWTexture2D<float4> finalOutputMap           = ResourceDescriptorHeap[PassDataCB.finalOutputMapIndex];
+	Texture2D<float4> skyLuminanceMap = ResourceDescriptorHeap[PassDataCB.skyLuminanceMapIndex];
+
 
 	uint2 pixelIndex = dispatchThreadID.xy;
-	uint2 pixelUV = TexelIndexToUV(pixelIndex, PassDataCB.finalOutputMapSize);
+	float2 pixelUV = TexelIndexToUV(pixelIndex, PassDataCB.finalOutputMapSize);
 	
 	GBufferSurface gBufferSurface;
 	gBufferSurface.albedo    = gBufferAlbedoMetalnessMap[pixelIndex].xyz;
@@ -61,8 +63,16 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
 	// Sky Detection
 	if (viewDepth >= FrameDataCB.CurrentEditorCamera.FarPlane) {
-        shadingResult = GetSkyShadingResult(pixelUV);
-		finalOutputMap[pixelIndex] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
+        // shadingResult = GetSkyShadingResult(pixelUV);
+		float3 pointInfronOfCamera = NDCDepthToWorldPosition(1.0, pixelUV, FrameDataCB.CurrentEditorCamera);
+		float3 worldViewDirection = normalize(pointInfronOfCamera - FrameDataCB.CurrentEditorCamera.Position.xyz);
+		float2 skyUV = (OctEncode(worldViewDirection) + 1.0) * 0.5;
+		float3 luminance = skyLuminanceMap.SampleLevel(SamplerLinearClamp, skyUV, 0).rgb;
+
+		ShadingResult result = ZeroShadingResult();
+		result.analyticUnshadowedOutgoingLuminance = luminance;
+
+		finalOutputMap[pixelIndex] = float4(result.analyticUnshadowedOutgoingLuminance, 1.0f);
         return;
     }
 

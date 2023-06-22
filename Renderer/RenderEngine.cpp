@@ -18,6 +18,7 @@ namespace Renderer {
 		, mBackBufferStrategy((GHL::BackBufferStrategy)numBackBuffers)
 		, mAdapterContainer(std::make_unique<GHL::AdapterContainer>())
 		, mSelectedAdapter(mAdapterContainer->GetHighPerformanceAdapter())
+		, mSelectedDisplay(&mSelectedAdapter->GetDisplay())
 		, mDevice(std::make_unique<GHL::Device>(*mSelectedAdapter, false))
 		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get()))
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
@@ -43,6 +44,7 @@ namespace Renderer {
 			mUploaderEngine->GetFileCopyQueue(),
 			mUploaderEngine->GetMemoryCopyQueue()))
 		, mRenderGraph(std::make_unique<RenderGraph>(
+			mSelectedDisplay,
 			mDevice.get(),
 			mFrameTracker.get(),
 			mDescriptorAllocator.get(),
@@ -215,6 +217,7 @@ namespace Renderer {
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mSkyGenerationPass.AddPass(*mRenderGraph);
 			mDeferredLightPass.AddPass(*mRenderGraph);
+			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 
 			mRenderGraph->Build();
@@ -243,6 +246,7 @@ namespace Renderer {
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseView = editorCamera.viewMatrix.Inverse().Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseProjection = editorCamera.projMatrix.Inverse().Transpose();
 		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.farPlane = editorCamera.frustum.farZ;
+		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.exposureValue100 = editorCamera.GetExposureValue100();
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
@@ -250,9 +254,10 @@ namespace Renderer {
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
 				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.farPlane = camera.frustum.farZ;
+				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.exposureValue100 = camera.GetExposureValue100();
 				Math::Frustum::BuildFrustumPlanes(
 					camera.viewMatrix * camera.projMatrix,
 					mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.planes
@@ -357,6 +362,8 @@ namespace Renderer {
 		mRenderGraph->Execute();
 
 		RenderContext renderContext{
+			mSelectedDisplay,
+			mDevice.get(),
 			mShaderManger.get(),
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
@@ -442,6 +449,8 @@ namespace Renderer {
 		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
 
 		RenderContext renderContext{
+			mSelectedDisplay,
+			mDevice.get(),
 			mShaderManger.get(),
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),

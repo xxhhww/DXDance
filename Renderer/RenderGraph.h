@@ -20,6 +20,7 @@ namespace GHL {
 	class GraphicsQueue;
 	class ComputeQueue;
 	class CopyQueue;
+	class Display;
 }
 
 namespace Renderer {
@@ -36,6 +37,8 @@ namespace Renderer {
 	struct RenderContext {
 	public:
 		RenderContext(
+			const GHL::Display* _display,
+			const GHL::Device* _device,
 			ShaderManger* _shaderManger, 
 			CommandSignatureManger* _commandSignatureManger,
 			LinearBufferAllocator* _dynamicAllocator, 
@@ -43,13 +46,18 @@ namespace Renderer {
 			ResourceStateTracker* _resourceStateTracker,
 			StreamTextureManger* _streamTextureManger,
 			RingFrameTracker* _ringFrameTracker)
-		: shaderManger(_shaderManger)
+		: display(_display)
+		, device(_device)
+		, shaderManger(_shaderManger)
 		, commandSignatureManger(_commandSignatureManger)
 		, dynamicAllocator(_dynamicAllocator)
 		, resourceStorage(_resourceStorage)
 		, resourceStateTracker(_resourceStateTracker)
 		, streamTextureManger(_streamTextureManger) 
 		, frameTracker(_ringFrameTracker) {}
+
+		const GHL::Display* display{ nullptr };
+		const GHL::Device*  device{ nullptr };
 
 		ShaderManger* shaderManger{ nullptr };
 		CommandSignatureManger* commandSignatureManger{ nullptr };
@@ -63,6 +71,7 @@ namespace Renderer {
 	class RenderGraph {
 	public:
 		RenderGraph(
+			const GHL::Display* display, // For Tone Mapping Pass
 			const GHL::Device* device,
 			RingFrameTracker* frameTracker,
 			PoolDescriptorAllocator* descriptorAllocator,
@@ -153,6 +162,9 @@ namespace Renderer {
 		void BuildAliasingBarrier();
 
 	private:
+		const GHL::Display* mDisplay{ nullptr }; // For Tone Mapping
+		const GHL::Device*  mDevice{ nullptr };
+
 		RingFrameTracker* mFrameTracker{ nullptr };
 		PoolDescriptorAllocator*  mDescriptorAllocator{ nullptr };
 		PoolCommandListAllocator* mCommandListAllocator{ nullptr };

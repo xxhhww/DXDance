@@ -25,8 +25,15 @@ namespace Renderer {
 				builder.ReadTexture("GBufferPositionEmission", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferNormalRoughness", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferViewDepth", ShaderAccessFlag::NonPixelShader);
-				builder.WriteTexture("FinalOutput");
 
+				NewTextureProperties _DeferredLightShadingOutProperties{};
+				_DeferredLightShadingOutProperties.width = finalOutputDesc.width;
+				_DeferredLightShadingOutProperties.height = finalOutputDesc.height;
+				_DeferredLightShadingOutProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				builder.DeclareTexture("DeferredLightShadingOut", _DeferredLightShadingOutProperties);
+				builder.WriteTexture("DeferredLightShadingOut");
+
+				/*
 				NewTextureProperties _DeferredLightingRayPDFsProperties;
 				_DeferredLightingRayPDFsProperties.width = finalOutputDesc.width;
 				_DeferredLightingRayPDFsProperties.height = finalOutputDesc.height;
@@ -40,6 +47,7 @@ namespace Renderer {
 				_DeferredLightingRayLightIntersectionPointsProperties.format = DXGI_FORMAT_R32G32B32A32_UINT;
 				builder.DeclareTexture("DeferredLightingRayLightIntersectionPoints", _DeferredLightingRayLightIntersectionPointsProperties);
 				builder.WriteTexture("DeferredLightingRayLightIntersectionPoints");
+				*/
 
 				shaderManger.CreateComputeShader("DeferredLightPass",
 					[](ComputeStateProxy& proxy) {
@@ -58,8 +66,8 @@ namespace Renderer {
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
-				auto* finalOutput             = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
-				auto& finalOutputDesc = finalOutput->GetResourceFormat().GetTextureDesc();
+				auto* deferredLightshadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
+				auto& deferredLightshadingOutDesc = deferredLightshadingOut->GetResourceFormat().GetTextureDesc();
 
 				deferredLightPassData.halton                           = Math::Halton::Sequence(0, 3).data();
 				deferredLightPassData.rngSeedMapIndex                  = rngSeedMap->GetSRDescriptor()->GetHeapIndex();
@@ -69,15 +77,15 @@ namespace Renderer {
 				deferredLightPassData.gBufferPositionEmissionMapIndex  = gBufferPositionEmission->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferNormalRoughnessMapIndex   = gBufferNormalRoughness->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferViewDepthMapIndex         = gBufferViewDepth->GetSRDescriptor()->GetHeapIndex();
-				deferredLightPassData.finalOutputMapIndex              = finalOutput->GetUADescriptor()->GetHeapIndex();
-				deferredLightPassData.finalOutputMapSizeX              = finalOutputDesc.width;
-				deferredLightPassData.finalOutputMapSizeY              = finalOutputDesc.height;
+				deferredLightPassData.deferredLightshadingOutMapIndex  = deferredLightshadingOut->GetUADescriptor()->GetHeapIndex();
+				deferredLightPassData.deferredLightshadingOutMapSizeX  = deferredLightshadingOutDesc.width;
+				deferredLightPassData.deferredLightshadingOutMapSizeY  = deferredLightshadingOutDesc.height;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(DeferredLightPassData));
 				memcpy(passDataAlloc.cpuAddress, &deferredLightPassData, sizeof(DeferredLightPassData));
 
-				uint32_t threadGroupCountX = (finalOutputDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
-				uint32_t threadGroupCountY = (finalOutputDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountX = (deferredLightshadingOutDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountY = (deferredLightshadingOutDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 
 				commandBuffer.SetComputeRootSignature();
 				commandBuffer.SetComputePipelineState("DeferredLightPass");

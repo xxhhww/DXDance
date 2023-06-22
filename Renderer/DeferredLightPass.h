@@ -14,9 +14,9 @@ namespace Renderer {
 			uint32_t gBufferPositionEmissionMapIndex;
 			uint32_t gBufferNormalRoughnessMapIndex;
 			uint32_t gBufferViewDepthMapIndex;
-			uint32_t finalOutputMapIndex;
-			uint32_t finalOutputMapSizeX;
-			uint32_t finalOutputMapSizeY;
+			uint32_t deferredLightshadingOutMapIndex;
+			uint32_t deferredLightshadingOutMapSizeX;
+			uint32_t deferredLightshadingOutMapSizeY;
 			float pad1;
 			float pad2;
 		};

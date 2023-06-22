@@ -328,7 +328,7 @@ namespace Renderer {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer.hlsl";
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
-						proxy.depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,

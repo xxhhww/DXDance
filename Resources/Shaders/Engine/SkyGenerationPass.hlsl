@@ -56,7 +56,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupThreadID : 
     float b = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateB.configsZ, theta, gamma) * PassDataCB.skyStateB.radiances[2];
 
     float3 rgb = float3(r, g, b);
-    rgb *= StandardLuminousEfficacy;
+    rgb /= 30;
 
     skyLuminanceMap[pixelIndex].rgb = rgb;
 
