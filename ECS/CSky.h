@@ -20,11 +20,11 @@ namespace ECS {
 
 	class Sky : public ECS::IComponent {
 	public:
-		Math::Vector3 groundAlbedo{ 0.5f, 0.5f, 0.5f };
+		// See "SunDirection" In Transform Component "worldRotation"
+		float         turbidity{ 4.0f };
+		Math::Vector3 groundAlbedo{ 0.1f, 0.1f, 0.1f };
 		Math::Vector3 sunIlluminance{ 1.0f, 1.0f, 1.0f };
 		Math::Vector3 sunLuminance{ 1.0f, 1.0f, 1.0f };
-
-		// Math::Vector3 sunDirection{ 0.0, 1.0, 0.0 }; // See In Transform Component "worldRotation"
 
 		Math::SampledSpectrum skySpectrum{ 25u, 400.0f, 700.0f };
 		Math::SampledSpectrum groundAlbedoSpectrum{ 25u, 400.0f, 700.0f };

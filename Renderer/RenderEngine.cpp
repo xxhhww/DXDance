@@ -9,6 +9,7 @@
 
 #include "Math/Frustum.h"
 #include "Math/Common.h"
+#include "Math/HosekWilkieSkyModel.h"
 
 namespace Renderer {
 	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers)
@@ -272,18 +273,18 @@ namespace Renderer {
 	void RenderEngine::UpdateSky() {
 		ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Sky& sky) {
 
-			const Math::Vector3 sunDirection = Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(transform.worldRotation.RotationMatrix());
+			// https://www.gamedev.net/forums/topic/671214-simple-solar-radiance-calculation/
+
+			const Math::Vector3 sunDirection = transform.GetDirection();
 			
-			// Different sky model states seem to require elevation angles 
-			// in different frames of reference, which is really confusing.
-			float elevationPiOver2AtHorizon = std::acos(sunDirection.y);
-			float elevationPiOver2AtZenith = DirectX::XM_PIDIV2 - elevationPiOver2AtHorizon;
-			float turbidity = 1.7f;
+			float thetaS = std::acos(1.0f - sunDirection.y);
+			float elevation = DirectX::XM_PIDIV2 - thetaS;
+			float turbidity = sky.turbidity;
 
 			uint32_t totalSampleCount = sky.skySpectrum.GetSamples().size();
 
 			// Vertical sample angle. For one ray it's just equal to elevation.
-			float theta = elevationPiOver2AtHorizon;
+			float theta = elevation;
 
 			// Angle between the sun direction and sample direction.
 			// Since we have only one sample for simplicity, the angle is 0.
@@ -292,10 +293,11 @@ namespace Renderer {
 			// We compute spectrum for the middle ray at the center of the Sun's disk.
 			// For simplicity, we ignore limb darkening.
 			for (uint64_t i = 0; i < totalSampleCount; ++i) {
-				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(elevationPiOver2AtHorizon, turbidity, sky.groundAlbedoSpectrum[i]);
+				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(elevation, turbidity, sky.groundAlbedoSpectrum[i]);
 				float wavelength = Math::Mix(sky.skySpectrum.LowestWavelength(), sky.skySpectrum.HighestWavelength(), (float)i / float(totalSampleCount));
 				sky.skySpectrum[i] = float(arhosekskymodel_solar_radiance(skyState, theta, gamma, wavelength));
 				arhosekskymodelstate_free(skyState);
+				skyState = nullptr;
 			}
 
 			if (sky.skyModelStateR)
@@ -316,10 +318,10 @@ namespace Renderer {
 			sky.sunIlluminance = sunIlluminance * multiplier;
 			sky.sunLuminance = sunLuminance * multiplier;
 
-			sky.skyModelStateR = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.x, elevationPiOver2AtZenith);
-			sky.skyModelStateG = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.y, elevationPiOver2AtZenith);
-			sky.skyModelStateB = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.z, elevationPiOver2AtZenith);
-		
+			sky.skyModelStateR = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.x, elevation);
+			sky.skyModelStateG = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.y, elevation);
+			sky.skyModelStateB = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.z, elevation);
+			
 			// Sun Light
 			auto& gpuLightData = mPipelineResourceStorage->rootLightDataPerFrame.emplace_back();
 			gpuLightData.position = Math::Vector4{ sunDirection, ECS::SunDiskArea };

@@ -63,6 +63,9 @@
     <ClInclude Include="hosek.h">
       <Filter>头文件\SkyModel</Filter>
     </ClInclude>
+    <ClInclude Include="HosekWilkieSkyModel.h">
+      <Filter>头文件\SkyModel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector.cpp">
@@ -87,6 +90,9 @@
       <Filter>源文件\SkyModel</Filter>
     </ClCompile>
     <ClCompile Include="ArHosekSkyModel.cc">
+      <Filter>源文件\SkyModel</Filter>
+    </ClCompile>
+    <ClCompile Include="HosekWilkieSkyModel.cpp">
       <Filter>源文件\SkyModel</Filter>
     </ClCompile>
   </ItemGroup>

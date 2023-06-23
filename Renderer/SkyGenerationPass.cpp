@@ -60,7 +60,7 @@ namespace Renderer {
 					copyState(skyGenerationPassData.skyStateR, sky.skyModelStateR);
 					copyState(skyGenerationPassData.skyStateG, sky.skyModelStateG);
 					copyState(skyGenerationPassData.skyStateB, sky.skyModelStateB);
-					});
+				});
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(SkyGenerationPass));
 				memcpy(passDataAlloc.cpuAddress, &skyGenerationPassData, sizeof(SkyGenerationPass));

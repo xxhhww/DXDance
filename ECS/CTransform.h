@@ -20,6 +20,12 @@ namespace ECS {
 		, worldRotation(0.0f, 0.0f, 0.0f)
 		, worldScaling(1.0f, 1.0f, 1.0f) {}
 
+		inline Math::Vector3 GetDirection() const {
+			// XMMatrixRotationRollPitchYaw的旋转方向是从该坐标轴的正方向看过去时的顺时针方向
+			// 因此使用{ 0.0f, 0.0f, -1.0f }而不是{ 0.0f, 0.0f, 1.0f }
+			return Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(worldRotation.RotationMatrix());
+		}
+
 	public:
 		void SerializeJson(Tool::JsonWriter& writer) const override {
 			using namespace Tool;

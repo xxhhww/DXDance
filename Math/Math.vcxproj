@@ -139,6 +139,7 @@
     <ClInclude Include="Halton.h" />
     <ClInclude Include="Helper.h" />
     <ClInclude Include="hosek.h" />
+    <ClInclude Include="HosekWilkieSkyModel.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Spectrum.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Halton.cpp" />
     <ClCompile Include="hosek.cc" />
+    <ClCompile Include="HosekWilkieSkyModel.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Spectrum.cpp" />
