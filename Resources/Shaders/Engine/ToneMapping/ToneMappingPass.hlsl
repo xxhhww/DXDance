@@ -3,7 +3,7 @@
 
 #include "ToneMappingHelper.hlsl"
 #include "../Base/Exposure.hlsl"
-#include "../Base/ColorSpaceHelper.hlsl"
+#include "../Base/ColorSpaceConversion.hlsl"
 
 struct PassData {
     uint  inputMapIndex;

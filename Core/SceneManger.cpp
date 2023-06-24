@@ -6,6 +6,7 @@
 #include "ECS/CCamera.h"
 #include "ECS/CTransform.h"
 #include "ECS/CMeshRenderer.h"
+#include "ECS/CSky.h"
 
 #include "Tools/StrUtil.h"
 #include "Tools/Assert.h"
@@ -41,13 +42,26 @@ namespace Core {
 			UnLoadCurrentScene();
 		}
 		mCurrScene = new Scene(this, Tool::UIDGenerator::Get());
-		mCurrScene->editorTransform.worldPosition = Math::Vector3{ 0.0f, 0.0f, -3.0f };
+		mCurrScene->editorTransform.worldPosition = Math::Vector3{ 0.0f, 1000.0f, 0.0f };
+		mCurrScene->editorCamera.frustum.farZ = 5000.0f;
+		// mCurrScene->editorCamera.translationSpeed *= 10.0f;
 
-		Actor* mainCamera = mCurrScene->CreateActor("MainCamera");
-		auto& cTransform = mainCamera->GetComponent<ECS::Transform>();
-		auto& cCamera = mainCamera->AddComponent<ECS::Camera>();
-		cCamera.cameraType = ECS::CameraType::RenderCamera;
-		cCamera.mainCamera = true;
+		// MainCamera(RenderCamera)
+		{
+			Actor* cameraActor = mCurrScene->CreateActor("MainCamera");
+			auto& transform = cameraActor->GetComponent<ECS::Transform>();
+			transform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
+			auto& camera = cameraActor->AddComponent<ECS::Camera>();
+			camera.cameraType = ECS::CameraType::RenderCamera;
+			camera.mainCamera = true;
+		}
+		// Sky
+		{
+			Actor* skyActor = mCurrScene->CreateActor("Sky");
+			auto& transform = skyActor->GetComponent<ECS::Transform>();
+			transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4 * 0.25f, 0.0f, 0.0f };
+			auto& sky = skyActor->AddComponent<ECS::Sky>();
+		}
 
 		mAssetPathDataBase->SetPath(mCurrScene->GetUID(), path);
 

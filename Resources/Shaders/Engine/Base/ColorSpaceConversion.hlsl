@@ -1,5 +1,5 @@
-#ifndef _ColorSpaceHelper__
-#define _ColorSpaceHelper__
+#ifndef _ColorSpaceConversion__
+#define _ColorSpaceConversion__
 
 // http://www.chilliant.com/rgb2hsv.html
 

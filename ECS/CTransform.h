@@ -10,7 +10,7 @@ namespace ECS {
 	class Transform : public ECS::IComponent {
 	public:
 		Math::Vector3	worldPosition;	// 相对于世界原点的位置
-		Math::Vector3	worldRotation;	// 相对于世界原点的旋转
+		Math::Vector3	worldRotation;	// 相对于世界原点的旋转(弧度制)
 		Math::Vector3	worldScaling;	// 相对于世界原点的缩放
 		Math::Matrix4	worldMatrix;	// 相对于世界原点的变换
 
@@ -65,10 +65,10 @@ namespace ECS {
 
 			auto& rotItem = group->CreateWidget<UI::DragFloat3>("Rotation", worldRotation);
 			rotItem.dataGatherer = [this]() -> Math::Vector3 {
-				return worldRotation;
+				return worldRotation * (DirectX::XM_1DIVPI * 180.0f);
 			};
 			rotItem.dataProvider = [this](Math::Vector3 newValue) {
-				worldRotation = newValue;
+				worldRotation = newValue / (DirectX::XM_1DIVPI * 180.0f);
 			};
 
 			auto& sclItem = group->CreateWidget<UI::DragFloat3>("Scaling", worldScaling);

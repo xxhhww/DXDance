@@ -65,8 +65,8 @@ namespace Renderer {
 		mComputeQueue->SetDebugName("ComputeQueue");
 		mCopyQueue->SetDebugName("CopyQueue");
 
-		if (windowHandle != nullptr) {
-			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), windowHandle, mBackBufferStrategy, width, height);
+		if (mWindowHandle != nullptr) {
+			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), mWindowHandle, mBackBufferStrategy, width, height);
 			for (uint32_t i = 0; i < numBackBuffers; i++) {
 				mBackBuffers.emplace_back(std::make_unique<Texture>(mDevice.get(), mSwapChain->D3DBackBuffer(i), mDescriptorAllocator.get()));
 				mResourceStateTracker->StartTracking(mBackBuffers.at(i).get());
@@ -275,16 +275,22 @@ namespace Renderer {
 
 			// https://www.gamedev.net/forums/topic/671214-simple-solar-radiance-calculation/
 
-			const Math::Vector3 sunDirection = transform.GetDirection();
-			
-			float thetaS = std::acos(1.0f - sunDirection.y);
+			Math::Vector3 sunDirection = transform.GetDirection();
+
+			//				  sun
+			/*				  /|  (thetaS)
+			*				 / |
+			*				/  |
+			*	(elevation) ----
+			*/
+			float thetaS = std::acos(std::clamp(sunDirection.y, 0.0001f, 1.0f));
 			float elevation = DirectX::XM_PIDIV2 - thetaS;
 			float turbidity = sky.turbidity;
 
 			uint32_t totalSampleCount = sky.skySpectrum.GetSamples().size();
 
 			// Vertical sample angle. For one ray it's just equal to elevation.
-			float theta = elevation;
+			float theta = thetaS;
 
 			// Angle between the sun direction and sample direction.
 			// Since we have only one sample for simplicity, the angle is 0.
@@ -293,7 +299,7 @@ namespace Renderer {
 			// We compute spectrum for the middle ray at the center of the Sun's disk.
 			// For simplicity, we ignore limb darkening.
 			for (uint64_t i = 0; i < totalSampleCount; ++i) {
-				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(elevation, turbidity, sky.groundAlbedoSpectrum[i]);
+				ArHosekSkyModelState* skyState = arhosekskymodelstate_alloc_init(thetaS, turbidity, sky.groundAlbedoSpectrum[i]);
 				float wavelength = Math::Mix(sky.skySpectrum.LowestWavelength(), sky.skySpectrum.HighestWavelength(), (float)i / float(totalSampleCount));
 				sky.skySpectrum[i] = float(arhosekskymodel_solar_radiance(skyState, theta, gamma, wavelength));
 				arhosekskymodelstate_free(skyState);
@@ -408,8 +414,10 @@ namespace Renderer {
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 				commandBuffer.ClearRenderTarget(currentBackBuffer);
 				commandBuffer.SetRenderTarget(currentBackBuffer);
-				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
-				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 
+					static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 
+					static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -501,8 +509,10 @@ namespace Renderer {
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 			commandBuffer.ClearRenderTarget(currentBackBuffer);
 			commandBuffer.SetRenderTarget(currentBackBuffer);
-			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 979u, 635u });
-			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 979u, 635u });
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 
+				static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 
+				static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
 			commandBuffer.SetGraphicsRootSignature();
 			commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -1,5 +1,6 @@
 #include "Adapter.h"
 #include "Tools/Assert.h"
+#include "AdapterContainer.h"
 
 namespace GHL {
     Adapter::Adapter(const Microsoft::WRL::ComPtr<IDXGIAdapter1>& adapter) 
@@ -8,7 +9,10 @@ namespace GHL {
     }
 
     void Adapter::RefetchDisplaysIfNeeded() {
-        bool refetchNeeded = !mDXGIFactory || !mDXGIFactory->IsCurrent();
+        DXGI_ADAPTER_DESC1 desc{};
+        mAdapter->GetDesc1(&desc);
+
+        bool refetchNeeded = (!mDXGIFactory || !mDXGIFactory->IsCurrent());
 
         if (!refetchNeeded) {
             return;
@@ -18,9 +22,8 @@ namespace GHL {
 
         mConnectedDisplays.clear();
 
-        UINT i = 0;
+        uint32_t i = 0;
         Microsoft::WRL::ComPtr<IDXGIOutput> currentOutput;
-        float bestIntersectArea = -1;
 
         while (mAdapter->EnumOutputs(i, &currentOutput) != DXGI_ERROR_NOT_FOUND) {
             Microsoft::WRL::ComPtr<IDXGIOutput6> output6;

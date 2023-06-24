@@ -47,7 +47,23 @@ namespace ECS {
 		}
 
 		void OnInspector(UI::IWidgetContainer* container) override {
+			auto* group = &container->CreateWidget<UI::GroupCollapsable>("Sky");
 
+			auto& albedoItem = group->CreateWidget<UI::DragFloat3>("Albedo", groundAlbedo, 0.0f, 1.0f);
+			albedoItem.dataGatherer = [this]() -> Math::Vector3 {
+				return groundAlbedo;
+			};
+			albedoItem.dataProvider = [this](Math::Vector3 newValue) {
+				groundAlbedo = newValue;
+			};
+
+			auto& turbidityItem = group->CreateWidget<UI::DragFloat>("Turbidity", turbidity, 1.0f, 10.0f);
+			turbidityItem.dataGatherer = [this]() -> float {
+				return turbidity;
+			};
+			turbidityItem.dataProvider = [this](float newValue) {
+				turbidity = newValue;
+			};
 		}
 	};
 

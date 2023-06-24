@@ -45,27 +45,28 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupThreadID : 
     uint2 pixelIndex = dispatchThreadID.xy;
     float2 uv = TexelIndexToUV(pixelIndex, PassDataCB.skyLuminanceMapSize);
 
-    float2 octVector = uv * 2.0 - 1.0;
+    float2 octVector = uv * 2.0f - 1.0f;
     float3 sampleVector = OctDecode(octVector);
     
-    float gamma = acos(clamp(dot(sampleVector, PassDataCB.sunDirection), 0.0001f, 0.9999f));
+    float3 sunDirection = PassDataCB.sunDirection;
+    sunDirection.y = clamp(sunDirection.y, 0.0001f, 1.0f);
+    float gamma = acos(clamp(dot(sampleVector, sunDirection), 0.0001f, 1.0f));
     // Clamp because hosek code is not robust against edge cases 
-    float cosTheta = (clamp(sampleVector.y, 0.0001f, 0.9999f));
+    float theta = acos(clamp(sampleVector.y, 0.0001f, 1.0f));
 
     // 通过反三角函数，获得sun的Theta角度
-    float sunTheta = acos(clamp(PassDataCB.sunDirection.y, 0.0001f, 0.9999f));
-    float cosSunTheta = cos(sunTheta);
+    float thetaS = acos(clamp(sunDirection.y, 0.0001f, 1.0f));
 
-    float tempR = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateR.configsX, cosSunTheta, 0.0f) * PassDataCB.skyStateR.radiances[0];
-    float tempG = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateG.configsY, cosSunTheta, 0.0f) * PassDataCB.skyStateG.radiances[1];
-    float tempB = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateB.configsZ, cosSunTheta, 0.0f) * PassDataCB.skyStateB.radiances[2];
+    float tempR = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateR.configsX, thetaS, 0.0f) * PassDataCB.skyStateR.radiances[0];
+    float tempG = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateG.configsY, thetaS, 0.0f) * PassDataCB.skyStateG.radiances[1];
+    float tempB = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateB.configsZ, thetaS, 0.0f) * PassDataCB.skyStateB.radiances[2];
     float temp  = dot(float3(tempR, tempG, tempB), float3(0.2126f, 0.7152f, 0.0722f));
     float3 z = PassDataCB.skyStateR.radiances.xyz / temp;
-    z *= 0.6f;
+    z *= 0.75f;
 
-    float r = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateR.configsX, cosTheta, gamma) * z.x;
-    float g = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateG.configsY, cosTheta, gamma) * z.y;
-    float b = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateB.configsZ, cosTheta, gamma) * z.z;
+    float r = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateR.configsX, theta, gamma) * z.x;
+    float g = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateG.configsY, theta, gamma) * z.y;
+    float b = ArHosekSkyModel_GetRadianceInternal(PassDataCB.skyStateB.configsZ, theta, gamma) * z.z;
 
     float3 rgb = float3(r, g, b);
 

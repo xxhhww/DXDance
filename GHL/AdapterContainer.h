@@ -30,6 +30,11 @@ namespace GHL {
 		*/
 		const Adapter* GetHighPerformanceAdapter() const;
 
+		/*
+		* 检测是否为高性能硬件适配器
+		*/
+		static bool IsHighPerformanceAdapter(const std::wstring& adapterName);
+
 	private:
 		Microsoft::WRL::ComPtr<IDXGIFactory2> mDXGIFactory;
 		std::unique_ptr<Adapter> mWARPAdapter;

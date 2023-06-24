@@ -11,7 +11,7 @@ namespace GHL {
         Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 
         while (mDXGIFactory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND) {
-            DXGI_ADAPTER_DESC1 desc;
+            DXGI_ADAPTER_DESC1 desc{};
             adapter->GetDesc1(&desc);
 
             if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
@@ -34,13 +34,18 @@ namespace GHL {
         for (uint32_t i = 0; i < mHardwareAdapters.size(); i++) {
             DXGI_ADAPTER_DESC1 desc{};
             mHardwareAdapters.at(i).DXGIAdapter()->GetDesc1(&desc);
-            std::wstring description(desc.Description);
-            size_t offset = description.find(L"NVIDIA GeForce RTX 3060 Laptop GPU");
-            if (description.find(L"NVIDIA GeForce RTX 3060 Laptop GPU") != std::wstring::npos) {
+            if (IsHighPerformanceAdapter(std::wstring(desc.Description))) {
                 return &mHardwareAdapters.at(i);
             }
         }
-        ASSERT_FORMAT(false, "HighPerformanceAdapter Not Found");
+        ASSERT_FORMAT(false, "High Performance Adapter Not Found");
         return nullptr;
+    }
+
+    bool AdapterContainer::IsHighPerformanceAdapter(const std::wstring& adapterName) {
+        if (adapterName.find(L"NVIDIA GeForce RTX 3060 Laptop GPU") != std::wstring::npos) {
+            return true;
+        }
+        return false;
     }
 }

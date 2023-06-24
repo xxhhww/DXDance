@@ -120,13 +120,13 @@ namespace App {
 
 		switch (mAxisDirection) {
 		case EAxisDirection::X:
-			result = Math::Vector3{ 1.0f, 0.0f, 0.0f }.NormalTransform(mOriginalTransform.worldRotation.RotationMatrix());
+			result = Math::Vector3{ 1.0f, 0.0f, 0.0f }.TransformAsVector(mOriginalTransform.worldRotation.RotationMatrix());
 			break;
 		case EAxisDirection::Y:
-			result = Math::Vector3{ 0.0f, 1.0f, 0.0f }.NormalTransform(mOriginalTransform.worldRotation.RotationMatrix());
+			result = Math::Vector3{ 0.0f, 1.0f, 0.0f }.TransformAsVector(mOriginalTransform.worldRotation.RotationMatrix());
 			break;
 		case EAxisDirection::Z:
-			result = Math::Vector3{ 0.0f, 0.0f, 1.0f }.NormalTransform(mOriginalTransform.worldRotation.RotationMatrix());
+			result = Math::Vector3{ 0.0f, 0.0f, 1.0f }.TransformAsVector(mOriginalTransform.worldRotation.RotationMatrix());
 			break;
 		}
 
