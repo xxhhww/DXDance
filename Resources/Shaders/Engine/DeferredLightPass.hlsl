@@ -76,7 +76,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	
 	float3 viewDirection = normalize(FrameDataCB.CurrentEditorCamera.Position.xyz - gBufferSurface.position.xyz);
 
-	for(uint i = 0u; i < FrameDataCB.lightSize; i++) {
+	for(uint i = 0u; i < FrameDataCB.LightSize; i++) {
 		Light light = LightDataSB[i];
 
 		if(light.type == 0) {

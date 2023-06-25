@@ -24,6 +24,12 @@ float2 TexelIndexToUV(uint2 index, uint2 textureSize) {
     return float2(index + 0.5) / textureSize;
 }
 
+float2 NDCToUV(float3 ndcPoint) {
+    float2 uv = (ndcPoint.xy + 1.0) * 0.5; // [-1; 1] to [0; 1]
+    uv.y = 1.0 - uv.y; // Conform DX specs
+    return uv;
+}
+
 
 
 #endif

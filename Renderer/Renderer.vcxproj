@@ -171,6 +171,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="SkyGenerationPass.h" />
+    <ClInclude Include="TAAPass.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Resource.h" />
@@ -230,6 +231,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />
+    <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />

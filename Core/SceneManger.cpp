@@ -42,15 +42,10 @@ namespace Core {
 			UnLoadCurrentScene();
 		}
 		mCurrScene = new Scene(this, Tool::UIDGenerator::Get());
-		mCurrScene->editorTransform.worldPosition = Math::Vector3{ 0.0f, 1000.0f, 0.0f };
-		mCurrScene->editorCamera.frustum.farZ = 5000.0f;
-		// mCurrScene->editorCamera.translationSpeed *= 10.0f;
 
 		// MainCamera(RenderCamera)
 		{
 			Actor* cameraActor = mCurrScene->CreateActor("MainCamera");
-			auto& transform = cameraActor->GetComponent<ECS::Transform>();
-			transform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
 			auto& camera = cameraActor->AddComponent<ECS::Camera>();
 			camera.cameraType = ECS::CameraType::RenderCamera;
 			camera.mainCamera = true;

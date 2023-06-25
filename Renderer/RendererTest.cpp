@@ -184,6 +184,9 @@ void RunRenderer() {
             camera.frustum.aspect,
             camera.frustum.nearZ,
             camera.frustum.farZ);
+
+        // º∆À„VPæÿ’Û
+        camera.viewProjMatrix = camera.viewMatrix * camera.projMatrix;
     };
 
     bool done = false;

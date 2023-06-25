@@ -56,5 +56,6 @@
     <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\ColorSpaceConversion.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Exposure.hlsl" />
+    <FxCompile Include="Shaders\Engine\TAAPass.hlsl" />
   </ItemGroup>
 </Project>

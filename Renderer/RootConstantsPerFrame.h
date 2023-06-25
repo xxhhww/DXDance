@@ -14,6 +14,8 @@ namespace Renderer {
 		GPUCamera currentRenderCamera;
 		GPUCamera previousRenderCamera;
 
+		Math::Vector2 finalRTResolution;
+		Math::Vector2 finalRTResolutionInv;
 		uint32_t lightSize;
 		float pad1;
 		float pad2;

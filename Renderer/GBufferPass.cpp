@@ -41,6 +41,14 @@ namespace Renderer {
 				builder.DeclareTexture("GBufferNormalRoughness", _GBufferNormalRoughnessProperties);
 				builder.WriteRenderTarget("GBufferNormalRoughness");
 
+				NewTextureProperties _GBufferMotionVectorProperties{};
+				_GBufferMotionVectorProperties.width = finalOutputDesc.width;
+				_GBufferMotionVectorProperties.height = finalOutputDesc.height;
+				_GBufferMotionVectorProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				_GBufferMotionVectorProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferMotionVector", _GBufferMotionVectorProperties);
+				builder.WriteRenderTarget("GBufferMotionVector");
+
 				NewTextureProperties _GBufferViewDepthProperties{};
 				_GBufferViewDepthProperties.width = finalOutputDesc.width;
 				_GBufferViewDepthProperties.height = finalOutputDesc.height;
@@ -67,6 +75,7 @@ namespace Renderer {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R32_FLOAT
 						};
 					});
@@ -79,12 +88,14 @@ namespace Renderer {
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 
 				commandBuffer.ClearRenderTarget(gBufferAlbedoMetalness);
 				commandBuffer.ClearRenderTarget(gBufferPositionEmission);
 				commandBuffer.ClearRenderTarget(gBufferNormalRoughness);
+				commandBuffer.ClearRenderTarget(gBufferMotionVector);
 				commandBuffer.ClearRenderTarget(gBufferViewDepth);
 				commandBuffer.ClearDepth(gBufferDepthStencil, 1.0f);
 			});

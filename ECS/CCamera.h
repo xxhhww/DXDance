@@ -2,7 +2,7 @@
 #include "ECS/IComponent.h"
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
-
+#include <array>
 
 namespace ECS {
 
@@ -13,9 +13,30 @@ namespace ECS {
 
 	class Camera : public ECS::IComponent {
 	public:
-		using FStop = float;
-		using ISO = float;
-		using EV = float;
+		struct Jitter {
+			Math::Matrix4 jitterMatrix;
+			Math::Vector2 uvJitter;
+		};
+
+	private:
+		inline static std::array<Math::Vector2, 16> smJitterHaltonSamples = {
+			Math::Vector2{ 0.000000 , -0.166667 },
+			Math::Vector2{ -0.250000,  0.166667 },
+			Math::Vector2{ 0.250000 , -0.388889 },
+			Math::Vector2{ -0.375000, -0.055556 },
+			Math::Vector2{ 0.125000 ,  0.277778 },
+			Math::Vector2{ -0.125000, -0.277778 },
+			Math::Vector2{ 0.375000 ,  0.055556 },
+			Math::Vector2{ -0.437500,  0.388889 },
+			Math::Vector2{ 0.062500 , -0.462963 },
+			Math::Vector2{ -0.187500, -0.129630 },
+			Math::Vector2{ 0.312500 ,  0.203704 },
+			Math::Vector2{ -0.312500, -0.351852 },
+			Math::Vector2{ 0.187500 , -0.018519 },
+			Math::Vector2{ -0.062500,  0.314815 },
+			Math::Vector2{ 0.437500 , -0.240741 },
+			Math::Vector2{ -0.468750,  0.092593 },
+		};
 
 	public:
 		// 摄像机空间的基向量
@@ -41,29 +62,9 @@ namespace ECS {
 			Math::Vector3 planeNormal;
 		} frustumPlaneArray[6];		// 描述平截头体的六个平面
 
-		Math::Matrix4 viewMatrix;	// 视图变换矩阵
-		Math::Matrix4 projMatrix;	// 投影变换矩阵
-
-		/// Relative aperture. Controls how wide the aperture is opened. Impacts the depth of field.
-		FStop mLenseAperture;
-
-		/// Sensor sensitivity/gain. Controls how photons are counted / quantized on the digital sensor.
-		ISO mFilmSpeed;
-
-		/// Controls how long the aperture is opened. Impacts the motion blur.
-		float mShutterTime;
-
-	public:
-		inline EV GetExposureValue100() const {
-			// EV number is defined as:
-			// 2^ EV_s = N^2 / t and EV_s = EV_100 + log2 (S /100)
-			// This gives
-			// EV_s = log2 (N^2 / t)
-			// EV_100 + log2 (S /100) = log2 (N^2 / t)
-			// EV_100 = log2 (N^2 / t) - log2 (S /100)
-			// EV_100 = log2 (N^2 / t . 100 / S)
-			return std::log2((mLenseAperture * mLenseAperture) / mShutterTime * 100.0 / mFilmSpeed);
-		}
+		Math::Matrix4 viewMatrix;		// 视图变换矩阵
+		Math::Matrix4 projMatrix;		// 投影变换矩阵
+		Math::Matrix4 viewProjMatrix;	// vp矩阵
 
 	public:
 		Camera()
@@ -82,13 +83,7 @@ namespace ECS {
 
 			viewMatrix = Math::Matrix4();
 			projMatrix = Math::Matrix4();
-
-			mLenseAperture = 1.6f;
-			mFilmSpeed = 100.0f;
-			mShutterTime = 1.0f / 125.0f;
 		}
-
-
 
 	public:
 		void SerializeJson(Tool::JsonWriter& writer) const override {

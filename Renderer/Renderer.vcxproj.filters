@@ -222,6 +222,9 @@
     <ClInclude Include="ToneMappingPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="TAAPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -366,6 +369,9 @@
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="ToneMappingPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="TAAPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

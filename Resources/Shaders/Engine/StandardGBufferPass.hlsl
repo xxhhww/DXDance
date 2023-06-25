@@ -28,7 +28,8 @@ struct p2o {
 	float4 albedoMetalness  : SV_TARGET0;
     float4 positionEmission : SV_TARGET1;	// world space position
     float4 normalRoughness  : SV_TARGET2;	// world space normal
-	float  viewDepth        : SV_TARGET3;
+	float4 motionVector     : SV_TARGET3; 
+	float  viewDepth        : SV_TARGET4;
 };
 
 v2p VSMain(a2v input) {
@@ -47,7 +48,8 @@ p2o PSMain(v2p input) {
 	output.albedoMetalness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	output.positionEmission = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	output.normalRoughness  = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	output.viewDepth = 5000.0f;
+	output.motionVector     = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	output.viewDepth        = 5000.0f;
 
 	return output;
 }

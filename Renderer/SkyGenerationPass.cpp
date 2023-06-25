@@ -36,8 +36,8 @@ namespace Renderer {
 				auto* skyLuminance = resourceStorage->GetResourceByName("SkyLuminance")->GetTexture();
 				auto& skyLuminanceDesc = skyLuminance->GetResourceFormat().GetTextureDesc();
 
-				uint32_t threadGroupCountX = (skyLuminanceDesc.width + smThreadSizeInGroup - 1) / smThreadSizeInGroup;
-				uint32_t threadGroupCountY = (skyLuminanceDesc.height + smThreadSizeInGroup - 1) / smThreadSizeInGroup;
+				uint32_t threadGroupCountX = (skyLuminanceDesc.width  + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountY = (skyLuminanceDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 
 				skyGenerationPassData.skyLuminanceMapIndex  = skyLuminance->GetUADescriptor()->GetHeapIndex();
 				skyGenerationPassData.skyLuminanceMapSizeX  = skyLuminanceDesc.width;

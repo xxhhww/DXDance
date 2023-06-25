@@ -46,13 +46,14 @@ namespace App {
 		mCurrentScene = mSceneManger->GetCurrentScene();
 
 		mEditorCamera = &mCurrentScene->editorCamera;
-		mEditorCamera->translationSpeed *= 25.0f;
+		mEditorCamera->translationSpeed *= 10.0f;
+		mEditorCamera->frustum.farZ = 5000.0f;
 		mEditorTransform = &mCurrentScene->editorTransform;
-		mEditorTransform->worldPosition = Math::Vector3{ 0.0f, 750.0f, 0.0f };
+		mEditorTransform->worldPosition = Math::Vector3{ 0.0f, 1000.0f, 0.0f };
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.cameraType == ECS::CameraType::RenderCamera) {
-				transform.worldPosition = Math::Vector3{ 0.0f, 720.0f, 0.0f };
+				transform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
 			}
 		});
 	}
@@ -108,7 +109,7 @@ namespace App {
 			// º∆À„ViewMatrix
 			const XMVECTOR camTarget = transform.worldPosition + camera.lookUp;
 			camera.viewMatrix = XMMatrixLookAtLH(
-				transform.worldPosition, 
+				transform.worldPosition,
 				camTarget, 
 				XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 
@@ -118,6 +119,9 @@ namespace App {
 				camera.frustum.aspect, 
 				camera.frustum.nearZ, 
 				camera.frustum.farZ);
+
+			// º∆À„VPæÿ’Û
+			camera.viewProjMatrix = camera.viewMatrix * camera.projMatrix;
 		};
 
 		updateCameraMatrix(*mEditorCamera, *mEditorTransform);

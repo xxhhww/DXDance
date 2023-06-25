@@ -10,6 +10,7 @@
 #include "Math/Frustum.h"
 #include "Math/Common.h"
 #include "Math/HosekWilkieSkyModel.h"
+#include "Math/Jitter.h"
 
 namespace Renderer {
 	RenderEngine::RenderEngine(HWND windowHandle, uint64_t width, uint64_t height, uint8_t numBackBuffers)
@@ -240,31 +241,61 @@ namespace Renderer {
 		mPipelineResourceStorage->rootLightDataPerFrame.clear();
 		
 		// 更新工作
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position = cameraTransform.worldPosition;
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.view = editorCamera.viewMatrix.Transpose();
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.projection = editorCamera.projMatrix.Transpose();
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.viewProjection = (editorCamera.viewMatrix * editorCamera.projMatrix).Transpose();
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseView = editorCamera.viewMatrix.Inverse().Transpose();
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.inverseProjection = editorCamera.projMatrix.Inverse().Transpose();
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.farPlane = editorCamera.frustum.farZ;
-		mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.exposureValue100 = editorCamera.GetExposureValue100();
+		mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolution = Math::Vector2{ 
+			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
+		};
+		mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolutionInv = 1.0f / mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolution;
+
+		static uint32_t cameraJitterFrameIndex = 0u;
+		static uint32_t taaSampleCount = 16u;
+		auto jitter = Math::Jitter::GetJitter(cameraJitterFrameIndex, taaSampleCount, Math::Vector2{ 
+			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
+		});
+
+		auto& gpuPreviousEditorCamera = mPipelineResourceStorage->rootConstantsPerFrame.previousEditorCamera;
+		auto& gpuCurrentEditorCamera  = mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera;
+		if (!mFrameTracker->IsFirstFrame()) {
+			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
+		}
+		gpuCurrentEditorCamera.position				= cameraTransform.worldPosition;
+		gpuCurrentEditorCamera.view					= editorCamera.viewMatrix.Transpose();
+		gpuCurrentEditorCamera.projection			= editorCamera.projMatrix.Transpose();
+		gpuCurrentEditorCamera.viewProjection		= editorCamera.viewProjMatrix.Transpose();
+		gpuCurrentEditorCamera.inverseView			= editorCamera.viewMatrix.Inverse().Transpose();
+		gpuCurrentEditorCamera.inverseProjection	= editorCamera.projMatrix.Inverse().Transpose();
+		gpuCurrentEditorCamera.farPlane				= editorCamera.frustum.farZ;
+		gpuCurrentEditorCamera.jitter				= jitter.jitterMatrix;
+		gpuCurrentEditorCamera.uvJitter				= jitter.uvJitter;
+		gpuCurrentEditorCamera.viewProjectionJitter	= (editorCamera.viewProjMatrix * jitter.jitterMatrix).Transpose();
+		if (mFrameTracker->IsFirstFrame()) {
+			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
+		}
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position = transform.worldPosition;
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.view = camera.viewMatrix.Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.projection = camera.projMatrix.Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.viewProjection = (camera.viewMatrix * camera.projMatrix).Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.farPlane = camera.frustum.farZ;
-				mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.exposureValue100 = camera.GetExposureValue100();
-				Math::Frustum::BuildFrustumPlanes(
-					camera.viewMatrix * camera.projMatrix,
-					mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.planes
-				);
+				auto& gpuPreviousRenderCamera = mPipelineResourceStorage->rootConstantsPerFrame.previousRenderCamera;
+				auto& gpuCurrentRenderCamera  = mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera;
+				if (!mFrameTracker->IsFirstFrame()) {
+					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
+				}
+				gpuCurrentRenderCamera.position				= transform.worldPosition;
+				gpuCurrentRenderCamera.view					= camera.viewMatrix.Transpose();
+				gpuCurrentRenderCamera.projection			= camera.projMatrix.Transpose();
+				gpuCurrentRenderCamera.viewProjection		= camera.viewProjMatrix.Transpose();
+				gpuCurrentRenderCamera.inverseView			= camera.viewMatrix.Inverse().Transpose();
+				gpuCurrentRenderCamera.inverseProjection	= camera.projMatrix.Inverse().Transpose();
+				gpuCurrentRenderCamera.farPlane				= camera.frustum.farZ;
+				gpuCurrentRenderCamera.jitter				= jitter.jitterMatrix;
+				gpuCurrentRenderCamera.uvJitter				= jitter.uvJitter;
+				gpuCurrentRenderCamera.viewProjectionJitter	= (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
+				Math::Frustum::BuildFrustumPlanes(camera.viewMatrix * camera.projMatrix, gpuCurrentRenderCamera.planes);
+				if (mFrameTracker->IsFirstFrame()) {
+					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
+				}
 			}
 		});
+
+		cameraJitterFrameIndex++;
 
 		UpdateSky();
 		UpdateLights();

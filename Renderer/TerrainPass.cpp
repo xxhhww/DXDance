@@ -311,6 +311,7 @@ namespace Renderer {
 				builder.WriteRenderTarget("GBufferAlbedoMetalness");
 				builder.WriteRenderTarget("GBufferPositionEmission");
 				builder.WriteRenderTarget("GBufferNormalRoughness");
+				builder.WriteRenderTarget("GBufferMotionVector");
 				builder.WriteRenderTarget("GBufferViewDepth");
 				builder.WriteDepthStencil("GBufferDepthStencil");
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
@@ -331,6 +332,7 @@ namespace Renderer {
 						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R32_FLOAT
@@ -356,6 +358,7 @@ namespace Renderer {
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 				auto* culledPatchList         = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
@@ -405,7 +408,13 @@ namespace Renderer {
 				uint16_t width  = static_cast<uint16_t>(gBufferAlbedoMetalnessDesc.width);
 				uint16_t height = static_cast<uint16_t>(gBufferAlbedoMetalnessDesc.height);
 				commandBuffer.SetRenderTargets(
-					{ gBufferAlbedoMetalness, gBufferPositionEmission, gBufferNormalRoughness, gBufferViewDepth }, 
+					{ 
+						gBufferAlbedoMetalness, 
+						gBufferPositionEmission, 
+						gBufferNormalRoughness,
+						gBufferMotionVector,
+						gBufferViewDepth 
+					}, 
 					gBufferDepthStencil);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });

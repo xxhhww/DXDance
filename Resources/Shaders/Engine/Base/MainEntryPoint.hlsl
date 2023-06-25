@@ -11,10 +11,12 @@ struct FrameData {
     Camera CurrentRenderCamera;
     Camera PreviousRenderCamera;
 
-    uint lightSize;
-    float pad1;
-    float pad2;
-    float pad3;
+    float2 FinalRTResolution;
+    float2 FinalRTResolutionInv;
+    uint   LightSize;
+    float  pad1;
+    float  pad2;
+    float  pad3;
 };
 
 #define FrameDataType FrameData
