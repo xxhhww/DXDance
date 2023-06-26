@@ -1,7 +1,7 @@
 #ifndef _TerrainBuilder__
 #define _TerrainBuilder__
 
-#include "PublicHeader_Terrain.hlsl"
+#include "TerrainHelper.hlsl"
 
 struct PassData {
 	float4 nodeEvaluationC;		// 用户控制的节点评估系数

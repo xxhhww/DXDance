@@ -182,6 +182,10 @@ namespace Renderer {
 		this->CopyBufferRegion(dstBuffer->GetCounterBuffer(), 0u, srcBuffer->GetCounterBuffer(), 0u, sizeof(uint32_t));
 	}
 
+	void CommandBuffer::CopyResource(Resource* dstResource, Resource* srcResource) {
+		mCommandList->D3DCommandList()->CopyResource(dstResource->D3DResource(), srcResource->D3DResource());
+	}
+
 	GHL::ResourceBarrierBatch CommandBuffer::TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly) {
 		auto* stateTracker = mRenderContext->resourceStateTracker;
 		return stateTracker->TransitionImmediately(resource, newState, tryImplicitly);

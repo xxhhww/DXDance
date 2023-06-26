@@ -1,8 +1,7 @@
 #ifndef _TerrainRenderer__
 #define _TerrainRenderer__
 
-#include "PublicHeader_Terrain.hlsl"
-#include "../Base/Utils.hlsl"
+#include "TerrainHelper.hlsl"
 
 struct PassData {
 	float2 worldSize;
@@ -17,6 +16,7 @@ struct PassData {
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
+#include "../Base/Utils.hlsl"
 
 struct a2v {
 	float3 lsPos     : POSITION;

@@ -18,7 +18,7 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				builder.ReadTexture("DeferredLightShadingOut", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("TAACurrentFrameOutput", ShaderAccessFlag::NonPixelShader);
 				builder.WriteTexture("FinalOutput");
 				
 				shaderManger.CreateComputeShader("ToneMappingPass",
@@ -32,11 +32,11 @@ namespace Renderer {
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 				auto* display = renderContext.display;
 
-				auto* deferredLightshadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
+				auto* taaCurrentFrameOutput   = resourceStorage->GetResourceByName("TAACurrentFrameOutput")->GetTexture();
 				auto* finalOutput             = resourceStorage->GetResourceByName("FinalOutput")->GetTexture();
-				auto& deferredLightshadingOutDesc = deferredLightshadingOut->GetResourceFormat().GetTextureDesc();
+				auto& deferredLightshadingOutDesc = taaCurrentFrameOutput->GetResourceFormat().GetTextureDesc();
 
-				toneMappingPassData.inputMapIndex		= deferredLightshadingOut->GetSRDescriptor()->GetHeapIndex();
+				toneMappingPassData.inputMapIndex		= taaCurrentFrameOutput->GetSRDescriptor()->GetHeapIndex();
 				toneMappingPassData.outputMapIndex		= finalOutput->GetUADescriptor()->GetHeapIndex();
 				toneMappingPassData.isHDREnabled		= false;
 				toneMappingPassData.displayMaxLuminance = display->maxLuminance;

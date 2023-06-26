@@ -219,6 +219,7 @@ namespace Renderer {
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mSkyGenerationPass.AddPass(*mRenderGraph);
 			mDeferredLightPass.AddPass(*mRenderGraph);
+			mTAAPass.AddPass(*mRenderGraph);
 			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 

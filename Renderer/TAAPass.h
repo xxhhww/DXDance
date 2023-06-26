@@ -10,17 +10,17 @@ namespace Renderer {
 			uint32_t dispatchGroupCountY;
 			uint32_t previousTAAOutputMapIndex;    // 上一帧TAA的输出结果
 			uint32_t previousPassOutputMapIndex;   // 前一个Pass的输出结果
-			uint32_t motionMapIndex;
-			uint32_t outputMapIndex;
+			uint32_t gBufferMotionVectorMapIndex;
+			uint32_t currentTAAOutputMapIndex;
+			uint32_t isFirstFrame;
 			float pad1;
-			float pad2;
 		};
 
 		TAAPassData taaPassData;
 
 		inline static uint32_t smThreadSizeInGroup = 16u;
 
-	private:
+	public:
 		void AddPass(RenderGraph& renderGraph);
 	};
 

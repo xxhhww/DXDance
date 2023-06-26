@@ -37,7 +37,7 @@
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainBuilder.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\PublicHeader_Terrain.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\OutputBackBuffer\OutputBackBuffer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl" />
     <FxCompile Include="Shaders\Engine\StandardGBufferPass.hlsl" />
@@ -56,6 +56,8 @@
     <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\ColorSpaceConversion.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Exposure.hlsl" />
-    <FxCompile Include="Shaders\Engine\TAAPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\TAA\TAAPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\TAA\TAAHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\GroupsharedMemoryHelper.hlsl" />
   </ItemGroup>
 </Project>

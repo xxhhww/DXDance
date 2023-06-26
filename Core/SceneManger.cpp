@@ -54,7 +54,7 @@ namespace Core {
 		{
 			Actor* skyActor = mCurrScene->CreateActor("Sky");
 			auto& transform = skyActor->GetComponent<ECS::Transform>();
-			transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4 * 0.25f, 0.0f, 0.0f };
+			transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
 			auto& sky = skyActor->AddComponent<ECS::Sky>();
 		}
 

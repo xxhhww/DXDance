@@ -21,10 +21,12 @@ namespace Renderer {
 		CommandBuffer(GHL::CommandList* commandList, RenderContext* renderContext);
 		~CommandBuffer() = default;
 
+		// ================ PIX Event ================
 		void PIXBeginEvent(const std::string& name);
 
 		void PIXEndEvent();
 
+		// ================ Pipeline Setup ================
 		void SetGraphicsRootSignature(const std::string& name = "");
 
 		void SetComputeRootSignature(const std::string& name = "");
@@ -57,6 +59,7 @@ namespace Renderer {
 
 		void SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture);
 
+		// ================ RTV / DSV Clear ================
 		void ClearRenderTarget(Texture* rtTexture, std::optional<Math::Vector4> optClearColor = std::nullopt, std::optional<GHL::Rect> optRect = std::nullopt);
 
 		void ClearDepth(Texture* dsTexture, float clearDepth, std::optional<GHL::Rect> rect = std::nullopt);
@@ -65,20 +68,25 @@ namespace Renderer {
 
 		void ClearDepthStencil(Texture* dsTexture, float clearDepth, uint8_t clearStencil, std::optional<GHL::Rect> rect = std::nullopt);
 
+		// ================ Resource Copy / Upload ================
 		void UploadBufferRegion(Buffer* dstBuffer, uint64_t dstOffset, void* srcData, uint64_t srcSize);
 
 		void CopyBufferRegion(Buffer* dstBuffer, uint64_t dstOffset, Buffer* srcBuffer, uint64_t srcOffset, uint64_t numBytes);
 
 		void ClearCounterBuffer(Buffer* buffer, uint32_t value);
 
-		void CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer);	
+		void CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer);
+
+		void CopyResource(Resource* dstResource, Resource* srcResource);
 		
+		// ================ Resource Barrier ================
 		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly = true);
 		
 		GHL::ResourceBarrierBatch TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly = true);
 
 		void FlushResourceBarrier(const GHL::ResourceBarrierBatch& barrierBatch);
-		
+
+		// ================ Draw / Dispatch / ExecuteIndirect ================
 		void DrawInstanced(uint32_t vertexCountPerInstance, uint32_t instanceCount, uint32_t startVertexLocation, uint32_t startInstanceLocation);
 
 		void Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ);
