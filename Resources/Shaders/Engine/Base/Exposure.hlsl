@@ -2,6 +2,7 @@
 #define _Exposure__
 
 #include "Camera.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 // Physically-based camera from Moving Frostbite to PBR
 // https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
@@ -14,7 +15,7 @@ float ComputeEV100(float aperture, float shutterTime, float ISO) {
     // EV_100 + log2 (S /100) = log2 (N^2 / t)
     // EV_100 = log2 (N^2 / t) - log2 (S /100)
     // EV_100 = log2 (N^2 / t * 100 / S)
-    return log2(sqrt(aperture) / shutterTime * 100 / ISO);
+    return log2(Square(aperture) / shutterTime * 100 / ISO);
 }
 
 float ComputeEV100FromAvgLuminance(float avgLuminance) {
@@ -37,7 +38,7 @@ float ComputeLuminousExposure(float aperture, float shutterTime) {
     // L the incident luminance and q the lens and vignetting attenuation (a typical value is q = 0.65)
     // The actual value recorded by the sensor will depend on its sensitivity/gain
     const float q = 0.65;
-    float H = q * shutterTime / sqrt(aperture);
+    float H = q * shutterTime / Square(aperture);
     return H;
 }
 

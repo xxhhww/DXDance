@@ -17,6 +17,7 @@ struct PassData {
 
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Base/Utils.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 groupshared min16float3 gCache[GSArrayDimensionSize][GSArrayDimensionSize];
 
@@ -53,7 +54,7 @@ float3 SampleHistory(Texture2D<float4> historyTex, float2 uv) {
 
 AABB GetVarianceAABB(int2 GTindex, float3 center, float stDevMultiplier) {
     float3 M1 = center; // First moment - Average
-    float3 M2 = sqrt(center); // Second moment - Variance
+    float3 M2 = Square(center); // Second moment - Variance
     float sampleCount = 1.0;
 
     [unroll] 
@@ -67,7 +68,7 @@ AABB GetVarianceAABB(int2 GTindex, float3 center, float stDevMultiplier) {
             float3 color = gCache[loadCoord.x][loadCoord.y];
 
             M1 += color;
-            M2 += sqrt(color);
+            M2 += Square(color);
             sampleCount += 1.0;
         }
     }
