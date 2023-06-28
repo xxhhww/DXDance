@@ -12,9 +12,7 @@ namespace Renderer {
 			uint32_t      skyLuminanceMapSizeY;
 			uint32_t      dispatchGroupCountX;
 			uint32_t      dispatchGroupCountY;
-			GPUArHosekSkyModelState skyStateR;
-			GPUArHosekSkyModelState skyStateG;
-			GPUArHosekSkyModelState skyStateB;
+			GPUArHosekSkyModelState skyState;
 		};
 
 		SkyGenerationPassData skyGenerationPassData;

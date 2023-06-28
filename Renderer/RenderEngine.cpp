@@ -210,6 +210,7 @@ namespace Renderer {
 		// 初始化RenderPass
 		{
 			mTerrainPass.InitializePass(this);
+			mVolumetricCloudsPass.InitializePass(this);
 		}
 
 		// 添加RenderPass并构建RenderGraph
@@ -219,6 +220,7 @@ namespace Renderer {
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mSkyGenerationPass.AddPass(*mRenderGraph);
 			mDeferredLightPass.AddPass(*mRenderGraph);
+			mVolumetricCloudsPass.AddPass(*mRenderGraph);
 			mTAAPass.AddPass(*mRenderGraph);
 			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
@@ -309,8 +311,8 @@ namespace Renderer {
 
 			Math::Vector3 sunDirection = transform.GetDirection();
 
-			//				  sun
-			/*				  /|  (thetaS)
+			/*				  sun
+			*				  /|  (thetaS)
 			*				 / |
 			*				/  |
 			*	(elevation) ----
@@ -338,15 +340,6 @@ namespace Renderer {
 				skyState = nullptr;
 			}
 
-			if (sky.skyModelStateR)
-				arhosekskymodelstate_free(sky.skyModelStateR);
-
-			if (sky.skyModelStateG)
-				arhosekskymodelstate_free(sky.skyModelStateG);
-
-			if (sky.skyModelStateB)
-				arhosekskymodelstate_free(sky.skyModelStateB);
-
 			Math::Vector3 sunLuminance = sky.skySpectrum.ToRGB();
 			Math::Vector3 sunIlluminance = sunLuminance * ECS::SunSolidAngle; // Dividing by 1 / PDF
 
@@ -355,10 +348,6 @@ namespace Renderer {
 			float multiplier = 1.0f;
 			sky.sunIlluminance = sunIlluminance * multiplier;
 			sky.sunLuminance = sunLuminance * multiplier;
-
-			sky.skyModelStateR = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.x, elevation);
-			sky.skyModelStateG = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.y, elevation);
-			sky.skyModelStateB = arhosek_rgb_skymodelstate_alloc_init(turbidity, sky.groundAlbedo.z, elevation);
 			
 			// Sun Light
 			auto& gpuLightData = mPipelineResourceStorage->rootLightDataPerFrame.emplace_back();

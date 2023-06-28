@@ -26,7 +26,7 @@ struct PassData {
 ShadingResult GetSkyShadingResult(float2 pixelUV) {
 	Texture2D<float4> skyLuminanceMap = ResourceDescriptorHeap[PassDataCB.skyLuminanceMapIndex];
 
-    float3 pointInfronOfCamera = NDCDepthToWorldPosition(1.0, pixelUV, FrameDataCB.CurrentEditorCamera);
+    float3 pointInfronOfCamera = NDCDepthToWorldPosition(1.0f, pixelUV, FrameDataCB.CurrentEditorCamera);
     float3 worldViewDirection = normalize(pointInfronOfCamera - FrameDataCB.CurrentEditorCamera.Position.xyz);
     float2 skyUV = (OctEncode(worldViewDirection) + 1.0) * 0.5;
     float3 luminance = skyLuminanceMap.SampleLevel(SamplerLinearClamp, skyUV, 0).rgb;

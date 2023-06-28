@@ -101,6 +101,9 @@
     <ClCompile Include="Jitter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ArHosekSkyModelData_RGB.cpp">
+      <Filter>源文件\SkyModel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Halton.inl">

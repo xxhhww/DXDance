@@ -9,6 +9,8 @@
 #include "ECS/CLight.h"
 #include "ECS/CSky.h"
 
+#include "Math/HosekWilkieSkyModel.h"
+
 namespace Renderer {
 
 	void SkyGenerationPass::AddPass(RenderGraph& renderGraph) {
@@ -18,8 +20,8 @@ namespace Renderer {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				NewTextureProperties _SkyLuminanceProperties{};
-				_SkyLuminanceProperties.width = 1024u;
-				_SkyLuminanceProperties.height = 1024u;
+				_SkyLuminanceProperties.width = 2048u;
+				_SkyLuminanceProperties.height = 2048u;
 				_SkyLuminanceProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				builder.DeclareTexture("SkyLuminance", _SkyLuminanceProperties);
 				builder.WriteTexture("SkyLuminance");
@@ -47,19 +49,18 @@ namespace Renderer {
 				ECS::Entity::ForeachInCurrentThread([&](ECS::Transform& transform, ECS::Sky& sky) {
 					const Math::Vector3 sunDirection = Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(transform.worldRotation.RotationMatrix());
 					skyGenerationPassData.sunDirection = sunDirection;
-					auto copyState = [](GPUArHosekSkyModelState& gpuState, const ArHosekSkyModelState* cpuState) {
-						for (auto i = 0; i < 3; ++i) {
-							for (auto configIdx = 0; configIdx < 9; ++configIdx) {
-								gpuState.configs[i][configIdx] = cpuState->configs[i][configIdx];
-							}
-						}
-						gpuState.radiances.x = cpuState->radiances[0];
-						gpuState.radiances.y = cpuState->radiances[1];
-						gpuState.radiances.z = cpuState->radiances[2];
-					};
-					copyState(skyGenerationPassData.skyStateR, sky.skyModelStateR);
-					copyState(skyGenerationPassData.skyStateG, sky.skyModelStateG);
-					copyState(skyGenerationPassData.skyStateB, sky.skyModelStateB);
+
+					auto skyParameters = Math::HosekWilkieSkyModel::CalculateSkyParameters(sky.turbidity, sky.groundAlbedo.x, sunDirection);
+					skyGenerationPassData.skyState.A = skyParameters.at(Math::ESkyParam_A);
+					skyGenerationPassData.skyState.B = skyParameters.at(Math::ESkyParam_B);
+					skyGenerationPassData.skyState.C = skyParameters.at(Math::ESkyParam_C);
+					skyGenerationPassData.skyState.D = skyParameters.at(Math::ESkyParam_D);
+					skyGenerationPassData.skyState.E = skyParameters.at(Math::ESkyParam_E);
+					skyGenerationPassData.skyState.F = skyParameters.at(Math::ESkyParam_F);
+					skyGenerationPassData.skyState.G = skyParameters.at(Math::ESkyParam_G);
+					skyGenerationPassData.skyState.H = skyParameters.at(Math::ESkyParam_H); // swap H & I
+					skyGenerationPassData.skyState.I = skyParameters.at(Math::ESkyParam_I); // swap H & I
+					skyGenerationPassData.skyState.Z = skyParameters.at(Math::ESkyParam_Z);
 				});
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(SkyGenerationPass));

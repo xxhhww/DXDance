@@ -59,5 +59,7 @@
     <FxCompile Include="Shaders\Engine\TAA\TAAPass.hlsl" />
     <FxCompile Include="Shaders\Engine\TAA\TAAHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\GroupsharedMemoryHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\VolumetricClouds\VolumetricCloudsPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\VolumetricClouds\VolumetricCloudsHelper.hlsl" />
   </ItemGroup>
 </Project>

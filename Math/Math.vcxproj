@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArHosekSkyModel.cc" />
+    <ClCompile Include="ArHosekSkyModelData_RGB.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Halton.cpp" />
     <ClCompile Include="hosek.cc" />

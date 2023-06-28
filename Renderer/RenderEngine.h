@@ -29,6 +29,7 @@
 #include "Renderer/RngSeedGenerationPass.h"
 #include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
+#include "Renderer/VolumetricCloudsPass.h"
 #include "Renderer/TAAPass.h"
 #include "Renderer/ToneMappingPass.h"
 #include "Renderer/FinalBarrierPass.h"
@@ -130,6 +131,7 @@ namespace Renderer {
 		RngSeedGenerationPass	mRngSeedGenerationPass;
 		SkyGenerationPass		mSkyGenerationPass;
 		DeferredLightPass		mDeferredLightPass;
+		VolumetricCloudsPass    mVolumetricCloudsPass;
 		TAAPass					mTAAPass;
 		ToneMappingPass			mToneMappingPass;
 		FinalBarrierPass		mFinalBarrierPass;

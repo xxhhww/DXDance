@@ -208,6 +208,7 @@
     <ClInclude Include="ToneMappingPass.h" />
     <ClInclude Include="UploaderEngine.h" />
     <ClInclude Include="UploadList.h" />
+    <ClInclude Include="VolumetricCloudsPass.h" />
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -269,6 +270,7 @@
     <ClCompile Include="ToneMappingPass.cpp" />
     <ClCompile Include="UploaderEngine.cpp" />
     <ClCompile Include="UploadList.cpp" />
+    <ClCompile Include="VolumetricCloudsPass.cpp" />
     <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>
   <ItemGroup>

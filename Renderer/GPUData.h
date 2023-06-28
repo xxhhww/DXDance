@@ -43,8 +43,16 @@ namespace Renderer {
     };
 
     struct GPUArHosekSkyModelState {
-        std::array<std::array<float, 12>, 3> configs;
-        Math::Vector4 radiances;
+        Math::Vector4 A;
+        Math::Vector4 B;
+        Math::Vector4 C;
+        Math::Vector4 D;
+        Math::Vector4 E;
+        Math::Vector4 F;
+        Math::Vector4 G;
+        Math::Vector4 H;
+        Math::Vector4 I;
+        Math::Vector4 Z;
     };
 
     struct GPUGTTonemappingParameters {

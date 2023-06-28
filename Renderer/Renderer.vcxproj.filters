@@ -225,6 +225,9 @@
     <ClInclude Include="TAAPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="VolumetricCloudsPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -372,6 +375,9 @@
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="TAAPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumetricCloudsPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #pragma once
 #include <DirectStorage/dstorage.h>
 #include <vector>
-#include "RenderGraph.h"
+#include "Renderer/RenderGraph.h"
 
 namespace GHL {
 	class Device;

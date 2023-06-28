@@ -208,6 +208,8 @@ namespace Renderer {
 				switch (desc.dimension) {
 				case GHL::ETextureDimension::Texture1D:
 				case GHL::ETextureDimension::Texture2D:
+					subresourceCount = desc.mipLevals * desc.arraySize;
+					break;
 				case GHL::ETextureDimension::Texture3D:
 					subresourceCount = desc.mipLevals;
 					break;
