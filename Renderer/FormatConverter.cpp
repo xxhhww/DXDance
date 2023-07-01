@@ -26,6 +26,7 @@ namespace Renderer {
         DirectX::TexMetadata metadata{};
         metadata.width = textureDesc.width;
         metadata.height = textureDesc.height;
+        metadata.depth = textureDesc.depth;
         metadata.arraySize = textureDesc.arraySize;
         metadata.mipLevels = textureDesc.mipLevals;
         metadata.miscFlags =

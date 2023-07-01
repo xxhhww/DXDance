@@ -8,9 +8,9 @@ struct PassData {
 	uint heightScale;
 	uint culledPatchListIndex;
 	uint heightMapIndex;
+	uint albedoMapIndex;
 	uint normalMapIndex;
 	uint lodDebug;
-	float pad1;
 };
 
 #define PassDataType PassData
@@ -81,11 +81,18 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	return output;
 }
 
-float3 SampleNormal(float2 uv){
+float3 SampleAlbedo(float2 uv) {
+	Texture2D<float4> albedoMap = ResourceDescriptorHeap[PassDataCB.albedoMapIndex];
+	float3 albedo = albedoMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xyz;
+
+	return albedo;
+}
+
+float3 SampleNormal(float2 uv) {
 	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
 
     float3 normal;
-    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0).xy * 2.0f - 1.0f;
+    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xy * 2.0f - 1.0f;
     normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
 
     return normal;

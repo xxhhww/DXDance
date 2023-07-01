@@ -228,6 +228,9 @@
     <ClInclude Include="VolumetricCloudsPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="FixedTextureHelper.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -379,6 +382,9 @@
     </ClCompile>
     <ClCompile Include="VolumetricCloudsPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="FixedTextureHelper.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

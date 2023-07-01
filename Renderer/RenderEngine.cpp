@@ -1,5 +1,5 @@
 #include "Renderer/RenderEngine.h"
-#include "Renderer/FormatConverter.h"
+#include "Renderer/FixedTextureHelper.h"
 
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
@@ -31,6 +31,7 @@ namespace Renderer {
 		, mHeapAllocator(std::make_unique<BuddyHeapAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mCommandListAllocator(std::make_unique<PoolCommandListAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mDescriptorAllocator(std::make_unique<PoolDescriptorAllocator>(mDevice.get(), mFrameTracker.get(), std::vector<uint64_t>{1024, 128, 128, 128}))
+		, mResourceAllocator(std::make_unique<ResourceAllocator>(mFrameTracker.get()))
 		, mSharedMemAllocator(std::make_unique<LinearBufferAllocator>(mDevice.get(), mFrameTracker.get()))
 		, mGPUProfiler(std::make_unique<GPUProfiler>(mDevice.get(), mFrameTracker.get()))
 		, mShaderManger(std::make_unique<ShaderManger>(mDevice.get()))
@@ -135,6 +136,14 @@ namespace Renderer {
 
 		// 创建BlueNoise3D纹理
 		{
+			mBlueNoise3DMap = FixedTextureHelper::LoadFromFile(
+				mDevice.get(), mDescriptorAllocator.get(), mResourceAllocator.get(),
+				mUploaderEngine->GetMemoryCopyQueue(), mUploaderEngine->GetCopyFence(),
+				"E:/MyProject/DXDance/Resources/Textures/BlueNoise3D.dds");
+			mBlueNoise3DMapID = mRenderGraph->ImportResource("BlueNoise3DMap", mBlueNoise3DMap.Get());
+			mResourceStateTracker->StartTracking(mBlueNoise3DMap.Get());
+
+			/*
 			DirectX::ScratchImage baseImage;
 			HRASSERT(DirectX::LoadFromDDSFile(
 				L"E:/MyProject/DXDance/Resources/Textures/BlueNoise3D.dds",
@@ -205,6 +214,7 @@ namespace Renderer {
 			mBlueNoise3DMapID = mRenderGraph->ImportResource("BlueNoise3DMap", mBlueNoise3DMap.get());
 
 			mResourceStateTracker->StartTracking(mBlueNoise3DMap.get());
+			*/
 		}
 
 		// 初始化RenderPass

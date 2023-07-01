@@ -14,6 +14,7 @@
 #include "Renderer/BuddyHeapAllocator.h"
 #include "Renderer/PoolDescriptorAllocator.h"
 #include "Renderer/PoolCommandListAllocator.h"
+#include "Renderer/ResourceAllocator.h"
 #include "Renderer/LinearBufferAllocator.h"
 #include "Renderer/GPUProfiler.h"
 #include "Renderer/ShaderManger.h"
@@ -115,6 +116,7 @@ namespace Renderer {
 		std::unique_ptr<BuddyHeapAllocator>        mHeapAllocator;        // 池化的伙伴堆分配器
 		std::unique_ptr<PoolCommandListAllocator>  mCommandListAllocator; // 池化的命令列表分配器
 		std::unique_ptr<PoolDescriptorAllocator>   mDescriptorAllocator;  // 池化的描述符分配器
+		std::unique_ptr<ResourceAllocator>         mResourceAllocator;    // 池化的资源分配器
 		std::unique_ptr<LinearBufferAllocator>     mSharedMemAllocator;   // 线性的共享内存分配器(用于分配ConstantBuffer ShaderBuffer)
 
 		std::unique_ptr<GPUProfiler>			mGPUProfiler;			// Query RenderPass Data
@@ -139,7 +141,7 @@ namespace Renderer {
 		// ==========================...PipelineResources...==========================
 		std::unique_ptr<Texture> mFinalOutput;
 		RenderGraphResourceID mFinalOutputID;
-		std::unique_ptr<Texture> mBlueNoise3DMap;
+		TextureWrap mBlueNoise3DMap;
 		RenderGraphResourceID mBlueNoise3DMapID;
 
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };

@@ -6,6 +6,8 @@
 
 #include "DirectXTex/DirectXTex.h"
 
+#include "Renderer/FixedTextureHelper.h"
+
 #include "GHL/Box.h"
 
 namespace Renderer {
@@ -155,7 +157,7 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(consumeNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(appendNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(minmaxHeightMap.get(), GHL::EResourceState::NonPixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(minmaxHeightMap.Get(), GHL::EResourceState::NonPixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
@@ -370,6 +372,7 @@ namespace Renderer {
 				terrainRendererPassData.heightScale = worldHeightScale;
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.albedoMapIndex = 0u;
 				terrainRendererPassData.normalMapIndex = normalMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
@@ -389,7 +392,7 @@ namespace Renderer {
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
-				barrierBatch += commandBuffer.TransitionImmediately(heightMap.get(), GHL::EResourceState::PixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(heightMap.Get(), GHL::EResourceState::PixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 				
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
@@ -458,6 +461,7 @@ namespace Renderer {
 
 	void TerrainPass::InitializePass(RenderEngine* renderEngine) {
 		auto* device = renderEngine->mDevice.get();
+		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
 		auto* copyDsQueue = renderEngine->mUploaderEngine->GetMemoryCopyQueue();
 		auto* copyFence = renderEngine->mUploaderEngine->GetCopyFence();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
@@ -521,156 +525,39 @@ namespace Renderer {
 
 		// Load MinMaxHeightMap From Memory(目前读取的DDS文件，后续将DDS转换为XET)
 		{
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromDDSFile(
-				L"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap.dds",
-				DirectX::DDS_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-			
-
-			Renderer::TextureDesc _MinMaxHeightMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_MinMaxHeightMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
-			minmaxHeightMap = std::make_unique<Texture>(
-				device,
-				ResourceFormat{ device, _MinMaxHeightMapDesc },
-				descriptorAllocator,
-				nullptr
-				);
-
-			uint32_t subresourceCount = minmaxHeightMap->GetResourceFormat().SubresourceCount();
-			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
-			std::vector<uint32_t> numRows(subresourceCount);
-			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
-			uint64_t requiredSize = 0u;
-			auto d3dResDesc = minmaxHeightMap->GetResourceFormat().D3DResourceDesc();
-			device->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
-				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
-
-			// 上传数据到显存
-			for (uint32_t i = 0; i < subresourceCount; i++) {
-				auto* image = baseImage.GetImage(i, 0u, 0u);
-
-				uint8_t* temp = new uint8_t[placedLayouts.at(i).Footprint.RowPitch * numRows[i]];
-				for (uint32_t rowIndex = 0u; rowIndex < numRows[i]; rowIndex++) {
-					uint32_t realByteOffset = rowIndex * placedLayouts.at(i).Footprint.RowPitch;
-					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
-					memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
-				}
-
-				DSTORAGE_REQUEST request = {};
-				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-				request.Source.Memory.Source = temp;
-				request.Source.Memory.Size = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
-				request.Destination.Texture.Resource = minmaxHeightMap->D3DResource();
-				request.Destination.Texture.Region = GHL::Box {
-					0u, static_cast<uint32_t>(image->width), 
-					0u, static_cast<uint32_t>(image->height), 
-					0u, 1u
-				}.D3DBox();
-				request.Destination.Texture.SubresourceIndex = i;
-				request.UncompressedSize = placedLayouts.at(i).Footprint.RowPitch * numRows[i];
-
-				copyDsQueue->EnqueueRequest(&request);
-			}
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			baseImage.Release();
-
-			resourceStateTracker->StartTracking(minmaxHeightMap.get());
+			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap.dds");
+			resourceStateTracker->StartTracking(minmaxHeightMap.Get());
 		}
+
+		// Load AlbedoMap From File
+		/*
+		{
+			albedoMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/AlbedoMap.png"
+			);
+			resourceStateTracker->StartTracking(albedoMap.Get());
+		}
+		*/
 
 		// Load NormalMap From File
 		{
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromWICFile(
-				L"E:/MyProject/DXDance/Resources/Textures/NormalMap.png",
-				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-
-			Renderer::TextureDesc _NormalMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_NormalMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
-			normalMap = std::make_unique<Texture>(
-				device,
-				ResourceFormat{ device, _NormalMapDesc },
-				descriptorAllocator,
-				nullptr
-				);
-
-			// 上传数据到显存
-			DSTORAGE_REQUEST request = {};
-			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-			request.Source.Memory.Source = baseImage.GetPixels();
-			request.Source.Memory.Size = baseImage.GetPixelsSize();
-			request.Destination.Texture.Region = GHL::Box{
-				0u, _NormalMapDesc.width, 0u, _NormalMapDesc.height, 0u, _NormalMapDesc.depth
-			}.D3DBox();
-			request.Destination.Texture.SubresourceIndex = 0u;
-			request.Destination.Texture.Resource = normalMap->D3DResource();
-			request.UncompressedSize = baseImage.GetPixelsSize();
-
-			copyDsQueue->EnqueueRequest(&request);
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			baseImage.Release();
+			normalMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/NormalMap.png");
+			resourceStateTracker->StartTracking(normalMap.Get());
 		}
 		
 
 		// Load HeightMap From File
 		{
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromWICFile(
-				L"E:/MyProject/DXDance/Resources/Textures/HeightMap.png",
-				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-
-			Renderer::TextureDesc _HeightMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_HeightMapDesc.expectedState = GHL::EResourceState::PixelShaderAccess;
-			heightMap = std::make_unique<Texture>(
-				device,
-				ResourceFormat{ device, _HeightMapDesc },
-				descriptorAllocator,
-				nullptr
-				);
-
-			// 上传数据到显存
-			DSTORAGE_REQUEST request = {};
-			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-			request.Source.Memory.Source = baseImage.GetPixels();
-			request.Source.Memory.Size = baseImage.GetPixelsSize();
-			request.Destination.Texture.Region = GHL::Box{
-				0u, _HeightMapDesc.width, 0u, _HeightMapDesc.height, 0u, _HeightMapDesc.depth
-			}.D3DBox();
-			request.Destination.Texture.SubresourceIndex = 0u;
-			request.Destination.Texture.Resource = heightMap->D3DResource();
-			request.UncompressedSize = baseImage.GetPixelsSize();
-
-			copyDsQueue->EnqueueRequest(&request);
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			baseImage.Release();
-
-			resourceStateTracker->StartTracking(heightMap.get());
+			heightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/HeightMap.png"
+			);
+			resourceStateTracker->StartTracking(heightMap.Get());
 		}
 	}
 

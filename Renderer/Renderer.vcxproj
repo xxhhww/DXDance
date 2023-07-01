@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -202,6 +202,7 @@
     </ClInclude>
     <ClInclude Include="TerrainPass.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="FixedTextureHelper.h" />
     <ClInclude Include="TileUpdater.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
@@ -264,6 +265,7 @@
     </ClCompile>
     <ClCompile Include="TerrainPass.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="FixedTextureHelper.cpp" />
     <ClCompile Include="TileUpdater.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>

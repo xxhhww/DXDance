@@ -2,6 +2,7 @@
 #include <DirectStorage/dstorage.h>
 #include <vector>
 #include "Renderer/RenderGraph.h"
+#include "Renderer/ResourceAllocator.h"
 
 namespace GHL {
 	class Device;
@@ -48,9 +49,9 @@ namespace Renderer {
 			uint32_t heightScale{ 2048u };
 			uint32_t culledPatchListIndex;
 			uint32_t heightMapIndex;
+			uint32_t albedoMapIndex;
 			uint32_t normalMapIndex;
 			uint32_t lodDebug{ 0u };
-			float pad1;
 		};
 
 		struct NodeLocation {
@@ -80,10 +81,10 @@ namespace Renderer {
 		TerrainRendererPassData terrainRendererPassData;
 
 		std::unique_ptr<Renderer::Mesh> patchMesh;
-		std::unique_ptr<Renderer::Texture> minmaxHeightMap;
-		// std::unique_ptr<Renderer::Texture> albedoMap;
-		std::unique_ptr<Renderer::Texture> normalMap;
-		std::unique_ptr<Renderer::Texture> heightMap;
+		TextureWrap minmaxHeightMap;
+		TextureWrap albedoMap;
+		TextureWrap normalMap;
+		TextureWrap heightMap;
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
