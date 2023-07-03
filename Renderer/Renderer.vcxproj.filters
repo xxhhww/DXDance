@@ -231,6 +231,9 @@
     <ClInclude Include="FixedTextureHelper.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
+    <ClInclude Include="GenerateNoiseTask.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -384,6 +387,9 @@
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="FixedTextureHelper.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateNoiseTask.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,12 +1,7 @@
 #include "Renderer/VolumetricCloudsPass.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderGraphBuilder.h"
-
-#include "Renderer/FormatConverter.h"
-
-#include "DirectXTex/DirectXTex.h"
-
-#include "GHL/Box.h"
+#include "Renderer/FixedTextureHelper.h"
 
 namespace Renderer {
 
@@ -29,16 +24,17 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
-				auto* rawWeatherMap           = weatherMap.get();
-				auto* rawCloudMap             = cloudMap.get();
-				auto* rawWorleyMap            = worleyMap.get();
+				auto* blueNoise2DMap          = resourceStorage->GetResourceByName("BlueNoise2DMap")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* deferredLightshadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
+				
+				auto& blueNoise2DMapDesc          = blueNoise2DMap->GetResourceFormat().GetTextureDesc();
 				auto& deferredLightshadingOutDesc = deferredLightshadingOut->GetResourceFormat().GetTextureDesc();
 
-				// volumetricCloudsMainPassData.weatherMapIndex			= rawWeatherMap->GetSRDescriptor()->GetHeapIndex();
-				// volumetricCloudsMainPassData.cloudMapIndex			= rawCloudMap->GetSRDescriptor()->GetHeapIndex();
-				// volumetricCloudsMainPassData.worleyMapIndex			= rawWorleyMap->GetSRDescriptor()->GetHeapIndex();
+				volumetricCloudsMainPassData.weatherMapIndex			= weatherMap->GetSRDescriptor()->GetHeapIndex();
+				volumetricCloudsMainPassData.blueNoise2DMapIndex        = blueNoise2DMap->GetSRDescriptor()->GetHeapIndex();
+				volumetricCloudsMainPassData.blueNoise2DMapWidth        = blueNoise2DMapDesc.width;
+				volumetricCloudsMainPassData.blueNoise2DMapHeight       = blueNoise2DMapDesc.height;
 				volumetricCloudsMainPassData.gBufferViewDepthMapIndex	= gBufferViewDepth->GetSRDescriptor()->GetHeapIndex();
 				volumetricCloudsMainPassData.previousPassOutputMapIndex = deferredLightshadingOut->GetUADescriptor()->GetHeapIndex();
 				volumetricCloudsMainPassData.previousPassOutputWidth	= deferredLightshadingOutDesc.width;
@@ -74,81 +70,20 @@ namespace Renderer {
 
 	void VolumetricCloudsPass::InitializePass(RenderEngine* renderEngine) {
 		auto* device				= renderEngine->mDevice.get();
-		auto* copyDsQueue			= renderEngine->mUploaderEngine->GetMemoryCopyQueue();
+		auto* copyQueue			    = renderEngine->mUploaderEngine->GetMemoryCopyQueue();
 		auto* copyFence				= renderEngine->mUploaderEngine->GetCopyFence();
 		auto* descriptorAllocator	= renderEngine->mDescriptorAllocator.get();
+		auto* resourceAllocator     = renderEngine->mResourceAllocator.get();
 		auto* resourceStateTracker	= renderEngine->mResourceStateTracker.get();
 		auto* renderGraph			= renderEngine->mRenderGraph.get();
 
-		// Load cloud From Memory(目前读取的DDS文件，后续将DDS转换为XET)
-		/*
+		// Load Weather From File
 		{
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromDDSFile(
-				L"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/cloud.dds",
-				DirectX::DDS_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-
-
-			Renderer::TextureDesc _CloudMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_CloudMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
-			cloudMap = std::make_unique<Texture>(
-				device,
-				ResourceFormat{ device, _CloudMapDesc },
-				descriptorAllocator,
-				nullptr
-				);
-
-			// 获取纹理GPU存储信息
-			uint32_t subresourceCount = cloudMap->GetResourceFormat().SubresourceCount();
-			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
-			std::vector<uint32_t> numRows(subresourceCount);
-			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
-			uint64_t requiredSize = 0u;
-			auto d3dResDesc = cloudMap->GetResourceFormat().D3DResourceDesc();
-			device->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, 1u, 0u,
-				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
-
-			// 上传数据至显存
-			uint8_t* temp = new uint8_t[requiredSize];
-			for (uint32_t subresourceIndex = 0u; subresourceIndex < subresourceCount; subresourceIndex++) {
-				for (uint32_t sliceIndex = 0u; sliceIndex < d3dResDesc.DepthOrArraySize; sliceIndex++) {
-					auto* image = baseImage.GetImage(0u, 0u, sliceIndex);
-
-					for (uint32_t rowIndex = 0u; rowIndex < numRows[subresourceIndex]; rowIndex++) {
-						uint32_t realByteOffset = rowIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch + sliceIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch * numRows[subresourceIndex];
-						uint32_t fakeByteOffset = rowIndex * image->rowPitch;
-						memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
-					}
-				}
-
-				DSTORAGE_REQUEST request = {};
-				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-				request.Source.Memory.Source = temp;
-				request.Source.Memory.Size = requiredSize;
-				request.Destination.Texture.Resource = cloudMap->D3DResource();
-				request.Destination.Texture.Region = GHL::Box{
-					0u, placedLayouts.at(subresourceIndex).Footprint.Width,
-					0u, placedLayouts.at(subresourceIndex).Footprint.Height,
-					0u, placedLayouts.at(subresourceIndex).Footprint.Depth
-				}.D3DBox();
-				request.Destination.Texture.SubresourceIndex = subresourceIndex;
-				request.UncompressedSize = requiredSize;
-				copyDsQueue->EnqueueRequest(&request);
-			}
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-			baseImage.Release();
-
-			resourceStateTracker->StartTracking(cloudMap.get());
+			weatherMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyQueue, copyFence, 
+				"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/Weather.dds");
+			resourceStateTracker->StartTracking(weatherMap.Get());
 		}
-		*/
 	}
 
 }

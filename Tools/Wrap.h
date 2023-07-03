@@ -24,8 +24,12 @@ namespace Tool {
 			}
 		}
 
-		T* operator->() { return mWrapResource; }
-		T* Get() const { return mWrapResource; }
+		inline operator T* ()		{ return mWrapResource; }
+		inline operator T* () const { return mWrapResource; }
+
+		inline T* operator->() { return mWrapResource; }
+		
+		inline T* Get() const { return mWrapResource; }
 
 		inline void Release() {
 			if (mDeletedCallBack != nullptr) {

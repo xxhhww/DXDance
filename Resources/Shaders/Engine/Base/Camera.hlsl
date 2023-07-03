@@ -32,6 +32,20 @@ struct Camera {
     float4 Planes[6];
 };
 
+float LinearizeDepth(float hyperbolicDepth, Camera camera) {
+    float n = camera.NearPlane;
+    float f = camera.FarPlane;
+
+    return n * f / (f + hyperbolicDepth * (n - f));
+}
+
+float HyperbolizeDepth(float linearDepth, Camera camera) {
+    float n = camera.NearPlane;
+    float f = camera.FarPlane;
+
+    return (((n * f) / linearDepth) - f) / (n - f);
+}
+
 float3 NDCDepthToViewPosition(
     float hyperbolicDepth, // Depth value after viewport transformation in [0; 1] range
     float2 ssuv, // Normalized screen-space (texture) coordinates [0; 1]
@@ -55,10 +69,15 @@ float3 NDCDepthToWorldPosition(
     float hyperbolicDepth, // Depth value after viewport transformation in [0; 1] range
     float2 ssuv, // Normalized screen-space (texture) coordinates [0; 1]
     Camera camera) {
-    float4 viewSpacePosition = float4(NDCDepthToViewPosition(hyperbolicDepth, ssuv, camera), 1.0);
+    float4 viewSpacePosition = float4(NDCDepthToViewPosition(hyperbolicDepth, ssuv, camera), 1.0f);
     float4 worldSpacePosition = mul(viewSpacePosition, camera.InverseView);
 
     return worldSpacePosition.xyz;
+}
+
+float3 ViewDepthToWorldPosition(float viewDepth, float2 ssuv, Camera camera) {
+    float hyperbolicDepth = HyperbolizeDepth(viewDepth, camera);
+    return NDCDepthToWorldPosition(hyperbolicDepth, ssuv, camera);
 }
 
 #endif

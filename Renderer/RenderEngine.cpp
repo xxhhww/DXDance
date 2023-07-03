@@ -139,82 +139,16 @@ namespace Renderer {
 			mBlueNoise3DMap = FixedTextureHelper::LoadFromFile(
 				mDevice.get(), mDescriptorAllocator.get(), mResourceAllocator.get(),
 				mUploaderEngine->GetMemoryCopyQueue(), mUploaderEngine->GetCopyFence(),
-				"E:/MyProject/DXDance/Resources/Textures/BlueNoise3D.dds");
+				"E:/MyProject/DXDance/Resources/Textures/Common/BlueNoise3D.dds");
 			mBlueNoise3DMapID = mRenderGraph->ImportResource("BlueNoise3DMap", mBlueNoise3DMap.Get());
 			mResourceStateTracker->StartTracking(mBlueNoise3DMap.Get());
 
-			/*
-			DirectX::ScratchImage baseImage;
-			HRASSERT(DirectX::LoadFromDDSFile(
-				L"E:/MyProject/DXDance/Resources/Textures/BlueNoise3D.dds",
-				DirectX::DDS_FLAGS_NONE,
-				nullptr,
-				baseImage
-			));
-
-			Renderer::TextureDesc _BlueNoise3DMapDesc = FormatConverter::GetTextureDesc(baseImage.GetMetadata());
-			_BlueNoise3DMapDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::PixelShaderAccess;
-			mBlueNoise3DMap = std::make_unique<Texture>(
-				mDevice.get(),
-				ResourceFormat{ mDevice.get(), _BlueNoise3DMapDesc },
-				mDescriptorAllocator.get(),
-				nullptr
-				);
-
-			// 获取纹理GPU存储信息
-			uint32_t subresourceCount = mBlueNoise3DMap->GetResourceFormat().SubresourceCount();
-			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
-			std::vector<uint32_t> numRows(subresourceCount);
-			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
-			uint64_t requiredSize = 0u;
-			auto d3dResDesc = mBlueNoise3DMap->GetResourceFormat().D3DResourceDesc();
-			mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, 1u, 0u,
-				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
-
-			// 上传数据至显存
-			uint8_t* temp = new uint8_t[requiredSize];
-			auto* copyDsQueue = mUploaderEngine->GetMemoryCopyQueue();
-			auto* copyFence = mUploaderEngine->GetCopyFence();
-			for (uint32_t subresourceIndex = 0u; subresourceIndex < subresourceCount; subresourceIndex++) {
-				for (uint32_t sliceIndex = 0u; sliceIndex < d3dResDesc.DepthOrArraySize; sliceIndex++) {
-					auto* image = baseImage.GetImage(0u, 0u, sliceIndex);
-
-					for (uint32_t rowIndex = 0u; rowIndex < numRows[subresourceIndex]; rowIndex++) {
-						uint32_t realByteOffset = rowIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch + sliceIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch * numRows[subresourceIndex];
-						uint32_t fakeByteOffset = rowIndex * image->rowPitch;
-						memcpy(temp + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
-					}
-				}
-
-				DSTORAGE_REQUEST request = {};
-				request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-				request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-				request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-				request.Source.Memory.Source = temp;
-				request.Source.Memory.Size = requiredSize;
-				request.Destination.Texture.Resource = mBlueNoise3DMap->D3DResource();
-				request.Destination.Texture.Region = GHL::Box {
-					0u, placedLayouts.at(subresourceIndex).Footprint.Width,
-					0u, placedLayouts.at(subresourceIndex).Footprint.Height,
-					0u, placedLayouts.at(subresourceIndex).Footprint.Depth
-				}.D3DBox();
-				request.Destination.Texture.SubresourceIndex = subresourceIndex;
-				request.UncompressedSize = requiredSize;
-
-				copyDsQueue->EnqueueRequest(&request);
-			}
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			baseImage.Release();
-
-			mBlueNoise3DMap->SetDebugName("BlueNoise3DMap");
-			mBlueNoise3DMapID = mRenderGraph->ImportResource("BlueNoise3DMap", mBlueNoise3DMap.get());
-
-			mResourceStateTracker->StartTracking(mBlueNoise3DMap.get());
-			*/
+			mBlueNoise2DMap = FixedTextureHelper::LoadFromFile(
+				mDevice.get(), mDescriptorAllocator.get(), mResourceAllocator.get(),
+				mUploaderEngine->GetMemoryCopyQueue(), mUploaderEngine->GetCopyFence(),
+				"E:/MyProject/DXDance/Resources/Textures/Common/BlueNoise2D.dds");
+			mBlueNoise2DMapID = mRenderGraph->ImportResource("BlueNoise2DMap", mBlueNoise2DMap.Get());
+			mResourceStateTracker->StartTracking(mBlueNoise2DMap.Get());
 		}
 
 		// 初始化RenderPass
@@ -276,6 +210,7 @@ namespace Renderer {
 		gpuCurrentEditorCamera.viewProjection		= editorCamera.viewProjMatrix.Transpose();
 		gpuCurrentEditorCamera.inverseView			= editorCamera.viewMatrix.Inverse().Transpose();
 		gpuCurrentEditorCamera.inverseProjection	= editorCamera.projMatrix.Inverse().Transpose();
+		gpuCurrentEditorCamera.nearPlane			= editorCamera.frustum.nearZ;
 		gpuCurrentEditorCamera.farPlane				= editorCamera.frustum.farZ;
 		gpuCurrentEditorCamera.jitter				= jitter.jitterMatrix;
 		gpuCurrentEditorCamera.uvJitter				= jitter.uvJitter;
@@ -297,6 +232,7 @@ namespace Renderer {
 				gpuCurrentRenderCamera.viewProjection		= camera.viewProjMatrix.Transpose();
 				gpuCurrentRenderCamera.inverseView			= camera.viewMatrix.Inverse().Transpose();
 				gpuCurrentRenderCamera.inverseProjection	= camera.projMatrix.Inverse().Transpose();
+				gpuCurrentRenderCamera.nearPlane			= camera.frustum.nearZ;
 				gpuCurrentRenderCamera.farPlane				= camera.frustum.farZ;
 				gpuCurrentRenderCamera.jitter				= jitter.jitterMatrix;
 				gpuCurrentRenderCamera.uvJitter				= jitter.uvJitter;

@@ -51,13 +51,15 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	uint2 pixelIndex = dispatchThreadID.xy;
 	float2 pixelUV = TexelIndexToUV(pixelIndex, PassDataCB.finalOutputMapSize);
 	
+	float viewDepth = gBufferViewDepthMap[pixelIndex].x;
+
 	GBufferSurface gBufferSurface;
 	gBufferSurface.albedo    = gBufferAlbedoMetalnessMap[pixelIndex].xyz;
-	gBufferSurface.position  = gBufferPositionEmissionMap[pixelIndex].xyz;
+	// gBufferSurface.position  = gBufferPositionEmissionMap[pixelIndex].xyz;
+	gBufferSurface.position  = ViewDepthToWorldPosition(viewDepth, pixelUV, FrameDataCB.CurrentEditorCamera);
 	gBufferSurface.normal    = gBufferNormalRoughnessMap[pixelIndex].xyz;
 	gBufferSurface.roughness = gBufferNormalRoughnessMap[pixelIndex].w;
 	gBufferSurface.metalness = gBufferAlbedoMetalnessMap[pixelIndex].w;
-	float viewDepth = gBufferViewDepthMap[pixelIndex].x;
 
 	ShadingResult shadingResult = ZeroShadingResult();
 
