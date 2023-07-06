@@ -62,7 +62,9 @@ namespace Renderer {
 		/*
 		* ¸üÐÂRootConstantsPerFrame
 		*/
-		void Update(float dt, const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform);
+		void Update(
+			float deltaTime, float totalTime,
+			const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform);
 
 		void Render();
 

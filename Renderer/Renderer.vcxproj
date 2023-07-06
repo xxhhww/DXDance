@@ -169,7 +169,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="GenerateNoiseTask.h" />
+    <ClInclude Include="GenerateCloudNoiseTask.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="TAAPass.h" />
@@ -227,7 +227,7 @@
     <ClCompile Include="FileHandle.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
-    <ClCompile Include="GenerateNoiseTask.cpp" />
+    <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />

@@ -231,7 +231,7 @@
     <ClInclude Include="FixedTextureHelper.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
-    <ClInclude Include="GenerateNoiseTask.h">
+    <ClInclude Include="GenerateCloudNoiseTask.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
   </ItemGroup>
@@ -389,7 +389,7 @@
     <ClCompile Include="FixedTextureHelper.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
-    <ClCompile Include="GenerateNoiseTask.cpp">
+    <ClCompile Include="GenerateCloudNoiseTask.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>

@@ -2,7 +2,9 @@
 #include "Renderer/RenderGraph.h"
 #include "Renderer/RenderGraphBuilder.h"
 #include "Renderer/CommandBuffer.h"
+
 #include "Renderer/TerrainOfflineTask.h"
+#include "Renderer/GenerateCloudNoiseTask.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -144,7 +146,7 @@ void RunRenderer() {
     editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
-    editorTransform.worldPosition.y = 1000.0f;
+    editorTransform.worldPosition.y = 900.0f;
     editorTransform.worldPosition.z = 0.0f;
 
     // MainCamera(RenderCamera)
@@ -265,7 +267,7 @@ void RunRenderer() {
             updateCameraMatrix(camera, transform);
             });
 
-        renderEngine.Update(0.0f, editorCamera, editorTransform);
+        renderEngine.Update(clock.GetDeltaTime(), clock.GetTimeSinceStart(), editorCamera, editorTransform);
         renderEngine.Render();
 
         inputManger.PostUpdate();
@@ -274,7 +276,7 @@ void RunRenderer() {
     }
 }
 
-void DoOfflineTask() {
+void DoTerrainOfflineTask() {
     GHL::EnableDebugLayer();
 
     WindowSetting setting{};
@@ -321,7 +323,53 @@ void DoOfflineTask() {
 
 }
 
+void DoGenerateCloudNoiseTask() {
+    GHL::EnableDebugLayer();
+
+    WindowSetting setting{};
+    setting.width = sWindowWidth;
+    setting.height = sWindowHeight;
+    setting.fullscreen = false;
+    setting.maximized = false;
+    Window window{ setting };
+
+    RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
+
+    GenerateCloudNoiseTask _GenerateCloudNoiseTask;
+
+    _GenerateCloudNoiseTask.Initialize(&renderEngine);
+    renderEngine.mOfflineTaskPass += std::bind(
+        &GenerateCloudNoiseTask::Generate, &_GenerateCloudNoiseTask,
+        std::placeholders::_1, std::placeholders::_2);
+
+    renderEngine.mOfflineCompletedCallback += std::bind(
+        &GenerateCloudNoiseTask::OnCompleted, &_GenerateCloudNoiseTask
+    );
+
+    Tool::Clock clock;
+    bool done = false;
+    while (!done) {
+        // Poll and handle messages (inputs, window resize, etc.)
+        // See the WndProc() function below for our to dispatch events to the Win32 backend.
+        MSG msg;
+        while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) {
+                done = true;
+            }
+            ::TranslateMessage(&msg);
+            ::DispatchMessage(&msg);
+        }
+        if (done) {
+            break;
+        }
+
+        renderEngine.DoOfflineTask();
+        clock.Update();
+    }
+}
+
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     RunRenderer();
-    // DoOfflineTask();
+    // DoTerrainOfflineTask();
+    // DoGenerateCloudNoiseTask();
 }

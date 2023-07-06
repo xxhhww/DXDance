@@ -61,5 +61,8 @@
     <FxCompile Include="Shaders\Engine\Base\GroupsharedMemoryHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\VolumetricCloudsPass.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\VolumetricCloudsHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\VolumetricClouds\ShapeNoiseGenerator.hlsl" />
+    <FxCompile Include="Shaders\Engine\VolumetricClouds\DetailNoiseGenerator.hlsl" />
+    <FxCompile Include="Shaders\Engine\VolumetricClouds\NoiseGeneratorHelper.hlsl" />
   </ItemGroup>
 </Project>

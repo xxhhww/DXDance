@@ -13,9 +13,12 @@ struct FrameData {
 
     float2 FinalRTResolution;
     float2 FinalRTResolutionInv;
+
+    float4 WindParameters;
+
     uint   LightSize;
-    float  pad1;
-    float  pad2;
+    float  DeltaTime;
+    float  TotalTime;
     float  pad3;
 };
 

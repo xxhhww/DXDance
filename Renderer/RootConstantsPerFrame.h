@@ -16,10 +16,13 @@ namespace Renderer {
 
 		Math::Vector2 finalRTResolution;
 		Math::Vector2 finalRTResolutionInv;
+		
+		Math::Vector4 windParameters;
+
 		uint32_t lightSize;
+		float deltaTime;
+		float totalTime;
 		float pad1;
-		float pad2;
-		float pad3;
 	};
 
 }

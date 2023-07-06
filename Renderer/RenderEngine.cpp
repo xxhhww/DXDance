@@ -183,15 +183,20 @@ namespace Renderer {
 
 	}
 
-	void RenderEngine::Update(float dt, const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform) {
+	void RenderEngine::Update(
+		float deltaTime, float totalTime, 
+		const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform) {
 		// 清理工作
 		mPipelineResourceStorage->rootLightDataPerFrame.clear();
 		
 		// 更新工作
-		mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolution = Math::Vector2{ 
-			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
-		};
-		mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolutionInv = 1.0f / mPipelineResourceStorage->rootConstantsPerFrame.finalRTResolution;
+		auto& rootConstantsPerFrame = mPipelineResourceStorage->rootConstantsPerFrame;
+
+		rootConstantsPerFrame.deltaTime = deltaTime;
+		rootConstantsPerFrame.totalTime = totalTime;
+		rootConstantsPerFrame.windParameters = Math::Vector4{ 1.0f, 0.0f, 0.0f, 10.0f };
+		rootConstantsPerFrame.finalRTResolution    = Math::Vector2{ static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight) };
+		rootConstantsPerFrame.finalRTResolutionInv = 1.0f / rootConstantsPerFrame.finalRTResolution;
 
 		static uint32_t cameraJitterFrameIndex = 0u;
 		static uint32_t taaSampleCount = 16u;
@@ -199,8 +204,8 @@ namespace Renderer {
 			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
 		});
 
-		auto& gpuPreviousEditorCamera = mPipelineResourceStorage->rootConstantsPerFrame.previousEditorCamera;
-		auto& gpuCurrentEditorCamera  = mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera;
+		auto& gpuPreviousEditorCamera = rootConstantsPerFrame.previousEditorCamera;
+		auto& gpuCurrentEditorCamera  = rootConstantsPerFrame.currentEditorCamera;
 		if (!mFrameTracker->IsFirstFrame()) {
 			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
 		}
@@ -221,8 +226,8 @@ namespace Renderer {
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
-				auto& gpuPreviousRenderCamera = mPipelineResourceStorage->rootConstantsPerFrame.previousRenderCamera;
-				auto& gpuCurrentRenderCamera  = mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera;
+				auto& gpuPreviousRenderCamera = rootConstantsPerFrame.previousRenderCamera;
+				auto& gpuCurrentRenderCamera  = rootConstantsPerFrame.currentRenderCamera;
 				if (!mFrameTracker->IsFirstFrame()) {
 					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
 				}

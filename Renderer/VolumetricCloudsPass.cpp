@@ -32,6 +32,8 @@ namespace Renderer {
 				auto& deferredLightshadingOutDesc = deferredLightshadingOut->GetResourceFormat().GetTextureDesc();
 
 				volumetricCloudsMainPassData.weatherMapIndex			= weatherMap->GetSRDescriptor()->GetHeapIndex();
+				volumetricCloudsMainPassData.shapeNoiseMapIndex			= shapeNoiseMap->GetSRDescriptor()->GetHeapIndex();
+				volumetricCloudsMainPassData.detailNoiseMapIndex		= detailNoiseMap->GetSRDescriptor()->GetHeapIndex();
 				volumetricCloudsMainPassData.blueNoise2DMapIndex        = blueNoise2DMap->GetSRDescriptor()->GetHeapIndex();
 				volumetricCloudsMainPassData.blueNoise2DMapWidth        = blueNoise2DMapDesc.width;
 				volumetricCloudsMainPassData.blueNoise2DMapHeight       = blueNoise2DMapDesc.height;
@@ -77,12 +79,25 @@ namespace Renderer {
 		auto* resourceStateTracker	= renderEngine->mResourceStateTracker.get();
 		auto* renderGraph			= renderEngine->mRenderGraph.get();
 
-		// Load Weather From File
 		{
 			weatherMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyQueue, copyFence, 
-				"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/Weather.dds");
+				"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/weather.dds");
 			resourceStateTracker->StartTracking(weatherMap.Get());
+		}
+
+		{
+			shapeNoiseMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/ShapeNoiseMap.dds");
+			resourceStateTracker->StartTracking(shapeNoiseMap.Get());
+		}
+
+		{
+			detailNoiseMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/VolumetricClouds/worley.dds");
+			resourceStateTracker->StartTracking(detailNoiseMap.Get());
 		}
 	}
 

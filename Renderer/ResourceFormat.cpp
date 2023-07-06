@@ -192,9 +192,18 @@ namespace Renderer {
 		}
 		else {
 			// 查询ResourceDesc需求的显存
+			uint32_t subresourceCount = SubresourceCount();
+			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+			std::vector<uint32_t> numRows(subresourceCount);
+			std::vector<uint64_t> rowSizeInBytes(subresourceCount);
+			uint64_t requiredSize = 0u;
+			mDevice->D3DDevice()->GetCopyableFootprints(&mResourceDesc, 0u, subresourceCount, 0u,
+				placedLayouts.data(), numRows.data(), rowSizeInBytes.data(), &requiredSize);
+
 			D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
+			
 			mAlignment = allocInfo.Alignment;
-			mSizeInBytes = allocInfo.SizeInBytes;
+			mSizeInBytes = requiredSize;
 
 			mResourceDesc.Alignment = mAlignment;
 		}
