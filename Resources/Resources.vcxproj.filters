@@ -64,5 +64,8 @@
     <FxCompile Include="Shaders\Engine\VolumetricClouds\ShapeNoiseGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\DetailNoiseGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\NoiseGeneratorHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainPlacement.hlsl" />
+    <FxCompile Include="Shaders\Engine\Foliage\FoliageRenderer.hlsl" />
+    <FxCompile Include="Shaders\Engine\Foliage\FoliageHelper.hlsl" />
   </ItemGroup>
 </Project>

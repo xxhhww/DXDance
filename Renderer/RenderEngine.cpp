@@ -210,6 +210,7 @@ namespace Renderer {
 			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
 		}
 		gpuCurrentEditorCamera.position				= cameraTransform.worldPosition;
+		gpuCurrentEditorCamera.lookUp				= Math::Vector4{ editorCamera.lookUp, 1.0f };
 		gpuCurrentEditorCamera.view					= editorCamera.viewMatrix.Transpose();
 		gpuCurrentEditorCamera.projection			= editorCamera.projMatrix.Transpose();
 		gpuCurrentEditorCamera.viewProjection		= editorCamera.viewProjMatrix.Transpose();
@@ -232,6 +233,7 @@ namespace Renderer {
 					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
 				}
 				gpuCurrentRenderCamera.position				= transform.worldPosition;
+				gpuCurrentRenderCamera.lookUp				= Math::Vector4{ camera.lookUp, 1.0f };
 				gpuCurrentRenderCamera.view					= camera.viewMatrix.Transpose();
 				gpuCurrentRenderCamera.projection			= camera.projMatrix.Transpose();
 				gpuCurrentRenderCamera.viewProjection		= camera.viewProjMatrix.Transpose();

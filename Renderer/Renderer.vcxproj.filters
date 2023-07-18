@@ -234,6 +234,9 @@
     <ClInclude Include="GenerateCloudNoiseTask.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
+    <ClInclude Include="FoliagePass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -391,6 +394,9 @@
     </ClCompile>
     <ClCompile Include="GenerateCloudNoiseTask.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="FoliagePass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

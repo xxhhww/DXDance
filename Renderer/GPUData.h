@@ -7,6 +7,7 @@ namespace Renderer {
 
     struct GPUCamera {
         Math::Vector4 position;
+        Math::Vector4 lookUp;
         // 16 byte boundary
         Math::Matrix4 view;
         Math::Matrix4 projection;

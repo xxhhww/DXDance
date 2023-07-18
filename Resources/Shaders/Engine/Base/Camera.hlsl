@@ -3,6 +3,7 @@
 
 struct Camera {
     float4 Position;
+    float4 LookUp;
     // 16 byte boundary
     float4x4 View;
     float4x4 Projection;

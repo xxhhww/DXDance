@@ -194,7 +194,7 @@ float4 RaymarchToCloud(
         float currentLum = 0.0f;
 
         if (density > 0.0f) {
-        /*
+            /*
             float transmittanceAlongLightDir = RaymarchToLight(pos, deltaStep * 0.1f, wsLightDir.rgb);
 
             float scattering = max(lerp(HenyeyGreenstein(LdotV, -0.08f), HenyeyGreenstein(LdotV, 0.08f), clamp(LdotV * 0.5f + 0.5f, 0.0f, 1.0f)), 1.0f);

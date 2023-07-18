@@ -61,7 +61,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	float height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
 	input.lsPos.y = height * PassDataCB.heightScale;
 
-	// 地形不会变化，因此currWsPos与prevWsPos是一样的
+	// 地形位置不会变化，因此currWsPos与prevWsPos是一样的
 	float3 currWsPos = input.lsPos;
 	float3 prevWsPos = input.lsPos;
 

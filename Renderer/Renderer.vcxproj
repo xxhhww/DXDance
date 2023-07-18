@@ -161,6 +161,7 @@
     </ClInclude>
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="FileHandle.h" />
+    <ClInclude Include="FoliagePass.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GPUData.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="DirectStorageTest.cpp" />
     <ClCompile Include="FileHandle.cpp" />
+    <ClCompile Include="FoliagePass.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
