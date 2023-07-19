@@ -32,9 +32,4 @@ struct BoundingBox {
     float4 maxPosition;
 };
 
-struct Placement {
-	float3 position;	// 安置点的位置
-	float3 normal;		// 安置点的法线
-}
-
 #endif

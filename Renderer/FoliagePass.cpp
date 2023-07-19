@@ -1,10 +1,23 @@
 #include "Renderer/FoliagePass.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderGraphBuilder.h"
+#include "Renderer/FixedTextureHelper.h"
 
 namespace Renderer {
 
+	struct IndirectDrawIndexed {
+		D3D12_GPU_VIRTUAL_ADDRESS    frameDataAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS    passDataAddress;
+		D3D12_VERTEX_BUFFER_VIEW     vertexBufferView;
+		D3D12_INDEX_BUFFER_VIEW      indexBufferView;
+		D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;
+	};
+
 	void FoliagePass::AddPass(RenderGraph& renderGraph) {
+
+		auto& finalOutputDesc =
+			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
 		renderGraph.AddPass(
 			"FoliageRenderer",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
@@ -17,10 +30,24 @@ namespace Renderer {
 				builder.WriteRenderTarget("GBufferViewDepth");
 				builder.WriteDepthStencil("GBufferDepthStencil");
 
+				NewBufferProperties _FoliagePlacementBufferProperties{};
+				_FoliagePlacementBufferProperties.stride = sizeof(Placement);
+				_FoliagePlacementBufferProperties.size = smMaxPlacementSize * _FoliagePlacementBufferProperties.stride;
+				_FoliagePlacementBufferProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				builder.DeclareBuffer("FoliagePlacementBuffer", _FoliagePlacementBufferProperties);
+				builder.WriteBuffer("FoliagePlacementBuffer");
+
+				NewBufferProperties _FoliageRendererIndirectArgsProperties{};
+				_FoliageRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
+				_FoliageRendererIndirectArgsProperties.size	= 1u * _FoliageRendererIndirectArgsProperties.stride;
+				_FoliageRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_FoliageRendererIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("FoliageRendererIndirectArgs", _FoliageRendererIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("FoliageRendererIndirectArgs");
+
 				shaderManger.CreateGraphicsShader("FoliageRenderer",
 					[](GraphicsStateProxy& proxy) {
 						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Foliage/FoliageRenderer.hlsl";
-						proxy.gsFilepath = proxy.vsFilepath;
 						proxy.psFilepath = proxy.vsFilepath;
 
 						proxy.depthStencilDesc.DepthEnable = true;
@@ -33,13 +60,93 @@ namespace Renderer {
 							DXGI_FORMAT_R32_FLOAT
 						};
 					});
+
+				commandSignatureManger.CreateCommandSignature("FoliageRenderer",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });	// FrameDataCB
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });	// PassDataCB
+						proxy.AddIndirectArgument(GHL::IndirectVertexBufferViewArgument{});			// VertexBuffer
+						proxy.AddIndirectArgument(GHL::IndirectIndexBufferViewArgument{});			// IndexBuffer
+						proxy.AddIndirectArgument(GHL::IndirectDrawIndexedArgument{});				// DrawIndexed
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDrawIndexed));
+					});
+
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
-				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
+				auto* gBufferAlbedoMetalness	= resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission	= resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness	= resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector		= resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
+				auto* gBufferViewDepth			= resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* gBufferDepthStencil		= resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+				auto* placementBuffer			= resourceStorage->GetResourceByName("FoliagePlacementBuffer")->GetBuffer();
+				auto* indirectArgs				= resourceStorage->GetResourceByName("FoliageRendererIndirectArgs")->GetBuffer();
+				
+				foliagePassData.placementBufferIndex = placementBuffer->GetUADescriptor()->GetHeapIndex();
 
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(FoliagePassData));
+				memcpy(passDataAlloc.cpuAddress, &foliagePassData, sizeof(FoliagePassData));
+
+				IndirectDrawIndexed indirectDrawIndexed{};
+				indirectDrawIndexed.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectDrawIndexed.passDataAddress  = passDataAlloc.gpuAddress;
+				indirectDrawIndexed.vertexBufferView = foliageQuadMesh->GetVertexBuffer()->GetVBDescriptor();
+				indirectDrawIndexed.indexBufferView  = foliageQuadMesh->GetIndexBuffer()->GetIBDescriptor();
+				indirectDrawIndexed.drawIndexedArguments.IndexCountPerInstance = foliageQuadMesh->GetIndexCount();
+				indirectDrawIndexed.drawIndexedArguments.InstanceCount = 0u;
+				indirectDrawIndexed.drawIndexedArguments.StartIndexLocation = 0u;
+				indirectDrawIndexed.drawIndexedArguments.BaseVertexLocation = 0u;
+				indirectDrawIndexed.drawIndexedArguments.StartInstanceLocation = 0u;
+
+				// 更新placementBuffer
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.UploadBufferRegion(placementBuffer, 0u, placements.data(), placements.size() * sizeof(Placement));
+				commandBuffer.ClearCounterBuffer(placementBuffer, placements.size());
+
+				// 更新indirectArgs
+				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
+				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
+
+				commandBuffer.CopyBufferRegion(indirectArgs,
+					sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 2u + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT),
+					placementBuffer->GetCounterBuffer(), 0u, sizeof(uint32_t));
+
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer, GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				uint16_t width  = static_cast<uint16_t>(finalOutputDesc.width);
+				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
+				commandBuffer.SetRenderTargets(
+					{
+						gBufferAlbedoMetalness,
+						gBufferPositionEmission,
+						gBufferNormalRoughness,
+						gBufferMotionVector,
+						gBufferViewDepth
+					},
+					gBufferDepthStencil);
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+				commandBuffer.SetGraphicsRootSignature();
+				commandBuffer.SetGraphicsPipelineState("FoliageRenderer");
+				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				commandBuffer.ExecuteIndirect("FoliageRenderer", indirectArgs, 1u);
 			}
 			);
 	}
@@ -52,64 +159,38 @@ namespace Renderer {
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
 
-		// 加载placementBuffer
-		{
-			// 创建placementBuffer
-			Renderer::BufferDesc placementBufferDesc{};
-			placementBufferDesc.stride = sizeof(Placement);
-			placementBufferDesc.size = placementBufferDesc.stride * smMaxPlacementSize;
-			placementBufferDesc.usage = GHL::EResourceUsage::Default;
-			placementBufferDesc.expectedState = GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::UnorderedAccess;
-
-			placementBuffer = resourceAllocator->Allocate(device, placementBufferDesc, descriptorAllocator, nullptr);
-
-			// 填充placementBuffer的CPU临时数据
-			uint32_t placementSize = 1u;
-			std::vector<Placement> placements;
-			placements.resize(placementSize);
-			for (uint32_t i = 0; i < placementSize; i++) {
-				auto& placement = placements.at(i);
-				placement.position = Math::Vector4{ i, i, i, 0 };
-				placement.normal = Math::Vector4{ 0, 0, 0, 0 };
-				placement.modelTrans = Math::Matrix4{};
-			}
-
-			// 将数据上传至placementBuffer
-			DSTORAGE_REQUEST request = {};
-
-			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
-			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
-			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_BUFFER;
-
-			request.Source.Memory.Source = static_cast<void*>(placements.data());
-			request.Source.Memory.Size = placements.size() * sizeof(Placement);
-			request.Destination.Buffer.Resource = placementBuffer->D3DResource();
-			request.Destination.Buffer.Offset = 0u;
-			request.Destination.Buffer.Size = placements.size() * sizeof(Placement);
-			request.UncompressedSize = placements.size() * sizeof(Placement);
-
-			copyDsQueue->EnqueueRequest(&request);
-			copyFence->IncrementExpectedValue();
-			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
-			copyDsQueue->Submit();
-			copyFence->Wait();
-
-			placementBuffer->SetDebugName("FoliagePlacementBuffer");
-			resourceStateTracker->StartTracking(placementBuffer);
-		}
-
 		// 加载FoliageQuadMesh
 		{
 			foliageQuadModel = std::make_unique<Model>(
 				device, descriptorAllocator, nullptr, 
-				"E:/MyProject/DXDance/Resources/Models/Vegetation/Foliage/foliage_quad_multiple.obj");
+				"E:/MyProject/DXDance/Resources/Models/Vegetation/Foliage/foliage_quad_triple.obj");
 			foliageQuadModel->LoadDataFromDisk(copyDsQueue, copyFence);
-			foliageQuadModel->GetFirstMesh()->GetVertexBuffer()->SetDebugName("FoliageQuadVertexBuffer");
-			foliageQuadModel->GetFirstMesh()->GetIndexBuffer()->SetDebugName("FoliageQuadIndexBuffer");
 
-			// 不在对VertexBuffer和IndexBuffer进行状态追踪
+			foliageQuadMesh = foliageQuadModel->GetFirstMesh();
+			foliageQuadMesh->GetVertexBuffer()->SetDebugName("FoliageQuadVertexBuffer");
+			foliageQuadMesh->GetIndexBuffer()->SetDebugName("FoliageQuadIndexBuffer");
 		}
 
+		// 加载FoliageAlbedoMap
+		{
+			foliageAlbedoMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Foliage/grass_type1.png");
+			resourceStateTracker->StartTracking(foliageAlbedoMap);
+		}
+
+		{
+			// 填充placementBuffer的CPU临时数据
+			uint32_t placementSize = 1u;
+			placements.resize(placementSize);
+			for (uint32_t i = 0; i < placementSize; i++) {
+				auto& placement = placements.at(i);
+				placement.position = Math::Vector4{ 0.0f, 900.0f, 0.0f, 1.0f };
+				placement.normal = Math::Vector4{ 0.0f, 1.0f, 0.0f, 0.0f };
+				placement.modelTrans = Math::Matrix4{ placement.position, Math::Quaternion{}, Math::Vector3{ 1.0f, 1.0f, 1.0f } }.Transpose();
+				placement.albedoMapIndex = foliageAlbedoMap->GetSRDescriptor()->GetHeapIndex();
+			}
+		}
 	}
 
 }

@@ -119,7 +119,7 @@ namespace Renderer {
 				terrainBuilderPassData.finalNodeListIndex      = finalNodeList->GetUADescriptor()->GetHeapIndex();
 				terrainBuilderPassData.nodeDescriptorListIndex = nodeDescriptorList->GetUADescriptor()->GetHeapIndex();
 				terrainBuilderPassData.lodDescriptorListIndex  = lodDescriptorList->GetUADescriptor()->GetHeapIndex();
-				terrainBuilderPassData.minmaxHeightMapIndex = minmaxHeightMap->GetSRDescriptor()->GetHeapIndex();
+				terrainBuilderPassData.minmaxHeightMapIndex	   = minmaxHeightMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainBuilderPassData), 256u);
 				memcpy(passDataAlloc.cpuAddress, &terrainBuilderPassData, sizeof(TerrainPass::TerrainBuilderPassData));

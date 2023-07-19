@@ -209,6 +209,9 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
 	}
 
+	void CommandBuffer::DrawIndexedInstanced(uint32_t indexCountPerInstance, uint32_t instanceCount, uint32_t startIndexLocation, int32_t baseVertexLocation, uint32_t startInstanceLocation) {
+		mCommandList->D3DCommandList()->DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startIndexLocation);
+	}
 
 	void CommandBuffer::Dispatch(uint32_t threadGroupCountX, uint32_t threadGroupCountY, uint32_t threadGroupCountZ) {
 		mCommandList->D3DCommandList()->Dispatch(threadGroupCountX, threadGroupCountY, threadGroupCountZ);

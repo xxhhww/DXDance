@@ -127,9 +127,9 @@ float3 DiffuseBRDFForGI(float3 viewDirection, GBufferSurface surface) {
 }
 
 /*
-wo: view   direction
-wi: light  direction
-wm: middle vector
+wo: view   direction (world space)
+wi: light  direction (world space)
+wm: middle vector    (world space)
 */
 float3 CookTorranceBRDF(float3 wo, float3 wi, float3 wm, GBufferSurface surface) {
     // Based on observations by Disney and adopted by Epic Games
@@ -158,7 +158,7 @@ float3 CookTorranceBRDF(float3 wo, float3 wi, float3 wm, GBufferSurface surface)
     float3 diffuseFactor = (1.0f - F) * (1.0f - surface.metalness) * surface.albedo;
     float3 diffuse = DisneyDiffuse(NdotV, NdotL, NdotH, surface.roughness) * diffuseFactor;
 
-    return (diffuse + specular) * NdotL;
+    return (diffuse) * NdotL;
 }
 
 #endif

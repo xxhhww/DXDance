@@ -55,8 +55,8 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
 	GBufferSurface gBufferSurface;
 	gBufferSurface.albedo    = gBufferAlbedoMetalnessMap[pixelIndex].xyz;
-	// gBufferSurface.position  = gBufferPositionEmissionMap[pixelIndex].xyz;
-	gBufferSurface.position  = ViewDepthToWorldPosition(viewDepth, pixelUV, FrameDataCB.CurrentEditorCamera);
+	gBufferSurface.position  = gBufferPositionEmissionMap[pixelIndex].xyz;
+	// gBufferSurface.position  = ViewDepthToWorldPosition(viewDepth, pixelUV, FrameDataCB.CurrentEditorCamera);
 	gBufferSurface.normal    = gBufferNormalRoughnessMap[pixelIndex].xyz;
 	gBufferSurface.roughness = gBufferNormalRoughnessMap[pixelIndex].w;
 	gBufferSurface.metalness = gBufferAlbedoMetalnessMap[pixelIndex].w;

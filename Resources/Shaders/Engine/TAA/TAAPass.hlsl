@@ -95,6 +95,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupThreadID : 
     currentTAAOutputMap[pixelIndex].rgba = previousPassOutputMap[pixelIndex].rgba;
     return;
     */
+
     // 当前帧为第一帧
     if (PassDataCB.isFirstFrame) {
         currentTAAOutputMap[pixelIndex].rgba = previousPassOutputMap[pixelIndex].rgba;
