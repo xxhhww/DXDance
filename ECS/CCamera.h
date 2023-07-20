@@ -76,7 +76,7 @@ namespace ECS {
 		, rotationSpeed(0.05f)
 		, translationSpeed(10.0f) {
 
-			frustum.nearZ = 1.0f;
+			frustum.nearZ = 0.1f;
 			frustum.farZ = 1000.0f;
 			frustum.aspect = 979.0f / 635.0f;
 			frustum.fovY = 0.5f * DirectX::XM_PI;

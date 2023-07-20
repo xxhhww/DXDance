@@ -4,10 +4,13 @@
 #include "FoliageHelper.hlsl"
 
 struct PassData {
-	uint  placementBufferIndex;
-	uint  rotateToCamera;		// Foliage在渲染时，是否强制朝向摄像机
-	float pad2;
-	float pad3;
+	uint   placementBufferIndex;
+    uint   heightMapIndex;
+	uint   normalMapIndex;
+	uint   rotateToCamera;        // Foliage在渲染时，是否强制朝向摄像机
+    float2 worldMeterSize;
+    uint   heightScale;
+    float  pad1;
 };
 
 #define PassDataType PassData
@@ -168,13 +171,15 @@ p2o PSMain(v2p input) {
     p2o output;
 
     // 采样albedoMap
+    /*
     Texture2D<float4> albedoMap = ResourceDescriptorHeap[input.albedoMapIndex];
     float4 albedo = albedoMap.SampleLevel(SamplerAnisotropicWrap, input.uv, 0u).rgba;
     if(albedo.a < 0.01f) {
         discard;
     }
+    */
 
-	output.albedoMetalness  = float4(albedo.rgb, 0.0f);
+	output.albedoMetalness  = float4(1.0f, 1.0f, 1.0f, 0.0f);
 	output.positionEmission = float4(float3(0.0f, input.wsPos.y, 0.0f), 1.0f);
 	output.normalRoughness  = float4(input.wsNormal, 1.0f);
 	output.motionVector     = float4(velocity, 0.0f);

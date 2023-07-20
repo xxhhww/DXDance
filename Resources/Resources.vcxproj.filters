@@ -67,5 +67,6 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainPlacement.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Foliage\FoliagePlacer.hlsl" />
   </ItemGroup>
 </Project>

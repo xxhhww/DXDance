@@ -5,6 +5,13 @@
 
 namespace Renderer {
 
+	struct IndirectDispatch {
+		D3D12_GPU_VIRTUAL_ADDRESS frameDataAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS passDataAddress;
+		D3D12_DISPATCH_ARGUMENTS  dispatchArguments;
+		uint32_t pad1;
+	};
+
 	struct IndirectDrawIndexed {
 		D3D12_GPU_VIRTUAL_ADDRESS    frameDataAddress;
 		D3D12_GPU_VIRTUAL_ADDRESS    passDataAddress;
@@ -18,17 +25,11 @@ namespace Renderer {
 		auto& finalOutputDesc =
 			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
+		// 计算安置点的Y轴坐标
 		renderGraph.AddPass(
-			"FoliageRenderer",
+			"FoliagePlacer",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
-				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
-
-				builder.WriteRenderTarget("GBufferAlbedoMetalness");
-				builder.WriteRenderTarget("GBufferPositionEmission");
-				builder.WriteRenderTarget("GBufferNormalRoughness");
-				builder.WriteRenderTarget("GBufferMotionVector");
-				builder.WriteRenderTarget("GBufferViewDepth");
-				builder.WriteDepthStencil("GBufferDepthStencil");
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				NewBufferProperties _FoliagePlacementBufferProperties{};
 				_FoliagePlacementBufferProperties.stride = sizeof(Placement);
@@ -36,6 +37,91 @@ namespace Renderer {
 				_FoliagePlacementBufferProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 				builder.DeclareBuffer("FoliagePlacementBuffer", _FoliagePlacementBufferProperties);
 				builder.WriteBuffer("FoliagePlacementBuffer");
+
+				NewBufferProperties _FoliagePlacerIndirectArgsProperties{};
+				_FoliagePlacerIndirectArgsProperties.stride = sizeof(IndirectDispatch);
+				_FoliagePlacerIndirectArgsProperties.size = 1u * _FoliagePlacerIndirectArgsProperties.stride;
+				_FoliagePlacerIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_FoliagePlacerIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("FoliagePlacerIndirectArgs", _FoliagePlacerIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("FoliagePlacerIndirectArgs");
+
+				shaderManger.CreateComputeShader("FoliagePlacer",
+					[](ComputeStateProxy& proxy) {
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Foliage/FoliagePlacer.hlsl";
+					});
+
+				commandSignatureManger.CreateCommandSignature("FoliagePlacer",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDispatch));
+					});
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage = renderContext.resourceStorage;
+
+				auto* placementBuffer  = resourceStorage->GetResourceByName("FoliagePlacementBuffer")->GetBuffer();
+				auto* indirectArgs	   = resourceStorage->GetResourceByName("FoliagePlacerIndirectArgs")->GetBuffer();
+				auto* terrainHeightMap = resourceStorage->GetResourceByName("TerrainHeightMap")->GetTexture();
+				auto* terrainNormalMap = resourceStorage->GetResourceByName("TerrainNormalMap")->GetTexture();
+
+				foliagePassData.placementBufferIndex = placementBuffer->GetUADescriptor()->GetHeapIndex();
+				foliagePassData.heightMapIndex       = terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
+				foliagePassData.normalMapIndex       = terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(FoliagePassData));
+				memcpy(passDataAlloc.cpuAddress, &foliagePassData, sizeof(FoliagePassData));
+
+				IndirectDispatch indirectDispatch{};
+				indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectDispatch.passDataAddress  = passDataAlloc.gpuAddress;
+				indirectDispatch.dispatchArguments.ThreadGroupCountX = placements.size();
+				indirectDispatch.dispatchArguments.ThreadGroupCountY = 1u;
+				indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
+
+				// 更新placementBuffer与indirectArgs
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.UploadBufferRegion(placementBuffer, 0u, placements.data(), placements.size() * sizeof(Placement));
+				commandBuffer.ClearCounterBuffer(placementBuffer, placements.size());
+
+				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
+				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
+
+				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer, GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("FoliagePlacer");
+				commandBuffer.ExecuteIndirect("FoliagePlacer", indirectArgs, 1u);
+			}
+		);
+
+		renderGraph.AddPass(
+			"FoliageRenderer",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
+
+				builder.ReadBuffer("FoliagePlacementBuffer", ShaderAccessFlag::AnyShader);
+
+				builder.WriteRenderTarget("GBufferAlbedoMetalness");
+				builder.WriteRenderTarget("GBufferPositionEmission");
+				builder.WriteRenderTarget("GBufferNormalRoughness");
+				builder.WriteRenderTarget("GBufferMotionVector");
+				builder.WriteRenderTarget("GBufferViewDepth");
+				builder.WriteDepthStencil("GBufferDepthStencil");
 
 				NewBufferProperties _FoliageRendererIndirectArgsProperties{};
 				_FoliageRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
@@ -102,16 +188,8 @@ namespace Renderer {
 				indirectDrawIndexed.drawIndexedArguments.BaseVertexLocation = 0u;
 				indirectDrawIndexed.drawIndexedArguments.StartInstanceLocation = 0u;
 
-				// 更新placementBuffer
-				auto barrierBatch = GHL::ResourceBarrierBatch{};
-				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer, GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
-
-				commandBuffer.UploadBufferRegion(placementBuffer, 0u, placements.data(), placements.size() * sizeof(Placement));
-				commandBuffer.ClearCounterBuffer(placementBuffer, placements.size());
-
 				// 更新indirectArgs
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
 				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);

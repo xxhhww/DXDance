@@ -11,9 +11,12 @@ namespace Renderer {
 	public:
 		struct FoliagePassData {
 			uint32_t placementBufferIndex;
+			uint32_t heightMapIndex;
+			uint32_t normalMapIndex;
 			uint32_t rotateToCamera = 1u;	// Foliage在渲染时，是否强制朝向摄像机
-			float pad1;
-			float pad2;
+			Math::Vector2 worldMeterSize{ 5120u, 5120u };					// 世界在XZ轴方向的大小(米)
+			uint32_t heightScale{ 2048u };
+			float    pad1;
 		};
 
 		struct Placement {

@@ -276,7 +276,7 @@ namespace Renderer {
 
 				IndirectDispatch indirectDispatch{};
 				indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-				indirectDispatch.passDataAddress = passDataAlloc.gpuAddress;
+				indirectDispatch.passDataAddress  = passDataAlloc.gpuAddress;
 				indirectDispatch.dispatchArguments.ThreadGroupCountX = 1u;
 				indirectDispatch.dispatchArguments.ThreadGroupCountY = 1u;
 				indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
@@ -466,6 +466,7 @@ namespace Renderer {
 		auto* copyFence = renderEngine->mUploaderEngine->GetCopyFence();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
+		auto* resourceStorage = renderEngine->mPipelineResourceStorage;
 
 		// Load PatchMesh From Memory
 		{
@@ -548,6 +549,7 @@ namespace Renderer {
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
 				"E:/MyProject/DXDance/Resources/Textures/NormalMap.png");
 			resourceStateTracker->StartTracking(normalMap.Get());
+			resourceStorage->ImportResource("TerrainNormalMap", normalMap);
 		}
 		
 
@@ -558,6 +560,7 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/HeightMap.png"
 			);
 			resourceStateTracker->StartTracking(heightMap.Get());
+			resourceStorage->ImportResource("TerrainHeightMap", heightMap);
 		}
 	}
 

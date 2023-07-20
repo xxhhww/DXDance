@@ -143,7 +143,7 @@ void RunRenderer() {
     // EditorCamera
     ECS::Camera editorCamera;
     editorCamera.frustum.farZ = 5000.0f;
-    editorCamera.translationSpeed /= 50.0f;
+    editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
     editorTransform.worldPosition.y = 900.0f;
