@@ -372,8 +372,15 @@ namespace Renderer {
 				terrainRendererPassData.heightScale = worldHeightScale;
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
-				terrainRendererPassData.albedoMapIndex = 0u;
 				terrainRendererPassData.normalMapIndex = normalMap->GetSRDescriptor()->GetHeapIndex();
+				
+				terrainRendererPassData.groundGrassAlbedoMapIndex = groundGrassAlbedoMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.groundGrassNormalMapIndex = groundGrassNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.groundGrassRoughnessMapIndex = groundGrassRoughnessMap->GetSRDescriptor()->GetHeapIndex();
+				
+				terrainRendererPassData.groundRockAlbedoMapIndex = groundRockAlbedoMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.groundRockNormalMapIndex = groundRockNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.groundRockRoughnessMapIndex = groundRockRoughnessMap->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &terrainRendererPassData, sizeof(TerrainPass::TerrainRendererPassData));
@@ -528,30 +535,9 @@ namespace Renderer {
 		{
 			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap.dds");
+				"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap.Get());
 		}
-
-		// Load AlbedoMap From File
-		/*
-		{
-			albedoMap = FixedTextureHelper::LoadFromFile(
-				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/AlbedoMap.png"
-			);
-			resourceStateTracker->StartTracking(albedoMap.Get());
-		}
-		*/
-
-		// Load NormalMap From File
-		{
-			normalMap = FixedTextureHelper::LoadFromFile(
-				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/NormalMap.png");
-			resourceStateTracker->StartTracking(normalMap.Get());
-			resourceStorage->ImportResource("TerrainNormalMap", normalMap);
-		}
-		
 
 		// Load HeightMap From File
 		{
@@ -561,6 +547,56 @@ namespace Renderer {
 			);
 			resourceStateTracker->StartTracking(heightMap.Get());
 			resourceStorage->ImportResource("TerrainHeightMap", heightMap);
+		}
+
+		// Load NormalMap From File
+		{
+			normalMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/NormalMap_4096H.png");
+			resourceStateTracker->StartTracking(normalMap.Get());
+			resourceStorage->ImportResource("TerrainNormalMap", normalMap);
+		}
+
+		// Load Grass¡¢Rock¡¢Mud
+		{
+			groundGrassAlbedoMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Grass_Albedo.png");
+			resourceStateTracker->StartTracking(groundGrassAlbedoMap.Get());
+			resourceStorage->ImportResource("TerrainGroundGrassAlbedoMap", groundGrassAlbedoMap);
+
+			groundGrassNormalMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Grass_Normal.png");
+			resourceStateTracker->StartTracking(groundGrassNormalMap.Get());
+			resourceStorage->ImportResource("TerrainGroundGrassNormalMap", groundGrassNormalMap);
+
+			groundGrassRoughnessMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Grass_Roughness.png");
+			resourceStateTracker->StartTracking(groundGrassRoughnessMap.Get());
+			resourceStorage->ImportResource("TerrainGroundGrassRoughnessMap", groundGrassRoughnessMap);
+		}
+
+		{
+			groundRockAlbedoMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Rock_Albedo.png");
+			resourceStateTracker->StartTracking(groundRockAlbedoMap.Get());
+			resourceStorage->ImportResource("TerrainGroundRockAlbedoMap", groundRockAlbedoMap);
+
+			groundRockNormalMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Rock_Normal.png");
+			resourceStateTracker->StartTracking(groundRockNormalMap.Get());
+			resourceStorage->ImportResource("TerrainGroundRockNormalMap", groundRockNormalMap);
+
+			groundRockRoughnessMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Rock_Roughness.png");
+			resourceStateTracker->StartTracking(groundRockRoughnessMap.Get());
+			resourceStorage->ImportResource("TerrainGroundRockRoughnessMap", groundRockRoughnessMap);
 		}
 	}
 

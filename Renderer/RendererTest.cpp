@@ -146,7 +146,7 @@ void RunRenderer() {
     editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
-    editorTransform.worldPosition.y = 900.0f;
+    editorTransform.worldPosition.y = 1700.0f;
     editorTransform.worldPosition.z = 0.0f;
 
     // MainCamera(RenderCamera)
@@ -154,7 +154,7 @@ void RunRenderer() {
         auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
         
         auto& transform = mainCamera.GetComponent<ECS::Transform>();
-        transform.worldPosition = Math::Vector3{ 0.0f, 900.0f, 0.0f };
+        transform.worldPosition = Math::Vector3{ 0.0f, 1700.0f, 0.0f };
 
         auto& camera = mainCamera.GetComponent<ECS::Camera>();
         camera.cameraType = ECS::CameraType::RenderCamera;

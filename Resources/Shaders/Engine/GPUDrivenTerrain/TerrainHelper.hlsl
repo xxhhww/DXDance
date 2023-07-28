@@ -32,4 +32,41 @@ struct BoundingBox {
     float4 maxPosition;
 };
 
+struct TriplanarMapping {
+	float2 uvX, uvY, uvZ;
+	float3 weights;
+
+	void initialize(float3 position, float3 normal, float3 textureScale, float sharpness) {
+		uvX = position.zy * textureScale.x;
+		uvY = position.xz * textureScale.y;
+		uvZ = position.xy * textureScale.z;
+
+		weights = pow(abs(normal), sharpness);
+		weights /= dot(weights, 1.0f);
+	}
+
+	float3 normalmap(float3 normal, float3 tnormalX, float3 tnormalY, float3 tnormalZ) {
+		// Whiteout blend: https://bgolus.medium.com/normal-mapping-for-a-triplanar-shader-10bf39dca05a
+
+		tnormalX = float3(
+			tnormalX.xy + normal.zy,
+			abs(tnormalX.z) * normal.x
+			);
+		tnormalY = float3(
+			tnormalY.xy + normal.xz,
+			abs(tnormalY.z) * normal.y
+			);
+		tnormalZ = float3(
+			tnormalZ.xy + normal.xy,
+			abs(tnormalZ.z) * normal.z
+			);
+
+		return normalize(
+			tnormalX.zyx * weights.x +
+			tnormalY.xzy * weights.y +
+			tnormalZ.xyz * weights.z
+		);
+	}
+};
+
 #endif

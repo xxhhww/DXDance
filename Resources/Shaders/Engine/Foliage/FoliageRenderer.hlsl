@@ -10,7 +10,7 @@ struct PassData {
 	uint   rotateToCamera;        // Foliage在渲染时，是否强制朝向摄像机
     float2 worldMeterSize;
     uint   heightScale;
-    float  pad1;
+    uint   placementSizePerAxis;
 };
 
 #define PassDataType PassData
@@ -25,6 +25,7 @@ struct a2v {
     float3 lsNormal  : NORMAL;
 	float3 tangent   : TANGENT;
 	float3 bitangent : BITANGENT;
+    float4 userData  : USERDATA;
 };
 
 struct v2p {
@@ -49,49 +50,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<Placement> culledPlacementList = ResourceDescriptorHeap[PassDataCB.placementBufferIndex];
 
 	Placement placement = culledPlacementList[instanceID];
-	float4x4  currModelTrans = placement.modelTrans;
-
-    // 从模型变换矩阵中提取缩放矩阵
-    float4x4 scaleMat;
-    float scaleX = sqrt(currModelTrans[0][0] * currModelTrans[0][0] + currModelTrans[0][1] * currModelTrans[0][1] + currModelTrans[0][2] * currModelTrans[0][2]);
-    float scaleY = sqrt(currModelTrans[1][0] * currModelTrans[1][0] + currModelTrans[1][1] * currModelTrans[1][1] + currModelTrans[1][2] * currModelTrans[1][2]);
-    float scaleZ = sqrt(currModelTrans[2][0] * currModelTrans[2][0] + currModelTrans[2][1] * currModelTrans[2][1] + currModelTrans[2][2] * currModelTrans[2][2]);
-    
-    scaleMat[0][0] = scaleX;
-    scaleMat[0][1] = 0.0f;
-    scaleMat[0][2] = 0.0f;
-    scaleMat[0][3] = 0.0f;
-    scaleMat[1][0] = 0.0f;
-    scaleMat[1][1] = scaleY;
-    scaleMat[1][2] = 0.0f;
-    scaleMat[1][3] = 0.0f;
-    scaleMat[2][0] = 0.0f;
-    scaleMat[2][1] = 0.0f;
-    scaleMat[2][2] = scaleZ;
-    scaleMat[2][3] = 0.0f;
-    scaleMat[3][0] = 0.0f;
-    scaleMat[3][1] = 0.0f;
-    scaleMat[3][2] = 0.0f;
-    scaleMat[3][3] = 1.0f;
-
-    // 从模型变换矩阵中提取平移矩阵
-    float4x4 translateMat;
-    translateMat[0][0] = 1.0f;
-    translateMat[0][1] = 0.0f;
-    translateMat[0][2] = 0.0f;
-    translateMat[0][3] = 0.0f;
-    translateMat[1][0] = 0.0f;
-    translateMat[1][1] = 1.0f;
-    translateMat[1][2] = 0.0f;
-    translateMat[1][3] = 0.0f;
-    translateMat[2][0] = 0.0f;
-    translateMat[2][1] = 0.0f;
-    translateMat[2][2] = 1.0f;
-    translateMat[2][3] = 0.0f;
-    translateMat[3][0] = currModelTrans[3][0];
-    translateMat[3][1] = currModelTrans[3][1];
-    translateMat[3][2] = currModelTrans[3][2];
-    translateMat[3][3] = currModelTrans[3][3];
 
     // 构建能将Foliage强制朝向摄像机的旋转矩阵，而非从模型变换矩阵中进行提取
     float3 cameraLookUp = FrameDataCB.CurrentEditorCamera.LookUp.xyz;
@@ -118,8 +76,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
     
 
     v2p output;
-    float4 tempWsPos = float4(input.lsPos, 1.0f);
-    tempWsPos = mul(tempWsPos, currModelTrans);
+    float4 tempWsPos = float4(input.lsPos + placement.position.xyz, 1.0f);
 
     /*
     tempWsPos = mul(tempWsPos, scaleMat);
@@ -147,7 +104,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 
     // ???
     float3 tempNormal = float3(0.0f, 1.0f, 0.0f);
-    output.wsNormal = normalize(mul(float4(tempNormal, 0.0f), currModelTrans).xyz);
+    output.wsNormal = normalize(tempNormal.xyz);
 	output.uv = input.uv;
     output.albedoMapIndex = placement.albedoMapIndex;
 
@@ -169,15 +126,6 @@ p2o PSMain(v2p input) {
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
     p2o output;
-
-    // 采样albedoMap
-    /*
-    Texture2D<float4> albedoMap = ResourceDescriptorHeap[input.albedoMapIndex];
-    float4 albedo = albedoMap.SampleLevel(SamplerAnisotropicWrap, input.uv, 0u).rgba;
-    if(albedo.a < 0.01f) {
-        discard;
-    }
-    */
 
 	output.albedoMetalness  = float4(1.0f, 1.0f, 1.0f, 0.0f);
 	output.positionEmission = float4(float3(0.0f, input.wsPos.y, 0.0f), 1.0f);

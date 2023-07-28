@@ -7,9 +7,20 @@ struct PassData {
 	float2 worldSize;
 	uint heightScale;
 	uint culledPatchListIndex;
+
 	uint heightMapIndex;
-	uint albedoMapIndex;
 	uint normalMapIndex;
+	uint groundGrassAlbedoMapIndex;
+	uint groundGrassNormalMapIndex;
+
+	uint groundGrassRoughnessMapIndex;
+	uint groundRockAlbedoMapIndex;
+	uint groundRockNormalMapIndex;
+	uint groundRockRoughnessMapIndex;
+
+	uint groundMudAlbedoMapIndex;
+	uint groundMudNormalMapIndex;
+	uint groundMudRoughnessMapIndex;
 	uint lodDebug;
 };
 
@@ -81,21 +92,26 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	return output;
 }
 
-float3 SampleAlbedo(float2 uv) {
-	Texture2D<float4> albedoMap = ResourceDescriptorHeap[PassDataCB.albedoMapIndex];
-	float3 albedo = albedoMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xyz;
-
-	return albedo;
-}
-
-float3 SampleNormal(float2 uv) {
+float3 SampleTerrainNormalMap(float2 uv) {
 	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
 
     float3 normal;
     normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xy * 2.0f - 1.0f;
     normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
 
-    return normal;
+    return normalize(normal);
+}
+
+float3 SampleNormalMap(Texture2D<float4> normalMap, SamplerState s, float2 uv) {
+    float3 N = normalMap.SampleLevel(s, uv, 0.0f).xyz;
+    bool reconstructZ = N.z == 0.f;
+    N = N * 2.f - 1.f;
+
+    if (reconstructZ) {
+        N.z = sqrt(1.f - dot(N.xy, N.xy));
+    }
+
+    return N;
 }
 
 p2o PSMain(v2p input) {
@@ -134,10 +150,44 @@ p2o PSMain(v2p input) {
 
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
+	float  groundGrassMapScale = 0.1f;
+	float  groundRockMapScale  = 0.1f;
+
+	float3 wsNormal = SampleTerrainNormalMap(input.uv);
+
+	TriplanarMapping tri;
+	tri.initialize(input.wsPos, wsNormal, float3(groundRockMapScale, groundGrassMapScale, groundRockMapScale), 15.0f);
+
+	float2 groundUV = tri.uvY;
+
+	Texture2D<float4> groundGrassAlbedoMap    = ResourceDescriptorHeap[PassDataCB.groundGrassAlbedoMapIndex];
+	Texture2D<float4> groundGrassNormalMap    = ResourceDescriptorHeap[PassDataCB.groundGrassNormalMapIndex];
+	Texture2D<float>  groundGrassRoughnessMap = ResourceDescriptorHeap[PassDataCB.groundGrassRoughnessMapIndex];
+
+	Texture2D<float4> groundRockAlbedoMap     = ResourceDescriptorHeap[PassDataCB.groundRockAlbedoMapIndex];
+	Texture2D<float4> groundRockNormalMap     = ResourceDescriptorHeap[PassDataCB.groundRockNormalMapIndex];
+	Texture2D<float>  groundRockRoughnessMap  = ResourceDescriptorHeap[PassDataCB.groundRockRoughnessMapIndex];
+
+	float4 albedo =
+		groundRockAlbedoMap.SampleLevel(SamplerLinearWrap, tri.uvX, 0.0f) * tri.weights.x +
+		groundGrassAlbedoMap.SampleLevel(SamplerLinearWrap, groundUV, 0.0f) * tri.weights.y +
+		groundRockAlbedoMap.SampleLevel(SamplerLinearWrap, tri.uvZ, 0.0f) * tri.weights.z;
+
+	float roughness =
+		groundRockRoughnessMap.SampleLevel(SamplerLinearWrap, tri.uvX, 0.0f) * tri.weights.x +
+		groundGrassRoughnessMap.SampleLevel(SamplerLinearWrap, groundUV, 0.0f) * tri.weights.y +
+		groundRockRoughnessMap.SampleLevel(SamplerLinearWrap, tri.uvZ, 0.0f) * tri.weights.z;
+
+	float3 tnormalX = SampleNormalMap(groundRockNormalMap, SamplerLinearWrap, tri.uvX);
+	float3 tnormalY = SampleNormalMap(groundGrassNormalMap, SamplerLinearWrap, groundUV);
+	float3 tnormalZ = SampleNormalMap(groundRockNormalMap, SamplerLinearWrap, tri.uvZ);
+
+	wsNormal = tri.normalmap(wsNormal, tnormalX, tnormalY, tnormalZ);
+
 	p2o output;
-	output.albedoMetalness  = float4(0.5f, 0.5f, 0.5f, 0.0f);
-	output.positionEmission = float4(input.wsPos, 1.0f);
-	output.normalRoughness  = float4(SampleNormal(input.uv), 1.0f);
+	output.albedoMetalness  = float4(albedo.rgb, 0.0f);
+	output.positionEmission = float4(input.wsPos, 0.0f);
+	output.normalRoughness  = float4(wsNormal, roughness);
 	output.motionVector     = float4(velocity, 0.0f);
 	output.viewDepth        = input.vsPos.z;
 
