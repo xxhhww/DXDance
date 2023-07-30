@@ -95,7 +95,7 @@ bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
 
 bool Cull(BoundingBox boundingBox) {
 	if(PassDataCB.useFrustumCull){
-		if(FrustumCull(FrameDataCB.CurrentEditorCamera.Planes, boundingBox)) {
+		if(FrustumCull(FrameDataCB.CurrentRenderCamera.Planes, boundingBox)) {
 			return true;
 		}
 	}
@@ -119,7 +119,10 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	float  truePositionX = absPositionX - (PassDataCB.worldMeterSize.x / 2.0f);
 	float  truePositionZ = absPositionZ - (PassDataCB.worldMeterSize.x / 2.0f);
 
-	float3 position = float3(truePositionX, 0.0f, truePositionZ);
+	float jitterX = rand(dispatchThreadID.xy);
+    float jitterZ = rand(dispatchThreadID.xz);
+
+	float3 position = float3(truePositionX + jitterX, 0.0f, truePositionZ + jitterZ);
 
 	float  height = GetHeightFromHeightMap(position.xz);
 	float3 normal = GetNormalFromNormalMap(position.xz);

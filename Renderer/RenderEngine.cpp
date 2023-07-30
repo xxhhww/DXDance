@@ -160,6 +160,14 @@ namespace Renderer {
 
 		// 添加RenderPass并构建RenderGraph
 		{
+				
+			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
+			mTerrainPass.AddForwardPlusPass(*mRenderGraph);
+			mTAAPass.AddForwardPlus(*mRenderGraph);
+			mToneMappingPass.AddForwardPlusPass(*mRenderGraph);
+			mFinalBarrierPass.AddPass(*mRenderGraph);
+			
+			/*
 			mGBufferPass.AddPass(*mRenderGraph);
 			mTerrainPass.AddPass(*mRenderGraph);
 			mFoliagePass.AddPass(*mRenderGraph);
@@ -170,6 +178,7 @@ namespace Renderer {
 			mTAAPass.AddPass(*mRenderGraph);
 			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
+			*/
 
 			mRenderGraph->Build();
 		}
@@ -309,6 +318,8 @@ namespace Renderer {
 			gpuLightData.position = Math::Vector4{ sunDirection, ECS::SunDiskArea };
 			gpuLightData.color = sky.sunIlluminance;
 			gpuLightData.type = std::underlying_type<ECS::LightType>::type(ECS::LightType::Sun);
+			gpuLightData.intensity = 3.0f;
+			gpuLightData.radiance = gpuLightData.color * gpuLightData.intensity;
 		});
 	}
 

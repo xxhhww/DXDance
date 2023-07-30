@@ -10,18 +10,23 @@ struct PassData {
 
 	uint heightMapIndex;
 	uint normalMapIndex;
+	uint lodDebug;
+	float pad1;
+
 	uint groundGrassAlbedoMapIndex;
 	uint groundGrassNormalMapIndex;
-
 	uint groundGrassRoughnessMapIndex;
+	uint groundGrassDisplacementMapIndex;
+
 	uint groundRockAlbedoMapIndex;
 	uint groundRockNormalMapIndex;
 	uint groundRockRoughnessMapIndex;
+	uint groundRockDisplacementMapIndex;
 
 	uint groundMudAlbedoMapIndex;
 	uint groundMudNormalMapIndex;
 	uint groundMudRoughnessMapIndex;
-	uint lodDebug;
+	uint groundMudDisplacementMapIndex;
 };
 
 #define PassDataType PassData
@@ -54,6 +59,28 @@ struct p2o {
 	float4 motionVector     : SV_TARGET3;
 	float  viewDepth        : SV_TARGET4;
 };
+
+float3 SampleTerrainNormalMap(float2 uv) {
+	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
+
+    float3 normal;
+    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xy * 2.0f - 1.0f;
+    normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
+
+    return normalize(normal);
+}
+
+float3 SampleNormalMap(Texture2D<float4> normalMap, SamplerState s, float2 uv) {
+    float3 N = normalMap.SampleLevel(s, uv, 0.0f).xyz;
+    bool reconstructZ = N.z == 0.f;
+    N = N * 2.f - 1.f;
+
+    if (reconstructZ) {
+        N.z = sqrt(1.f - dot(N.xy, N.xy));
+    }
+
+    return N;
+}
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
@@ -92,28 +119,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	return output;
 }
 
-float3 SampleTerrainNormalMap(float2 uv) {
-	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
-
-    float3 normal;
-    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xy * 2.0f - 1.0f;
-    normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
-
-    return normalize(normal);
-}
-
-float3 SampleNormalMap(Texture2D<float4> normalMap, SamplerState s, float2 uv) {
-    float3 N = normalMap.SampleLevel(s, uv, 0.0f).xyz;
-    bool reconstructZ = N.z == 0.f;
-    N = N * 2.f - 1.f;
-
-    if (reconstructZ) {
-        N.z = sqrt(1.f - dot(N.xy, N.xy));
-    }
-
-    return N;
-}
-
 p2o PSMain(v2p input) {
 	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
 	if(input.lod == 0u) {
@@ -150,8 +155,8 @@ p2o PSMain(v2p input) {
 
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
-	float  groundGrassMapScale = 0.1f;
-	float  groundRockMapScale  = 0.1f;
+	float  groundGrassMapScale = 0.005f;
+	float  groundRockMapScale  = 0.005f;
 
 	float3 wsNormal = SampleTerrainNormalMap(input.uv);
 

@@ -31,7 +31,7 @@ namespace Renderer {
 
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
-			Math::Vector2 worldMeterSize{ 5120u, 5120u };					// 世界在XZ轴方向的大小(米)
+			Math::Vector2 worldMeterSize{ 5120u, 5120u };				// 世界在XZ轴方向的大小(米)
 			uint32_t heightScale{ 4096u };
 			uint32_t currPassLOD;
 			uint32_t consumeNodeListIndex;
@@ -51,18 +51,23 @@ namespace Renderer {
 
 			uint32_t heightMapIndex;
 			uint32_t normalMapIndex;
+			uint32_t lodDebug{ 0u };
+			float pad1;
+
 			uint32_t groundGrassAlbedoMapIndex;
 			uint32_t groundGrassNormalMapIndex;
-
 			uint32_t groundGrassRoughnessMapIndex;
+			uint32_t groundGrassDisplacementMapIndex;
+			
 			uint32_t groundRockAlbedoMapIndex;
 			uint32_t groundRockNormalMapIndex;
 			uint32_t groundRockRoughnessMapIndex;
+			uint32_t groundRockDisplacementMapIndex;
 
 			uint32_t groundMudAlbedoMapIndex;
 			uint32_t groundMudNormalMapIndex;
 			uint32_t groundMudRoughnessMapIndex;
-			uint32_t lodDebug{ 0u };
+			uint32_t groundMudDisplacementMapIndex;
 		};
 
 		struct NodeLocation {
@@ -96,22 +101,26 @@ namespace Renderer {
 		TextureWrap heightMap;
 		TextureWrap normalMap;
 
-		TextureWrap groundGrassAlbedoMap;		// 草地反射率材质
-		TextureWrap groundGrassNormalMap;		// 草地法线材质
-		TextureWrap groundGrassRoughnessMap;	// 草地粗糙度材质
+		TextureWrap groundGrassAlbedoMap;		// 草地反射率贴图
+		TextureWrap groundGrassNormalMap;		// 草地法线贴图
+		TextureWrap groundGrassRoughnessMap;	// 草地粗糙度贴图
 
-		TextureWrap groundRockAlbedoMap;		// 岩石反射率材质
-		TextureWrap groundRockNormalMap;		// 岩石法线材质
-		TextureWrap groundRockRoughnessMap;		// 岩石粗糙度材质
-		
-		/*
-		TextureWrap groundMudAlbedoMap;			// 泥土反射率材质
-		TextureWrap groundMudNormalMap;			// 泥土法线材质
-		TextureWrap groundMudRoughnessMap;		// 泥土粗糙度材质
-		*/
+		TextureWrap groundRockAlbedoMap;		// 岩石反射率贴图
+		TextureWrap groundRockNormalMap;		// 岩石法线贴图
+		TextureWrap groundRockRoughnessMap;		// 岩石粗糙度贴图
+
+		TextureWrap groundMudAlbedoMap;			// 泥土反射率贴图
+		TextureWrap groundMudNormalMap;			// 泥土法线贴图
+		TextureWrap groundMudRoughnessMap;		// 泥土粗糙度贴图
 
 	public:
+		void AddPreDepthPass(RenderGraph& renderGraph);
+
+		void AddShadowPass(RenderGraph& renderGraph);
+
 		void AddPass(RenderGraph& renderGraph);
+
+		void AddForwardPlusPass(RenderGraph& renderGraph);
 
 		void InitializePass(RenderEngine* renderEngine);
 

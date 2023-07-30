@@ -227,7 +227,7 @@ namespace Renderer {
 
 		BufferDesc counterBufferDesc{};
 		counterBufferDesc.initialState = GHL::EResourceState::Common;
-		counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopyDestination | GHL::EResourceState::CopySource | GHL::EResourceState::IndirectArgument;
+		counterBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopyDestination | GHL::EResourceState::CopySource | GHL::EResourceState::IndirectArgument | GHL::EResourceState::AnyShaderAccess;
 		counterBufferDesc.miscFlag = GHL::EBufferMiscFlag::RawBuffer;
 		counterBufferDesc.size = 4u;
 		counterBufferDesc.stride = 0u;

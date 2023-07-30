@@ -34,7 +34,6 @@ namespace Renderer {
 
 		// 构建资源别名
 		size_t totalHeapSize = mAliasingHelper->BuildAliasing();
-
 		if (totalHeapSize == 0u) return;
 
 		// 创建默认堆

@@ -62,7 +62,7 @@ namespace Renderer {
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage = renderContext.resourceStorage;
+				auto* resourceStorage  = renderContext.resourceStorage;
 
 				auto* placementBuffer  = resourceStorage->GetResourceByName("FoliagePlacementBuffer")->GetBuffer();
 				auto* indirectArgs	   = resourceStorage->GetResourceByName("FoliagePlacerIndirectArgs")->GetBuffer();

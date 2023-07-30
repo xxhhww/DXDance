@@ -68,5 +68,9 @@
     <FxCompile Include="Shaders\Engine\Foliage\FoliageRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliagePlacer.hlsl" />
+    <FxCompile Include="Shaders\Engine\Opaque\OpaquePass.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer_ForwardPlus.hlsl" />
+    <FxCompile Include="Shaders\Engine\TAA\TAA_ForwardPlus.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\ThreadGroupTilingX.hlsl" />
   </ItemGroup>
 </Project>

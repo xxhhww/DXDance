@@ -5,6 +5,209 @@
 #include "../Math/Trig.hlsl"
 #include "../Math/MathCommon.hlsl"
 
+struct Surface {
+	// Set from outside
+	float3 position;    // world space position
+	float3 normal;      // world space normal
+	float3 viewDir;        // world space viewDir (vector from surfacePos to cameraPos)
+
+	float4 albedo;
+	float  roughness;
+	float  metallic;
+	float3 emission;
+
+	// Inferred from properties above
+	float  alphaRoughness;
+	float  alphaRoughnessSquared;
+	float  NdotV;
+	float3 F0;
+	float3 F;
+	float3 R;
+
+
+	inline void InferRemainingProperties() {
+		alphaRoughness = roughness * roughness;
+		alphaRoughnessSquared = alphaRoughness * alphaRoughness;
+		
+        NdotV = saturate(dot(normal, viewDir));
+		
+        F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo.xyz, metallic);
+		R  = reflect(-viewDir, normal);
+		float F90 = saturate(50.f * dot(F0, (1.0f / 3.0f)));
+		F = F0 + (F90 - F0) * pow(1.0f - NdotV, 5.0f);
+	}
+};
+
+/*
+中间变量
+*/
+struct IntermediateInfo {
+    float3 L;
+	float3 H;
+	float  NdotL;
+	float  NdotH;
+	float  LdotH;
+	float  VdotH;
+
+	float3 radiance;
+	float  distanceToLight; // Only set if using a specialized initialize function. 
+
+	inline void initialize(Surface surface, float3 lightDir, float3 rad) {
+		L = lightDir;
+		H = normalize(L + surface.viewDir);
+
+		NdotL = saturate(dot(surface.normal, L));
+		NdotH = saturate(dot(surface.normal, H));
+		LdotH = saturate(dot(L, H));
+		VdotH = saturate(dot(surface.viewDir, H));
+
+		radiance = rad;
+	}
+
+	/*
+    inline void initializeFromSunLight(Surface surface, Light sunLight) {
+        initialize(surface, sunLight.position.xyz, sunLight.radiance);
+    }
+	*/
+
+    /*
+	inline void initializeFromPointLight(Surface surface, point_light_cb pl)
+	{
+		float3 L = pl.position - surface.P;
+		distanceToLight = length(L);
+		L /= distanceToLight;
+
+		initialize(surface, L, pl.radiance * getAttenuation(distanceToLight, pl.radius) * LIGHT_RADIANCE_SCALE);
+	}
+
+	inline void initializeFromRandomPointOnSphereLight(Surface surface, point_light_cb pl, float radius, inout uint randSeed)
+	{
+		float3 randomPointOnLight = pl.position + getRandomPointOnSphere(randSeed, radius);
+
+		float3 L = randomPointOnLight - surface.P;
+		distanceToLight = length(L);
+		L /= distanceToLight;
+
+		initialize(surface, L, pl.radiance * getAttenuation(distanceToLight, pl.radius) * LIGHT_RADIANCE_SCALE);
+	}
+
+	inline void initializeFromSpotLight(Surface surface, spot_light_cb sl)
+	{
+		float3 L = (sl.position - surface.P);
+		distanceToLight = length(L);
+		L /= distanceToLight;
+
+		float innerCutoff = sl.getInnerCutoff();
+		float outerCutoff = sl.getOuterCutoff();
+		float epsilon = innerCutoff - outerCutoff;
+
+		float theta = dot(-L, sl.direction);
+		float attenuation = getAttenuation(distanceToLight, sl.maxDistance);
+		float intensity = saturate((theta - outerCutoff) / epsilon) * attenuation;
+
+		initialize(surface, L, sl.radiance * intensity * LIGHT_RADIANCE_SCALE);
+	}
+    */
+};
+
+// http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+
+// ----------------------------------------
+// FRESNEL (Surface becomes more reflective when seen from a grazing angle).
+// ----------------------------------------
+
+static float3 fresnelSchlick(float LdotH, float3 F0) {
+	return F0 + (float3(1.f, 1.f, 1.f) - F0) * pow(1.f - LdotH, 5.f);
+}
+
+static float3 fresnelSchlick(float3 F0, float F90, float VdotH) {
+	return F0 + (F90 - F0) * pow(1.f - VdotH, 5.f);
+}
+
+static float3 fresnelSchlickRoughness(float LdotH, float3 F0, float roughness) {
+	float v = 1.f - roughness;
+	return F0 + (max(float3(v, v, v), F0) - F0) * pow(1.f - LdotH, 5.f);
+}
+
+// ----------------------------------------
+// DISTRIBUTION (Microfacets' orientation based on roughness).
+// ----------------------------------------
+
+static float distributionGGX(float NdotH, float roughness) {
+	float a = roughness * roughness;
+	float a2 = a * a;
+	float NdotH2 = NdotH * NdotH;
+
+	float d = (NdotH2 * (a2 - 1.f) + 1.f);
+	return a2 / max(d * d * PI, 0.001f);
+}
+
+// ----------------------------------------
+// GEOMETRIC MASKING (Microfacets may shadow each-other).
+// ----------------------------------------
+
+static float geometrySmith(float NdotL, float NdotV, float roughness) {
+	float k = (roughness * roughness) * 0.5f;
+
+	float ggx2 = NdotV / (NdotV * (1.f - k) + k);
+	float ggx1 = NdotL / (NdotL * (1.f - k) + k);
+
+	return ggx1 * ggx2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Following Wo, Wi, Wm are vectors in tangent space of the surface 
 
 // The Fresnel equation describes the ratio of surface reflection at different surface angles.

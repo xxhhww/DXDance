@@ -26,6 +26,7 @@
 #include "Renderer/RootConstantsPerFrame.h"
 
 #include "Renderer/GBufferPass.h"
+#include "Renderer/OpaquePass.h"
 #include "Renderer/TerrainPass.h"
 #include "Renderer/FoliagePass.h"
 #include "Renderer/RngSeedGenerationPass.h"
@@ -132,6 +133,7 @@ namespace Renderer {
 
 		// ==========================...RenderPasses...==========================
 		GBufferPass				mGBufferPass;
+		OpaquePass				mOpaquePass;
 		TerrainPass				mTerrainPass;
 		FoliagePass				mFoliagePass;
 		RngSeedGenerationPass	mRngSeedGenerationPass;

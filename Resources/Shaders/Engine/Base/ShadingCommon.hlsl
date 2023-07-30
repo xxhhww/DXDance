@@ -60,7 +60,7 @@ void ShadeWithSunLight(
     float3 brdf = CookTorranceBRDF(wo, wi, wm, gBufferSurface);
 
     // float pdf = 1.0f / sunDiskArea;
-    shadingResult.analyticUnshadowedOutgoingLuminance += sunIlluminance * brdf;
+    shadingResult.analyticUnshadowedOutgoingLuminance += (sunIlluminance * brdf + 0.03f);
 
     /*
     uint raysPerLight = 1u;

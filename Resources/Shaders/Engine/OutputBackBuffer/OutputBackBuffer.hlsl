@@ -25,7 +25,7 @@ v2p VSMain(a2v input) {
 }
 
 float4 PSMain(v2p input) : SV_TARGET {
-	Texture2D finalOutputTexture = ResourceDescriptorHeap[40];
+	Texture2D finalOutputTexture = ResourceDescriptorHeap[25];
 	float3 value = finalOutputTexture.Sample(SamplerPointClamp, input.uv).rgb;
 
 	return float4(value, 1.0f);

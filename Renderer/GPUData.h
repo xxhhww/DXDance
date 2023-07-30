@@ -40,7 +40,9 @@ namespace Renderer {
     struct GPULight {
         Math::Vector4 position;
         Math::Vector3 color;
-        uint32_t type;
+        float         intensity;
+        Math::Vector3 radiance;
+        uint32_t      type;
     };
 
     struct GPUArHosekSkyModelState {

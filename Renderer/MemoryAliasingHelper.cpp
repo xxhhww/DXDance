@@ -20,6 +20,7 @@ namespace Renderer {
 			uint64_t memorySize = resource->GetRequiredMemory();
 			// 需要64k字节对齐
 			memorySize = Math::AlignUp(memorySize, 65536);
+			memorySize *= 2u;
 			optimalHeapSize += memorySize;
 		}
 

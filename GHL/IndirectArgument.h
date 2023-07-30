@@ -36,6 +36,11 @@ namespace GHL {
 		IndirectConstantBufferViewArgument(uint32_t rootParameterIndex);
 	};
 
+	class IndirectShaderResourceViewArgument : public IndirectArgument {
+	public:
+		IndirectShaderResourceViewArgument(uint32_t rootParameterIndex);
+	};
+
 	class IndirectVertexBufferViewArgument : public IndirectArgument {
 	public:
 		IndirectVertexBufferViewArgument(uint32_t slot = 0u);

@@ -11,9 +11,9 @@ namespace Renderer {
 			uint32_t previousTAAOutputMapIndex;    // 上一帧TAA的输出结果
 			uint32_t previousPassOutputMapIndex;   // 前一个Pass的输出结果
 			uint32_t gBufferMotionVectorMapIndex;
+			uint32_t depthStencilMapIndex;         // 深度图
 			uint32_t currentTAAOutputMapIndex;
 			uint32_t isFirstFrame;
-			float pad1;
 		};
 
 		TAAPassData taaPassData;
@@ -22,6 +22,8 @@ namespace Renderer {
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
+
+		void AddForwardPlus(RenderGraph& renderGraph);
 	};
 
 }

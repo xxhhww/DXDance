@@ -22,8 +22,8 @@
 using namespace Renderer;
 using namespace Windows;
 
-static uint32_t sWindowWidth = 979u;
-static uint32_t sWindowHeight = 635u;
+static uint32_t sWindowWidth = 1920u;
+static uint32_t sWindowHeight = 1080u;
 
 void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
     RenderGraph& renderGraph = *renderEngine.mRenderGraph.get();
@@ -37,7 +37,6 @@ void Test_RenderGraphBuildDAG(RenderEngine& renderEngine) {
             properties.width = 1920u;
             properties.height = 1080u;
             properties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            // builder.NewTexture("Tex_0", properties);
 
         },
         [=](CommandBuffer& commandBuffer, RenderContext& context) {}
@@ -159,6 +158,7 @@ void RunRenderer() {
         auto& camera = mainCamera.GetComponent<ECS::Camera>();
         camera.cameraType = ECS::CameraType::RenderCamera;
         camera.mainCamera = true;
+        camera.frustum.farZ = 5000.0f;
     }
 
     // Sky
@@ -166,7 +166,7 @@ void RunRenderer() {
         auto skyEntity = ECS::Entity::Create<ECS::Transform, ECS::Sky>();
         
         auto& transform = skyEntity.GetComponent<ECS::Transform>();
-        transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
+        transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV2, 0.0f, 0.0f };
 
         auto& sky = skyEntity.GetComponent<ECS::Sky>();
     }
