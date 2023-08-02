@@ -22,6 +22,8 @@ namespace Renderer {
 		Math::Vector3 normal;
 		Math::Vector3 tangent;
 		Math::Vector3 bitangent;
+		Math::Vector4 color;
+
 		Math::Vector4 userData;		// 用户自定义数据
 
 	public:
@@ -30,7 +32,8 @@ namespace Renderer {
 		, uv(0.0f, 0.0f)
 		, normal(0.0f, 0.0f, 0.0f)
 		, tangent(0.0f, 0.0f, 0.0f)
-		, bitangent(0.0f, 0.0f, 0.0f) 
+		, bitangent(0.0f, 0.0f, 0.0f)
+		, color(0.0f, 0.0f, 0.0f, 0.0f)
 		, userData(0.0f, 0.0f, 0.0f, 0.0f) {}
 		
 		Vertex(
@@ -39,12 +42,14 @@ namespace Renderer {
 			const Math::Vector3& n,
 			const Math::Vector3& t,
 			const Math::Vector3& b,
+			const Math::Vector4& c,
 			const Math::Vector4& uData = Math::Vector4{ 0.0f, 0.0f, 0.0f, 0.0f })
 		: position(p)
 		, uv(uv)
 		, normal(n)
 		, tangent(t) 
 		, bitangent(b) 
+		, color(c)
 		, userData(uData) {}
 		
 		Vertex(
@@ -53,12 +58,14 @@ namespace Renderer {
 			float nx, float ny, float nz,
 			float tx, float ty, float tz,
 			float bx, float by, float bz,
+			float cx, float cy, float cz, float cw,
 			float udx = 0.0f, float udy = 0.0f, float udz = 0.0f, float udw = 0.0f)
 		: position(px, py, pz)
 		, uv(u, v)
 		, normal(nx, ny, nz)
 		, tangent(tx, ty, tz)
-		, bitangent(bx, by, bz) 
+		, bitangent(bx, by, bz)
+		, color(cx, cy, cz, cw)
 		, userData(udx, udy, udz, udw) {}
 
 	};

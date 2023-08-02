@@ -77,6 +77,7 @@ namespace Renderer {
 			aiVector3D texCoords = p_mesh->mTextureCoords[0] ? p_mesh->mTextureCoords[0][i] : aiVector3D(0.0f, 0.0f, 0.0f);
 			aiVector3D tangent = p_mesh->mTangents ? meshTransformation * p_mesh->mTangents[i] : aiVector3D(0.0f, 0.0f, 0.0f);
 			aiVector3D bitangent = p_mesh->mBitangents ? meshTransformation * p_mesh->mBitangents[i] : aiVector3D(0.0f, 0.0f, 0.0f);
+			aiColor4D  color = p_mesh->mColors[0] ? p_mesh->mColors[0][i] : aiColor4D(0.0f, 0.0f, 0.0f, 0.0f);
 
 			p_outVertices.push_back (
 				{
@@ -93,7 +94,11 @@ namespace Renderer {
 					tangent.z,
 					bitangent.x,
 					bitangent.y,
-					bitangent.z
+					bitangent.z,
+					color.r,
+					color.g,
+					color.b,
+					color.a
 				}
 			);
 		}

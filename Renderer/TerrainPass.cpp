@@ -472,6 +472,7 @@ namespace Renderer {
 				_ConsumeNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
 				_ConsumeNodeListProperties.size = _TmpNodeListSize * _ConsumeNodeListProperties.stride;
 				_ConsumeNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_ConsumeNodeListProperties.aliased = false;
 				builder.DeclareBuffer("ConsumeNodeList", _ConsumeNodeListProperties);
 				builder.WriteBuffer("ConsumeNodeList");
 
@@ -479,6 +480,7 @@ namespace Renderer {
 				_AppendNodeListProperties.stride = sizeof(uint32_t) * 2u; // uint2
 				_AppendNodeListProperties.size = _TmpNodeListSize * _AppendNodeListProperties.stride;
 				_AppendNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_AppendNodeListProperties.aliased = false;
 				builder.DeclareBuffer("AppendNodeList", _AppendNodeListProperties);
 				builder.WriteBuffer("AppendNodeList");
 
@@ -486,6 +488,7 @@ namespace Renderer {
 				_FinalNodeListProperties.stride = sizeof(uint32_t) * 3u; // uint3
 				_FinalNodeListProperties.size = _MaxNodeListSize * _FinalNodeListProperties.stride;
 				_FinalNodeListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_FinalNodeListProperties.aliased = false;
 				builder.DeclareBuffer("FinalNodeList", _FinalNodeListProperties);
 				builder.WriteBuffer("FinalNodeList");
 
@@ -493,6 +496,7 @@ namespace Renderer {
 				_NodeDescriptorListProperties.stride = sizeof(NodeDescriptor);
 				_NodeDescriptorListProperties.size = nodeDescriptors.size() * _NodeDescriptorListProperties.stride;
 				_NodeDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_NodeDescriptorListProperties.aliased = false;
 				builder.DeclareBuffer("NodeDescriptorList", _NodeDescriptorListProperties);
 				builder.WriteBuffer("NodeDescriptorList");
 
@@ -500,6 +504,7 @@ namespace Renderer {
 				_LODDescriptorListProperties.stride = sizeof(LODDescriptor);
 				_LODDescriptorListProperties.size = lodDescriptors.size() * _LODDescriptorListProperties.stride;
 				_LODDescriptorListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_LODDescriptorListProperties.aliased = false;
 				builder.DeclareBuffer("LODDescriptorList", _LODDescriptorListProperties);
 				builder.WriteBuffer("LODDescriptorList");
 
@@ -648,6 +653,7 @@ namespace Renderer {
 				_CulledPatchListProperties.stride = sizeof(TerrainPass::RenderPatch);
 				_CulledPatchListProperties.size = _MaxNodeListSize * _CulledPatchListProperties.stride * 64;
 				_CulledPatchListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_CulledPatchListProperties.aliased = false;
 				builder.DeclareBuffer("CulledPatchList", _CulledPatchListProperties);
 				builder.WriteBuffer("CulledPatchList");
 
@@ -731,11 +737,11 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
+				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 				builder.WriteRenderTarget("ShadingResult");
 				builder.WriteRenderTarget("NormalRoughness");
 				builder.WriteRenderTarget("ScreenVelocity");
 				builder.WriteDepthStencil("DepthStencil");
-				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
 				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
 				_TerrainRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
@@ -911,7 +917,7 @@ namespace Renderer {
 					vertices.emplace_back(
 						Math::Vector3{ vOffset + x * 0.5f, 0u, vOffset + z * 0.5f },
 						Math::Vector2{ x * uvStrip, z * uvStrip },
-						Math::Vector3{}, Math::Vector3{}, Math::Vector3{}
+						Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{}
 					);
 				}
 			}

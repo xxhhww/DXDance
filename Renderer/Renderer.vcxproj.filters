@@ -249,6 +249,15 @@
     <ClInclude Include="OpaquePass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="PlaceObjectOnTerrainPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderObjectOnTerrainPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="GrassPass.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -414,6 +423,15 @@
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="OpaquePass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="PlaceObjectOnTerrainPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderObjectOnTerrainPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="GrassPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

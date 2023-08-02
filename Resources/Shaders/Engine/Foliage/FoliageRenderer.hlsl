@@ -52,28 +52,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	Placement placement = culledPlacementList[instanceID];
 
     // 构建能将Foliage强制朝向摄像机的旋转矩阵，而非从模型变换矩阵中进行提取
-    float3 cameraLookUp = FrameDataCB.CurrentEditorCamera.LookUp.xyz;
-    float angle = atan2(cameraLookUp.x, cameraLookUp.z) * (180.0f / PI);
-    angle *= 0.0174532925f;
-    
-    float4x4 rotationMat;
-    rotationMat[0][0] = cos(angle);
-    rotationMat[0][1] = 0.0f;
-    rotationMat[0][2] = -sin(angle);
-    rotationMat[0][3] = 0.0f;
-    rotationMat[1][0] = 0.0f;
-    rotationMat[1][1] = 1.0f;
-    rotationMat[1][2] = 0.0f;
-    rotationMat[1][3] = 0.0f;
-    rotationMat[2][0] = sin(angle);
-    rotationMat[2][1] = 0.0f;
-    rotationMat[2][2] = cos(angle);
-    rotationMat[2][3] = 0.0f;
-    rotationMat[3][0] = 0.0f;
-    rotationMat[3][1] = 0.0f;
-    rotationMat[3][2] = 0.0f;
-    rotationMat[3][3] = 1.0f;
-    
 
     v2p output;
     float4 tempWsPos = float4(input.lsPos + placement.position.xyz, 1.0f);

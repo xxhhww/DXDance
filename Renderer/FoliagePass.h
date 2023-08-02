@@ -24,13 +24,14 @@ namespace Renderer {
 		};
 
 		struct Placement {
-			Math::Vector4 position;			// 安置点的世界坐标
-			Math::Vector4 normal;			// 安置点上的地形法线
+			// 基础信息
+			Math::Vector3 position;		// 安置点的坐标
+			Math::Vector2 facing;		// 安置点的朝向
+			uint32_t      type;			// 安置物类型(Grass / Tree / Stone)
+			uint32_t      lod;			// LOD级别
+			float         height;		// ?
 
-			uint32_t      albedoMapIndex;	// 安置点上的植物的反射率贴图
-			uint32_t      normalMapIndex;	// 安置点上的植物的法线贴图
-			float		  pad2;
-			float		  pad3;
+			// 材质信息...
 		};
 
 		FoliagePassData foliagePassData;

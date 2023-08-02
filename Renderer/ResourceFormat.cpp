@@ -191,7 +191,7 @@ namespace Renderer {
 			mSizeInBytes = mResourceDesc.Width;
 		}
 		else {
-			// 查询ResourceDesc需求的显存
+			// 查询ResourceDesc需求的显存(有时候会产生一些奇怪的问题 requiredSize与allocInfo的结果不一样)
 			uint32_t subresourceCount = SubresourceCount();
 			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
 			std::vector<uint32_t> numRows(subresourceCount);
@@ -203,7 +203,7 @@ namespace Renderer {
 			D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
 			
 			mAlignment = allocInfo.Alignment;
-			mSizeInBytes = requiredSize;
+			mSizeInBytes = allocInfo.SizeInBytes;
 
 			mResourceDesc.Alignment = mAlignment;
 		}

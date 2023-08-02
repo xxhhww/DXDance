@@ -28,7 +28,10 @@
 #include "Renderer/GBufferPass.h"
 #include "Renderer/OpaquePass.h"
 #include "Renderer/TerrainPass.h"
+#include "Renderer/PlaceObjectOnTerrainPass.h"
+#include "Renderer/RenderObjectOnTerrainPass.h"
 #include "Renderer/FoliagePass.h"
+#include "Renderer/GrassPass.h"
 #include "Renderer/RngSeedGenerationPass.h"
 #include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
@@ -132,17 +135,20 @@ namespace Renderer {
 		std::unique_ptr<RenderGraph> mRenderGraph;
 
 		// ==========================...RenderPasses...==========================
-		GBufferPass				mGBufferPass;
-		OpaquePass				mOpaquePass;
-		TerrainPass				mTerrainPass;
-		FoliagePass				mFoliagePass;
-		RngSeedGenerationPass	mRngSeedGenerationPass;
-		SkyGenerationPass		mSkyGenerationPass;
-		DeferredLightPass		mDeferredLightPass;
-		VolumetricCloudsPass    mVolumetricCloudsPass;
-		TAAPass					mTAAPass;
-		ToneMappingPass			mToneMappingPass;
-		FinalBarrierPass		mFinalBarrierPass;
+		GBufferPass				  mGBufferPass;
+		OpaquePass				  mOpaquePass;
+		TerrainPass				  mTerrainPass;
+		PlaceObjectOnTerrainPass  mPlaceObjectOnTerrainPass;
+		RenderObjectOnTerrainPass mRenderObjectOnTerrainPass;
+		GrassPass                 mGrassPass;
+		FoliagePass				  mFoliagePass;
+		RngSeedGenerationPass	  mRngSeedGenerationPass;
+		SkyGenerationPass		  mSkyGenerationPass;
+		DeferredLightPass		  mDeferredLightPass;
+		VolumetricCloudsPass      mVolumetricCloudsPass;
+		TAAPass					  mTAAPass;
+		ToneMappingPass			  mToneMappingPass;
+		FinalBarrierPass		  mFinalBarrierPass;
 
 		// ==========================...PipelineResources...==========================
 		std::unique_ptr<Texture> mFinalOutput;

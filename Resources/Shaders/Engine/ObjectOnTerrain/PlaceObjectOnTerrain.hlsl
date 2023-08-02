@@ -1,16 +1,18 @@
-#ifndef _FoliagePlacer__
-#define _FoliagePlacer__
+#ifndef _PlaceObjectOnTerrain__
+#define _PlaceObjectOnTerrain__
 
-#include "FoliageHelper.hlsl"
+#include "ObjectOnTerrainHelper.hlsl"
 
 struct PassData {
-	uint   placementBufferIndex;
+	uint   grassPlacementBufferIndex0;	// Grass LOD 0
+	uint   grassPlacementBufferIndex1;	// Grass LOD 1
     uint   heightMapIndex;
 	uint   normalMapIndex;
-	uint   rotateToCamera;        // Foliage在渲染时，是否强制朝向摄像机
+
 	float2 worldMeterSize;
     uint   heightScale;
     uint   placementSizePerAxis;
+
 	uint   useFrustumCull;
 	float  pad1;
 	float  pad2;
@@ -20,6 +22,7 @@ struct PassData {
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 float2 GetHeightUV(float2 wsPositionXZ) {
 	float2 heightUV = (wsPositionXZ + (PassDataCB.worldMeterSize * 0.5f) + 0.5f) / (PassDataCB.worldMeterSize + 1.0f);
@@ -48,15 +51,6 @@ float3 GetNormalFromNormalMap(float2 wsPositionXZ) {
     normal.y = sqrt(max(0u, 1u - dot(normal.xz,normal.xz)));
 
 	return normal;
-}
-
-uint murmurHash12(uint2 src) {
-    const uint M = 0x5bd1e995u;
-    uint h = 1190494759u;
-    src *= M; src ^= src>>24u; src *= M;
-    h *= M; h ^= src.x; h *= M; h ^= src.y;
-    h ^= h>>13u; h *= M; h ^= h>>15u;
-    return h;
 }
 
 float rand(float2 co){
@@ -104,7 +98,7 @@ bool Cull(BoundingBox boundingBox) {
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
-	AppendStructuredBuffer<Placement> placementBuffer = ResourceDescriptorHeap[PassDataCB.placementBufferIndex];
+	AppendStructuredBuffer<Placement> placementBuffer = ResourceDescriptorHeap[PassDataCB.grassPlacementBufferIndex0];
 
 	// 计算安置点的XZ位置
 	uint2  placementIndex = dispatchThreadID.xy;
@@ -131,17 +125,15 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
 	// 生成Placement
 	Placement placement;
-	placement.position = float4(position.x, finalHeight, position.z, 0.0f);
-	placement.normal = float4(normal, 0.0f);
-	placement.facing = rand(position.xz) * M_PI * 2.f
-	placement.albedoMapIndex = 0u;
-	placement.normalMapIndex = 0u;
+	placement.position = float3(position.x, finalHeight, position.z);
+	placement.facing = rand(position.xz) * PI * 2.0f;
 	placement.type = 0u;
 	placement.lod = 0u;
+	placement.height = 1.0f;
 
 	BoundingBox boundingBox;
-	boundingBox.minPosition = placement.position - float4(1.0f, 0.0f, 1.0f, 0.0f);
-	boundingBox.maxPosition = placement.position + float4(1.0f, 2.0f, 1.0f, 0.0f);
+	boundingBox.minPosition = float4(placement.position - float3(1.0f, 0.0f, 1.0f), 0.0f);
+	boundingBox.maxPosition = float4(placement.position + float3(1.0f, 2.0f, 1.0f), 0.0f);
 
 	if(normal.y > 0.9f && !Cull(boundingBox)) {
 		placementBuffer.Append(placement);

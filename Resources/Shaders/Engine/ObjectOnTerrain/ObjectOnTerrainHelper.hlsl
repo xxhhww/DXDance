@@ -1,30 +1,29 @@
-#ifndef _FoliageHelper__
-#define _FoliageHelper__
+#ifndef _ObjectOnTerrainHelper__
+#define _ObjectOnTerrainHelper__
 
-/*
-安置点的信息
-*/
+// 安置点的信息
 struct Placement {
 	// 基础信息
 	float3 position;	// 安置点的坐标
 	float2 facing;		// 安置点的朝向
 	uint   type;		// 安置物类型(Grass / Tree / Stone)
 	uint   lod;			// LOD级别
-	float  heightBias;	// 高度偏移
+	float  height;		// ?
 
 	// 材质信息
 	// ...
 };
 
+struct BoundingBox {
+    float4 minPosition;
+    float4 maxPosition;
+};
+
+// Helper Function For Grass
 struct GrassBendSettings {
 	float relTipOffsetZ;
 	float controlPointZ;
 	float controlPointY;
-};
-
-struct BoundingBox {
-    float4 minPosition;
-    float4 maxPosition;
 };
 
 static float GetRelY(uint vertexID, uint numVertices, uint lod) {

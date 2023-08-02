@@ -155,8 +155,7 @@ p2o PSMain(v2p input) {
 
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
-
-	float  groundGrassMapScale = 0.01f;
+	float  groundGrassMapScale = 0.02f;
 	float  groundRockMapScale  = 0.01f;
 
 	float3 wsNormal = SampleTerrainNormalMap(input.uv);
@@ -194,7 +193,7 @@ p2o PSMain(v2p input) {
 
 	surface.albedo = albedo;
 	surface.normal = finalWsNormal;
-	surface.roughness = 0.99f;
+	surface.roughness = roughness;
 	surface.metallic = 0.0f;
 	surface.emission = 0.0f;
 

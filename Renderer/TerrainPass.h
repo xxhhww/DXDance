@@ -41,7 +41,7 @@ namespace Renderer {
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
 			uint32_t minmaxHeightMapIndex;
-			uint32_t useFrustumCull{ 0u };
+			uint32_t useFrustumCull{ 1u };
 		};
 
 		struct TerrainRendererPassData {

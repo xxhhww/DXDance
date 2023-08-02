@@ -26,6 +26,7 @@ namespace Renderer {
 				_ShadingResultProperties.height = finalOutputDesc.height;
 				_ShadingResultProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				_ShadingResultProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				_ShadingResultProperties.aliased = false;
 				builder.DeclareTexture("ShadingResult", _ShadingResultProperties);
 				builder.WriteRenderTarget("ShadingResult");
 
@@ -34,6 +35,7 @@ namespace Renderer {
 				_NormalRoughnessProperties.height = finalOutputDesc.height;
 				_NormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 				_NormalRoughnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				_NormalRoughnessProperties.aliased = false;
 				builder.DeclareTexture("NormalRoughness", _NormalRoughnessProperties);
 				builder.WriteRenderTarget("NormalRoughness");
 
@@ -42,6 +44,7 @@ namespace Renderer {
 				_ScreenVelocityProperties.height = finalOutputDesc.height;
 				_ScreenVelocityProperties.format = DXGI_FORMAT_R16G16_FLOAT;
 				_ScreenVelocityProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				_ScreenVelocityProperties.aliased = false;
 				builder.DeclareTexture("ScreenVelocity", _ScreenVelocityProperties);
 				builder.WriteRenderTarget("ScreenVelocity");
 
@@ -50,6 +53,7 @@ namespace Renderer {
 				_DepthStencilProperties.height = finalOutputDesc.height;
 				_DepthStencilProperties.format = DXGI_FORMAT_D32_FLOAT;
 				_DepthStencilProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				// _DepthStencilProperties.aliased = false;
 				builder.DeclareTexture("DepthStencil", _DepthStencilProperties);
 				builder.WriteDepthStencil("DepthStencil");
 

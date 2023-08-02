@@ -154,7 +154,8 @@ namespace Renderer {
 		// ≥ı ºªØRenderPass
 		{
 			mTerrainPass.InitializePass(this);
-			mFoliagePass.InitializePass(this);
+			mGrassPass.InitializePass(this);
+			// mFoliagePass.InitializePass(this);
 			mVolumetricCloudsPass.InitializePass(this);
 		}
 
@@ -163,6 +164,9 @@ namespace Renderer {
 				
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
 			mTerrainPass.AddForwardPlusPass(*mRenderGraph);
+			mPlaceObjectOnTerrainPass.AddPass(*mRenderGraph);
+			mRenderObjectOnTerrainPass.AddPass(*mRenderGraph);
+			mGrassPass.AddPass(*mRenderGraph);
 			mTAAPass.AddForwardPlus(*mRenderGraph);
 			mToneMappingPass.AddForwardPlusPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
