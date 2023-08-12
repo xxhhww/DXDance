@@ -141,7 +141,7 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     // 移动到对应的世界坐标上
     float3 finalPosition = sidePoint + bladePosition;
 
-    output.currCsPos = mul(float4(finalPosition, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjection);
+    output.currCsPos = mul(float4(finalPosition, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);
     output.prevCsPos = mul(float4(finalPosition, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
     output.wsPos = finalPosition;
     output.uv = grassVertex.uv;

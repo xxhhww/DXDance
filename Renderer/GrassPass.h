@@ -92,9 +92,9 @@ namespace Renderer {
 		GrassGeneratorPassData grassGeneratorPassData;
 		GrassRendererPassData  grassRendererPassData;
 
-		// inline static uint32_t smThreadSizeInGroup = 8u;				// 一个Group处理8*8个GrassBlade
-		// inline static uint32_t smGrassBladeSizePerAxisPerTile = 128u;	// 每一个Tile的每个轴上GrassBlade应有的个数
-		// inline static uint32_t smGroupSizePerTile = smGrassBladeSizePerAxisPerTile / smThreadSizeInGroup;	// 每一个Tile的每个轴上所需的Group个数
+		inline static uint32_t smThreadSizeInGroup = 8u;				// 一个Group处理8*8个GrassBlade
+		inline static uint32_t smGrassBladeSizePerAxisPerTile = 400u;	// 每一个Tile的每个轴上GrassBlade应有的个数
+		inline static uint32_t smGroupSizePerTile = smGrassBladeSizePerAxisPerTile / smThreadSizeInGroup;	// 每一个Tile的每个轴上所需的Group个数
 		inline static uint32_t smMaxGrassBladeSize = 2048u * 2048u;	// 安置点的个数的最大值															// 安置点数组
 
 		bool isInitialized{ false };

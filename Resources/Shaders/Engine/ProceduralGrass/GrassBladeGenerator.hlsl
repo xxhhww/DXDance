@@ -125,7 +125,7 @@ bool DistanceCull(float3 worldPos, float hash){
 	return false;
 }
 
-[numthreads(32, 32, 1)]
+[numthreads(1, 8, 8)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID) {
 	AppendStructuredBuffer<GrassBlade> grassBladeBuffer       = ResourceDescriptorHeap[PassDataCB.grassBladesBufferIndex0];
 	StructuredBuffer<uint3>            nearbyNodeList         = ResourceDescriptorHeap[PassDataCB.nearbyNodeListIndex];
@@ -133,17 +133,19 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	StructuredBuffer<NodeDescriptor>   nodeDescriptorList     = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
 	StructuredBuffer<LODDescriptor>    lodDescriptorList      = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
 
+	/*
 	// 每一次Dispatch时，起的线程个数
 	uint threadSizePerDispatch = PassDataCB.grassBladeSizePerAxisPerTile * PassDataCB.grassBladeSizePerAxisPerTile;
 	// 当前Dispatch正在处理的Node索引
 	uint  currNodeIndex = floor(currentNodeIndexBuffer[0] / threadSizePerDispatch);
 	InterlockedAdd(currentNodeIndexBuffer[0], 1u);
+	*/
 
 	uint3 nodeLoc = nearbyNodeList[groupId.x];	// x,y,lod
 	LODDescriptor  currLODDescriptor = lodDescriptorList[nodeLoc.z];
 	// 此线程的偏移量
-	uint offsetX = groupThreadId.x;		// 从0开始计数
-	uint offsetZ = groupThreadId.y;		// 从0开始计数
+	uint offsetX = groupId.y * 8 + groupThreadId.y; // groupThreadId.x;		// 从0开始计数
+	uint offsetZ = groupId.z * 8 + groupThreadId.z;// groupThreadId.y;		// 从0开始计数
 	// 每一个GrassBlade之间的距离
 	float distanceBetweenGrassBlade = (float)currLODDescriptor.nodeSize / (float)PassDataCB.grassBladeSizePerAxisPerTile;
 	// 计算GrassBlade的相对坐标(相对于当前Tile原点，即Tile左下角的点)
@@ -177,10 +179,10 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	*/
 	// Apply Jitter
 
-	float2 hash = hashwithoutsine22(dispatchThreadID.xy);
+	float2 hash = hashwithoutsine22(dispatchThreadID.yz);
 	float2 jitter = ((hash * 2.0f) - 1.0f) * PassDataCB.jitterStrength;
 
-	// truePosition.xz += jitter;
+	truePosition.xz += jitter;
 
 	// Apply Height
 	float3 raisedPosition = ApplyHeightOffset(truePosition);
@@ -195,21 +197,21 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	boundingBox.minPosition = float4(raisedPosition, 0.0f) - float4(1.0f, 0.0f, 1.0f, 0.0f);
 	boundingBox.maxPosition = float4(raisedPosition, 0.0f) + float4(1.0f, 2.0f, 1.0f, 0.0f);
 	if(Cull(boundingBox)) {
-		// return;
+		return;
 	}
 
 	// Normal Check
 	float3 terrainNormal = GetNormalFromNormalMap(truePosition.xz);
 	if(terrainNormal.y <= 0.9f) {
-		// return;
+		return;
 	}
 
 	// Building GrassBlade
 	GrassBlade grassBlade;
 	grassBlade.position = raisedPosition;
-	grassBlade.facing = normalize(float2(100.0f, 100.0f));
-	grassBlade.windStrength = 0.0f;
-	grassBlade.hash = rand(uint3(10, 10, 10));
+	grassBlade.facing = normalize(hashwithoutsine22(dispatchThreadID.yz) * 2.0f - 1.0f);;
+	grassBlade.windStrength = 0.5f;
+	grassBlade.hash = rand(dispatchThreadID.yzy);
 	grassBlade.type = 0u;
 
 	float baseHeight = 1.0f;
@@ -221,11 +223,11 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	float baseBend = 0.1f;
 	float bendRandom = 0.05f;
 
-	grassBlade.height = baseHeight;// + remap01_neg11(rand(dispatchThreadID.xxy)) * heightRandom;
-    grassBlade.width = baseWidth;// + remap01_neg11(rand(dispatchThreadID.yxx)) * widthRandom;
+	grassBlade.height = baseHeight + remap01_neg11(rand(dispatchThreadID.yyz)) * heightRandom;
+    grassBlade.width = baseWidth + remap01_neg11(rand(dispatchThreadID.zyy)) * widthRandom;
     //0-1 value, controlling the vertical component of the p3 point in the bezier curve, horizontal can be derived from pythag.
-    grassBlade.tilt = baseTilt;// + remap01_neg11(rand(dispatchThreadID.xyx * float3(1.12f, 3.3f, 17.6f))) * tiltRandom;
-    grassBlade.bend = baseBend;// + remap01_neg11(rand(dispatchThreadID.xyy * float3(12.32f, 0.23f, 3.39f)) ) * bendRandom;
+    grassBlade.tilt = baseTilt + remap01_neg11(rand(dispatchThreadID.yzy * float3(1.12f, 3.3f, 17.6f))) * tiltRandom;
+    grassBlade.bend = baseBend + remap01_neg11(rand(dispatchThreadID.yzz * float3(12.32f, 0.23f, 3.39f)) ) * bendRandom;
 
 	float3 posToCam =  normalize(FrameDataCB.CurrentRenderCamera.Position.xyz - raisedPosition);
 	float viewAlignment = abs(dot(grassBlade.facing, normalize(posToCam.xz)));

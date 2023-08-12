@@ -78,7 +78,7 @@ namespace Renderer {
 				grassGeneratorPassData.grassBladeBufferIndex0 = grassBladeBuffer->GetUADescriptor()->GetHeapIndex();
 				grassGeneratorPassData.terrainHeightMapIndex = terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
 				grassGeneratorPassData.terrainNormalMapIndex = terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
-				grassGeneratorPassData.grassBladeSizePerAxisPerTile = 32;// smGrassBladeSizePerAxisPerTile;
+				grassGeneratorPassData.grassBladeSizePerAxisPerTile = smGrassBladeSizePerAxisPerTile;
 				grassGeneratorPassData.nearbyNodeListIndex = nearbyNodeList->GetSRDescriptor()->GetHeapIndex();
 				grassGeneratorPassData.currentNodeIndexBufferIndex = currentNodeIndexBuffer->GetUADescriptor()->GetHeapIndex();
 				grassGeneratorPassData.nodeDescriptorListIndex = nodeDescriptorList->GetSRDescriptor()->GetHeapIndex();
@@ -100,8 +100,8 @@ namespace Renderer {
 				indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
 				indirectDispatch.passDataAddress = passDataAlloc.gpuAddress;
 				indirectDispatch.dispatchArguments.ThreadGroupCountX = 1u;
-				indirectDispatch.dispatchArguments.ThreadGroupCountY = 1u;
-				indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
+				indirectDispatch.dispatchArguments.ThreadGroupCountY = smGroupSizePerTile;
+				indirectDispatch.dispatchArguments.ThreadGroupCountZ = smGroupSizePerTile;
 
 				// ¸üÐÂgrassBladeBufferÓëindirectArgs
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
