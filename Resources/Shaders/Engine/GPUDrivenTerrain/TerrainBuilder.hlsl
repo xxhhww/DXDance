@@ -5,17 +5,25 @@
 
 struct PassData {
 	float4 nodeEvaluationC;		// 用户控制的节点评估系数
+
 	float2 worldSize;			// 世界在XZ轴方向的大小(米)
 	uint heightScale;
 	uint currPassLOD;
+
 	uint currLODNodeListIndex;
 	uint nextLODNodeListIndex;
 	uint finalNodeListIndex;
 	uint nodeDescriptorListIndex;
+
 	uint lodDescriptorListIndex;
 	uint culledPatchListIndex;
 	uint minMaxHeightMapIndex;
 	uint useFrustumCull;
+
+	uint nearbyNodeListIndex;
+	float pad1;
+	float pad2;
+	float pad3;
 };
 
 #define PassDataType PassData
@@ -76,7 +84,8 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 	AppendStructuredBuffer<uint3>      finalNodeList      = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
 	RWStructuredBuffer<NodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
 	RWStructuredBuffer<LODDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
-							
+	AppendStructuredBuffer<uint3>      nearbyNodeList     = ResourceDescriptorHeap[PassDataCB.nearbyNodeListIndex];
+	
 	// xz平面下的二维坐标
 	uint2 nodeLoc = currLODNodeList.Consume();
 	// 获取当前处理的Node的全局坐标
@@ -98,6 +107,10 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 		// 不对Node进行划分，则是最终确定需要渲染的Node
 		finalNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
 		currNodeDescriptor.isBranch = false;
+
+		if(PassDataCB.currPassLOD == 0) {
+			nearbyNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
+		}
 	}
 	nodeDescriptorList[nodeGlobalID] = currNodeDescriptor;
 }

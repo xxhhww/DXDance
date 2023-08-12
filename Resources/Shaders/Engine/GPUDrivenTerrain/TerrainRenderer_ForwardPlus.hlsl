@@ -155,7 +155,7 @@ p2o PSMain(v2p input) {
 
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
-	float  groundGrassMapScale = 0.02f;
+	float  groundGrassMapScale = 0.05f;
 	float  groundRockMapScale  = 0.01f;
 
 	float3 wsNormal = SampleTerrainNormalMap(input.uv);

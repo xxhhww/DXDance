@@ -73,6 +73,8 @@ namespace Renderer {
 
 		void CopyBufferRegion(Buffer* dstBuffer, uint64_t dstOffset, Buffer* srcBuffer, uint64_t srcOffset, uint64_t numBytes);
 
+		void ClearBufferWithValue(Buffer* dstBuffer, uint32_t value);
+
 		void ClearCounterBuffer(Buffer* buffer, uint32_t value);
 
 		void CopyCounterBuffer(Buffer* dstBuffer, Buffer* srcBuffer);

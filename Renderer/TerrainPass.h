@@ -31,17 +31,25 @@ namespace Renderer {
 
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
+
 			Math::Vector2 worldMeterSize{ 5120u, 5120u };				// 世界在XZ轴方向的大小(米)
 			uint32_t heightScale{ 4096u };
 			uint32_t currPassLOD;
+
 			uint32_t consumeNodeListIndex;
 			uint32_t appendNodeListIndex;
 			uint32_t finalNodeListIndex;
 			uint32_t nodeDescriptorListIndex;
+
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
 			uint32_t minmaxHeightMapIndex;
 			uint32_t useFrustumCull{ 1u };
+
+			uint32_t nearbyNodeListIndex;
+			float pad1;
+			float pad2;
+			float pad3;
 		};
 
 		struct TerrainRendererPassData {

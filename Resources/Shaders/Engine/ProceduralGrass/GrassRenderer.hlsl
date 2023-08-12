@@ -2,6 +2,7 @@
 #define _GrassRenderer__
 
 #include "GrassHelper.hlsl"
+#include "../Base/Light.hlsl"
 
 struct PassData {
 	uint grassBladeBufferIndex0;
@@ -18,14 +19,25 @@ struct PassData {
 	float sinOffsetRange;
 	float pushTipOscillationForward;
     float widthTaperAmount;             // 控制草叶宽度沿着草叶变细
-}
+
+    uint grassAlbedoMapIndex;
+    uint grassNormalMapIndex;
+    float pad1;
+    float pad2;
+};
 
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
+#include "../Base/Utils.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 struct v2p {
 	float4 currCsPos : SV_POSITION;
+	float4 prevCsPos : POSITION1;
+    float3 wsPos     : POSITION2;
+	float2 uv        : TEXCOORD0;
+    float3 normal    : NORMAL0;
 };
 
 struct p2o {
@@ -55,12 +67,13 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
 	// Get the blade attribute data calculated in the compute shader
     GrassBlade grassBlade = grassBladeBuffer0[instanceID];
     float3 bladePosition = grassBlade.position;
+    float2 bladeFacing   = grassBlade.facing;
 	float  height        = grassBlade.height;
-    float  tilt          = grassBlade.tilt;           // 控制草叶的倾斜
-    float  bend          = grassBlade.bend;           // 控制草叶的弯曲(其实就是控制贝塞尔样条曲线)
+    float  tilt          = grassBlade.tilt;         // 控制草叶的倾斜
+    float  bend          = grassBlade.bend;         // 控制草叶的弯曲(其实就是控制贝塞尔样条曲线)
     float  mult          = 1.0f - bend;               
     float  hash          = grassBlade.hash;
-    float  sideCurve     = blade.sideCurve;           // 控制草叶的边的弯曲
+    float  sideCurve     = grassBlade.sideCurve;    // 控制草叶的边的弯曲
     float  windStrength  = grassBlade.windStrength;
 
     // Calculate p0, p1, p2, p3 for the spline
@@ -84,9 +97,9 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     float p2Weight = 0.66f;
     float p3Weight = 1.00f;
 
-    float p1ffset = pow(p1Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((_Time + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p1Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength; 
-    float p2ffset = pow(p2Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((_Time + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p2Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength;
-    float p3ffset = pow(p3Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((_Time + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p3Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength; 
+    float p1ffset = pow(p1Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((FrameDataCB.TotalTime / 20.0f + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p1Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength; 
+    float p2ffset = pow(p2Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((FrameDataCB.TotalTime / 20.0f + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p2Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength;
+    float p3ffset = pow(p3Weight, PassDataCB.wavePower) * (PassDataCB.waveAmplitude / 100.0f) * sin((FrameDataCB.TotalTime / 20.0f + hash * 2 * 3.1415) * PassDataCB.waveSpeed + p3Weight * 2 * 3.1415 * PassDataCB.sinOffsetRange) * windStrength; 
     p3ffset = (p3ffset) - PassDataCB.pushTipOscillationForward * mult * (pow(p3Weight, PassDataCB.wavePower) * PassDataCB.waveAmplitude / 100.0f) / 2.0f;
 
     p1 += bezierCtrlDir * p1ffset;
@@ -96,7 +109,7 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     // Evaluate Bezier curve(ignore Z, only XY平面)
     float3 midPoint         = cubicBezier(p0, p1, p2, p3, t);                       // 贝塞尔样条上的点(midPoint是因为生成该点所基于的样条正是叶片的中轴线)
     float3 midPointTangent  = normalize(bezierTangent(p0, p1, p2, p3, t));          // 该点的切线
-    float3 midPointNormal   = normalize(cross(tangent, float3(0.0f, 0.0f, 1.0f)));  // 该点的法线
+    float3 midPointNormal   = normalize(cross(midPointTangent, float3(0.0f, 0.0f, 1.0f)));  // 该点的法线
 
     // 计算当前点处叶片的宽度
     float  currbladeWidth = grassBlade.width * (1.0f - PassDataCB.widthTaperAmount * t);    // 随着t的增加(也就是更加接近叶尖)，叶片的宽度应该减小
@@ -107,8 +120,7 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     sidePointNormal.z += currbladeWidth * side;
     sidePointNormal = normalize(sidePointNormal);
 
-
-    float angle = blade.rotAngle;
+    float angle = atan2(bladeFacing.y, bladeFacing.x);
 
     float3x3 facingRotateMat = AngleAxis3x3(-angle, float3(0.0f, 1.0f, 0.0f));
     float3x3 sideRotateMat   = AngleAxis3x3(sideCurve, normalize(midPointTangent));
@@ -129,11 +141,60 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     // 移动到对应的世界坐标上
     float3 finalPosition = sidePoint + bladePosition;
 
+    output.currCsPos = mul(float4(finalPosition, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjection);
+    output.prevCsPos = mul(float4(finalPosition, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
+    output.wsPos = finalPosition;
+    output.uv = grassVertex.uv;
+    output.normal = sidePointNormal;
 
+    return output;
 }
 
 p2o PSMain(v2p input) {
-	
+    Texture2D<float4> grassAlbedoMap = ResourceDescriptorHeap[PassDataCB.grassAlbedoMapIndex];
+    Texture2D<float4> grassNormalMap = ResourceDescriptorHeap[PassDataCB.grassNormalMapIndex];
+
+    float4 grassAlbedo = grassAlbedoMap.SampleLevel(SamplerLinearWrap, input.uv, 0.0f);
+    float4 grassNormal = grassNormalMap.SampleLevel(SamplerLinearWrap, input.uv, 0.0f);
+
+    // 当前帧的uv抖动
+	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
+    float3 prevNDCPos = input.prevCsPos.xyz / input.prevCsPos.w;
+    float2 prevScreenUV = NDCToUV(prevNDCPos);
+    prevScreenUV += uvJitter; // Get rid of the jitter caused by perspective interpolation with W from jittered matrix
+    float3 prevUVSpacePos = float3(prevScreenUV, prevNDCPos.z);
+
+    float2 currScreenUV = (floor(input.currCsPos.xy) + 0.5f) * FrameDataCB.FinalRTResolutionInv;
+    float3 currUVSpacePos = float3(currScreenUV, input.currCsPos.z);
+
+    float3 velocity = currUVSpacePos - prevUVSpacePos;
+
+	Surface surface;
+	surface.albedo = grassAlbedo.rgba;
+	surface.normal = input.normal;
+	surface.roughness = 0.99f;
+	surface.metallic = 0.0f;
+	surface.emission = 0.0f;
+
+	surface.position = input.wsPos;
+	float3 camToP = surface.position - FrameDataCB.CurrentEditorCamera.Position.xyz;
+	surface.viewDir = -normalize(camToP);
+
+	surface.InferRemainingProperties();
+
+	LightContribution totalLighting = { float3(0.f, 0.f, 0.f), float3(0.f, 0.f, 0.f) };
+
+	Light sunLight = LightDataSB[0];
+
+	totalLighting.addSunLight(surface, sunLight/*, screenUV, pixelDepth,
+		shadowMap, shadowSampler, lighting.shadowMapTexelSize, sssTexture, clampSampler*/);
+
+    p2o output;
+	output.shadingResult   = totalLighting.evaluate(surface.albedo);
+	output.normalRoughness = float4(input.normal, 0.99f);
+	output.screenVelocity  = float2(velocity.xy);
+
+    return output;
 }
 
 #endif

@@ -171,6 +171,13 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->CopyBufferRegion(dstBuffer->D3DResource(), dstOffset, srcBuffer->D3DResource(), srcOffset, numBytes);
 	}
 
+	void CommandBuffer::ClearBufferWithValue(Buffer* dstBuffer, uint32_t value) {
+		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(sizeof(uint32_t), 256u);
+		memcpy(dyAlloc.cpuAddress, &value, sizeof(uint32_t));
+
+		mCommandList->D3DCommandList()->CopyBufferRegion(dstBuffer->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
+	}
+
 	void CommandBuffer::ClearCounterBuffer(Buffer* buffer, uint32_t value) {
 		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(sizeof(uint32_t), 256u);
 		memcpy(dyAlloc.cpuAddress, &value, sizeof(uint32_t));

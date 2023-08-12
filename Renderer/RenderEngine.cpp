@@ -161,11 +161,8 @@ namespace Renderer {
 
 		// 添加RenderPass并构建RenderGraph
 		{
-				
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
 			mTerrainPass.AddForwardPlusPass(*mRenderGraph);
-			mPlaceObjectOnTerrainPass.AddPass(*mRenderGraph);
-			mRenderObjectOnTerrainPass.AddPass(*mRenderGraph);
 			mGrassPass.AddPass(*mRenderGraph);
 			mTAAPass.AddForwardPlus(*mRenderGraph);
 			mToneMappingPass.AddForwardPlusPass(*mRenderGraph);
@@ -183,7 +180,6 @@ namespace Renderer {
 			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 			*/
-
 			mRenderGraph->Build();
 		}
 
