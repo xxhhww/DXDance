@@ -151,6 +151,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AtmospherePass.h" />
     <ClInclude Include="FinalBarrierPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
@@ -177,6 +178,7 @@
     <ClInclude Include="RenderObjectOnTerrainPass.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="SkyGenerationPass.h" />
+    <ClInclude Include="SkyPass.h" />
     <ClInclude Include="TAAPass.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
@@ -220,6 +222,7 @@
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AtmospherePass.cpp" />
     <ClCompile Include="FinalBarrierPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
@@ -246,6 +249,7 @@
     <ClCompile Include="RenderObjectOnTerrainPass.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />
+    <ClCompile Include="SkyPass.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />

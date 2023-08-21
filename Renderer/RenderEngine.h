@@ -28,10 +28,10 @@
 #include "Renderer/GBufferPass.h"
 #include "Renderer/OpaquePass.h"
 #include "Renderer/TerrainPass.h"
-#include "Renderer/PlaceObjectOnTerrainPass.h"
-#include "Renderer/RenderObjectOnTerrainPass.h"
 #include "Renderer/FoliagePass.h"
 #include "Renderer/GrassPass.h"
+#include "Renderer/AtmospherePass.h"
+#include "Renderer/SkyPass.h"
 #include "Renderer/RngSeedGenerationPass.h"
 #include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
@@ -138,9 +138,9 @@ namespace Renderer {
 		GBufferPass				  mGBufferPass;
 		OpaquePass				  mOpaquePass;
 		TerrainPass				  mTerrainPass;
-		PlaceObjectOnTerrainPass  mPlaceObjectOnTerrainPass;
-		RenderObjectOnTerrainPass mRenderObjectOnTerrainPass;
 		GrassPass                 mGrassPass;
+		SkyPass                   mSkyPass;
+		AtmospherePass            mAtmospherePass;
 		FoliagePass				  mFoliagePass;
 		RngSeedGenerationPass	  mRngSeedGenerationPass;
 		SkyGenerationPass		  mSkyGenerationPass;

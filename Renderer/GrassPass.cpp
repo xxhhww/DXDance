@@ -134,103 +134,6 @@ namespace Renderer {
 			}
 			);
 
-		/*
-		// 计算安置点的Y轴坐标
-		renderGraph.AddPass(
-			"GrassBladeGenerator",
-			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
-				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
-
-				builder.ReadBuffer("NearbyNodeList", ShaderAccessFlag::NonPixelShader);
-
-				NewBufferProperties _CurrentNodeIndexBufferProperties{};	// 当前Dispatch处理的Node索引
-				_CurrentNodeIndexBufferProperties.stride = sizeof(uint32_t);
-				_CurrentNodeIndexBufferProperties.size = 1u;
-				_CurrentNodeIndexBufferProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				_CurrentNodeIndexBufferProperties.aliased = false;
-				builder.DeclareBuffer("CurrentNodeIndex", _CurrentNodeIndexBufferProperties);
-				builder.WriteBuffer("CurrentNodeIndex");
-
-				NewBufferProperties _GrassBladeBufferProperties{};
-				_GrassBladeBufferProperties.stride = sizeof(GrassBlade);
-				_GrassBladeBufferProperties.size = smMaxGrassBladeSize * _GrassBladeBufferProperties.stride;
-				_GrassBladeBufferProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				builder.DeclareBuffer("GrassBladeBuffer", _GrassBladeBufferProperties);
-				builder.WriteBuffer("GrassBladeBuffer");
-
-				NewBufferProperties _GrassBladeGeneratorIndirectArgsProperties{};
-				_GrassBladeGeneratorIndirectArgsProperties.stride = sizeof(IndirectDispatch);
-				_GrassBladeGeneratorIndirectArgsProperties.size = 1u * _GrassBladeGeneratorIndirectArgsProperties.stride;
-				_GrassBladeGeneratorIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_GrassBladeGeneratorIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("GrassBladeGeneratorIndirectArgs", _GrassBladeGeneratorIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("GrassBladeGeneratorIndirectArgs");
-
-				shaderManger.CreateComputeShader("GrassBladeGenerator",
-					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/ProceduralGrass/GrassBladeGenerator.hlsl";
-					});
-
-				commandSignatureManger.CreateCommandSignature("GrassBladeGenerator",
-					[&](GHL::CommandSignature& proxy) {
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
-						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
-						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
-						proxy.SetByteStride(sizeof(IndirectDispatch));
-					});
-			},
-			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
-				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage = renderContext.resourceStorage;
-
-				auto* nearbyNodeList = resourceStorage->GetResourceByName("NearbyNodeList")->GetBuffer();
-				auto* currentNodeIndex = resourceStorage->GetResourceByName("CurrentNodeIndex")->GetBuffer();
-				auto* grassBladeBuffer = resourceStorage->GetResourceByName("GrassBladeBuffer")->GetBuffer();
-				auto* indirectArgs = resourceStorage->GetResourceByName("GrassBladeGeneratorIndirectArgs")->GetBuffer();
-				auto* terrainHeightMap = resourceStorage->GetResourceByName("TerrainHeightMap")->GetTexture();
-				auto* terrainNormalMap = resourceStorage->GetResourceByName("TerrainNormalMap")->GetTexture();
-
-				grassGeneratorPassData.grassBladeBufferIndex0 = grassBladeBuffer->GetUADescriptor()->GetHeapIndex();
-				grassGeneratorPassData.terrainHeightMapIndex = terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
-				grassGeneratorPassData.terrainNormalMapIndex = terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
-				grassGeneratorPassData.grassBladeSizePerAxis = smGrassBladeSizePerAxis;
-
-
-				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(GrassGeneratorPassData));
-				memcpy(passDataAlloc.cpuAddress, &grassGeneratorPassData, sizeof(GrassGeneratorPassData));
-
-				IndirectDispatch indirectDispatch{};
-				indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-				indirectDispatch.passDataAddress = passDataAlloc.gpuAddress;
-				indirectDispatch.dispatchArguments.ThreadGroupCountX = (smGrassBladeSizePerAxis / smThreadSizeInGroup);
-				indirectDispatch.dispatchArguments.ThreadGroupCountY = (smGrassBladeSizePerAxis / smThreadSizeInGroup);
-				indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
-
-				// 更新grassBladeBuffer与indirectArgs
-				auto barrierBatch = GHL::ResourceBarrierBatch{};
-				barrierBatch = commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(grassBladeBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
-
-				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
-				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
-				commandBuffer.ClearCounterBuffer(grassBladeBuffer, 0u);
-
-				barrierBatch = commandBuffer.TransitionImmediately(grassBladeBuffer, GHL::EResourceState::UnorderedAccess);
-				barrierBatch += commandBuffer.TransitionImmediately(grassBladeBuffer->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
-				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
-				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
-
-				commandBuffer.SetComputeRootSignature();
-				commandBuffer.SetComputePipelineState("GrassBladeGenerator");
-				commandBuffer.ExecuteIndirect("GrassBladeGenerator", indirectArgs, 1u);
-			}
-			);
-		*/
-
 		renderGraph.AddPass(
 			"GrassRenderer",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
@@ -345,7 +248,7 @@ namespace Renderer {
 				// 更新indirectArgs特别是其中的InstanceCount
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				// barrierBatch =  commandBuffer.TransitionImmediately(placementBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
-				barrierBatch = commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(grassBladeBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
@@ -355,7 +258,7 @@ namespace Renderer {
 					grassBladeBuffer->GetCounterBuffer(), 0u, sizeof(uint32_t));
 				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
 
-				barrierBatch = commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
 				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
 				barrierBatch += commandBuffer.TransitionImmediately(grassBladeBuffer, GHL::EResourceState::AnyShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
