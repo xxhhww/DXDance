@@ -11,29 +11,29 @@ namespace Renderer {
 
 				NewTextureProperties _TransmittanceLutProperties{};
 				_TransmittanceLutProperties.width = 256u;
-				_TransmittanceLutProperties.height = 128u;
-				_TransmittanceLutProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_TransmittanceLutProperties.height = 64u;
+				_TransmittanceLutProperties.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				builder.DeclareTexture("TransmittanceLut", _TransmittanceLutProperties);
 				builder.WriteTexture("TransmittanceLut");
 
 				NewTextureProperties _MultiScatteringLutProperties{};
-				_MultiScatteringLutProperties.width = 256u;
-				_MultiScatteringLutProperties.height = 64u;
-				_MultiScatteringLutProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_MultiScatteringLutProperties.width = 32u;
+				_MultiScatteringLutProperties.height = 32u;
+				_MultiScatteringLutProperties.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				builder.DeclareTexture("MultiScatteringLut", _MultiScatteringLutProperties);
 				builder.WriteTexture("MultiScatteringLut");
 
 				NewTextureProperties _SkyViewLutProperties{};
-				_SkyViewLutProperties.width = 32u;
-				_SkyViewLutProperties.height = 32u;
-				_SkyViewLutProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_SkyViewLutProperties.width = 256u;
+				_SkyViewLutProperties.height = 128u;
+				_SkyViewLutProperties.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				builder.DeclareTexture("SkyViewLut", _SkyViewLutProperties);
 				builder.WriteTexture("SkyViewLut");
 
 				NewTextureProperties _AerialPerspectiveLutProperties{};
 				_AerialPerspectiveLutProperties.width = 32u * 32u;
 				_AerialPerspectiveLutProperties.height = 32u;
-				_AerialPerspectiveLutProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_AerialPerspectiveLutProperties.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				builder.DeclareTexture("AerialPerspectiveLut", _AerialPerspectiveLutProperties);
 				builder.WriteTexture("AerialPerspectiveLut");
 
@@ -77,13 +77,13 @@ namespace Renderer {
 				auto& aerialPerspectiveLutDesc = aerialPerspectiveLut->GetResourceFormat().GetTextureDesc();
 
 				atmosphereBuilderData.transmittanceLutIndex = transmittanceLut->GetUADescriptor()->GetHeapIndex();
-				atmosphereBuilderData.transmittanceLutSize = Math::Vector2{ (float)transmittanceLutDesc.height, (float)transmittanceLutDesc.width };
+				atmosphereBuilderData.transmittanceLutSize = Math::Vector2{ (float)transmittanceLutDesc.width, (float)transmittanceLutDesc.height };
 				atmosphereBuilderData.multiScatteringLutIndex = multiScatteringLut->GetUADescriptor()->GetHeapIndex();
-				atmosphereBuilderData.multiScatteringLutSize = Math::Vector2{ (float)multiScatteringLutDesc.height, (float)multiScatteringLutDesc.width };
+				atmosphereBuilderData.multiScatteringLutSize = Math::Vector2{ (float)multiScatteringLutDesc.width, (float)multiScatteringLutDesc.height };
 				atmosphereBuilderData.skyViewLutIndex = skyViewLut->GetUADescriptor()->GetHeapIndex();
-				atmosphereBuilderData.skyViewLutSize = Math::Vector2{ (float)skyViewLutDesc.height, (float)skyViewLutDesc.width };
+				atmosphereBuilderData.skyViewLutSize = Math::Vector2{ (float)skyViewLutDesc.width, (float)skyViewLutDesc.height };
 				atmosphereBuilderData.aerialPerspectiveLutIndex = aerialPerspectiveLut->GetUADescriptor()->GetHeapIndex();
-				atmosphereBuilderData.aerialPerspectiveLutSize = Math::Vector2{ (float)aerialPerspectiveLutDesc.height, (float)aerialPerspectiveLutDesc.width };
+				atmosphereBuilderData.aerialPerspectiveLutSize = Math::Vector2{ (float)aerialPerspectiveLutDesc.width, (float)aerialPerspectiveLutDesc.height };
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(AtmospherePass::AtmosphereBuilderData), 256u);
 				memcpy(passDataAlloc.cpuAddress, &atmosphereBuilderData, sizeof(AtmospherePass::AtmosphereBuilderData));
@@ -147,8 +147,8 @@ namespace Renderer {
 				atmosphereRendererData.transmittanceLutIndex = transmittanceLut->GetSRDescriptor()->GetHeapIndex();
 				atmosphereRendererData.skyViewLutIndex = skyViewLut->GetSRDescriptor()->GetHeapIndex();
 
-				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(AtmospherePass::AtmosphereBuilderData), 256u);
-				memcpy(passDataAlloc.cpuAddress, &atmosphereBuilderData, sizeof(AtmospherePass::AtmosphereBuilderData));
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(AtmospherePass::AtmosphereRendererData), 256u);
+				memcpy(passDataAlloc.cpuAddress, &atmosphereRendererData, sizeof(AtmospherePass::AtmosphereRendererData));
 
 				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
 				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);

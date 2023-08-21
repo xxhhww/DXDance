@@ -233,6 +233,7 @@ namespace Renderer {
 		gpuCurrentEditorCamera.inverseProjection	= editorCamera.projMatrix.Inverse().Transpose();
 		gpuCurrentEditorCamera.nearPlane			= editorCamera.frustum.nearZ;
 		gpuCurrentEditorCamera.farPlane				= editorCamera.frustum.farZ;
+		gpuCurrentEditorCamera.aspectRatio          = editorCamera.frustum.aspect;
 		gpuCurrentEditorCamera.jitter				= jitter.jitterMatrix;
 		gpuCurrentEditorCamera.uvJitter				= jitter.uvJitter;
 		gpuCurrentEditorCamera.viewProjectionJitter	= (editorCamera.viewProjMatrix * jitter.jitterMatrix).Transpose();
@@ -256,6 +257,7 @@ namespace Renderer {
 				gpuCurrentRenderCamera.inverseProjection	= camera.projMatrix.Inverse().Transpose();
 				gpuCurrentRenderCamera.nearPlane			= camera.frustum.nearZ;
 				gpuCurrentRenderCamera.farPlane				= camera.frustum.farZ;
+				gpuCurrentRenderCamera.aspectRatio          = camera.frustum.aspect;
 				gpuCurrentRenderCamera.jitter				= jitter.jitterMatrix;
 				gpuCurrentRenderCamera.uvJitter				= jitter.uvJitter;
 				gpuCurrentRenderCamera.viewProjectionJitter	= (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
@@ -313,7 +315,7 @@ namespace Renderer {
 
 			// Found it on internet, without it the illuminance is too small.
 			// Account for luminous efficacy, coordinate system scaling (100, wtf???)
-			float multiplier = 1.0f;
+			float multiplier = 2.5f;
 			sky.sunIlluminance = sunIlluminance * multiplier;
 			sky.sunLuminance = sunLuminance * multiplier;
 			
@@ -322,7 +324,7 @@ namespace Renderer {
 			gpuLightData.position = Math::Vector4{ sunDirection, ECS::SunDiskArea };
 			gpuLightData.color = sky.sunIlluminance;
 			gpuLightData.type = std::underlying_type<ECS::LightType>::type(ECS::LightType::Sun);
-			gpuLightData.intensity = 3.0f;
+			gpuLightData.intensity = 1.0f;
 			gpuLightData.radiance = gpuLightData.color * gpuLightData.intensity;
 		});
 	}

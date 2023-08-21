@@ -166,7 +166,7 @@ void RunRenderer() {
         auto skyEntity = ECS::Entity::Create<ECS::Transform, ECS::Sky>();
         
         auto& transform = skyEntity.GetComponent<ECS::Transform>();
-        transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV2, 0.0f, 0.0f };
+        transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
 
         auto& sky = skyEntity.GetComponent<ECS::Sky>();
     }

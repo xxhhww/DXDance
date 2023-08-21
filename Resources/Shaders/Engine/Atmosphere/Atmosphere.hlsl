@@ -137,6 +137,7 @@ void AerialPerspectiveLut(uint3 dispatchThreadID : SV_DispatchThreadID){
     uv.xyz += 0.5 / PassDataCB.aerialPerspectiveVoxelSize.xyz;
 
     float aspect = FrameDataCB.CurrentEditorCamera.AspectRatio;
+
     /*
     float3 viewDir = normalize(mul(unity_CameraToWorld, float4(
         (uv.x * 2.0 - 1.0) * 1.0, 

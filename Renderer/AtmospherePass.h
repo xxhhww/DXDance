@@ -13,7 +13,7 @@ namespace Renderer {
 			float SeaLevel = 0.0f;
 			float PlanetRadius = 6360000.0f;
 			float AtmosphereHeight = 60000.0f;
-			float SunLightIntensity = 31.4f;
+			float SunLightIntensity = 15.0f;
 
 			Math::Vector3 SunLightColor = Math::Vector3{ 1.0f, 1.0f, 1.0f };
 			float SunDiskAngle = 1.0f;

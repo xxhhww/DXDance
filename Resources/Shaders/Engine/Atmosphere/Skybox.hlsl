@@ -61,8 +61,11 @@ float3 GetSunDisk(in AtmosphereParameter param, float3 eyePos, float3 viewDir, f
 }
 
 v2p VSMain(a2v input) {
-	v2p output;
-    output.currCsPos = mul(float4(input.lsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjection);
+	float3 tempPos = input.lsPos + FrameDataCB.CurrentEditorCamera.Position.xyz;
+    
+    v2p output;
+    
+    output.currCsPos = mul(float4(tempPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjection).xyww;
     output.wsPos = normalize(input.lsPos);
 
     return output;
