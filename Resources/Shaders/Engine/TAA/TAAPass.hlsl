@@ -102,6 +102,12 @@ void CSMain(int3 GTid : SV_GroupThreadID, int3 Gid : SV_GroupID)
     float2 uv = TexelIndexToUV(pixelIndex, FrameDataCB.FinalRTResolution);
     float2 reprojectedUV = uv - motion.xy;
 
+
+    {
+        outputTexture[pixelIndex].rgba = currentFrameTexture[pixelIndex].rgba;
+        return;
+    }
+
     // 当前帧为第一帧
     if (PassDataCB.isFirstFrame) {
         outputTexture[pixelIndex].rgba = currentFrameTexture[pixelIndex].rgba;

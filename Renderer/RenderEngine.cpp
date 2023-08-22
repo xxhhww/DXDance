@@ -157,6 +157,7 @@ namespace Renderer {
 			mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
 			mAtmospherePass.InitializePass(this);
+			mOceanPass.InitializePass(this);
 			mVolumetricCloudsPass.InitializePass(this);
 		}
 
@@ -167,6 +168,7 @@ namespace Renderer {
 			mGrassPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddBuilderPass(*mRenderGraph);
 			mAtmospherePass.AddRendererPass(*mRenderGraph);
+			mOceanPass.AddPass(*mRenderGraph);
 			// mSkyPass.AddPass(*mRenderGraph);
 			mTAAPass.AddForwardPlus(*mRenderGraph);
 			mToneMappingPass.AddForwardPlusPass(*mRenderGraph);

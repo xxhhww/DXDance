@@ -88,5 +88,7 @@
     <FxCompile Include="Shaders\Engine\Atmosphere\AtmosphereHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Atmosphere\Atmosphere.hlsl" />
     <FxCompile Include="Shaders\Engine\Atmosphere\Skybox.hlsl" />
+    <FxCompile Include="Shaders\Engine\Ocean\OceanRenderer.hlsl" />
+    <FxCompile Include="Shaders\Engine\Ocean\OceanHelper.hlsl" />
   </ItemGroup>
 </Project>

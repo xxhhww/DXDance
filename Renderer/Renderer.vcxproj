@@ -173,6 +173,7 @@
     <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="GenerateCloudNoiseTask.h" />
+    <ClInclude Include="OceanPass.h" />
     <ClInclude Include="OpaquePass.h" />
     <ClInclude Include="PlaceObjectOnTerrainPass.h" />
     <ClInclude Include="RenderObjectOnTerrainPass.h" />
@@ -244,6 +245,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MemoryAliasingHelper.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="OceanPass.cpp" />
     <ClCompile Include="OpaquePass.cpp" />
     <ClCompile Include="PlaceObjectOnTerrainPass.cpp" />
     <ClCompile Include="RenderObjectOnTerrainPass.cpp" />

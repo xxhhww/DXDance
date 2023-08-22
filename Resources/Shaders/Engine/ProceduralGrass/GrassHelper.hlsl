@@ -8,6 +8,7 @@ struct GrassVertex {
 	float3 tangent;
 	float3 bitangent;
 	float4 color;
+
 	float4 userData;
 };
 

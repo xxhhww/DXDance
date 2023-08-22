@@ -31,6 +31,7 @@
 #include "Renderer/FoliagePass.h"
 #include "Renderer/GrassPass.h"
 #include "Renderer/AtmospherePass.h"
+#include "Renderer/OceanPass.h"
 #include "Renderer/SkyPass.h"
 #include "Renderer/RngSeedGenerationPass.h"
 #include "Renderer/SkyGenerationPass.h"
@@ -141,6 +142,7 @@ namespace Renderer {
 		GrassPass                 mGrassPass;
 		SkyPass                   mSkyPass;
 		AtmospherePass            mAtmospherePass;
+		OceanPass                 mOceanPass;
 		FoliagePass				  mFoliagePass;
 		RngSeedGenerationPass	  mRngSeedGenerationPass;
 		SkyGenerationPass		  mSkyGenerationPass;

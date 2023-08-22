@@ -114,6 +114,28 @@ namespace Renderer {
 			mInternalShaders[GHL::EShaderStage::GS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
 		}
 
+		// HS
+		if (mProxy.hsFilepath) {
+			shaderDesc.file = *mProxy.hsFilepath;
+			shaderDesc.entryPoint = mProxy.hsEntryPoint ? *mProxy.hsEntryPoint : "HSMain";
+			shaderDesc.stage = GHL::EShaderStage::HS;
+
+			compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
+			ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+			mInternalShaders[GHL::EShaderStage::HS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
+		}
+
+		// DS
+		if (mProxy.dsFilepath) {
+			shaderDesc.file = *mProxy.dsFilepath;
+			shaderDesc.entryPoint = mProxy.dsEntryPoint ? *mProxy.dsEntryPoint : "DSMain";
+			shaderDesc.stage = GHL::EShaderStage::DS;
+
+			compilationResult = mManger->GetCompiler().CompileShader(shaderDesc);
+			ASSERT_FORMAT(compilationResult.compiledShader.GetPointer() != nullptr, "Compiled Blob is nullptr");
+			mInternalShaders[GHL::EShaderStage::DS] = std::make_unique<GHL::Shader>(compilationResult.compiledShader);
+		}
+
 		// ±‡“ÎGHL::PipelineState
 		mInternalPipelineState = std::make_unique<GHL::GraphicsPipelineState>(mManger->GetDevice());
 
@@ -137,6 +159,14 @@ namespace Renderer {
 
 		if (mProxy.gsFilepath) {
 			mInternalPipelineState->desc.GS = mInternalShaders.at(GHL::EShaderStage::GS)->D3DBytecode();
+		}
+
+		if (mProxy.hsFilepath) {
+			mInternalPipelineState->desc.HS = mInternalShaders.at(GHL::EShaderStage::HS)->D3DBytecode();
+		}
+
+		if (mProxy.dsFilepath) {
+			mInternalPipelineState->desc.DS = mInternalShaders.at(GHL::EShaderStage::DS)->D3DBytecode();
 		}
 
 		mInternalPipelineState->Compile();

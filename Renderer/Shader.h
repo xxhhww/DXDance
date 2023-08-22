@@ -44,7 +44,7 @@ namespace Renderer {
 				{ "NORMAL"   , 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 				{ "TANGENT"  , 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 				{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-				{ "USERDATA" , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+				{ "COLOR"    , 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 			};
 
 			rootSignatureName = "Signature_Base";
@@ -54,12 +54,17 @@ namespace Renderer {
 
 		std::string name;
 
-		std::string vsFilepath;
-		std::string psFilepath;
 		std::optional<std::string> gsFilepath;
-		std::optional<std::string> vsEntryPoint;
-		std::optional<std::string> psEntryPoint;
+		std::string vsFilepath;
+		std::optional<std::string> hsFilepath;
+		std::optional<std::string> dsFilepath;
+		std::string psFilepath;
+		
 		std::optional<std::string> gsEntryPoint;
+		std::optional<std::string> vsEntryPoint;
+		std::optional<std::string> hsEntryPoint;
+		std::optional<std::string> dsEntryPoint;
+		std::optional<std::string> psEntryPoint;
 
 		UINT sampleMask;
 		D3D12_BLEND_DESC blendDesc;

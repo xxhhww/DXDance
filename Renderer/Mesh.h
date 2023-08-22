@@ -33,8 +33,7 @@ namespace Renderer {
 		, normal(0.0f, 0.0f, 0.0f)
 		, tangent(0.0f, 0.0f, 0.0f)
 		, bitangent(0.0f, 0.0f, 0.0f)
-		, color(0.0f, 0.0f, 0.0f, 0.0f)
-		, userData(0.0f, 0.0f, 0.0f, 0.0f) {}
+		, color(0.0f, 0.0f, 0.0f, 0.0f) {}
 		
 		Vertex(
 			const Math::Vector3& p,
@@ -42,15 +41,13 @@ namespace Renderer {
 			const Math::Vector3& n,
 			const Math::Vector3& t,
 			const Math::Vector3& b,
-			const Math::Vector4& c,
-			const Math::Vector4& uData = Math::Vector4{ 0.0f, 0.0f, 0.0f, 0.0f })
+			const Math::Vector4& c)
 		: position(p)
 		, uv(uv)
 		, normal(n)
 		, tangent(t) 
 		, bitangent(b) 
-		, color(c)
-		, userData(uData) {}
+		, color(c) {}
 		
 		Vertex(
 			float px, float py, float pz,
@@ -58,15 +55,13 @@ namespace Renderer {
 			float nx, float ny, float nz,
 			float tx, float ty, float tz,
 			float bx, float by, float bz,
-			float cx, float cy, float cz, float cw,
-			float udx = 0.0f, float udy = 0.0f, float udz = 0.0f, float udw = 0.0f)
+			float cx, float cy, float cz, float cw)
 		: position(px, py, pz)
 		, uv(u, v)
 		, normal(nx, ny, nz)
 		, tangent(tx, ty, tz)
 		, bitangent(bx, by, bz)
-		, color(cx, cy, cz, cw)
-		, userData(udx, udy, udz, udw) {}
+		, color(cx, cy, cz, cw) {}
 
 	};
 
@@ -75,14 +70,18 @@ namespace Renderer {
 	public:
 		Mesh(const GHL::Device* device,
 			const ResourceFormat& vbFormat,
+			PoolDescriptorAllocator* descriptorAllocator,
+			BuddyHeapAllocator* heapAllocator);
+
+		Mesh(const GHL::Device* device,
+			const ResourceFormat& vbFormat,
 			const ResourceFormat& ibFormat,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator);
 		~Mesh();
 
-		/*
-		* 使用DStorage从内存加载数据
-		*/
+		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices);
+		
 		void LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
 
 		inline const auto& GetVertexCount() const { return mVertexCount; }
