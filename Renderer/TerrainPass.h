@@ -60,22 +60,27 @@ namespace Renderer {
 			uint32_t heightMapIndex;
 			uint32_t normalMapIndex;
 			uint32_t lodDebug{ 0u };
-			float pad1;
+			uint32_t splatMapIndex;
 
-			uint32_t groundGrassAlbedoMapIndex;
-			uint32_t groundGrassNormalMapIndex;
-			uint32_t groundGrassRoughnessMapIndex;
-			uint32_t groundGrassDisplacementMapIndex;
+			uint32_t rChannelAlbedoMapIndex;
+			uint32_t rChannelNormalMapIndex;
+			uint32_t rChannelRoughnessMapIndex;
+			uint32_t rChannelDisplacementMapIndex;
 			
-			uint32_t groundRockAlbedoMapIndex;
-			uint32_t groundRockNormalMapIndex;
-			uint32_t groundRockRoughnessMapIndex;
-			uint32_t groundRockDisplacementMapIndex;
+			uint32_t gChannelAlbedoMapIndex;
+			uint32_t gChannelNormalMapIndex;
+			uint32_t gChannelRoughnessMapIndex;
+			uint32_t gChannelDisplacementMapIndex;
 
-			uint32_t groundMudAlbedoMapIndex;
-			uint32_t groundMudNormalMapIndex;
-			uint32_t groundMudRoughnessMapIndex;
-			uint32_t groundMudDisplacementMapIndex;
+			uint32_t bChannelAlbedoMapIndex;
+			uint32_t bChannelNormalMapIndex;
+			uint32_t bChannelRoughnessMapIndex;
+			uint32_t bChannelDisplacementMapIndex;
+
+			uint32_t aChannelAlbedoMapIndex;
+			uint32_t aChannelNormalMapIndex;
+			uint32_t aChannelRoughnessMapIndex;
+			uint32_t aChannelDisplacementMapIndex;
 		};
 
 		struct NodeLocation {
@@ -109,17 +114,27 @@ namespace Renderer {
 		TextureWrap heightMap;
 		TextureWrap normalMap;
 
-		TextureWrap groundGrassAlbedoMap;		// 草地反射率贴图
-		TextureWrap groundGrassNormalMap;		// 草地法线贴图
-		TextureWrap groundGrassRoughnessMap;	// 草地粗糙度贴图
+		TextureWrap splatMap;	// 纹理混合
 
-		TextureWrap groundRockAlbedoMap;		// 岩石反射率贴图
-		TextureWrap groundRockNormalMap;		// 岩石法线贴图
-		TextureWrap groundRockRoughnessMap;		// 岩石粗糙度贴图
+		// channel R
+		TextureWrap grassAlbedoMap;
+		TextureWrap grassNormalMap;
+		TextureWrap grassRoughnessMap;
 
-		TextureWrap groundMudAlbedoMap;			// 泥土反射率贴图
-		TextureWrap groundMudNormalMap;			// 泥土法线贴图
-		TextureWrap groundMudRoughnessMap;		// 泥土粗糙度贴图
+		// channel G
+		TextureWrap mudAlbedoMap;
+		TextureWrap mudNormalMap;
+		TextureWrap mudRoughnessMap;
+
+		// channel B
+		TextureWrap cliffAlbedoMap;
+		TextureWrap cliffNormalMap;
+		TextureWrap cliffRoughnessMap;
+
+		// channel A
+		TextureWrap snowAlbedoMap;
+		TextureWrap snowNormalMap;
+		TextureWrap snowRoughness;
 
 	public:
 		void AddPreDepthPass(RenderGraph& renderGraph);

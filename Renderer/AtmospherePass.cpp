@@ -4,7 +4,11 @@
 
 namespace Renderer {
 
-	void AtmospherePass::AddBuilderPass(RenderGraph& renderGraph) {
+	void AtmospherePass::AddPass(RenderGraph& renderGraph) {
+
+		auto& finalOutputDesc =
+			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
 		renderGraph.AddPass("AtmosphereBuilderPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
@@ -105,12 +109,6 @@ namespace Renderer {
 				commandBuffer.SetComputePipelineState("AerialPerspectiveLut");
 				commandBuffer.Dispatch(aerialPerspectiveLutDesc.width / smThreadSizeInGroup, aerialPerspectiveLutDesc.height / smThreadSizeInGroup, 1u);
 			});
-	}
-
-	void AtmospherePass::AddRendererPass(RenderGraph& renderGraph) {
-
-		auto& finalOutputDesc =
-			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
 		renderGraph.AddPass("AtmosphereRendererPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {

@@ -9,7 +9,7 @@ struct Surface {
 	// Set from outside
 	float3 position;    // world space position
 	float3 normal;      // world space normal
-	float3 viewDir;        // world space viewDir (vector from surfacePos to cameraPos)
+	float3 viewDir;     // world space viewDir (vector from surfacePos to cameraPos)
 
 	float4 albedo;
 	float  roughness;

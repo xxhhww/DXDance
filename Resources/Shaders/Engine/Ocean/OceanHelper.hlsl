@@ -6,7 +6,7 @@ static const uint numWaves = 2u;
 struct WaterParameter{
 	float4 waterSurfaceColor;
     float4 waterRefractionColor;
-    float4 ssrSettings;
+    float4 ssrSettings;         // step size, max steps forward, max steps back, foreground reduction factor
     float4 normalMapScroll;
 
     float2 normalMapScrollSpeed;

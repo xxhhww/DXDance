@@ -166,8 +166,7 @@ namespace Renderer {
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
 			mTerrainPass.AddForwardPlusPass(*mRenderGraph);
 			mGrassPass.AddPass(*mRenderGraph);
-			mAtmospherePass.AddBuilderPass(*mRenderGraph);
-			mAtmospherePass.AddRendererPass(*mRenderGraph);
+			mAtmospherePass.AddPass(*mRenderGraph);
 			mOceanPass.AddPass(*mRenderGraph);
 			// mSkyPass.AddPass(*mRenderGraph);
 			mTAAPass.AddForwardPlus(*mRenderGraph);

@@ -2,15 +2,26 @@
 #define _OceanRenderer__
 
 #include "OceanHelper.hlsl"
+#include "../Atmosphere/AtmosphereHelper.hlsl"
+#include "../Atmosphere/Raymarching.hlsl"
+#include "../Atmosphere/Scattering.hlsl"
 
 struct PassData{
 	WaterParameter parameter;
+    // AtmosphereParameter atmosphereParameter;
+
+    uint  transmittanceLutIndex;
+    uint  skyViewLutIndex;
+    float pad1;
+    float pad2;
 };
 
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Base/Utils.hlsl"
+#include "../Base/BRDFHelper.hlsl"
+#include "../Math/MathCommon.hlsl"
 
 struct a2v {
 	float3 lsPos     : POSITION;
@@ -137,7 +148,7 @@ d2p DSMain(TessellationPatch input, float3 uvwCoord : SV_DOMAINLOCATION, const O
     output.positionView = mul(output.positionWorld, FrameDataCB.CurrentEditorCamera.View);
     output.position = mul(output.positionView, FrameDataCB.CurrentEditorCamera.Projection);
     output.screenPosition = output.position;
-    /*
+
     // output.normal = normalize(mul(finalWaveResult.normal, (float3x3)modelMatrix));
     output.normal = normalize(finalWaveResult.normal);
     output.worldNormalAndHeight.xyz = output.normal;
@@ -148,14 +159,98 @@ d2p DSMain(TessellationPatch input, float3 uvwCoord : SV_DOMAINLOCATION, const O
     // output.binormal = normalize(mul(finalWaveResult.binormal, (float3x3)modelMatrix));
     output.binormal = normalize(finalWaveResult.binormal);
     output.binormal = normalize(mul(float4(output.binormal, 0.0), FrameDataCB.CurrentEditorCamera.View).xyz);
-    */
+
     return output;
 }
 
 p2o PSMain(d2p input) {
+    WaterParameter parameter = PassDataCB.parameter;
+
+    Texture2D waterNormalMap1 = ResourceDescriptorHeap[parameter.waterNormalMap1Index];
+    Texture2D waterNormalMap2 = ResourceDescriptorHeap[parameter.waterNormalMap2Index];
+    Texture2D waterFoamMap = ResourceDescriptorHeap[parameter.waterFoamMapIndex];
+    Texture2D waterNoiseMap = ResourceDescriptorHeap[parameter.waterNoiseMapIndex];
+
+    Texture2D<float4> skyViewLut = ResourceDescriptorHeap[PassDataCB.skyViewLutIndex];
+    Texture2D<float4> transmittanceLut = ResourceDescriptorHeap[PassDataCB.transmittanceLutIndex];
+
+    input.normal = normalize(input.normal);
+    input.tangent = normalize(input.tangent);
+    input.binormal = normalize(input.binormal);
+ 
+    float2 normalMapCoords1 = input.texCoord0.xy + FrameDataCB.TotalTime * parameter.normalMapScroll.xy * parameter.normalMapScrollSpeed.x;
+    float2 normalMapCoords2 = input.texCoord0.xy + FrameDataCB.TotalTime * parameter.normalMapScroll.zw * parameter.normalMapScrollSpeed.y;
+    // float2 hdrCoords = ((float2(input.screenPosition.x, -input.screenPosition.y) / input.screenPosition.w) * 0.5) + 0.5;
+ 
+    float3 normalMap1 = (waterNormalMap1.SampleLevel(SamplerLinearWrap, normalMapCoords1, 0).rgb * 2.0f) - 1.0f;
+    float3 normalMap2 = (waterNormalMap2.SampleLevel(SamplerLinearWrap, normalMapCoords2, 0).rgb * 2.0f) - 1.0f;
+    float3x3 texSpace = float3x3(input.tangent, input.binormal, input.normal);
+    float3 finalNormal = normalize(mul(normalMap1.xyz, texSpace));
+    finalNormal += normalize(mul(normalMap2.xyz, texSpace));
+    finalNormal = normalize(finalNormal);
+
+    // view space
+    Light sunLight = LightDataSB[0];
+    float3 lightDir = normalize(mul(float4(sunLight.position.xyz, 0.0f), FrameDataCB.CurrentEditorCamera.View).xyz);
+    float3 viewDir = -normalize(input.positionView.xyz);
+    float  roughness = parameter.roughness;
+    float  reflectance = parameter.reflectance;
+
+    float3 half  = normalize(viewDir + lightDir);
+    float  nDotL = saturate(dot(finalNormal, lightDir));
+    float  nDotV = abs(dot(finalNormal, viewDir));
+    float  nDotH = saturate(dot(finalNormal, half));
+    float  lDotH = saturate(dot(lightDir, half));
+    
+    float3 f0 = 0.16 * reflectance * reflectance;
+    float  normalDistribution = distributionGGX(nDotH, roughness);
+    float3 fresnelReflectance = fresnelSchlick(lDotH, f0);
+    float  geometryTerm = geometrySmith(nDotL, nDotV, roughness);
+    
+    float  specularNoise = waterNoiseMap.SampleLevel(SamplerLinearWrap, normalMapCoords1 * 0.5, 0).r;
+    specularNoise *= waterNoiseMap.SampleLevel(SamplerLinearWrap, normalMapCoords2 * 0.5, 0).r;
+    specularNoise *= waterNoiseMap.SampleLevel(SamplerLinearWrap, input.texCoord0.xy * 0.5, 0).r;
+    
+    float3 specularFactor = (geometryTerm * normalDistribution) * fresnelReflectance * parameter.specIntensity * nDotL * specularNoise;
+
+    float  sceneZ = 0;
+    float  stepCount = 0;
+    float  forwardStepCount = parameter.ssrSettings.y;
+    float3 rayMarchPosition = input.positionView.xyz;
+    float4 rayMarchTexPosition = float4(0,0,0,0);
+    float3 reflectionVector = normalize(reflect(-viewDir, finalNormal));
+
+    // float3 reflectionColor = HDRMap.Sample(SamplerPointClamp, rayMarchTexPosition.xy).rgb;
+    float3 envReflection = mul(reflectionVector, (float3x3)FrameDataCB.CurrentEditorCamera.InverseView);
+    
+    float3 skyboxColor = skyViewLut.SampleLevel(SamplerLinearClamp, ViewDirToUV(envReflection), 0).rgb;
+    
+    float3 reflectionColor = skyboxColor * parameter.waterSurfaceColor.rgb;
+    
+    /*
+    float2 distortedTexCoord = (hdrCoords + ((finalNormal.xz + finalNormal.xy) * 0.5) * refractionDistortionFactor);
+    float  distortedDepth = DepthMap.Sample(PointClampSampler, distortedTexCoord).r;
+    float3 distortedPosition = GetWorldPositionFromDepth(distortedTexCoord, distortedDepth, viewProjInvMatrix);
+    float2 refractionTexCoord = (distortedPosition.y < input.positionWorld.y) ? distortedTexCoord : hdrCoords;
+    float3 waterColor = HDRMap.Sample(PointClampSampler, refractionTexCoord).rgb * waterRefractionColor.rgb;
+    
+    float  sceneDepth = DepthMap.Sample(PointClampSampler, hdrCoords).r;
+    float3 scenePosition = GetWorldPositionFromDepth(hdrCoords, sceneDepth, viewProjInvMatrix);
+    float  depthSoftenedAlpha = saturate(distance(scenePosition, input.positionWorld.xyz) / depthSofteningDistance);
+    
+    float3 waterSurfacePosition = (distortedPosition.y < input.positionWorld.y) ? distortedPosition : scenePosition;
+    waterColor = lerp(waterColor, waterRefractionColor.rgb, saturate((input.positionWorld.y - waterSurfacePosition.y) / refractionHeightFactor));
+
+    float  waveTopReflectionFactor = pow(1.0 - saturate(dot(input.normal, viewDir)), 3);
+    float3 waterBaseColor = lerp(waterColor, reflectionColor, saturate(saturate(length(input.positionView.xyz) / refractionDistanceFactor) + waveTopReflectionFactor));
+    float3 finalWaterColor = waterBaseColor + specularFactor;
+    */
+    float3 finalWaterColor = specularFactor;
+
     p2o output;
-    output.shadingResult = float4(0.5f, 0.7f, 0.1f, 1.0f);
+    output.shadingResult = float4(finalWaterColor, 1.0f);
     output.screenVelocity = float2(0.0f, 0.0f);
+
 
     return output;
 }

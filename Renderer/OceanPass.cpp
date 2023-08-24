@@ -1,6 +1,7 @@
 #include "Renderer/OceanPass.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderGraphBuilder.h"
+#include "Renderer/FixedTextureHelper.h"
 
 namespace Renderer {
 
@@ -12,6 +13,9 @@ namespace Renderer {
 			"OceanRenderer",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
                 builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
+
+                builder.ReadTexture("TransmittanceLut", ShaderAccessFlag::PixelShader);
+                builder.ReadTexture("SkyViewLut", ShaderAccessFlag::PixelShader);
 
                 builder.WriteRenderTarget("ShadingResult");
                 builder.WriteRenderTarget("ScreenVelocity");
@@ -25,7 +29,7 @@ namespace Renderer {
                         proxy.dsFilepath = proxy.vsFilepath;
 
                         proxy.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-                        proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+                        // proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
                         proxy.depthStencilDesc.DepthEnable = true;
                         proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
@@ -42,13 +46,15 @@ namespace Renderer {
                 auto* shadingResult = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
                 auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
                 auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
+                auto* transmittanceLut = resourceStorage->GetResourceByName("TransmittanceLut")->GetTexture();
+                auto* skyViewLut = resourceStorage->GetResourceByName("SkyViewLut")->GetTexture();
 
-                /*
                 oceanPassData.waterParameter.waterNormalMap1Index = waterNormalMap1->GetSRDescriptor()->GetHeapIndex();
                 oceanPassData.waterParameter.waterNormalMap2Index = waterNormalMap2->GetSRDescriptor()->GetHeapIndex();
                 oceanPassData.waterParameter.waterFoamMapIndex = waterFoamMap->GetSRDescriptor()->GetHeapIndex();
                 oceanPassData.waterParameter.waterNoiseMapIndex = waterNoiseMap->GetSRDescriptor()->GetHeapIndex();
-                */
+                oceanPassData.transmittanceLutIndex = transmittanceLut->GetSRDescriptor()->GetHeapIndex();
+                oceanPassData.skyViewLutIndex = skyViewLut->GetSRDescriptor()->GetHeapIndex();
 
                 auto passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanPassData));
                 memcpy(passDataAlloc.cpuAddress, &oceanPassData, sizeof(OceanPassData));
@@ -150,6 +156,31 @@ namespace Renderer {
                 nullptr);
 
             gridMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices);
+        }
+
+        {
+            // 加载WaterNormalMap1
+            waterNormalMap1 = FixedTextureHelper::LoadFromFile(
+                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Normal_1.dds");
+
+            // 加载WaterNormalMap2
+            waterNormalMap2 = FixedTextureHelper::LoadFromFile(
+                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Normal_2.dds"
+            );
+            
+            // 加载WaterNoiseMap
+            waterFoamMap = FixedTextureHelper::LoadFromFile(
+                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Foam.dds"
+            );
+
+            // 加载WaterNoiseMap
+            waterNoiseMap = FixedTextureHelper::LoadFromFile(
+                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Noise.dds"
+            );
         }
 
 	}

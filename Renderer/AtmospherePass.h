@@ -68,9 +68,7 @@ namespace Renderer {
 		std::unique_ptr<Renderer::Mesh> cubeMesh;
 
 	public:
-		void AddBuilderPass(RenderGraph& renderGraph);
-
-		void AddRendererPass(RenderGraph& renderGraph);
+		void AddPass(RenderGraph& renderGraph);
 
 		void InitializePass(RenderEngine* renderEngine);
 	};
