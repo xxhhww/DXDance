@@ -17,22 +17,22 @@ struct PassData {
 	uint rChannelAlbedoMapIndex;
 	uint rChannelNormalMapIndex;
 	uint rChannelRoughnessMapIndex;
-	uint rChannelDisplacementMapIndex;
+	uint rChannelHeightMapIndex;
 			
 	uint gChannelAlbedoMapIndex;
 	uint gChannelNormalMapIndex;
 	uint gChannelRoughnessMapIndex;
-	uint gChannelDisplacementMapIndex;
+	uint gChannelHeightMapIndex;
 
 	uint bChannelAlbedoMapIndex;
 	uint bChannelNormalMapIndex;
 	uint bChannelRoughnessMapIndex;
-	uint bChannelDisplacementMapIndex;
+	uint bChannelHeightMapIndex;
 
 	uint aChannelAlbedoMapIndex;
 	uint aChannelNormalMapIndex;
 	uint aChannelRoughnessMapIndex;
-	uint aChannelDisplacementMapIndex;
+	uint aChannelHeightMapIndex;
 };
 
 #define PassDataType PassData
@@ -93,13 +93,30 @@ float3 SampleColorMapWithTriMapping(Texture2D colorMap, float3 position, float3 
 		float3 weights = pow(abs(normal), sharpness);
 		weights /= dot(weights, 1.0f);
 
-		float3 xDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvX, 0).rgb, 2.2f);
-        float3 yDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvY, 0).rgb, 2.2f);
-        float3 zDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvZ, 0).rgb, 2.2f);
+		float3 xDiff = colorMap.SampleLevel(SamplerLinearWrap, uvX, 0).rgb;
+        float3 yDiff = colorMap.SampleLevel(SamplerLinearWrap, uvY, 0).rgb;
+        float3 zDiff = colorMap.SampleLevel(SamplerLinearWrap, uvZ, 0).rgb;
 
 		float3 color = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
 
 		return color;
+}
+
+float SampleHeightMapWithTriMapping(Texture2D heightMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
+		float2 uvX = position.zy * textureScale.x;
+		float2 uvY = position.xz * textureScale.y;
+		float2 uvZ = position.xy * textureScale.z;
+
+		float3 weights = pow(abs(normal), sharpness);
+		weights /= dot(weights, 1.0f);
+
+		float xDiff = heightMap.SampleLevel(SamplerLinearWrap, uvX, 0).r;
+        float yDiff = heightMap.SampleLevel(SamplerLinearWrap, uvY, 0).r;
+        float zDiff = heightMap.SampleLevel(SamplerLinearWrap, uvZ, 0).r;
+
+		float height = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
+
+		return height;
 }
 
 float3 SampleNormalMapWithTriMapping(Texture2D normalMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
@@ -134,6 +151,15 @@ float3 SampleNormalMapWithTriMapping(Texture2D normalMap, float3 position, float
 		);
 
 		return wsNormal;
+}
+
+float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4 splatWeight) {
+    float4 blend = float4(high1, high2, high3, high4) * splatWeight;
+    float ma = max(blend.r, max(blend.g, max(blend.b, blend.a)));
+
+    //与权重最大的通道进行对比，高度差在_Weight范围内的将会保留,_Weight不可以为0
+    blend = max(blend - ma + 0.2f, 0.0f) * splatWeight;
+    return blend / (blend.r + blend.g + blend.b + blend.a);
 }
 
 float3 SampleNormalMap(Texture2D<float4> normalMap, SamplerState s, float2 uv) {
@@ -223,36 +249,49 @@ p2o PSMain(v2p input) {
 
 	float3 wsPos = input.wsPos;
 	float3 wsNormal = SampleTerrainNormalMap(input.uv);
-	float4 splat = SampleTerrainSplatMap(input.uv);
+	float4 splatWeight = SampleTerrainSplatMap(input.uv);
 
 	float4 albedo = float4(0.5f, 0.5f, 0.5f, 1.0f);
 	float  roughness = 0.99f;
 
-	Texture2D<float4> rChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.rChannelAlbedoMapIndex];
-	Texture2D<float4> rChannelNormalMap = ResourceDescriptorHeap[PassDataCB.rChannelNormalMapIndex];
+	Texture2D rChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.rChannelAlbedoMapIndex];
+	Texture2D rChannelNormalMap = ResourceDescriptorHeap[PassDataCB.rChannelNormalMapIndex];
+	Texture2D rChannelHeightMap = ResourceDescriptorHeap[PassDataCB.rChannelHeightMapIndex];
 
-	Texture2D<float4> gChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.gChannelAlbedoMapIndex];
-	Texture2D<float4> gChannelNormalMap = ResourceDescriptorHeap[PassDataCB.gChannelNormalMapIndex];
+	Texture2D gChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.gChannelAlbedoMapIndex];
+	Texture2D gChannelNormalMap = ResourceDescriptorHeap[PassDataCB.gChannelNormalMapIndex];
+	Texture2D gChannelHeightMap = ResourceDescriptorHeap[PassDataCB.gChannelHeightMapIndex];
 
-	Texture2D<float4> bChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.bChannelAlbedoMapIndex];
-	Texture2D<float4> bChannelNormalMap = ResourceDescriptorHeap[PassDataCB.bChannelNormalMapIndex];
+	Texture2D bChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.bChannelAlbedoMapIndex];
+	Texture2D bChannelNormalMap = ResourceDescriptorHeap[PassDataCB.bChannelNormalMapIndex];
+	Texture2D bChannelHeightMap = ResourceDescriptorHeap[PassDataCB.bChannelHeightMapIndex];
 
-	Texture2D<float4> aChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.aChannelAlbedoMapIndex];
-	Texture2D<float4> aChannelNormalMap = ResourceDescriptorHeap[PassDataCB.aChannelNormalMapIndex];
+	Texture2D aChannelAlbedoMap = ResourceDescriptorHeap[PassDataCB.aChannelAlbedoMapIndex];
+	Texture2D aChannelNormalMap = ResourceDescriptorHeap[PassDataCB.aChannelNormalMapIndex];
+	Texture2D aChannelHeightMap = ResourceDescriptorHeap[PassDataCB.aChannelHeightMapIndex];
 
 	float  textureScale = 1.0f / 64.0f;
 
+	// Height
+	float rChannelHeight = SampleHeightMapWithTriMapping(rChannelHeightMap, wsPos, wsNormal, textureScale);
+	float gChannelHeight = SampleHeightMapWithTriMapping(gChannelHeightMap, wsPos, wsNormal, textureScale);
+	float bChannelHeight = SampleHeightMapWithTriMapping(bChannelHeightMap, wsPos, wsNormal, textureScale);
+	float aChannelHeight = SampleHeightMapWithTriMapping(aChannelHeightMap, wsPos, wsNormal, textureScale);
+	splatWeight = GetHeightBlend(rChannelHeight, gChannelHeight, bChannelHeight, aChannelHeight, splatWeight);
+
+	// Albedo
 	float3 rChannel = SampleColorMapWithTriMapping(rChannelAlbedoMap, wsPos, wsNormal, textureScale);
 	float3 gChannel = SampleColorMapWithTriMapping(gChannelAlbedoMap, wsPos, wsNormal, textureScale);
 	float3 bChannel = SampleColorMapWithTriMapping(bChannelAlbedoMap, wsPos, wsNormal, textureScale);
 	float3 aChannel = SampleColorMapWithTriMapping(aChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	albedo.rgb = splat.r * rChannel + splat.g * gChannel + splat.b * bChannel + splat.a * aChannel;
-
+	albedo.rgb = saturate(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
+	
+	// Normal
 	rChannel = SampleNormalMapWithTriMapping(rChannelNormalMap, wsPos, wsNormal, textureScale);
 	gChannel = SampleNormalMapWithTriMapping(gChannelNormalMap, wsPos, wsNormal, textureScale);
 	bChannel = SampleNormalMapWithTriMapping(bChannelNormalMap, wsPos, wsNormal, textureScale);
 	aChannel = SampleNormalMapWithTriMapping(aChannelNormalMap, wsPos, wsNormal, textureScale);
-	wsNormal.xyz = normalize(splat.r * rChannel + splat.g * gChannel + splat.b * bChannel + splat.a * aChannel);
+	wsNormal.xyz = normalize(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
 
 	/*
 	float  groundGrassMapScale = 0.05f;

@@ -814,18 +814,22 @@ namespace Renderer {
 
 				terrainRendererPassData.rChannelAlbedoMapIndex = grassAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.rChannelNormalMapIndex = grassNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.rChannelHeightMapIndex = grassHeightMap->GetSRDescriptor()->GetHeapIndex();
 				// terrainRendererPassData.rChannelRoughnessMapIndex = grassRoughnessMap->GetSRDescriptor()->GetHeapIndex();
 
 				terrainRendererPassData.gChannelAlbedoMapIndex = mudAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.gChannelNormalMapIndex = mudNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.gChannelHeightMapIndex = mudHeightMap->GetSRDescriptor()->GetHeapIndex();
 				// terrainRendererPassData.gChannelRoughnessMapIndex = mudRoughnessMap->GetSRDescriptor()->GetHeapIndex();
 
 				terrainRendererPassData.bChannelAlbedoMapIndex = cliffAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.bChannelNormalMapIndex = cliffNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.bChannelHeightMapIndex = cliffHeightMap->GetSRDescriptor()->GetHeapIndex();
 				// terrainRendererPassData.bChannelRoughnessMapIndex = cliffRoughnessMap->GetSRDescriptor()->GetHeapIndex();
 
 				terrainRendererPassData.aChannelAlbedoMapIndex = snowAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.aChannelNormalMapIndex = snowNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.aChannelHeightMapIndex = snowHeightMap->GetSRDescriptor()->GetHeapIndex();
 				// terrainRendererPassData.aChannelRoughnessMapIndex = snowRoughness->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPass::TerrainRendererPassData));
@@ -1016,6 +1020,12 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Grass_Normal.png");
 			resourceStateTracker->StartTracking(grassNormalMap);
 			resourceStorage->ImportResource("GrassNormalMap", grassNormalMap);
+
+			grassHeightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Grass_Height.png");
+			resourceStateTracker->StartTracking(grassHeightMap);
+			resourceStorage->ImportResource("GrassHeightMap", grassHeightMap);
 		}
 
 		// Load Mud Texture
@@ -1031,6 +1041,12 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mud_Normal.png");
 			resourceStateTracker->StartTracking(mudNormalMap);
 			resourceStorage->ImportResource("MudNormalMap", mudNormalMap);
+
+			mudHeightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mud_Height.png");
+			resourceStateTracker->StartTracking(mudHeightMap);
+			resourceStorage->ImportResource("MudHeightMap", mudHeightMap);
 		}
 
 		// Load Cliff Texture
@@ -1046,6 +1062,12 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Cliff_Normal.png");
 			resourceStateTracker->StartTracking(cliffNormalMap);
 			resourceStorage->ImportResource("CliffNormalMap", cliffNormalMap);
+
+			cliffHeightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Cliff_Height.png");
+			resourceStateTracker->StartTracking(cliffHeightMap);
+			resourceStorage->ImportResource("CliffHeightMap", cliffHeightMap);
 		}
 
 		// Load Snow Texture
@@ -1061,6 +1083,12 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Snow_Normal.png");
 			resourceStateTracker->StartTracking(snowNormalMap);
 			resourceStorage->ImportResource("SnowNormalMap", snowNormalMap);
+
+			snowHeightMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Snow_Height.png");
+			resourceStateTracker->StartTracking(snowHeightMap);
+			resourceStorage->ImportResource("SnowHeightMap", snowHeightMap);
 		}
 
 		// Load SplatMap From File

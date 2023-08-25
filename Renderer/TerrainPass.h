@@ -44,7 +44,7 @@ namespace Renderer {
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
 			uint32_t minmaxHeightMapIndex;
-			uint32_t useFrustumCull{ 1u };
+			uint32_t useFrustumCull{ 0u };
 
 			uint32_t nearbyNodeListIndex;
 			float pad1;
@@ -65,22 +65,22 @@ namespace Renderer {
 			uint32_t rChannelAlbedoMapIndex;
 			uint32_t rChannelNormalMapIndex;
 			uint32_t rChannelRoughnessMapIndex;
-			uint32_t rChannelDisplacementMapIndex;
+			uint32_t rChannelHeightMapIndex;
 			
 			uint32_t gChannelAlbedoMapIndex;
 			uint32_t gChannelNormalMapIndex;
 			uint32_t gChannelRoughnessMapIndex;
-			uint32_t gChannelDisplacementMapIndex;
+			uint32_t gChannelHeightMapIndex;
 
 			uint32_t bChannelAlbedoMapIndex;
 			uint32_t bChannelNormalMapIndex;
 			uint32_t bChannelRoughnessMapIndex;
-			uint32_t bChannelDisplacementMapIndex;
+			uint32_t bChannelHeightMapIndex;
 
 			uint32_t aChannelAlbedoMapIndex;
 			uint32_t aChannelNormalMapIndex;
 			uint32_t aChannelRoughnessMapIndex;
-			uint32_t aChannelDisplacementMapIndex;
+			uint32_t aChannelHeightMapIndex;
 		};
 
 		struct NodeLocation {
@@ -120,21 +120,25 @@ namespace Renderer {
 		TextureWrap grassAlbedoMap;
 		TextureWrap grassNormalMap;
 		TextureWrap grassRoughnessMap;
+		TextureWrap grassHeightMap;
 
 		// channel G
 		TextureWrap mudAlbedoMap;
 		TextureWrap mudNormalMap;
 		TextureWrap mudRoughnessMap;
+		TextureWrap mudHeightMap;
 
 		// channel B
 		TextureWrap cliffAlbedoMap;
 		TextureWrap cliffNormalMap;
 		TextureWrap cliffRoughnessMap;
+		TextureWrap cliffHeightMap;
 
 		// channel A
 		TextureWrap snowAlbedoMap;
 		TextureWrap snowNormalMap;
 		TextureWrap snowRoughness;
+		TextureWrap snowHeightMap;
 
 	public:
 		void AddPreDepthPass(RenderGraph& renderGraph);
