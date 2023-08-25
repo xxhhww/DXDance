@@ -16,18 +16,17 @@ struct PassData{
 	float BubblesScale;	    // 泡沫强度
 	float BubblesThreshold; // 泡沫阈值
 	
-	uint rngState;          // 随机
 	uint gaussianRandomMapIndex;
 	uint heightSpectrumMapIndex;
 	uint displaceXSpectrumMapIndex;
-
 	uint displaceZSpectrumMapIndex;
-	uint displaceMapIndex;
-    uint inputMapIndex;
-	uint outputMapIndex;
-	uint normalMapIndex;
 
-	uint bubblesMapIndex;
+	uint displaceMapIndex;
+    uint tempInputMapIndex;
+	uint tempOutputMapIndex;
+	uint oceanNormalMapIndex;
+
+	uint oceanBubblesMapIndex;
     float pad1;
 	float pad2;
 	float pad3;
@@ -199,8 +198,8 @@ void CreateDisplaceSpectrum(uint3 id : SV_DispatchThreadID) {
 // 横向FFT计算,只针对第m-1阶段，最后一阶段需要特殊处理
 [numthreads(8, 8, 1)]
 void FFTHorizontal(uint3 id : SV_DispatchThreadID) {
-    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.inputMapIndex];
-    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.outputMapIndex];
+    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.tempInputMapIndex];
+    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.tempOutputMapIndex];
 
     int N = PassDataCB.N;
     int Ns = PassDataCB.Ns;
@@ -220,8 +219,8 @@ void FFTHorizontal(uint3 id : SV_DispatchThreadID) {
 // 横向FFT最后阶段计算,需要进行特别处理
 [numthreads(8, 8, 1)]
 void FFTHorizontalEnd(uint3 id : SV_DispatchThreadID) {
-    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.inputMapIndex];
-    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.outputMapIndex];
+    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.tempInputMapIndex];
+    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.tempOutputMapIndex];
 
     int N = PassDataCB.N;
     int Ns = PassDataCB.Ns;
@@ -249,8 +248,8 @@ void FFTHorizontalEnd(uint3 id : SV_DispatchThreadID) {
 // 纵向FFT计算,只针对第m-1阶段，最后一阶段需要特殊处理
 [numthreads(8, 8, 1)]
 void FFTVertical(uint3 id : SV_DispatchThreadID) {
-    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.inputMapIndex];
-    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.outputMapIndex];
+    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.tempInputMapIndex];
+    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.tempOutputMapIndex];
 
     int N = PassDataCB.N;
     int Ns = PassDataCB.Ns;
@@ -270,8 +269,8 @@ void FFTVertical(uint3 id : SV_DispatchThreadID) {
 // 纵向FFT最后阶段计算,需要进行特别处理
 [numthreads(8, 8, 1)]
 void FFTVerticalEnd(uint3 id : SV_DispatchThreadID) {
-    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.inputMapIndex];
-    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.outputMapIndex];
+    Texture2D<float4> inputMap = ResourceDescriptorHeap[PassDataCB.tempInputMapIndex];
+    RWTexture2D<float4> outputMap = ResourceDescriptorHeap[PassDataCB.tempOutputMapIndex];
 
     int N = PassDataCB.N;
     int Ns = PassDataCB.Ns;
@@ -322,8 +321,8 @@ void GenerateDisplaceMap(uint3 id : SV_DispatchThreadID) {
 [numthreads(8, 8, 1)]
 void GenerateNormalBubblesMap(uint3 id : SV_DispatchThreadID) {
     Texture2D<float4> displaceMap = ResourceDescriptorHeap[PassDataCB.displaceMapIndex];
-    RWTexture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.normalMapIndex];
-    RWTexture2D<float4> bubblesMap = ResourceDescriptorHeap[PassDataCB.bubblesMapIndex];
+    RWTexture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.oceanNormalMapIndex];
+    RWTexture2D<float4> bubblesMap = ResourceDescriptorHeap[PassDataCB.oceanBubblesMapIndex];
 
     int N = PassDataCB.N;
     float OceanLength = PassDataCB.OceanLength;

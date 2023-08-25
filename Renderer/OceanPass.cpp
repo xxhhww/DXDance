@@ -43,12 +43,12 @@ namespace Renderer {
                 builder.DeclareTexture("DisplaceZSpectrumMap", _DisplaceZSpectrumMapProperties);
                 builder.WriteTexture("DisplaceZSpectrumMap");
 
-                NewTextureProperties _DisplaceMapProperties{};
-                _DisplaceMapProperties.width = smFFTSize;
-                _DisplaceMapProperties.height = smFFTSize;
-                _DisplaceMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("DisplaceMap", _DisplaceMapProperties);
-                builder.WriteTexture("DisplaceMap");
+                NewTextureProperties _OceanDisplaceMapProperties{};
+                _OceanDisplaceMapProperties.width = smFFTSize;
+                _OceanDisplaceMapProperties.height = smFFTSize;
+                _OceanDisplaceMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanDisplaceMap", _OceanDisplaceMapProperties);
+                builder.WriteTexture("OceanDisplaceMap");
 
                 NewTextureProperties _TempOutputMapProperties{};
                 _TempOutputMapProperties.width = smFFTSize;
@@ -57,19 +57,19 @@ namespace Renderer {
                 builder.DeclareTexture("TempOutputMap", _TempOutputMapProperties);
                 builder.WriteTexture("TempOutputMap");
 
-                NewTextureProperties _NormalMapProperties{};
-                _NormalMapProperties.width = smFFTSize;
-                _NormalMapProperties.height = smFFTSize;
-                _NormalMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("NormalMap", _NormalMapProperties);
-                builder.WriteTexture("NormalMap");
+                NewTextureProperties _OceanNormalMapProperties{};
+                _OceanNormalMapProperties.width = smFFTSize;
+                _OceanNormalMapProperties.height = smFFTSize;
+                _OceanNormalMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanNormalMap", _OceanNormalMapProperties);
+                builder.WriteTexture("OceanNormalMap");
 
-                NewTextureProperties _BubblesMapProperties{};
-                _BubblesMapProperties.width = smFFTSize;
-                _BubblesMapProperties.height = smFFTSize;
-                _BubblesMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("BubblesMap", _BubblesMapProperties);
-                builder.WriteTexture("BubblesMap");
+                NewTextureProperties _OceanBubblesMapProperties{};
+                _OceanBubblesMapProperties.width = smFFTSize;
+                _OceanBubblesMapProperties.height = smFFTSize;
+                _OceanBubblesMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanBubblesMap", _OceanBubblesMapProperties);
+                builder.WriteTexture("OceanBubblesMap");
 
                 shaderManger.CreateComputeShader("ComputeGaussianRandom",
                     [](ComputeStateProxy& proxy) {
@@ -136,8 +136,8 @@ namespace Renderer {
                 auto* displaceZSpectrumMap = resourceStorage->GetResourceByName("DisplaceZSpectrumMapIndex")->GetTexture();
                 auto* displaceMap = resourceStorage->GetResourceByName("DisplaceMap")->GetTexture();
                 auto* tempOutputMap = resourceStorage->GetResourceByName("TempOutputMap")->GetTexture();
-                auto* normalMap = resourceStorage->GetResourceByName("NormalMap")->GetTexture();
-                auto* bubblesMap = resourceStorage->GetResourceByName("BubblesMap")->GetTexture();
+                auto* oceanNormalMap = resourceStorage->GetResourceByName("OceanNormalMap")->GetTexture();
+                auto* oceanBubblesMap = resourceStorage->GetResourceByName("OceanBubblesMap")->GetTexture();
 
                 oceanBuilderData.gaussianRandomMapIndex = gaussianRandomMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.heightSpectrumMapIndex = heightSpectrumMap->GetUADescriptor()->GetHeapIndex();
@@ -145,8 +145,8 @@ namespace Renderer {
                 oceanBuilderData.displaceZSpectrumMapIndex = displaceZSpectrumMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.displaceMapIndex = displaceMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.tempOutputMapIndex = tempOutputMap->GetUADescriptor()->GetHeapIndex();
-                oceanBuilderData.normalMapIndex = normalMap->GetUADescriptor()->GetHeapIndex();
-                oceanBuilderData.bubblesMapIndex = bubblesMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.oceanNormalMapIndex = oceanNormalMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.oceanBubblesMapIndex = oceanBubblesMap->GetUADescriptor()->GetHeapIndex();
                 
                 oceanBuilderData.N = smFFTSize;
                 oceanBuilderData.OceanLength = smMeshLength;
@@ -180,6 +180,21 @@ namespace Renderer {
                 // 生成偏移频谱
                 commandBuffer.SetComputePipelineState("CreateDisplaceSpectrum");
                 commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+                
+                auto ComputeFFT = [&](const std::string& kernel, uint32_t& source) {
+                    oceanBuilderData.tempInputMapIndex = source;
+
+                    passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanBuilderData));
+                    memcpy(passDataAlloc.cpuAddress, &oceanBuilderData, sizeof(OceanBuilderData));
+
+                    commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+
+                    commandBuffer.SetComputePipelineState(kernel);
+                    commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+
+                    source = oceanBuilderData.tempOutputMapIndex;
+                    oceanBuilderData.tempOutputMapIndex = oceanBuilderData.tempInputMapIndex;
+                };
 
                 // 进行横向FFT
                 for (int m = 1; m <= smFFTPow; m++) {
@@ -187,14 +202,14 @@ namespace Renderer {
 
                     // 最后一次进行特殊处理
                     if (m != smFFTPow) {
-                        ComputeFFT(kernelFFTHorizontal, ref HeightSpectrumRT);
-                        ComputeFFT(kernelFFTHorizontal, ref DisplaceXSpectrumRT);
-                        ComputeFFT(kernelFFTHorizontal, ref DisplaceZSpectrumRT);
+                        ComputeFFT("FFTHorizontal", oceanBuilderData.heightSpectrumMapIndex);
+                        ComputeFFT("FFTHorizontal", oceanBuilderData.displaceXSpectrumMapIndex);
+                        ComputeFFT("FFTHorizontal", oceanBuilderData.displaceZSpectrumMapIndex);
                     }
                     else {
-                        ComputeFFT(kernelFFTHorizontalEnd, ref HeightSpectrumRT);
-                        ComputeFFT(kernelFFTHorizontalEnd, ref DisplaceXSpectrumRT);
-                        ComputeFFT(kernelFFTHorizontalEnd, ref DisplaceZSpectrumRT);
+                        ComputeFFT("FFTHorizontalEnd", oceanBuilderData.heightSpectrumMapIndex);
+                        ComputeFFT("FFTHorizontalEnd", oceanBuilderData.displaceXSpectrumMapIndex);
+                        ComputeFFT("FFTHorizontalEnd", oceanBuilderData.displaceZSpectrumMapIndex);
                     }
                 }
                 // 进行纵向FFT
@@ -203,14 +218,14 @@ namespace Renderer {
 
                     // 最后一次进行特殊处理
                     if (m != smFFTPow) {
-                        ComputeFFT(kernelFFTVertical, ref HeightSpectrumRT);
-                        ComputeFFT(kernelFFTVertical, ref DisplaceXSpectrumRT);
-                        ComputeFFT(kernelFFTVertical, ref DisplaceZSpectrumRT);
+                        ComputeFFT("FFTVertical", oceanBuilderData.heightSpectrumMapIndex);
+                        ComputeFFT("FFTVertical", oceanBuilderData.displaceXSpectrumMapIndex);
+                        ComputeFFT("FFTVertical", oceanBuilderData.displaceZSpectrumMapIndex);
                     }
                     else {
-                        ComputeFFT(kernelFFTVerticalEnd, ref HeightSpectrumRT);
-                        ComputeFFT(kernelFFTVerticalEnd, ref DisplaceXSpectrumRT);
-                        ComputeFFT(kernelFFTVerticalEnd, ref DisplaceZSpectrumRT);
+                        ComputeFFT("FFTVerticalEnd", oceanBuilderData.heightSpectrumMapIndex);
+                        ComputeFFT("FFTVerticalEnd", oceanBuilderData.displaceXSpectrumMapIndex);
+                        ComputeFFT("FFTVerticalEnd", oceanBuilderData.displaceZSpectrumMapIndex);
                     }
                 }
 
@@ -229,7 +244,9 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
                 builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-                builder.ReadTexture("TransmittanceLut", ShaderAccessFlag::PixelShader);
+                builder.ReadTexture("OceanDisplaceMap", ShaderAccessFlag::AnyShader);
+                builder.ReadTexture("OceanNormalMap", ShaderAccessFlag::PixelShader);
+                builder.ReadTexture("OceanBubblesMap", ShaderAccessFlag::PixelShader);
                 builder.ReadTexture("SkyViewLut", ShaderAccessFlag::PixelShader);
 
                 builder.WriteRenderTarget("ShadingResult");
@@ -244,6 +261,7 @@ namespace Renderer {
                         proxy.dsFilepath = proxy.vsFilepath;
 
                         proxy.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+
                         // proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
                         proxy.depthStencilDesc.DepthEnable = true;
@@ -258,21 +276,22 @@ namespace Renderer {
                 auto* dynamicAllocator = renderContext.dynamicAllocator;
                 auto* resourceStorage = renderContext.resourceStorage;
 
+                auto* oceanDisplaceMap = resourceStorage->GetResourceByName("OceanDisplaceMap")->GetTexture();
+                auto* oceanNormalMap = resourceStorage->GetResourceByName("OceanNormalMap")->GetTexture();
+                auto* oceanBubblesMap = resourceStorage->GetResourceByName("OceanBubblesMap")->GetTexture();
+                auto* skyViewLut = resourceStorage->GetResourceByName("SkyViewLut")->GetTexture();
                 auto* shadingResult = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
                 auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
                 auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
-                auto* transmittanceLut = resourceStorage->GetResourceByName("TransmittanceLut")->GetTexture();
-                auto* skyViewLut = resourceStorage->GetResourceByName("SkyViewLut")->GetTexture();
+                
 
-                oceanPassData.waterParameter.waterNormalMap1Index = waterNormalMap1->GetSRDescriptor()->GetHeapIndex();
-                oceanPassData.waterParameter.waterNormalMap2Index = waterNormalMap2->GetSRDescriptor()->GetHeapIndex();
-                oceanPassData.waterParameter.waterFoamMapIndex = waterFoamMap->GetSRDescriptor()->GetHeapIndex();
-                oceanPassData.waterParameter.waterNoiseMapIndex = waterNoiseMap->GetSRDescriptor()->GetHeapIndex();
-                oceanPassData.transmittanceLutIndex = transmittanceLut->GetSRDescriptor()->GetHeapIndex();
-                oceanPassData.skyViewLutIndex = skyViewLut->GetSRDescriptor()->GetHeapIndex();
+                oceanRendererData.oceanDisplaceMapIndex = oceanDisplaceMap->GetSRDescriptor()->GetHeapIndex();
+                oceanRendererData.oceanNormalMapIndex = oceanNormalMap->GetSRDescriptor()->GetHeapIndex();
+                oceanRendererData.oceanBubblesMapIndex = oceanBubblesMap->GetSRDescriptor()->GetHeapIndex();
+                oceanRendererData.skyViewLutIndex = skyViewLut->GetSRDescriptor()->GetHeapIndex();
 
-                auto passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanPassData));
-                memcpy(passDataAlloc.cpuAddress, &oceanPassData, sizeof(OceanPassData));
+                auto passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanRendererData));
+                memcpy(passDataAlloc.cpuAddress, &oceanRendererData, sizeof(OceanRendererData));
 
                 uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
                 uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);

@@ -22,26 +22,37 @@ namespace Renderer {
 			float BubblesScale = 1;		// 泡沫强度
 			float BubblesThreshold = 1; // 泡沫阈值
 
-			uint32_t rngState;			// 随机
 			uint32_t gaussianRandomMapIndex;
 			uint32_t heightSpectrumMapIndex;
 			uint32_t displaceXSpectrumMapIndex;
-
 			uint32_t displaceZSpectrumMapIndex;
+
 			uint32_t displaceMapIndex;
 			uint32_t tempInputMapIndex;
 			uint32_t tempOutputMapIndex;
-			uint32_t normalMapIndex;
+			uint32_t oceanNormalMapIndex;
 
-			uint32_t bubblesMapIndex;
+			uint32_t oceanBubblesMapIndex;
 			float pad1;
 			float pad2;
 			float pad3;
 		};
 
 		struct OceanRendererData {
+			Math::Vector4 oceanColorShallow = Math::Vector4{ 0.31f, 0.47f, 0.55f, 1.0f };
+			Math::Vector4 oceanColorDeep = Math::Vector4{ 0.05f, 0.14f, 0.21f, 1.0f };
+			Math::Vector4 bubblesColor = Math::Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
+			Math::Vector4 specular = Math::Vector4{ 0.39f, 0.39f, 0.39f, 1.0f };
 
+			float gloss = 256.0f;
+			float fresnelScale = 0.02f;
+			float tessellationFactor = 7.0f;
+			uint32_t oceanDisplaceMapIndex;
+
+			uint32_t oceanNormalMapIndex;
+			uint32_t oceanBubblesMapIndex;
             uint32_t skyViewLutIndex;
+			float pad1;
 		};
 
 	public:
