@@ -3,11 +3,226 @@
 #include "Renderer/RenderGraphBuilder.h"
 #include "Renderer/FixedTextureHelper.h"
 
+#include <random>
+
 namespace Renderer {
 
 	void OceanPass::AddPass(RenderGraph& renderGraph) {
         auto& finalOutputDesc =
             renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
+        renderGraph.AddPass("OceanBuilderPass",
+            [=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+                builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
+
+                NewTextureProperties _GaussianRandomMapProperties{};
+                _GaussianRandomMapProperties.width = smFFTSize;
+                _GaussianRandomMapProperties.height = smFFTSize;
+                _GaussianRandomMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("GaussianRandomMap", _GaussianRandomMapProperties);
+                builder.WriteTexture("GaussianRandomMap");
+
+                NewTextureProperties _HeightSpectrumMapProperties{};
+                _HeightSpectrumMapProperties.width = smFFTSize;
+                _HeightSpectrumMapProperties.height = smFFTSize;
+                _HeightSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("HeightSpectrumMap", _HeightSpectrumMapProperties);
+                builder.WriteTexture("HeightSpectrumMap");
+
+                NewTextureProperties _DisplaceXSpectrumMapProperties{};
+                _DisplaceXSpectrumMapProperties.width = smFFTSize;
+                _DisplaceXSpectrumMapProperties.height = smFFTSize;
+                _DisplaceXSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("DisplaceXSpectrumMap", _DisplaceXSpectrumMapProperties);
+                builder.WriteTexture("DisplaceXSpectrumMap");
+
+                NewTextureProperties _DisplaceZSpectrumMapProperties{};
+                _DisplaceZSpectrumMapProperties.width = smFFTSize;
+                _DisplaceZSpectrumMapProperties.height = smFFTSize;
+                _DisplaceZSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("DisplaceZSpectrumMap", _DisplaceZSpectrumMapProperties);
+                builder.WriteTexture("DisplaceZSpectrumMap");
+
+                NewTextureProperties _DisplaceMapProperties{};
+                _DisplaceMapProperties.width = smFFTSize;
+                _DisplaceMapProperties.height = smFFTSize;
+                _DisplaceMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("DisplaceMap", _DisplaceMapProperties);
+                builder.WriteTexture("DisplaceMap");
+
+                NewTextureProperties _TempOutputMapProperties{};
+                _TempOutputMapProperties.width = smFFTSize;
+                _TempOutputMapProperties.height = smFFTSize;
+                _TempOutputMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("TempOutputMap", _TempOutputMapProperties);
+                builder.WriteTexture("TempOutputMap");
+
+                NewTextureProperties _NormalMapProperties{};
+                _NormalMapProperties.width = smFFTSize;
+                _NormalMapProperties.height = smFFTSize;
+                _NormalMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("NormalMap", _NormalMapProperties);
+                builder.WriteTexture("NormalMap");
+
+                NewTextureProperties _BubblesMapProperties{};
+                _BubblesMapProperties.width = smFFTSize;
+                _BubblesMapProperties.height = smFFTSize;
+                _BubblesMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("BubblesMap", _BubblesMapProperties);
+                builder.WriteTexture("BubblesMap");
+
+                shaderManger.CreateComputeShader("ComputeGaussianRandom",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "ComputeGaussianRandom";
+                    });
+
+                shaderManger.CreateComputeShader("CreateHeightSpectrum",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "CreateHeightSpectrum";
+                    });
+
+                shaderManger.CreateComputeShader("CreateDisplaceSpectrum",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "CreateDisplaceSpectrum";
+                    });
+
+                shaderManger.CreateComputeShader("FFTHorizontal",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "FFTHorizontal";
+                    });
+
+                shaderManger.CreateComputeShader("FFTHorizontalEnd",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "FFTHorizontalEnd";
+                    });
+
+                shaderManger.CreateComputeShader("FFTVertical",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "FFTVertical";
+                    });
+
+                shaderManger.CreateComputeShader("FFTVerticalEnd",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "FFTVerticalEnd";
+                    });
+
+                shaderManger.CreateComputeShader("GenerateDisplaceMap",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "GenerateDisplaceMap";
+                    });
+
+                shaderManger.CreateComputeShader("GenerateNormalBubblesMap",
+                    [](ComputeStateProxy& proxy) {
+                        proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Ocean/OceanBuilder.hlsl";
+                        proxy.csEntryPoint = "GenerateNormalBubblesMap";
+                    });
+            },
+            [=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+                auto* dynamicAllocator = renderContext.dynamicAllocator;
+                auto* resourceStorage = renderContext.resourceStorage;
+                auto* commandSignatureManger = renderContext.commandSignatureManger;
+
+                auto* gaussianRandomMap = resourceStorage->GetResourceByName("GaussianRandomMap")->GetTexture();
+                auto* heightSpectrumMap = resourceStorage->GetResourceByName("HeightSpectrumMap")->GetTexture();
+                auto* displaceXSpectrumMap = resourceStorage->GetResourceByName("DisplaceXSpectrumMap")->GetTexture();
+                auto* displaceZSpectrumMap = resourceStorage->GetResourceByName("DisplaceZSpectrumMapIndex")->GetTexture();
+                auto* displaceMap = resourceStorage->GetResourceByName("DisplaceMap")->GetTexture();
+                auto* tempOutputMap = resourceStorage->GetResourceByName("TempOutputMap")->GetTexture();
+                auto* normalMap = resourceStorage->GetResourceByName("NormalMap")->GetTexture();
+                auto* bubblesMap = resourceStorage->GetResourceByName("BubblesMap")->GetTexture();
+
+                oceanBuilderData.gaussianRandomMapIndex = gaussianRandomMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.heightSpectrumMapIndex = heightSpectrumMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.displaceXSpectrumMapIndex = displaceXSpectrumMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.displaceZSpectrumMapIndex = displaceZSpectrumMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.displaceMapIndex = displaceMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.tempOutputMapIndex = tempOutputMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.normalMapIndex = normalMap->GetUADescriptor()->GetHeapIndex();
+                oceanBuilderData.bubblesMapIndex = bubblesMap->GetUADescriptor()->GetHeapIndex();
+                
+                oceanBuilderData.N = smFFTSize;
+                oceanBuilderData.OceanLength = smMeshLength;
+                
+                Math::Vector2 wind = Math::Vector2(oceanBuilderData.WindAndSeed.x, oceanBuilderData.WindAndSeed.y).Normalize();
+                oceanBuilderData.WindAndSeed.x = wind.x;
+                oceanBuilderData.WindAndSeed.y = wind.y;
+
+                std::random_device rd;
+                std::default_random_engine eng(rd());
+                std::uniform_int_distribution<float> distr(1.0f, 10.0f);
+                oceanBuilderData.WindAndSeed.z = distr(eng);
+                oceanBuilderData.WindAndSeed.w = distr(eng);
+
+                auto passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanBuilderData));
+                memcpy(passDataAlloc.cpuAddress, &oceanBuilderData, sizeof(OceanBuilderData));
+
+                commandBuffer.SetComputeRootSignature();
+                commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
+                commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+                commandBuffer.SetComputeRootSRV(2u, resourceStorage->rootLightDataPerFrameAddress);
+
+                // 生成高斯随机数
+                commandBuffer.SetComputePipelineState("ComputeGaussianRandom");
+                commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+
+                // 生成高度频谱
+                commandBuffer.SetComputePipelineState("CreateHeightSpectrum");
+                commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+
+                // 生成偏移频谱
+                commandBuffer.SetComputePipelineState("CreateDisplaceSpectrum");
+                commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+
+                // 进行横向FFT
+                for (int m = 1; m <= smFFTPow; m++) {
+                    int ns = (int)pow(2, m - 1);
+
+                    // 最后一次进行特殊处理
+                    if (m != smFFTPow) {
+                        ComputeFFT(kernelFFTHorizontal, ref HeightSpectrumRT);
+                        ComputeFFT(kernelFFTHorizontal, ref DisplaceXSpectrumRT);
+                        ComputeFFT(kernelFFTHorizontal, ref DisplaceZSpectrumRT);
+                    }
+                    else {
+                        ComputeFFT(kernelFFTHorizontalEnd, ref HeightSpectrumRT);
+                        ComputeFFT(kernelFFTHorizontalEnd, ref DisplaceXSpectrumRT);
+                        ComputeFFT(kernelFFTHorizontalEnd, ref DisplaceZSpectrumRT);
+                    }
+                }
+                // 进行纵向FFT
+                for (int m = 1; m <= smFFTPow; m++) {
+                    int ns = (int)pow(2, m - 1);
+
+                    // 最后一次进行特殊处理
+                    if (m != smFFTPow) {
+                        ComputeFFT(kernelFFTVertical, ref HeightSpectrumRT);
+                        ComputeFFT(kernelFFTVertical, ref DisplaceXSpectrumRT);
+                        ComputeFFT(kernelFFTVertical, ref DisplaceZSpectrumRT);
+                    }
+                    else {
+                        ComputeFFT(kernelFFTVerticalEnd, ref HeightSpectrumRT);
+                        ComputeFFT(kernelFFTVerticalEnd, ref DisplaceXSpectrumRT);
+                        ComputeFFT(kernelFFTVerticalEnd, ref DisplaceZSpectrumRT);
+                    }
+                }
+
+                // 计算纹理偏移
+                commandBuffer.SetComputePipelineState("GenerateDisplaceMap");
+                commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+
+                // 生成法线和泡沫纹理
+                commandBuffer.SetComputePipelineState("GenerateNormalBubblesMap");
+                commandBuffer.Dispatch(smFFTSize / smThreadSizeInGroup, smFFTSize / smThreadSizeInGroup, 1u);
+            });
+
 
 		renderGraph.AddPass(
 			"OceanRenderer",
@@ -91,56 +306,35 @@ namespace Renderer {
         auto* resourceStorage = renderEngine->mPipelineResourceStorage;
 
         {
-            uint32_t xTiles = 50u;	// 网格长度
-            uint32_t zTiles = 50u;
-            float texTileX = 5.0f;	// 纹理平铺
-            float texTileZ = 5.0f;
-
-            uint32_t vertexCount = xTiles * zTiles * 6u;
-
-            //MeshVertex is just 2 float4's, one for position, one for texcoords
             std::vector<Vertex> vertices;
-            vertices.resize(vertexCount);
+            std::vector<uint32_t> indices;
+            vertices.resize(smMeshSize * smMeshSize);
+            indices.resize((smMeshSize - 1) * (smMeshSize - 1) * 6);
 
-            float oneOverXTiles = 1.0f / (float)xTiles;
-            float oneOverZTiles = 1.0f / (float)zTiles;
+            int inx = 0;
+            for (int i = 0; i < smMeshSize; i++) {
+                for (int j = 0; j < smMeshSize; j++) {
+                    int index = i * smMeshSize + j;
 
-            for (uint32_t x = 0; x < xTiles; x++) {
-                for (uint32_t z = 0; z < zTiles; z++) {
-                    uint32_t tileIndex = (x * zTiles + z) * 6;
-                    float xBeginTile = (oneOverXTiles * (float)x) * texTileX;
-                    float xEndTile = (oneOverXTiles * (float)(x + 1)) * texTileX;
-                    float zBeginTile = (oneOverZTiles * (float)z) * texTileZ;
-                    float zEndTile = (oneOverZTiles * (float)(z + 1)) * texTileZ;
+                    vertices[index].position = Math::Vector3{
+                        (j - smMeshSize / 2.0f)* smMeshLength / smMeshSize,
+                        0, 
+                        (i - smMeshSize / 2.0f)* smMeshLength / smMeshSize
+                    };
+                    vertices[index].uv = Math::Vector2{
+                        j / (smMeshSize - 1.0f), 
+                        i / (smMeshSize - 1.0f)
+                    };
 
-                    float xBegin = (oneOverXTiles * (float)x);
-                    float xEnd = (oneOverXTiles * (float)(x + 1));
-                    float zBegin = (oneOverZTiles * (float)z);
-                    float zEnd = (oneOverZTiles * (float)(z + 1));
+                    if (i != smMeshSize - 1 && j != smMeshSize - 1) {
+                        indices[inx++] = index;
+                        indices[inx++] = index + smMeshSize;
+                        indices[inx++] = index + smMeshSize + 1;
 
-                    vertices[tileIndex].position = Math::Vector3((float)x, 0.0f, (float)z);
-                    vertices[tileIndex].color = Math::Vector4(xBeginTile, zBeginTile, xBegin, zBegin);
-                    tileIndex++;
-
-                    vertices[tileIndex].position = Math::Vector3((float)x, 0.0f, (float)z + 1.0f);
-                    vertices[tileIndex].color = Math::Vector4(xBeginTile, zEndTile, xBegin, zEnd);
-                    tileIndex++;
-
-                    vertices[tileIndex].position = Math::Vector3((float)x + 1.0f, 0.0f, (float)z);
-                    vertices[tileIndex].color = Math::Vector4(xEndTile, zBeginTile, xEnd, zBegin);
-                    tileIndex++;
-
-                    vertices[tileIndex].position = Math::Vector3((float)x, 0.0f, (float)z + 1.0f);
-                    vertices[tileIndex].color = Math::Vector4(xBeginTile, zEndTile, xBegin, zEnd);
-                    tileIndex++;
-
-                    vertices[tileIndex].position = Math::Vector3((float)x + 1.0f, 0.0f, (float)z + 1.0f);
-                    vertices[tileIndex].color = Math::Vector4(xEndTile, zEndTile, xEnd, zEnd);
-                    tileIndex++;
-
-                    vertices[tileIndex].position = Math::Vector3((float)x + 1.0f, 0.0f, (float)z);
-                    vertices[tileIndex].color = Math::Vector4(xEndTile, zBeginTile, xEnd, zBegin);
-                    tileIndex++;
+                        indices[inx++] = index;
+                        indices[inx++] = index + smMeshSize + 1;
+                        indices[inx++] = index + 1;
+                    }
                 }
             }
 
@@ -149,38 +343,19 @@ namespace Renderer {
             vbDesc.size = vbDesc.stride * vertices.size();
             vbDesc.usage = GHL::EResourceUsage::Default;
 
+            Renderer::BufferDesc ibDesc{};
+            ibDesc.stride = sizeof(uint32_t);
+            ibDesc.size = ibDesc.stride * indices.size();
+            ibDesc.usage = GHL::EResourceUsage::Default;
+
             gridMesh = std::make_unique<Renderer::Mesh>(
                 device,
                 ResourceFormat{ device, vbDesc },
+                ResourceFormat{ device, ibDesc },
                 nullptr,
                 nullptr);
 
-            gridMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices);
-        }
-
-        {
-            // 加载WaterNormalMap1
-            waterNormalMap1 = FixedTextureHelper::LoadFromFile(
-                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Normal_1.dds");
-
-            // 加载WaterNormalMap2
-            waterNormalMap2 = FixedTextureHelper::LoadFromFile(
-                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Normal_2.dds"
-            );
-            
-            // 加载WaterNoiseMap
-            waterFoamMap = FixedTextureHelper::LoadFromFile(
-                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Foam.dds"
-            );
-
-            // 加载WaterNoiseMap
-            waterNoiseMap = FixedTextureHelper::LoadFromFile(
-                device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-                "E:/MyProject/DXDance/Resources/Textures/Ocean/Water_Noise.dds"
-            );
+            gridMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
         }
 
 	}

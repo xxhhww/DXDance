@@ -9,7 +9,7 @@ static const float StandardLuminousEfficacy = 683.0f;
 static const float PI = 3.1415926535897932384626433832795;
 static const float M_INV_PI = 0.3183098861837906f;
 
-#define EPSILON 1e-6
+static const float G  = 9.81f
 
 float  Square(float v)  { return v * v; }
 float2 Square(float2 v) { return float2(v.x * v.x, v.y * v.y); }

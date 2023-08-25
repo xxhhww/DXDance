@@ -90,5 +90,6 @@
     <FxCompile Include="Shaders\Engine\Atmosphere\Skybox.hlsl" />
     <FxCompile Include="Shaders\Engine\Ocean\OceanRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\Ocean\OceanHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Ocean\OceanBuilder.hlsl" />
   </ItemGroup>
 </Project>
