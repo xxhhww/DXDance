@@ -268,6 +268,7 @@ namespace Renderer {
                         proxy.dsFilepath = proxy.vsFilepath;
 
                         proxy.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+                        // proxy.primitiveTopology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
                         // proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 
@@ -291,7 +292,11 @@ namespace Renderer {
                 auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
                 auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
                 
+                Math::Vector3 translation = oceanRendererData.position;
+                Math::Quaternion rotation = Math::Quaternion{};
+                Math::Vector3 scaling = Math::Vector3{ oceanRendererData.position.w, 1u, oceanRendererData.position.w };
 
+                oceanRendererData.modelTransform = Math::Matrix4{ translation, rotation, scaling }.Transpose();
                 oceanRendererData.oceanDisplaceMapIndex = oceanDisplaceMap->GetSRDescriptor()->GetHeapIndex();
                 oceanRendererData.oceanNormalMapIndex = oceanNormalMap->GetSRDescriptor()->GetHeapIndex();
                 oceanRendererData.oceanBubblesMapIndex = oceanBubblesMap->GetSRDescriptor()->GetHeapIndex();
@@ -316,8 +321,10 @@ namespace Renderer {
                 commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
                 commandBuffer.SetGraphicsRootSRV(2u, resourceStorage->rootLightDataPerFrameAddress);
                 commandBuffer.SetVertexBuffer(0u, gridMesh->GetVertexBuffer());
+                commandBuffer.SetIndexBuffer(gridMesh->GetIndexBuffer());
                 commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-                commandBuffer.DrawInstanced(gridMesh->GetVertexCount(), 1u, 0u, 0u);
+                // commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                commandBuffer.DrawIndexedInstanced(gridMesh->GetIndexCount(), 1u, 0u, 0u, 0u);
 			}
 			);
 	}

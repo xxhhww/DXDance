@@ -39,6 +39,10 @@ namespace Renderer {
 		};
 
 		struct OceanRendererData {
+			Math::Matrix4 modelTransform;
+
+			Math::Vector4 position = Math::Vector4{ 0.0f, 1700.0f, 0.0f, 1.0f };	// x,y,z : position; w : scale
+
 			Math::Vector4 oceanColorShallow = Math::Vector4{ 0.31f, 0.47f, 0.55f, 1.0f };
 			Math::Vector4 oceanColorDeep = Math::Vector4{ 0.05f, 0.14f, 0.21f, 1.0f };
 			Math::Vector4 bubblesColor = Math::Vector4{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -46,7 +50,7 @@ namespace Renderer {
 
 			float gloss = 256.0f;
 			float fresnelScale = 0.02f;
-			float tessellationFactor = 1.0f;
+			float tessellationFactor = 7.0f;
 			uint32_t oceanDisplaceMapIndex;
 
 			uint32_t oceanNormalMapIndex;

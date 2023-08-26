@@ -130,7 +130,7 @@ float2 gaussian(float2 id) {
 
     x1 = max(1e-6f, x1);
     x2 = max(1e-6f, x2);
-    //计算两个相互独立的高斯随机数
+    // 计算两个相互独立的高斯随机数
     float g1 = sqrt(-2.0f * log(x1)) * cos(2.0f * PI * x2);
     float g2 = sqrt(-2.0f * log(x1)) * sin(2.0f * PI * x2);
 
@@ -309,9 +309,9 @@ void GenerateDisplaceMap(uint3 id : SV_DispatchThreadID) {
     float HeightScale = PassDataCB.HeightScale;
     float Lambda = PassDataCB.Lambda;
 
-    float y = length(heightSpectrumMap[id.xy].xy) / (N * N) * HeightScale;//高度
-    float x = length(displaceXSpectrumMap[id.xy].xy) / (N * N) * Lambda;//x轴偏移
-    float z = length(displaceZSpectrumMap[id.xy].xy) / (N * N) * Lambda;//z轴偏移
+    float y = length(heightSpectrumMap[id.xy].xy) / (N * N) * HeightScale;  // 高度
+    float x = length(displaceXSpectrumMap[id.xy].xy) / (N * N) * Lambda;    // x轴偏移
+    float z = length(displaceZSpectrumMap[id.xy].xy) / (N * N) * Lambda;    // z轴偏移
     
     heightSpectrumMap[id.xy] = float4(y, y, y, 0);
     displaceXSpectrumMap[id.xy] = float4(x, x, x, 0);
