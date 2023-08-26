@@ -22,26 +22,26 @@ namespace Renderer {
                 builder.DeclareTexture("GaussianRandomMap", _GaussianRandomMapProperties);
                 builder.WriteTexture("GaussianRandomMap");
 
-                NewTextureProperties _HeightSpectrumMapProperties{};
-                _HeightSpectrumMapProperties.width = smFFTSize;
-                _HeightSpectrumMapProperties.height = smFFTSize;
-                _HeightSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("HeightSpectrumMap", _HeightSpectrumMapProperties);
-                builder.WriteTexture("HeightSpectrumMap");
+                NewTextureProperties _OceanHeightSpectrumMapProperties{};
+                _OceanHeightSpectrumMapProperties.width = smFFTSize;
+                _OceanHeightSpectrumMapProperties.height = smFFTSize;
+                _OceanHeightSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanHeightSpectrumMap", _OceanHeightSpectrumMapProperties);
+                builder.WriteTexture("OceanHeightSpectrumMap");
 
-                NewTextureProperties _DisplaceXSpectrumMapProperties{};
-                _DisplaceXSpectrumMapProperties.width = smFFTSize;
-                _DisplaceXSpectrumMapProperties.height = smFFTSize;
-                _DisplaceXSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("DisplaceXSpectrumMap", _DisplaceXSpectrumMapProperties);
-                builder.WriteTexture("DisplaceXSpectrumMap");
+                NewTextureProperties _OceanDisplaceXSpectrumMapProperties{};
+                _OceanDisplaceXSpectrumMapProperties.width = smFFTSize;
+                _OceanDisplaceXSpectrumMapProperties.height = smFFTSize;
+                _OceanDisplaceXSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanDisplaceXSpectrumMap", _OceanDisplaceXSpectrumMapProperties);
+                builder.WriteTexture("OceanDisplaceXSpectrumMap");
 
-                NewTextureProperties _DisplaceZSpectrumMapProperties{};
-                _DisplaceZSpectrumMapProperties.width = smFFTSize;
-                _DisplaceZSpectrumMapProperties.height = smFFTSize;
-                _DisplaceZSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-                builder.DeclareTexture("DisplaceZSpectrumMap", _DisplaceZSpectrumMapProperties);
-                builder.WriteTexture("DisplaceZSpectrumMap");
+                NewTextureProperties _OceanDisplaceZSpectrumMapProperties{};
+                _OceanDisplaceZSpectrumMapProperties.width = smFFTSize;
+                _OceanDisplaceZSpectrumMapProperties.height = smFFTSize;
+                _OceanDisplaceZSpectrumMapProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                builder.DeclareTexture("OceanDisplaceZSpectrumMap", _OceanDisplaceZSpectrumMapProperties);
+                builder.WriteTexture("OceanDisplaceZSpectrumMap");
 
                 NewTextureProperties _OceanDisplaceMapProperties{};
                 _OceanDisplaceMapProperties.width = smFFTSize;
@@ -131,14 +131,14 @@ namespace Renderer {
                 auto* commandSignatureManger = renderContext.commandSignatureManger;
 
                 auto* gaussianRandomMap = resourceStorage->GetResourceByName("GaussianRandomMap")->GetTexture();
-                auto* heightSpectrumMap = resourceStorage->GetResourceByName("HeightSpectrumMap")->GetTexture();
-                auto* displaceXSpectrumMap = resourceStorage->GetResourceByName("DisplaceXSpectrumMap")->GetTexture();
-                auto* displaceZSpectrumMap = resourceStorage->GetResourceByName("DisplaceZSpectrumMapIndex")->GetTexture();
-                auto* displaceMap = resourceStorage->GetResourceByName("DisplaceMap")->GetTexture();
+                auto* heightSpectrumMap = resourceStorage->GetResourceByName("OceanHeightSpectrumMap")->GetTexture();
+                auto* displaceXSpectrumMap = resourceStorage->GetResourceByName("OceanDisplaceXSpectrumMap")->GetTexture();
+                auto* displaceZSpectrumMap = resourceStorage->GetResourceByName("OceanDisplaceZSpectrumMap")->GetTexture();
+                auto* displaceMap = resourceStorage->GetResourceByName("OceanDisplaceMap")->GetTexture();
                 auto* tempOutputMap = resourceStorage->GetResourceByName("TempOutputMap")->GetTexture();
                 auto* oceanNormalMap = resourceStorage->GetResourceByName("OceanNormalMap")->GetTexture();
                 auto* oceanBubblesMap = resourceStorage->GetResourceByName("OceanBubblesMap")->GetTexture();
-
+                
                 oceanBuilderData.gaussianRandomMapIndex = gaussianRandomMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.heightSpectrumMapIndex = heightSpectrumMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.displaceXSpectrumMapIndex = displaceXSpectrumMap->GetUADescriptor()->GetHeapIndex();
@@ -148,16 +148,17 @@ namespace Renderer {
                 oceanBuilderData.oceanNormalMapIndex = oceanNormalMap->GetUADescriptor()->GetHeapIndex();
                 oceanBuilderData.oceanBubblesMapIndex = oceanBubblesMap->GetUADescriptor()->GetHeapIndex();
                 
+                oceanBuilderData.DeltaTime += resourceStorage->rootConstantsPerFrame.deltaTime;
                 oceanBuilderData.N = smFFTSize;
                 oceanBuilderData.OceanLength = smMeshLength;
                 
                 Math::Vector2 wind = Math::Vector2(oceanBuilderData.WindAndSeed.x, oceanBuilderData.WindAndSeed.y).Normalize();
-                oceanBuilderData.WindAndSeed.x = wind.x;
-                oceanBuilderData.WindAndSeed.y = wind.y;
+                oceanBuilderData.WindAndSeed.x = wind.x * oceanBuilderData.WindScale;
+                oceanBuilderData.WindAndSeed.y = wind.y * oceanBuilderData.WindScale;
 
                 std::random_device rd;
                 std::default_random_engine eng(rd());
-                std::uniform_int_distribution<float> distr(1.0f, 10.0f);
+                std::uniform_real_distribution<float> distr(1.0f, 10.0f);
                 oceanBuilderData.WindAndSeed.z = distr(eng);
                 oceanBuilderData.WindAndSeed.w = distr(eng);
 
@@ -199,6 +200,7 @@ namespace Renderer {
                 // 进行横向FFT
                 for (int m = 1; m <= smFFTPow; m++) {
                     int ns = (int)pow(2, m - 1);
+                    oceanBuilderData.Ns = ns;
 
                     // 最后一次进行特殊处理
                     if (m != smFFTPow) {
@@ -215,6 +217,7 @@ namespace Renderer {
                 // 进行纵向FFT
                 for (int m = 1; m <= smFFTPow; m++) {
                     int ns = (int)pow(2, m - 1);
+                    oceanBuilderData.Ns = ns;
 
                     // 最后一次进行特殊处理
                     if (m != smFFTPow) {
@@ -228,6 +231,10 @@ namespace Renderer {
                         ComputeFFT("FFTVerticalEnd", oceanBuilderData.displaceZSpectrumMapIndex);
                     }
                 }
+
+                passDataAlloc = dynamicAllocator->Allocate(sizeof(OceanBuilderData));
+                memcpy(passDataAlloc.cpuAddress, &oceanBuilderData, sizeof(OceanBuilderData));
+                commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
 
                 // 计算纹理偏移
                 commandBuffer.SetComputePipelineState("GenerateDisplaceMap");

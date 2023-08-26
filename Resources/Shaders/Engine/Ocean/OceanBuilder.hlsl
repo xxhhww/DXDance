@@ -6,36 +6,49 @@
 struct PassData{
 	float4 WindAndSeed;		// 风和随机种子 xy为风, zw为两个随机种子
 	
+    float WindScale;
 	int N;					// fft纹理大小
 	float OceanLength;		// 海洋长度
 	float A;				// phillips谱参数，影响波浪高度
+
 	int Ns;					// Ns = pow(2,m-1); m为第几阶段
-	
 	float Lambda;			// 偏移影响
 	float HeightScale;		// 高度影响
 	float BubblesScale;	    // 泡沫强度
+
 	float BubblesThreshold; // 泡沫阈值
-	
+    float DeltaTime;
 	uint gaussianRandomMapIndex;
 	uint heightSpectrumMapIndex;
+
 	uint displaceXSpectrumMapIndex;
 	uint displaceZSpectrumMapIndex;
-
 	uint displaceMapIndex;
     uint tempInputMapIndex;
+
 	uint tempOutputMapIndex;
 	uint oceanNormalMapIndex;
-
 	uint oceanBubblesMapIndex;
     float pad1;
-	float pad2;
-	float pad3;
 };
+
+static uint RngState;
 
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Base/Utils.hlsl"
+
+//计算弥散
+float dispersion(float2 k) {
+    return sqrt(G * length(k));
+}
+
+//复数相乘
+float2 complexMultiply(float2 c1, float2 c2) {
+    return float2(c1.x * c2.x - c1.y * c2.y,
+    c1.x * c2.y + c1.y * c2.x);
+}
 
 //Donelan-Banner方向拓展
 float DonelanBannerDirectionalSpreading(float2 k) {
@@ -86,7 +99,7 @@ float phillips(float2 k) {
     float L2 = l2 * damping * damping;
 
     //phillips谱
-    return  A * exp(-1.0f / (kLength2 * l2)) / kLength4 * exp(-kLength2 * L2);
+    return  PassDataCB.A * exp(-1.0f / (kLength2 * l2)) / kLength4 * exp(-kLength2 * L2);
 }
 
 //随机种子
@@ -100,20 +113,20 @@ uint wangHash(uint seed) {
 }
 
 //计算均匀分布随机数[0,1)
-float rand(float rngState) {
+float rand() {
     // Xorshift算法
-    rngState ^= (rngState << 13);
-    rngState ^= (rngState >> 17);
-    rngState ^= (rngState << 5);
-    return rngState / 4294967296.0f;;
+    RngState ^= (RngState << 13);
+    RngState ^= (RngState >> 17);
+    RngState ^= (RngState << 5);
+    return RngState / 4294967296.0f;;
 }
 
 // 计算高斯随机数
 float2 gaussian(float2 id) {
     // 均匀分布随机数
-    float rngState = wangHash(id.y * PassDataCB.N + id.x);
-    float x1 = rand(rngState);
-    float x2 = rand(rngState);
+    RngState = wangHash(id.y * PassDataCB.N + id.x);
+    float x1 = rand();
+    float x2 = rand();
 
     x1 = max(1e-6f, x1);
     x2 = max(1e-6f, x2);
@@ -122,17 +135,6 @@ float2 gaussian(float2 id) {
     float g2 = sqrt(-2.0f * log(x1)) * sin(2.0f * PI * x2);
 
     return float2(g1, g2);
-}
-
-//计算弥散
-float dispersion(float2 k) {
-    return sqrt(G * length(k));
-}
-
-//复数相乘
-float2 complexMultiply(float2 c1, float2 c2) {
-    return float2(c1.x * c2.x - c1.y * c2.y,
-    c1.x * c2.y + c1.y * c2.x);
 }
 
 // 计算高斯随机变量
@@ -355,7 +357,6 @@ void GenerateNormalBubblesMap(uint3 id : SV_DispatchThreadID) {
 
     //计算法线
     float3 normal = normalize(cross(tangentZ, tangentX));
-
 
     //计算泡沫
     float3 ddx = x2D - x1D;
