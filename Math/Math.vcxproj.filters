@@ -19,6 +19,12 @@
     <Filter Include="源文件\SkyModel">
       <UniqueIdentifier>{87044c55-7a69-4fc1-a655-011fab20e041}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Geometry">
+      <UniqueIdentifier>{0f9fe8dd-ce24-43de-9e1a-a048c858c520}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Geometry">
+      <UniqueIdentifier>{957cc68f-f7ac-491e-803a-c02658b39249}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vector.h">
@@ -69,6 +75,12 @@
     <ClInclude Include="Jitter.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Rect.h">
+      <Filter>头文件\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="Int.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector.cpp">
@@ -103,6 +115,9 @@
     </ClCompile>
     <ClCompile Include="ArHosekSkyModelData_RGB.cpp">
       <Filter>源文件\SkyModel</Filter>
+    </ClCompile>
+    <ClCompile Include="Rect.cpp">
+      <Filter>源文件\Geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

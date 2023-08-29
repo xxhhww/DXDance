@@ -23,6 +23,11 @@ namespace Renderer {
 		*/
 		void ProcessFeedbackThread();
 
+		/*
+		* ´¦ÀíFeedbackµÄReadback
+		*/
+		void ProcessReadback();
+
 	private:
 		TerrainSystem* mTerrainSystem{ nullptr };
 

@@ -178,6 +178,10 @@
     <ClInclude Include="PlaceObjectOnTerrainPass.h" />
     <ClInclude Include="RenderObjectOnTerrainPass.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
+    <ClInclude Include="RVTPageLevelTable.h" />
+    <ClInclude Include="RVTPagePayload.h" />
+    <ClInclude Include="RVTPageTable.h" />
+    <ClInclude Include="RVTPageTableNodeCell.h" />
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="SkyPass.h" />
     <ClInclude Include="TAAPass.h" />
@@ -251,6 +255,8 @@
     <ClCompile Include="PlaceObjectOnTerrainPass.cpp" />
     <ClCompile Include="RenderObjectOnTerrainPass.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
+    <ClCompile Include="RVTPageLevelTable.cpp" />
+    <ClCompile Include="RVTPageTable.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />
     <ClCompile Include="SkyPass.cpp" />
     <ClCompile Include="TAAPass.cpp" />

@@ -33,6 +33,7 @@ namespace Renderer {
 	void TerrainSystem::Initialize(RenderEngine* renderEngine) {
 		auto* device = renderEngine->mDevice.get();
 		auto* renderGraph = renderEngine->mRenderGraph.get();
+		auto* frameTracker = renderEngine->mFrameTracker.get();
 		auto* resourceStorage = renderEngine->mPipelineResourceStorage;
 		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
@@ -49,7 +50,7 @@ namespace Renderer {
 			TextureDesc _TerrainFeedbackDesc{};
 			_TerrainFeedbackDesc.width = finalOutputDesc.width;
 			_TerrainFeedbackDesc.height = finalOutputDesc.height;
-			_TerrainFeedbackDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			_TerrainFeedbackDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			_TerrainFeedbackDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
 			_TerrainFeedbackDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 			mTerrainFeedbackMap = resourceAllocator->Allocate(
@@ -60,6 +61,21 @@ namespace Renderer {
 			// 导入至RenderGraph供RenderPass使用
 			renderGraph->ImportResource("TerrainFeedback", mTerrainFeedbackMap);
 			resourceStateTracker->StartTracking(mTerrainFeedbackMap);
+		}
+
+		{
+			// 创建Readback
+			BufferDesc _TerrainReadbackDesc{};
+			_TerrainReadbackDesc.size = GetRequiredIntermediateSize(mTerrainFeedbackMap->D3DResource(), 0, 1);
+			_TerrainReadbackDesc.usage = GHL::EResourceUsage::ReadBack;
+			_TerrainReadbackDesc.initialState = GHL::EResourceState::CopyDestination;
+			_TerrainReadbackDesc.expectedState = _TerrainReadbackDesc.initialState;
+			mTerrainReadbackBuffers.resize(frameTracker->GetMaxSize());
+			for (uint32_t i = 0; i < mTerrainReadbackBuffers.size(); i++) {
+				mTerrainReadbackBuffers[i] = resourceAllocator->Allocate(
+					device, _TerrainReadbackDesc, descriptorAllocator, nullptr
+				);
+			}
 		}
 
 		// Load PatchMesh From Memory
@@ -241,6 +257,7 @@ namespace Renderer {
 
 	void TerrainSystem::AddPass(RenderEngine* renderEngine) {
 		auto* renderGraph = renderEngine->mRenderGraph.get();
+		auto* frameTracker = renderEngine->mFrameTracker.get();
 
 		uint32_t _MaxNodeListSize = 200u;
 		uint32_t _TmpNodeListSize = 50u;
@@ -548,7 +565,7 @@ namespace Renderer {
 				builder.WriteRenderTarget("ShadingResult");
 				builder.WriteRenderTarget("NormalRoughness");
 				builder.WriteRenderTarget("ScreenVelocity");
-				// builder.WriteRenderTarget("TerrainFeedback");
+				builder.WriteRenderTarget("TerrainFeedback");
 				builder.WriteDepthStencil("DepthStencil");
 
 				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
@@ -569,7 +586,7 @@ namespace Renderer {
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16_FLOAT,
-							// DXGI_FORMAT_R16G16B16A16_FLOAT	// TerrainFeedback
+							DXGI_FORMAT_R8G8B8A8_UNORM	// TerrainFeedback
 						};
 					});
 
@@ -594,7 +611,7 @@ namespace Renderer {
 				auto* normalRoughness = resourceStorage->GetResourceByName("NormalRoughness")->GetTexture();
 				auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
 				auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
-				// auto* terrainFeedback = resourceStorage->GetResourceByName("TerrainFeedback")->GetTexture();
+				auto* terrainFeedback = resourceStorage->GetResourceByName("TerrainFeedback")->GetTexture();
 				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
 
@@ -663,12 +680,13 @@ namespace Renderer {
 				auto& shadingResultDesc = shadingResult->GetResourceFormat().GetTextureDesc();
 				uint16_t width = static_cast<uint16_t>(shadingResultDesc.width);
 				uint16_t height = static_cast<uint16_t>(shadingResultDesc.height);
+				commandBuffer.ClearRenderTarget(terrainFeedback);
 				commandBuffer.SetRenderTargets(
 					{
 						shadingResult,
 						normalRoughness,
 						screenVelocity,
-						// terrainFeedback,
+						terrainFeedback,
 					},
 					depthStencil);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
@@ -677,6 +695,29 @@ namespace Renderer {
 				commandBuffer.SetGraphicsPipelineState("TerrainRenderer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandBuffer.ExecuteIndirect("TerrainRenderer", indirectArgs, 1u);
+
+				// 渲染完成之后，将Feedback复制到ReadbackBuffer中
+				barrierBatch = commandBuffer.TransitionImmediately(terrainFeedback, GHL::EResourceState::CopySource);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+				uint8_t currentFrameIndex = frameTracker->GetCurrFrameIndex();
+				BufferWrap& resolvedReadback = mTerrainReadbackBuffers[currentFrameIndex];
+				auto srcDesc = mTerrainFeedbackMap->GetResourceFormat().D3DResourceDesc();
+				uint32_t rowPitch = (srcDesc.Width * GHL::GetFormatStride(srcDesc.Format) + 0x0ff) & ~0x0ff;
+				D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ 0,
+					{ srcDesc.Format, (UINT)srcDesc.Width, srcDesc.Height, srcDesc.DepthOrArraySize, rowPitch } };
+
+				D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(mTerrainFeedbackMap->D3DResource(), 0);
+				D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(resolvedReadback->D3DResource(), layout);
+
+				// TODO 判断当前帧的QueuedReadback是否仍为Fresh，如果是，则说明ProcessFeedback线程还未处理完该帧的Feedback，需要等待其不再是Fresh的状态
+				const auto& currFrameAttribute = frameTracker->GetCurrFrameAttribute();
+				mQueuedReadbacks.at(currFrameAttribute.frameIndex).renderFrameFenceValue = currFrameAttribute.fenceValue;
+
+				commandBuffer.D3DCommandList()->CopyTextureRegion(
+					&dstLocation,
+					0, 0, 0,
+					&srcLocation,
+					nullptr);
 			}
 			);
 	}
@@ -713,6 +754,7 @@ namespace Renderer {
 
 	void TerrainSystem::FrameCompletedCallback(uint8_t frameIndex) {
 		// 渲染帧完成之后，对Feedback进行回读操作
-
+		mRVTUpdater->SetFrameCompletedEvent();
+		mQueuedReadbacks.at(frameIndex).isFresh = true;
 	}
 }

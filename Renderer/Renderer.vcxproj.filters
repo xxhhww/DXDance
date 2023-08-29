@@ -270,6 +270,18 @@
     <ClInclude Include="RVTUpdater.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="RVTPageTable.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RVTPageLevelTable.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RVTPagePayload.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RVTPageTableNodeCell.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -456,6 +468,12 @@
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="RVTUpdater.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="RVTPageTable.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="RVTPageLevelTable.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>

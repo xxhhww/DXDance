@@ -8,6 +8,7 @@ namespace Renderer {
 	class RVTUpdater;
 
 	class TerrainSystem {
+		friend class RVTUpdater;
 	public:
 		struct NodeDescriptor {
 			uint32_t isBranch = true;
@@ -161,6 +162,18 @@ namespace Renderer {
 
 	private:
 		TextureWrap mTerrainFeedbackMap;
+
+		struct QueuedReadbackFeedback {
+			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入，ProcessFeedback线程只读
+			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与ProcessFeedback线程进行访问与修改
+		};
+		/*
+		* 在每一个渲染帧完成后，渲染主线程都会更新QueuedReadbackFeedback这个结构体对象中的isFresh变量，并通知ProcessFeedback线程进行处理
+		* 而在ProcessFeedback线程中，也会对isFresh变量进行修改
+		*/
+		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
+		std::vector<BufferWrap> mTerrainReadbackBuffers;
+
 		RVTUpdater* mRVTUpdater{ nullptr };
 	};
 

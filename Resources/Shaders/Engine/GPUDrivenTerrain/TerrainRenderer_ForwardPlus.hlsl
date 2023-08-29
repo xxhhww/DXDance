@@ -70,7 +70,7 @@ struct p2o {
 	float4 shadingResult	: SV_TARGET0;
 	float4 normalRoughness	: SV_TARGET1;
 	float2 screenVelocity	: SV_TARGET2;
-	// float4 terrainFeedback:	: SV_TARGET3;
+	float4 terrainFeedback:	: SV_TARGET3;
 };
 
 float3 SampleTerrainNormalMap(float2 uv) {
@@ -338,7 +338,7 @@ p2o PSMain(v2p input) {
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
 	output.normalRoughness = float4(wsNormal, roughness);
 	output.screenVelocity  = float2(velocity.xy);
-	// output.terrainFeedback = float4(page, mip, 1.0f);
+	output.terrainFeedback = float4(page / 255.0f, mip / 255.0f, 1.0f);
 
 	return output;
 }

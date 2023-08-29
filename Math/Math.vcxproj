@@ -140,9 +140,11 @@
     <ClInclude Include="Helper.h" />
     <ClInclude Include="hosek.h" />
     <ClInclude Include="HosekWilkieSkyModel.h" />
+    <ClInclude Include="Int.h" />
     <ClInclude Include="Jitter.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Quaternion.h" />
+    <ClInclude Include="Rect.h" />
     <ClInclude Include="Spectrum.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>
@@ -156,6 +158,7 @@
     <ClCompile Include="Jitter.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Quaternion.cpp" />
+    <ClCompile Include="Rect.cpp" />
     <ClCompile Include="Spectrum.cpp" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
