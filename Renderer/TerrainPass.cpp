@@ -756,6 +756,7 @@ namespace Renderer {
 				builder.WriteRenderTarget("ShadingResult");
 				builder.WriteRenderTarget("NormalRoughness");
 				builder.WriteRenderTarget("ScreenVelocity");
+				builder.WriteRenderTarget("TerrainFeedback");
 				builder.WriteDepthStencil("DepthStencil");
 
 				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
@@ -776,6 +777,7 @@ namespace Renderer {
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT	// TerrainFeedback
 						};
 					});
 
@@ -800,6 +802,7 @@ namespace Renderer {
 				auto* normalRoughness = resourceStorage->GetResourceByName("NormalRoughness")->GetTexture();
 				auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
 				auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
+				auto* terrainFeedback = resourceStorage->GetResourceByName("TerrainFeedback")->GetTexture();
 				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
 
@@ -873,6 +876,7 @@ namespace Renderer {
 						shadingResult,
 						normalRoughness,
 						screenVelocity,
+						terrainFeedback,
 					},
 					depthStencil);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });

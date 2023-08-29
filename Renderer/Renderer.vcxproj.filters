@@ -73,11 +73,11 @@
     <Filter Include="源文件\OfflineTaskHelper">
       <UniqueIdentifier>{dcf5abf5-2edf-4349-b87e-aa24d75c9937}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\Terrain">
-      <UniqueIdentifier>{3df561c6-2735-4408-a4b2-8dccd9b8173f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\Renderer\Terrain">
       <UniqueIdentifier>{8491f98a-89b1-4441-a221-8ae70b88f327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Renderer\Terrain">
+      <UniqueIdentifier>{f1734a5b-1928-4c53-b453-ada76f981bdd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -243,9 +243,6 @@
     <ClInclude Include="FoliagePass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>头文件\Renderer\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="OpaquePass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
@@ -266,6 +263,12 @@
     </ClInclude>
     <ClInclude Include="OceanPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainSystem.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RVTUpdater.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -428,9 +431,6 @@
     <ClCompile Include="FoliagePass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>源文件\Renderer\Terrain</Filter>
-    </ClCompile>
     <ClCompile Include="OpaquePass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
@@ -451,6 +451,12 @@
     </ClCompile>
     <ClCompile Include="OceanPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainSystem.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="RVTUpdater.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

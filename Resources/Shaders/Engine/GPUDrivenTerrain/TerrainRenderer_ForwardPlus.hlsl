@@ -5,6 +5,13 @@
 #include "../Base/Light.hlsl"
 
 struct PassData {
+	// x: page size
+	// y: vertual texture size
+	// z: max mipmap level
+	// w: mipmap level bias
+	float4 vtFeedbackParams;
+	float4 vtRealRect;
+
 	float2 worldSize;
 	uint   heightScale;
 	uint   culledPatchListIndex;
@@ -53,15 +60,17 @@ struct v2p {
 	float4 prevCsPos : POSITION1;
 	float3 wsPos     : POSITION2;
 	float3 vsPos     : POSITION3;
-	float2 uv        : TEXCOORD;
+	float2 uv        : TEXCOORD0;
+	float2 uvVT      : TEXCOORD1;
 	float2 position  : POSITION4;
 	uint   lod       : LOD;
 };
 
 struct p2o {
-	float4 shadingResult   : SV_TARGET0;
-	float4 normalRoughness : SV_TARGET1;
-	float2 screenVelocity  : SV_TARGET2;
+	float4 shadingResult	: SV_TARGET0;
+	float4 normalRoughness	: SV_TARGET1;
+	float2 screenVelocity	: SV_TARGET2;
+	// float4 terrainFeedback:	: SV_TARGET3;
 };
 
 float3 SampleTerrainNormalMap(float2 uv) {
@@ -200,6 +209,9 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	// 前一帧的CsPos，不需要加上上一帧的抖动，在PS中计算时再加上这一帧的uv抖动，从而保证计算motionVector时消除抖动
 	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
 
+	// 计算改点在VT上的uv值
+	output.uvVT = (currWsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
+
 	output.currCsPos = currCsPos;
 	output.prevCsPos = prevCsPos;
 	output.wsPos = currWsPos;
@@ -293,41 +305,6 @@ p2o PSMain(v2p input) {
 	aChannel = SampleNormalMapWithTriMapping(aChannelNormalMap, wsPos, wsNormal, textureScale);
 	wsNormal.xyz = normalize(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
 
-	/*
-	float  groundGrassMapScale = 0.05f;
-	float  groundRockMapScale  = 0.01f;
-
-	TriplanarMapping tri;
-	tri.initialize(input.wsPos, wsNormal, float3(groundRockMapScale, groundGrassMapScale, groundRockMapScale), 15.0f);
-
-	float2 groundUV = tri.uvY;
-
-	Texture2D<float4> splatMap                = ResourceDescriptorHeap[PassDataCB.splatMapIndex];
-
-	Texture2D<float4> groundGrassAlbedoMap    = ResourceDescriptorHeap[PassDataCB.rChannelAlbedoMapIndex];
-	Texture2D<float4> groundGrassNormalMap    = ResourceDescriptorHeap[PassDataCB.rChannelNormalMapIndex];
-
-	Texture2D<float4> groundRockAlbedoMap     = ResourceDescriptorHeap[PassDataCB.gChannelAlbedoMapIndex];
-	Texture2D<float4> groundRockNormalMap     = ResourceDescriptorHeap[PassDataCB.gChannelNormalMapIndex];
-
-	float4 albedo =
-		pow(groundRockAlbedoMap.SampleLevel(SamplerLinearWrap, tri.uvX, 0.0f), 2.2f) * tri.weights.x +
-		pow(groundGrassAlbedoMap.SampleLevel(SamplerLinearWrap, groundUV, 0.0f), 2.2f) * tri.weights.y +
-		pow(groundRockAlbedoMap.SampleLevel(SamplerLinearWrap, tri.uvZ, 0.0f), 2.2f) * tri.weights.z;
-
-	float roughness =
-		groundRockRoughnessMap.SampleLevel(SamplerLinearWrap, tri.uvX, 0.0f) * tri.weights.x +
-		groundGrassRoughnessMap.SampleLevel(SamplerLinearWrap, groundUV, 0.0f) * tri.weights.y +
-		groundRockRoughnessMap.SampleLevel(SamplerLinearWrap, tri.uvZ, 0.0f) * tri.weights.z;
-	roughness = 0.99f;
-
-	float3 tnormalX = SampleNormalMap(groundRockNormalMap, SamplerLinearWrap, tri.uvX);
-	float3 tnormalY = SampleNormalMap(groundGrassNormalMap, SamplerLinearWrap, groundUV);
-	float3 tnormalZ = SampleNormalMap(groundRockNormalMap, SamplerLinearWrap, tri.uvZ);
-
-	float3 finalWsNormal = tri.normalmap(wsNormal, tnormalX, tnormalY, tnormalZ);
-	*/
-
 	Surface surface;
 
 	surface.albedo = albedo;
@@ -348,10 +325,20 @@ p2o PSMain(v2p input) {
 
 	totalLighting.addSunLight(surface, sunLight/*, screenUV, pixelDepth,
 		shadowMap, shadowSampler, lighting.shadowMapTexelSize, sssTexture, clampSampler*/);
+
+	// Calcute Feedback
+	float2 page = floor(input.uvVT * PassDataCB.vtFeedbackParams.x);
+
+	float2 uv = input.uvVT * PassDataCB.vtFeedbackParams.y;
+	float2 dx = ddx(uv);
+	float2 dy = ddy(uv);
+	int mip = clamp(int(0.5 * log2(max(dot(dx, dx), dot(dy, dy))) + 0.5 + PassDataCB.vtFeedbackParams.w), 0, PassDataCB.vtFeedbackParams.z);
+
 	p2o output;
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
 	output.normalRoughness = float4(wsNormal, roughness);
 	output.screenVelocity  = float2(velocity.xy);
+	// output.terrainFeedback = float4(page, mip, 1.0f);
 
 	return output;
 }

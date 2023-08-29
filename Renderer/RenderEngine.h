@@ -27,7 +27,6 @@
 
 #include "Renderer/GBufferPass.h"
 #include "Renderer/OpaquePass.h"
-#include "Renderer/TerrainPass.h"
 #include "Renderer/FoliagePass.h"
 #include "Renderer/GrassPass.h"
 #include "Renderer/AtmospherePass.h"
@@ -48,6 +47,8 @@
 #include <memory>
 
 namespace Renderer {
+	class TerrainSystem;
+
 	/*
 	* 每一个渲染帧进行如下处理
 	* Push新的帧 --- 如需，构建RenderGraph --- 录制帧命令 --- 提交帧命令 --- 检测帧队列的完成情况 --- 通知依赖于帧完成情况的管理器(如GPUProfiler TileUpdateManger等) --- 移至下一帧(可能需要等待GPU)
@@ -136,9 +137,11 @@ namespace Renderer {
 		std::unique_ptr<RenderGraph> mRenderGraph;
 
 		// ==========================...RenderPasses...==========================
+		std::unique_ptr<TerrainSystem> mTerrainSystem;	// 地形系统
+
 		GBufferPass				  mGBufferPass;
 		OpaquePass				  mOpaquePass;
-		TerrainPass				  mTerrainPass;
+		// TerrainPass				  mTerrainPass;
 		GrassPass                 mGrassPass;
 		SkyPass                   mSkyPass;
 		AtmospherePass            mAtmospherePass;

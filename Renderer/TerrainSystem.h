@@ -1,19 +1,13 @@
 #pragma once
-#include <DirectStorage/dstorage.h>
-#include <vector>
-#include "Renderer/RenderGraph.h"
 #include "Renderer/ResourceAllocator.h"
 
-namespace GHL {
-	class Device;
-	class Fence;
-}
-
 namespace Renderer {
-	class Mesh;
-	class RenderEngine;
 
-	class TerrainPass {
+	class RenderEngine;
+	class RingFrameTracker;
+	class RVTUpdater;
+
+	class TerrainSystem {
 	public:
 		struct NodeDescriptor {
 			uint32_t isBranch = true;
@@ -69,7 +63,7 @@ namespace Renderer {
 			uint32_t rChannelNormalMapIndex;
 			uint32_t rChannelRoughnessMapIndex;
 			uint32_t rChannelHeightMapIndex;
-			
+
 			uint32_t gChannelAlbedoMapIndex;
 			uint32_t gChannelNormalMapIndex;
 			uint32_t gChannelRoughnessMapIndex;
@@ -144,20 +138,30 @@ namespace Renderer {
 		TextureWrap snowHeightMap;
 
 	public:
-		void AddPreDepthPass(RenderGraph& renderGraph);
+		TerrainSystem();
+		~TerrainSystem();
 
-		void AddShadowPass(RenderGraph& renderGraph);
+		/*
+		* 地形初始化
+		*/
+		void Initialize(RenderEngine* renderEngine);
 
-		void AddPass(RenderGraph& renderGraph);
+		/*
+		* 添加TerrainPass至RenderGraph
+		*/
+		void AddPass(RenderEngine* renderEngine);
 
-		void AddForwardPlusPass(RenderGraph& renderGraph);
-
-		void InitializePass(RenderEngine* renderEngine);
+		/*
+		* 渲染帧完成后的回调函数
+		*/
+		void FrameCompletedCallback(uint8_t frameIndex);
 
 	private:
-		/*
-		* 更新节点和LOD的描述数组
-		*/
 		void UpdateNodeAndLodDescriptorArray();
+
+	private:
+		TextureWrap mTerrainFeedbackMap;
+		RVTUpdater* mRVTUpdater{ nullptr };
 	};
+
 }

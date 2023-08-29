@@ -1,6 +1,8 @@
 #include "Renderer/RenderEngine.h"
 #include "Renderer/FixedTextureHelper.h"
 
+#include "Renderer/TerrainSystem.h"
+
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
 #include "ECS/CSky.h"
@@ -151,9 +153,15 @@ namespace Renderer {
 			mResourceStateTracker->StartTracking(mBlueNoise2DMap.Get());
 		}
 
+		// 初始化业务系统
+		{
+			mTerrainSystem = std::make_unique<TerrainSystem>();
+		}
+
 		// 初始化RenderPass
 		{
-			mTerrainPass.InitializePass(this);
+			// mTerrainPass.InitializePass(this);
+			mTerrainSystem->Initialize(this);
 			mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
 			mAtmospherePass.InitializePass(this);
@@ -164,7 +172,8 @@ namespace Renderer {
 		// 添加RenderPass并构建RenderGraph
 		{
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
-			mTerrainPass.AddForwardPlusPass(*mRenderGraph);
+			mTerrainSystem->AddPass(this);
+			// mTerrainPass.AddForwardPlusPass(*mRenderGraph);
 			mGrassPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddPass(*mRenderGraph);
 			mOceanPass.AddPass(*mRenderGraph);

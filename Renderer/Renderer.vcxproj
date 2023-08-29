@@ -181,7 +181,7 @@
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="SkyPass.h" />
     <ClInclude Include="TAAPass.h" />
-    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TerrainSystem.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Resource.h" />
@@ -220,6 +220,7 @@
     <ClInclude Include="UploaderEngine.h" />
     <ClInclude Include="UploadList.h" />
     <ClInclude Include="VolumetricCloudsPass.h" />
+    <ClInclude Include="RVTUpdater.h" />
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -253,7 +254,7 @@
     <ClCompile Include="SkyGenerationPass.cpp" />
     <ClCompile Include="SkyPass.cpp" />
     <ClCompile Include="TAAPass.cpp" />
-    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="TerrainSystem.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PoolDescriptorAllocator.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="UploaderEngine.cpp" />
     <ClCompile Include="UploadList.cpp" />
     <ClCompile Include="VolumetricCloudsPass.cpp" />
+    <ClCompile Include="RVTUpdater.cpp" />
     <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
