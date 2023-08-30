@@ -1,13 +1,13 @@
 #pragma once
-#include "Renderer/RVTPageTableNodeCell.h"
+#include "Renderer/RvtPageTableNodeCell.h"
 #include <vector>
 #include <cmath>
 
 namespace Renderer {
 
-	struct RVTPageLevelTable {
+	struct RvtPageLevelTable {
 	public:
-		std::vector<std::vector<RVTPageTableNodeCell>> cells;
+		std::vector<std::vector<RvtPageTableNodeCell>> cells;
 		
         Math::Int2 pageOffset;
 
@@ -15,25 +15,35 @@ namespace Renderer {
         int cellSize { 0 };	// cell大小
         int cellCount{ 0 };	// cell个数
 
-	private:
-        RVTPageLevelTable(int mip, int tableSize) {
+	public:
+        RvtPageLevelTable(int mip, int tableSize) {
             pageOffset = Math::Int2{ 0 ,0 };
             mipLevel = mip;
             cellSize = (int)std::pow(2, mipLevel);
             cellCount = tableSize / cellSize;
 
-            cells = std::vector<std::vector<RVTPageTableNodeCell>>{
-                cellCount, std::vector<RVTPageTableNodeCell>{ cellCount, RVTPageTableNodeCell{} } };
+            cells = std::vector<std::vector<RvtPageTableNodeCell>>{
+                cellCount, std::vector<RvtPageTableNodeCell>{ cellCount, RvtPageTableNodeCell{} } };
 
             for (int i = 0; i < cellCount; i++) {
                 for (int j = 0; j < cellCount; j++) {
-                    cells.at(i).at(j) = RVTPageTableNodeCell{ 
+                    cells.at(i).at(j) = RvtPageTableNodeCell{ 
                         i * cellSize, j * cellSize, cellSize, cellSize, mipLevel };
                 }
             }
         }
 
-        RVTPageTableNodeCell GetCell(int x, int y) {
+        inline auto& GetCell(int x, int y) {
+            x /= cellSize;
+            y /= cellSize;
+
+            x = (x + pageOffset.x) % cellCount;
+            y = (y + pageOffset.y) % cellCount;
+
+            return cells.at(x).at(y);
+        }
+
+        inline const auto& GetCell(int x, int y) const {
             x /= cellSize;
             y /= cellSize;
 
@@ -43,4 +53,5 @@ namespace Renderer {
             return cells.at(x).at(y);
         }
 	};
+
 }

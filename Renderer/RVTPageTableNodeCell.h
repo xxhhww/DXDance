@@ -1,19 +1,19 @@
 #pragma once
-#include "Renderer/RVTPagePayload.h"
+#include "Renderer/RvtPagePayload.h"
 #include "Math/Int.h"
 
 namespace Renderer {
 
-	struct RVTPageTableNodeCell {
+	struct RvtPageTableNodeCell {
 	public:
 		Math::Int4 rect;
 		int mipLevel;
-		RVTPagePayload payload;
+		RvtPagePayload payload;
 
 	public:
-		inline RVTPageTableNodeCell() = default;
+		inline RvtPageTableNodeCell() = default;
 
-		inline RVTPageTableNodeCell(int x, int y, int width, int height, int mipLevel)
+		inline RvtPageTableNodeCell(int x, int y, int width, int height, int mipLevel)
 			: rect(x, y, width, height)
 			, mipLevel(mipLevel) {}
 	};

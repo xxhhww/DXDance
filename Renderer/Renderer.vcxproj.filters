@@ -267,19 +267,25 @@
     <ClInclude Include="TerrainSystem.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RVTUpdater.h">
+    <ClInclude Include="RvtUpdater.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RVTPageTable.h">
+    <ClInclude Include="RvtPageTable.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RVTPageLevelTable.h">
+    <ClInclude Include="RvtPageLevelTable.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RVTPagePayload.h">
+    <ClInclude Include="RvtPagePayload.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RVTPageTableNodeCell.h">
+    <ClInclude Include="RvtPageTableNodeCell.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RvtTiledTexture.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="LruCache.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
@@ -467,13 +473,13 @@
     <ClCompile Include="TerrainSystem.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="RVTUpdater.cpp">
+    <ClCompile Include="RvtUpdater.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="RVTPageTable.cpp">
+    <ClCompile Include="RvtPageTable.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
-    <ClCompile Include="RVTPageLevelTable.cpp">
+    <ClCompile Include="RvtTiledTexture.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>

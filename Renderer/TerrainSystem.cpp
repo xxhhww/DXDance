@@ -1,6 +1,7 @@
 #include "Renderer/TerrainSystem.h"
 #include "Renderer/RenderEngine.h"
-#include "Renderer/RVTUpdater.h"
+#include "Renderer/RvtUpdater.h"
+#include "Renderer/RvtTiledTexture.h"
 #include "Renderer/FixedTextureHelper.h"
 #include "Renderer/RenderGraphBuilder.h"
 
@@ -23,14 +24,21 @@ namespace Renderer {
 	};
 
 	TerrainSystem::TerrainSystem() {
-		mRVTUpdater = new RVTUpdater(this);
 	}
 
 	TerrainSystem::~TerrainSystem() {
-		delete mRVTUpdater;
+		if (mRvtUpdater != nullptr) {
+			delete mRvtUpdater;
+			delete mRvtTiledTexture;
+		}
 	}
 
 	void TerrainSystem::Initialize(RenderEngine* renderEngine) {
+		mRenderEngine = renderEngine;
+
+		mRvtUpdater = new RvtUpdater(this);
+		mRvtTiledTexture = new RvtTiledTexture(this);
+
 		auto* device = renderEngine->mDevice.get();
 		auto* renderGraph = renderEngine->mRenderGraph.get();
 		auto* frameTracker = renderEngine->mFrameTracker.get();
@@ -754,7 +762,7 @@ namespace Renderer {
 
 	void TerrainSystem::FrameCompletedCallback(uint8_t frameIndex) {
 		// 渲染帧完成之后，对Feedback进行回读操作
-		mRVTUpdater->SetFrameCompletedEvent();
+		mRvtUpdater->SetFrameCompletedEvent();
 		mQueuedReadbacks.at(frameIndex).isFresh = true;
 	}
 }

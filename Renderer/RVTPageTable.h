@@ -1,13 +1,17 @@
 #pragma once
-#include "Renderer/RVTPageLevelTable.h"
+#include "Renderer/RvtPageLevelTable.h"
 #include <unordered_map>
 
 namespace Renderer {
 
-	class RVTPageTable {
+	class RvtPageTable {
 	public:
-		RVTPageTable();
+		RvtPageTable(uint32_t tableSize);
+		~RvtPageTable();
 
+		inline RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) { mPageLevelTables[mipLevel].GetCell(x, y); }
+		inline const RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) const { mPageLevelTables[mipLevel].GetCell(x, y); }
+		
 		inline const auto& GetTableSize()   const { return mTableSize; }
 		inline const auto& GetMaxMipLevel() const { return mMaxMipLevel; }
 	private:
@@ -15,9 +19,9 @@ namespace Renderer {
 
 		int mMaxMipLevel;
 
-		std::vector<RVTPageLevelTable> mPageLevelTables;
+		std::vector<RvtPageLevelTable> mPageLevelTables;
 
-		std::unordered_map<Math::_Int2, _RVTPageTableNodeCell> mActivePages;
+		std::unordered_map<Math::Int2, RvtPageTableNodeCell> mActivePages;
 	};
 
 }

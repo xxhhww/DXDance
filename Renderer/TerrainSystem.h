@@ -5,10 +5,13 @@ namespace Renderer {
 
 	class RenderEngine;
 	class RingFrameTracker;
-	class RVTUpdater;
+	class RvtUpdater;
+	class RvtTiledTexture;
 
 	class TerrainSystem {
-		friend class RVTUpdater;
+		friend class RvtUpdater;
+		friend class RvtTiledTexture;
+
 	public:
 		struct NodeDescriptor {
 			uint32_t isBranch = true;
@@ -101,6 +104,8 @@ namespace Renderer {
 		float worldHeightScale{ 4096u };
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
+		uint32_t tableSize{ 256u };
+
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;
 		std::vector<NodeLocation>   maxLODNodeList;
@@ -161,8 +166,9 @@ namespace Renderer {
 		void UpdateNodeAndLodDescriptorArray();
 
 	private:
-		TextureWrap mTerrainFeedbackMap;
+		RenderEngine* mRenderEngine{ nullptr };
 
+		TextureWrap mTerrainFeedbackMap;
 		struct QueuedReadbackFeedback {
 			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入，ProcessFeedback线程只读
 			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与ProcessFeedback线程进行访问与修改
@@ -174,7 +180,8 @@ namespace Renderer {
 		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
 		std::vector<BufferWrap> mTerrainReadbackBuffers;
 
-		RVTUpdater* mRVTUpdater{ nullptr };
+		RvtUpdater* mRvtUpdater{ nullptr };
+		RvtTiledTexture* mRvtTiledTexture{ nullptr };
 	};
 
 }

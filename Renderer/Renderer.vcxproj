@@ -169,6 +169,7 @@
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="GrassPass.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
+    <ClInclude Include="LruCache.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MemoryAliasingHelper.h" />
     <ClInclude Include="Mesh.h" />
@@ -178,10 +179,11 @@
     <ClInclude Include="PlaceObjectOnTerrainPass.h" />
     <ClInclude Include="RenderObjectOnTerrainPass.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
-    <ClInclude Include="RVTPageLevelTable.h" />
-    <ClInclude Include="RVTPagePayload.h" />
-    <ClInclude Include="RVTPageTable.h" />
-    <ClInclude Include="RVTPageTableNodeCell.h" />
+    <ClInclude Include="RvtPageLevelTable.h" />
+    <ClInclude Include="RvtPagePayload.h" />
+    <ClInclude Include="RvtPageTable.h" />
+    <ClInclude Include="RvtPageTableNodeCell.h" />
+    <ClInclude Include="RvtTiledTexture.h" />
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="SkyPass.h" />
     <ClInclude Include="TAAPass.h" />
@@ -224,7 +226,7 @@
     <ClInclude Include="UploaderEngine.h" />
     <ClInclude Include="UploadList.h" />
     <ClInclude Include="VolumetricCloudsPass.h" />
-    <ClInclude Include="RVTUpdater.h" />
+    <ClInclude Include="RvtUpdater.h" />
     <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -255,8 +257,8 @@
     <ClCompile Include="PlaceObjectOnTerrainPass.cpp" />
     <ClCompile Include="RenderObjectOnTerrainPass.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
-    <ClCompile Include="RVTPageLevelTable.cpp" />
-    <ClCompile Include="RVTPageTable.cpp" />
+    <ClCompile Include="RvtPageTable.cpp" />
+    <ClCompile Include="RvtTiledTexture.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />
     <ClCompile Include="SkyPass.cpp" />
     <ClCompile Include="TAAPass.cpp" />
@@ -300,7 +302,7 @@
     <ClCompile Include="UploaderEngine.cpp" />
     <ClCompile Include="UploadList.cpp" />
     <ClCompile Include="VolumetricCloudsPass.cpp" />
-    <ClCompile Include="RVTUpdater.cpp" />
+    <ClCompile Include="RvtUpdater.cpp" />
     <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
