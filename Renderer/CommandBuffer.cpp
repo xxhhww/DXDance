@@ -1,9 +1,9 @@
-#include "CommandBuffer.h"
-#include "RenderGraph.h"
-#include "ShaderManger.h"
-#include "LinearBufferAllocator.h"
-#include "CommandSignatureManger.h"
-#include "RenderGraphResourceStorage.h"
+#include "Renderer/CommandBuffer.h"
+#include "Renderer/RenderGraph.h"
+#include "Renderer/ShaderManger.h"
+#include "Renderer/LinearBufferAllocator.h"
+#include "Renderer/CommandSignatureManger.h"
+#include "Renderer/RenderGraphResourceStorage.h"
 
 #include "GHL/CommandList.h"
 
@@ -15,7 +15,22 @@ namespace Renderer {
 
 	CommandBuffer::CommandBuffer(GHL::CommandList* commandList, RenderContext* renderContext)
 	: mCommandList(commandList)
-	, mRenderContext(renderContext) {}
+	, mShaderManger(renderContext->shaderManger)
+	, mResourceStateTracker(renderContext->resourceStateTracker)
+	, mLinearBufferAllocator(renderContext->dynamicAllocator)
+	, mCommandSignatureManger(renderContext->commandSignatureManger) {}
+
+	CommandBuffer::CommandBuffer(
+		GHL::CommandList* commandList,
+		ShaderManger* shaderManger,
+		ResourceStateTracker* resourceStateTracker,
+		LinearBufferAllocator* dynamicAllocator,
+		CommandSignatureManger* commandSignatureManger)
+	: mCommandList(commandList)
+	, mShaderManger(shaderManger)
+	, mResourceStateTracker(resourceStateTracker)
+	, mLinearBufferAllocator(dynamicAllocator)
+	, mCommandSignatureManger(commandSignatureManger) {}
 
 	void CommandBuffer::PIXBeginEvent(const std::string& name) {
 		::PIXBeginEvent(mCommandList->D3DCommandList(), 0, Tool::StrUtil::UTF8ToWString(name).c_str());
@@ -26,25 +41,25 @@ namespace Renderer {
 	}
 
 	void CommandBuffer::SetGraphicsRootSignature(const std::string& name) {
-		auto* shaderManger = mRenderContext->shaderManger;
+		auto* shaderManger = mShaderManger;
 		ID3D12RootSignature* rootSignature = shaderManger->GetBaseD3DRootSignature();
 		mCommandList->D3DCommandList()->SetGraphicsRootSignature(rootSignature);
 	}
 
 	void CommandBuffer::SetComputeRootSignature(const std::string& name) {
-		auto* shaderManger = mRenderContext->shaderManger;
+		auto* shaderManger = mShaderManger;
 		ID3D12RootSignature* rootSignature = shaderManger->GetBaseD3DRootSignature();
 		mCommandList->D3DCommandList()->SetComputeRootSignature(rootSignature);
 	}
 
 	void CommandBuffer::SetGraphicsPipelineState(const std::string& name) {
-		auto* shaderManger = mRenderContext->shaderManger;
+		auto* shaderManger = mShaderManger;
 		ID3D12PipelineState* pipelineState = shaderManger->GetShader<GraphicsShader>(name)->GetD3DPipelineState();
 		mCommandList->D3DCommandList()->SetPipelineState(pipelineState);
 	}
 
 	void CommandBuffer::SetComputePipelineState(const std::string& name) {
-		auto* shaderManger = mRenderContext->shaderManger;
+		auto* shaderManger = mShaderManger;
 		ID3D12PipelineState* pipelineState = shaderManger->GetShader<ComputeShader>(name)->GetD3DPipelineState();
 		mCommandList->D3DCommandList()->SetPipelineState(pipelineState);
 	}
@@ -162,7 +177,7 @@ namespace Renderer {
 	}
 
 	void CommandBuffer::UploadBufferRegion(Buffer* dstBuffer, uint64_t dstOffset, void* srcData, uint64_t srcSize) {
-		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(srcSize, 256u);
+		auto dyAlloc = mLinearBufferAllocator->Allocate(srcSize, 256u);
 		memcpy(dyAlloc.cpuAddress, srcData, srcSize);
 		mCommandList->D3DCommandList()->CopyBufferRegion(dstBuffer->D3DResource(), dstOffset, dyAlloc.backResource, dyAlloc.offset, srcSize);
 	}
@@ -172,14 +187,14 @@ namespace Renderer {
 	}
 
 	void CommandBuffer::ClearBufferWithValue(Buffer* dstBuffer, uint32_t value) {
-		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(sizeof(uint32_t), 256u);
+		auto dyAlloc = mLinearBufferAllocator->Allocate(sizeof(uint32_t), 256u);
 		memcpy(dyAlloc.cpuAddress, &value, sizeof(uint32_t));
 
 		mCommandList->D3DCommandList()->CopyBufferRegion(dstBuffer->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
 	}
 
 	void CommandBuffer::ClearCounterBuffer(Buffer* buffer, uint32_t value) {
-		auto dyAlloc = mRenderContext->dynamicAllocator->Allocate(sizeof(uint32_t), 256u);
+		auto dyAlloc = mLinearBufferAllocator->Allocate(sizeof(uint32_t), 256u);
 		memcpy(dyAlloc.cpuAddress, &value, sizeof(uint32_t));
 
 		mCommandList->D3DCommandList()->CopyBufferRegion(buffer->GetCounterBuffer()->D3DResource(), 0u, dyAlloc.backResource, dyAlloc.offset, sizeof(uint32_t));
@@ -194,12 +209,12 @@ namespace Renderer {
 	}
 
 	GHL::ResourceBarrierBatch CommandBuffer::TransitionImmediately(Resource* resource, GHL::EResourceState newState, bool tryImplicitly) {
-		auto* stateTracker = mRenderContext->resourceStateTracker;
+		auto* stateTracker = mResourceStateTracker;
 		return stateTracker->TransitionImmediately(resource, newState, tryImplicitly);
 	}
 	
 	GHL::ResourceBarrierBatch CommandBuffer::TransitionImmediately(Resource* resource, uint32_t subresourceIndex, GHL::EResourceState newState, bool tryImplicitly) {
-		auto* stateTracker = mRenderContext->resourceStateTracker;
+		auto* stateTracker = mResourceStateTracker;
 		return stateTracker->TransitionImmediately(resource, subresourceIndex, newState, tryImplicitly);
 	}
 
@@ -225,7 +240,7 @@ namespace Renderer {
 	}
 
 	void CommandBuffer::ExecuteIndirect(const std::string& name, Buffer* argumentBuffer, uint32_t maxCommandCount) {
-		auto* cmdSig = mRenderContext->commandSignatureManger->GetD3DCommandSignature(name);
+		auto* cmdSig = mCommandSignatureManger->GetD3DCommandSignature(name);
 		
 		mCommandList->D3DCommandList()->ExecuteIndirect(cmdSig, maxCommandCount, argumentBuffer->D3DResource(), 0u, argumentBuffer->GetCounterBuffer()->D3DResource(), 0u);
 	}

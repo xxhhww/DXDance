@@ -170,6 +170,7 @@ namespace Renderer {
 
 		TextureWrap mTerrainFeedbackMap;
 		struct QueuedReadbackFeedback {
+		public:
 			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入，ProcessFeedback线程只读
 			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与ProcessFeedback线程进行访问与修改
 		};

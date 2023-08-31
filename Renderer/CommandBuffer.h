@@ -12,13 +12,26 @@ namespace GHL {
 namespace Renderer {
 
 	struct RenderContext;
+
 	class Resource;
 	class Buffer;
 	class Texture;
 
+	class ShaderManger;
+	class ResourceStateTracker;
+	class LinearBufferAllocator;
+	class CommandSignatureManger;
+
 	class CommandBuffer {
 	public:
 		CommandBuffer(GHL::CommandList* commandList, RenderContext* renderContext);
+		CommandBuffer(
+			GHL::CommandList* commandList,
+			ShaderManger* shaderManger,
+			ResourceStateTracker* resourceStateTracker,
+			LinearBufferAllocator* dynamicAllocator,
+			CommandSignatureManger* commandSignatureManger);
+
 		~CommandBuffer() = default;
 
 		// ================ PIX Event ================
@@ -101,7 +114,12 @@ namespace Renderer {
 		
 	private:
 		GHL::CommandList* mCommandList{ nullptr };
-		RenderContext*    mRenderContext{ nullptr };
+		// RenderContext*    mRenderContext{ nullptr };
+
+		ShaderManger* mShaderManger{ nullptr };
+		ResourceStateTracker* mResourceStateTracker{ nullptr };
+		LinearBufferAllocator* mLinearBufferAllocator{ nullptr };
+		CommandSignatureManger* mCommandSignatureManger{ nullptr };
 	};
 
 }

@@ -70,7 +70,7 @@ struct p2o {
 	float4 shadingResult	: SV_TARGET0;
 	float4 normalRoughness	: SV_TARGET1;
 	float2 screenVelocity	: SV_TARGET2;
-	float4 terrainFeedback:	: SV_TARGET3;
+	float4 terrainFeedback	: SV_TARGET3;
 };
 
 float3 SampleTerrainNormalMap(float2 uv) {

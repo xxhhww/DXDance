@@ -6,22 +6,25 @@ namespace Renderer {
 
 	class RvtPageTable {
 	public:
-		RvtPageTable(uint32_t tableSize);
+		RvtPageTable(int32_t tableSize);
 		~RvtPageTable();
 
-		inline RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) { mPageLevelTables[mipLevel].GetCell(x, y); }
-		inline const RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) const { mPageLevelTables[mipLevel].GetCell(x, y); }
+		inline RvtPageLevelTable& GetPage(int mipLevel) { return mPageLevelTables.at(mipLevel); }
+		inline const RvtPageLevelTable& GetPage(int mipLevel) const { return mPageLevelTables.at(mipLevel); }
+
+		inline RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) { return mPageLevelTables[mipLevel].GetCell(x, y); }
+		inline const RvtPageTableNodeCell& GetCell(int x, int y, int mipLevel) const { return mPageLevelTables[mipLevel].GetCell(x, y); }
 		
 		inline const auto& GetTableSize()   const { return mTableSize; }
 		inline const auto& GetMaxMipLevel() const { return mMaxMipLevel; }
-	private:
-		uint32_t mTableSize;	// Ò³±í³ß´ç
+		inline const auto& GetCellCount()   const { return mCellCount; }
 
-		int mMaxMipLevel;
+	private:
+		int32_t mTableSize;	// Ò³±í³ß´ç
+		int32_t mMaxMipLevel;
+		int32_t mCellCount;
 
 		std::vector<RvtPageLevelTable> mPageLevelTables;
-
-		std::unordered_map<Math::Int2, RvtPageTableNodeCell> mActivePages;
 	};
 
 }

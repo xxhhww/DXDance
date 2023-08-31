@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <unordered_map>
 
 using namespace DirectX;
 
@@ -18,6 +19,13 @@ namespace Math {
 		inline bool operator>= (Int2 v) const { return (x >= v.x && y >= v.y); }
 		inline bool operator!= (Int2 v) const { return (x != v.x || y != v.y); }
 		inline bool operator== (Int2 v) const { return (x == v.x && y == v.y); }
+	};
+
+	struct HashInt2 {
+	public:
+		size_t operator()(const Math::Int2& v) const {
+			return std::hash<int32_t>()(v.x) ^ std::hash<int32_t>()(v.y);
+		}
 	};
 
 	class Int3 : public XMINT3 {

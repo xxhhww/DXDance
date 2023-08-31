@@ -3,13 +3,13 @@
 
 namespace Renderer {
 
-    RvtPageTable::RvtPageTable(uint32_t tableSize) 
+    RvtPageTable::RvtPageTable(int32_t tableSize) 
     : mTableSize(tableSize)
-    , mMaxMipLevel((int)std::log2(tableSize)) {
+    , mMaxMipLevel((int32_t)std::log2(tableSize)) {
 
-        mPageLevelTables.resize(mMaxMipLevel + 1u);
-        for (uint32_t i = 0; i <= mMaxMipLevel; i++) {
-            mPageLevelTables[i] = std::move(RvtPageLevelTable{ i, tableSize });
+        for (int32_t i = 0; i <= mMaxMipLevel; i++) {
+            mPageLevelTables.emplace_back(i, tableSize);
+            mCellCount += mPageLevelTables[i].cellCount;
         }
     }
 

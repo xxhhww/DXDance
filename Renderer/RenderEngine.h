@@ -172,6 +172,14 @@ namespace Renderer {
 		Tool::Event<CommandBuffer&, RenderContext&> mEditorRenderPass;
 
 		// ==========================...For Output BackBuffer Pass...==========================
+		struct OutputBackBufferPassData {
+		public:
+			uint32_t finalOutputMapIndex;
+			float pad1;
+			float pad2;
+			float pad3;
+		};
+		OutputBackBufferPassData mOutputBackBufferPassData;
 		std::unique_ptr<Renderer::Mesh> mOutputQuadMesh;
 
 		// ==========================...Offline Task Pass...==========================

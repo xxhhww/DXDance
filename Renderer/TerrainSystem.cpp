@@ -23,7 +23,8 @@ namespace Renderer {
 		D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;
 	};
 
-	TerrainSystem::TerrainSystem() {
+	TerrainSystem::TerrainSystem() 
+	: mQueuedReadbacks(3) {
 	}
 
 	TerrainSystem::~TerrainSystem() {
@@ -36,8 +37,8 @@ namespace Renderer {
 	void TerrainSystem::Initialize(RenderEngine* renderEngine) {
 		mRenderEngine = renderEngine;
 
-		mRvtUpdater = new RvtUpdater(this);
-		mRvtTiledTexture = new RvtTiledTexture(this);
+		// mRvtUpdater = new RvtUpdater(this);
+		// mRvtTiledTexture = new RvtTiledTexture(this);
 
 		auto* device = renderEngine->mDevice.get();
 		auto* renderGraph = renderEngine->mRenderGraph.get();
@@ -52,6 +53,10 @@ namespace Renderer {
 
 		auto& finalOutputDesc =
 			renderGraph->GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
+		{
+			// mQueuedReadbacks.resize(frameTracker->GetMaxSize());
+		}
 
 		{
 			// 创建TerrainFeedback
@@ -709,7 +714,7 @@ namespace Renderer {
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 				uint8_t currentFrameIndex = frameTracker->GetCurrFrameIndex();
 				BufferWrap& resolvedReadback = mTerrainReadbackBuffers[currentFrameIndex];
-				auto srcDesc = mTerrainFeedbackMap->GetResourceFormat().D3DResourceDesc();
+				auto& srcDesc = mTerrainFeedbackMap->GetResourceFormat().D3DResourceDesc();
 				uint32_t rowPitch = (srcDesc.Width * GHL::GetFormatStride(srcDesc.Format) + 0x0ff) & ~0x0ff;
 				D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ 0,
 					{ srcDesc.Format, (UINT)srcDesc.Width, srcDesc.Height, srcDesc.DepthOrArraySize, rowPitch } };
@@ -762,7 +767,7 @@ namespace Renderer {
 
 	void TerrainSystem::FrameCompletedCallback(uint8_t frameIndex) {
 		// 渲染帧完成之后，对Feedback进行回读操作
-		mRvtUpdater->SetFrameCompletedEvent();
+		// mRvtUpdater->SetFrameCompletedEvent();
 		mQueuedReadbacks.at(frameIndex).isFresh = true;
 	}
 }

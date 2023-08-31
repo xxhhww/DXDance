@@ -364,8 +364,7 @@ namespace Renderer {
 		mPipelineResourceStorage->rootConstantsPerFrameAddress = rootDataAllocation.gpuAddress;
 
 		// RootGPULightDataPerFrame
-		size_t lightDataByteSize = 
-			sizeof(GPULight) * mPipelineResourceStorage->rootLightDataPerFrame.size();
+		size_t lightDataByteSize = sizeof(GPULight) * mPipelineResourceStorage->rootLightDataPerFrame.size();
 		rootDataAllocation = mSharedMemAllocator->Allocate(lightDataByteSize);
 		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootLightDataPerFrame.data(), lightDataByteSize);
 		mPipelineResourceStorage->rootLightDataPerFrameAddress = rootDataAllocation.gpuAddress;
@@ -404,12 +403,16 @@ namespace Renderer {
 
 		if (mWindowHandle != nullptr) {
 			{
-				uint64_t srvIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
 				auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
 				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 				commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 				CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+
 				commandBuffer.PIXBeginEvent("OutputBackBufferPass");
+
+				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				auto passDataAlloc = mSharedMemAllocator->Allocate(sizeof(OutputBackBufferPassData));
+				memcpy(passDataAlloc.cpuAddress, &mOutputBackBufferPassData, sizeof(OutputBackBufferPassData));
 
 				auto  currentBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 				auto* currentBackBuffer = mBackBuffers.at(currentBackBufferIndex).get();
@@ -423,6 +426,7 @@ namespace Renderer {
 					static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
+				commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandBuffer.SetVertexBuffer(0u, mOutputQuadMesh->GetVertexBuffer());
 				commandBuffer.DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
