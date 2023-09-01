@@ -27,6 +27,7 @@ namespace Renderer {
 	class RenderEngine;
 
 	class RvtUpdater {
+		friend class TerrainSystem;
 	public:
 		struct UpdateTiledTexturePassData {
 		public:
@@ -50,6 +51,25 @@ namespace Renderer {
 		*/
 		void SetFrameCompletedEvent();
 
+		inline const auto& GetTableSize()     const { return mTableSize; }
+		inline const auto& GetRvtRadius()     const { return mRvtRadius; }
+		inline const auto& GetCellSize()      const { return mCellSize; }
+		inline const auto& GetChangeViewDis() const { return mChangeViewDis; }
+		inline const auto& GetMaxMipLevel()   const { return mMaxMipLevel; }
+
+		inline const auto GetFixedPos(const Math::Vector3& pos) const {
+			return Math::Int2{
+				(int)std::floor(pos.x / mCellSize + 0.5f) * (int)mCellSize,
+				(int)std::floor(pos.z / mCellSize + 0.5f) * (int)mCellSize
+			};
+		}
+		inline const auto GetFixedCenter(const Math::Int2& pos) const {
+			return Math::Int2{
+				(int)std::floor(pos.x / mChangeViewDis + 0.5f) * (int)mChangeViewDis,
+				(int)std::floor(pos.y / mChangeViewDis + 0.5f) * (int)mChangeViewDis
+			};
+		}
+
 	private:
 
 		/*
@@ -60,7 +80,7 @@ namespace Renderer {
 		/*
 		* 处理Feedback的Readback
 		*/
-		void ProcessReadback();
+		void ProcessReadback(uint64_t completedFenceValue);
 
 		/*
 		* 执行渲染操作
@@ -70,7 +90,7 @@ namespace Renderer {
 		/*
 		* 更新LookUp贴图
 		*/
-		void UpdateLookUpMapPass(CommandBuffer& commandBuffer);
+		void UpdateRvtLookUpMapPass();
 
 	private:
 		void ActivateCell(int x, int y, int mipLevel);
@@ -82,12 +102,16 @@ namespace Renderer {
 		TerrainSystem* mTerrainSystem{ nullptr };
 		ShaderManger*  mMainShaderManger{ nullptr };
 		ResourceStateTracker* mMainResourceStateTracker{ nullptr };
+		PoolDescriptorAllocator* mMainDescriptorAllocator{ nullptr };
 
 		RvtTiledTexture* mRvtTiledTexture{ nullptr };
 
-		uint32_t mMaxRvtFrameCount{ 3u };
+		uint32_t mMaxRvtFrameCount;
 		uint32_t mTableSize;
 		uint32_t mMaxMipLevel;
+		float mRvtRadius;		// 虚拟纹理的半径
+		float mCellSize;		// Cell的大小
+		float mChangeViewDis;	// 
 
 		bool mThreadRunning{ true };
 		HANDLE mFrameCompletedEvent{ nullptr };

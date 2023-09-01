@@ -155,7 +155,7 @@ namespace Renderer {
 
 		// 初始化业务系统
 		{
-			mTerrainSystem = std::make_unique<TerrainSystem>();
+			mTerrainSystem = std::make_unique<TerrainSystem>(this);
 		}
 
 		// 初始化RenderPass

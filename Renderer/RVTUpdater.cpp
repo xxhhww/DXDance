@@ -31,15 +31,16 @@ namespace Renderer {
 	, mTerrainSystem(terrainSystem) 
 	, mMainShaderManger(mRenderEngine->mShaderManger.get())
 	, mMainResourceStateTracker(mRenderEngine->mResourceStateTracker.get())
+	, mMainDescriptorAllocator(mRenderEngine->mDescriptorAllocator.get())
 	, mRvtTiledTexture(terrainSystem->mRvtTiledTexture)
-	, mTableSize(terrainSystem->tableSize)
-	, mMaxMipLevel((int)std::log2(mTableSize)) {
+	, mMaxRvtFrameCount(3u)
+	, mTableSize(256u)
+	, mMaxMipLevel((int)std::log2(mTableSize))
+	, mRvtRadius(1024.0f)
+	, mCellSize(2 * mRvtRadius / mTableSize)
+	, mChangeViewDis((1.0f / 8.0f) * 2 * mRvtRadius) {
 		mFrameCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		ASSERT_FORMAT(mFrameCompletedEvent != nullptr, "Failed to Create Frame Completed Event Handle");
-
-		mProcessThread = std::thread([this]() {
-			ProcessThread();
-		});
 
 		mPageTable = new RvtPageTable(mTableSize);
 
@@ -56,6 +57,7 @@ namespace Renderer {
 		// 创建图形API对象
 		{
 			mRvtGrahpicsQueue = std::make_unique<GHL::GraphicsQueue>(device);
+			mRvtGrahpicsQueue->SetDebugName("RvtUpdater");
 			mRvtFrameFence = std::make_unique<GHL::Fence>(device);
 
 			mRvtFrameTracker = std::make_unique<Renderer::RingFrameTracker>(mMaxRvtFrameCount);
@@ -85,7 +87,7 @@ namespace Renderer {
 			_RvtDrawLookUpMapRequestBufferDesc.stride = sizeof(DrawRvtLookUpRequest);
 			_RvtDrawLookUpMapRequestBufferDesc.size = _RvtDrawLookUpMapRequestBufferDesc.stride * mPageTable->GetCellCount();
 			_RvtDrawLookUpMapRequestBufferDesc.usage = GHL::EResourceUsage::Default;
-			_RvtDrawLookUpMapRequestBufferDesc.initialState = GHL::EResourceState::CopyDestination;
+			_RvtDrawLookUpMapRequestBufferDesc.initialState = GHL::EResourceState::Common;
 			_RvtDrawLookUpMapRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
 
 			mRvtDrawLookUpMapRequestBuffer = resourceAllocator->Allocate(device, _RvtDrawLookUpMapRequestBufferDesc, descriptorAllocator, nullptr);
@@ -96,17 +98,13 @@ namespace Renderer {
 
 		// 创建Shader
 		{
-			mMainShaderManger->CreateGraphicsShader("",
+			mMainShaderManger->CreateGraphicsShader("UpdateRvtLookUpMap",
 				[](GraphicsStateProxy& proxy) {
-					proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_ForwardPlus.hlsl";
+					proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/UpdateRvtLookUpMap.hlsl";
 					proxy.psFilepath = proxy.vsFilepath;
-					proxy.depthStencilDesc.DepthEnable = true;
-					proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
-						DXGI_FORMAT_R16G16B16A16_FLOAT,
-						DXGI_FORMAT_R16G16B16A16_FLOAT,
-						DXGI_FORMAT_R16G16_FLOAT,
-						DXGI_FORMAT_R8G8B8A8_UNORM	// TerrainFeedback
+						DXGI_FORMAT_R8G8B8A8_UNORM	// RvtLookUpMap
 					};
 				});
 		}
@@ -150,6 +148,11 @@ namespace Renderer {
 
 			quadMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
 		}
+
+		// 启动处理线程
+		mProcessThread = std::thread([this]() {
+			this->ProcessThread();
+		});
 	}
 
 	RvtUpdater::~RvtUpdater() {
@@ -170,7 +173,6 @@ namespace Renderer {
 		bool moreTask = false;
 
 		while (mThreadRunning) {
-
 			uint64_t currentMainFrameFenceValue = mainFrameFence->CompletedValue();
 
 			// Camera View Rect Changed
@@ -179,12 +181,12 @@ namespace Renderer {
 			}
 
 			// 新的主渲染帧完成
-			if (currentMainFrameFenceValue != currentMainFrameFenceValue) {
-				currentMainFrameFenceValue = currentMainFrameFenceValue;
+			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
+				previousMainFrameFenceValue = currentMainFrameFenceValue;
 
 				// 对Feedback的Readback进行处理
-				ProcessReadback();
-
+				ProcessReadback(currentMainFrameFenceValue);
+				
 				// 压入新的Rvt帧
 				mRvtFrameFence->IncrementExpectedValue();
 				mRvtFrameTracker->PushCurrentFrame(mRvtFrameFence->ExpectedValue());
@@ -193,17 +195,13 @@ namespace Renderer {
 				// Update TiledTexture
 				{
 					auto commandList = mRvtPoolCommandListAllocator->AllocateGraphicsCommandList();
-					CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr};
+					CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourcUpdateLookUpMapPasseStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr};
 					UpdateTiledTexturePass(commandBuffer);
 				}
 				*/
 
 				// Update LookUpMap
-				{
-					auto commandList = mRvtPoolCommandListAllocator->AllocateGraphicsCommandList();
-					CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
-					UpdateLookUpMapPass(commandBuffer);
-				}
+				UpdateRvtLookUpMapPass();
 
 				mRvtGrahpicsQueue->SignalFence(*mRvtFrameFence.get());
 			}
@@ -227,7 +225,7 @@ namespace Renderer {
 		}
 	}
 
-	void RvtUpdater::ProcessReadback() {
+	void RvtUpdater::ProcessReadback(uint64_t completedFenceValue) {
 
 		auto& queuedReadbacks = mTerrainSystem->mQueuedReadbacks;
 		auto& terrainReadbackBuffers = mTerrainSystem->mTerrainReadbackBuffers;
@@ -239,7 +237,8 @@ namespace Renderer {
 		for (size_t i = 0; i < queuedReadbacks.size(); i++) {
 			if (queuedReadbacks.at(i).isFresh) {
 				uint64_t feedbackFenceValue = queuedReadbacks.at(i).renderFrameFenceValue;
-				if ((!feedbackFound) || (latestFeedbackFenceValue <= feedbackFenceValue)) {
+				if ((completedFenceValue >= feedbackFenceValue) &&
+					((!feedbackFound) || (latestFeedbackFenceValue <= feedbackFenceValue))) {
 					feedbackFound = true;
 					targetFeedbackIndex = i;
 					latestFeedbackFenceValue = feedbackFenceValue;
@@ -262,31 +261,37 @@ namespace Renderer {
 
 			uint32_t height = textureDesc.height;
 			uint32_t width = textureDesc.width;
-			uint32_t rowByteSize = width * GHL::GetFormatStride(textureDesc.format);
+			uint32_t rowByteSize = (width * GHL::GetFormatStride(textureDesc.format) + 0x0ff) & ~0x0ff;
 
 			for (uint32_t y = 0u; y < height; y++) {
-				for (uint32_t x = 0u; x < rowByteSize; x++) {
+				for (uint32_t x = 0u; x < rowByteSize;) {
 					uint8_t r = pResolvedData[x++];
 					uint8_t g = pResolvedData[x++];
 					uint8_t b = pResolvedData[x++];
 					uint8_t a = pResolvedData[x++];
 
+					if (a == 0u) {
+						continue;
+					}
+					
 					// 激活页表
 					ActivateCell(r, g, b);
 				}
 
 				// 转移到纹理的下一行，纹理的每一行除了最后一行都需要256字节对齐
-				pResolvedData += (rowByteSize + 0x0ff) & ~0x0ff;
+				pResolvedData += rowByteSize;
 			}
 			terrainReadbackBuffer->UnMap();
 		}
+
+		return;
 	}
 
 	void RvtUpdater::UpdateTiledTexturePass(CommandBuffer& commandBuffer) {
 
 	}
 
-	void RvtUpdater::UpdateLookUpMapPass(CommandBuffer& commandBuffer) {
+	void RvtUpdater::UpdateRvtLookUpMapPass() {
 		// 将页表数据渲染至页表贴图
 		uint64_t currentFrameNumber = mRvtFrameTracker->GetCurrFrameNumber();
 		std::vector<DrawRvtLookUpRequest> drawRequests;
@@ -347,7 +352,11 @@ namespace Renderer {
 
 		// 录制渲染命令
 		{
-			commandBuffer.PIXBeginEvent("UpdateTiledTexturePass");
+			auto commandList = mRvtPoolCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = mMainDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("UpdateRvtLookUpMapPass");
 
 			auto& rvtLookUpMapDesc = mRvtLookUpMap->GetResourceFormat().GetTextureDesc();
 			uint16_t width = static_cast<uint16_t>(rvtLookUpMapDesc.width);
@@ -383,8 +392,8 @@ namespace Renderer {
 
 			commandBuffer.PIXEndEvent();
 
-			commandBuffer.D3DCommandList()->Close();
-			mRvtGrahpicsQueue->ExecuteCommandList(commandBuffer.D3DCommandList());
+			commandList->Close();
+			mRvtGrahpicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 		}
 	}
 

@@ -39,9 +39,9 @@ namespace Renderer {
 		RenderEngine* mRenderEngine{ nullptr };
 		TerrainSystem* mTerrainSystem{ nullptr };
 
-		uint32_t mTileCount;	// Tile在UV方向的个数
-		uint32_t mTileSize;		// 一个Tile的大小
-		uint32_t mPaddingSize;	// 填充尺寸,每个Tile上下左右四个方向都要进行填充，用来支持硬件纹理过滤
+		uint32_t mTileCount  { 15u };	// Tile在UV方向的个数
+		uint32_t mTileSize   { 256u };	// 一个Tile的大小
+		uint32_t mPaddingSize{ 4u };	// 填充尺寸,每个Tile上下左右四个方向都要进行填充，用来支持硬件纹理过滤
 
 		uint32_t mTiledTextureWidth;
 		uint32_t mTiledTextureHeight;

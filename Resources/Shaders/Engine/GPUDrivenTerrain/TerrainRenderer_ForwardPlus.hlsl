@@ -6,10 +6,11 @@
 
 struct PassData {
 	// x: page size
-	// y: vertual texture size
+	// y: virtual texture size
 	// z: max mipmap level
 	// w: mipmap level bias
 	float4 vtFeedbackParams;
+
 	float4 vtRealRect;
 
 	float2 worldSize;
@@ -70,7 +71,7 @@ struct p2o {
 	float4 shadingResult	: SV_TARGET0;
 	float4 normalRoughness	: SV_TARGET1;
 	float2 screenVelocity	: SV_TARGET2;
-	float4 terrainFeedback	: SV_TARGET3;
+	uint4  terrainFeedback	: SV_TARGET3;
 };
 
 float3 SampleTerrainNormalMap(float2 uv) {
@@ -327,18 +328,21 @@ p2o PSMain(v2p input) {
 		shadowMap, shadowSampler, lighting.shadowMapTexelSize, sssTexture, clampSampler*/);
 
 	// Calcute Feedback
-	float2 page = floor(input.uvVT * PassDataCB.vtFeedbackParams.x);
-
+	uint2 page = floor(input.uvVT * PassDataCB.vtFeedbackParams.x);
+	
 	float2 uv = input.uvVT * PassDataCB.vtFeedbackParams.y;
 	float2 dx = ddx(uv);
 	float2 dy = ddy(uv);
 	int mip = clamp(int(0.5 * log2(max(dot(dx, dx), dot(dy, dy))) + 0.5 + PassDataCB.vtFeedbackParams.w), 0, PassDataCB.vtFeedbackParams.z);
 
+	// ÊÇ·ñÔ½½ç
+	uint overBound = (input.uvVT.x > 1.0f || input.uvVT.y > 1.0f) ? 0u : 1u;
+
 	p2o output;
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
 	output.normalRoughness = float4(wsNormal, roughness);
 	output.screenVelocity  = float2(velocity.xy);
-	output.terrainFeedback = float4(page / 255.0f, mip / 255.0f, 1.0f);
+	output.terrainFeedback = uint4(page, mip, overBound);
 
 	return output;
 }

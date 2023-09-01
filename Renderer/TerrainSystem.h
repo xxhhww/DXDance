@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/ResourceAllocator.h"
+#include "Math/Int.h"
 
 namespace Renderer {
 
@@ -51,8 +52,13 @@ namespace Renderer {
 		};
 
 		struct TerrainRendererPassData {
-			Math::Vector4 vtFeedbackParams;
-			Math::Vector4 vtRealRect;
+			// x: page size
+			// y: virtual texture size
+			// z: max mipmap level
+			// w: mipmap level bias
+			Math::Vector4 vtFeedbackParams{};
+
+			Math::Vector4 vtRealRect{};
 
 			Math::Vector2 worldMeterSize{ 5120u, 5120u };
 			uint32_t heightScale{ 4096u };
@@ -104,7 +110,6 @@ namespace Renderer {
 		float worldHeightScale{ 4096u };
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
-		uint32_t tableSize{ 256u };
 
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;
@@ -144,7 +149,7 @@ namespace Renderer {
 		TextureWrap snowHeightMap;
 
 	public:
-		TerrainSystem();
+		TerrainSystem(RenderEngine* renderEngine);
 		~TerrainSystem();
 
 		/*
@@ -180,6 +185,10 @@ namespace Renderer {
 		*/
 		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
 		std::vector<BufferWrap> mTerrainReadbackBuffers;
+
+
+		// Rvt参数 
+		Math::Vector4 mRealTotalRect;	// 每帧更新(随渲染摄像机)
 
 		RvtUpdater* mRvtUpdater{ nullptr };
 		RvtTiledTexture* mRvtTiledTexture{ nullptr };

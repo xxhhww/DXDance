@@ -5,6 +5,10 @@
 #include "Renderer/FixedTextureHelper.h"
 #include "Renderer/RenderGraphBuilder.h"
 
+#include "ECS/Entity.h"
+#include "ECS/CTransform.h"
+#include "ECS/CCamera.h"
+
 namespace Renderer {
 
 	struct IndirectDispatch {
@@ -23,8 +27,9 @@ namespace Renderer {
 		D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;
 	};
 
-	TerrainSystem::TerrainSystem() 
-	: mQueuedReadbacks(3) {
+	TerrainSystem::TerrainSystem(RenderEngine* renderEngine)
+	: mRenderEngine(renderEngine)
+	, mQueuedReadbacks(mRenderEngine->mFrameTracker->GetMaxSize()) {
 	}
 
 	TerrainSystem::~TerrainSystem() {
@@ -37,8 +42,10 @@ namespace Renderer {
 	void TerrainSystem::Initialize(RenderEngine* renderEngine) {
 		mRenderEngine = renderEngine;
 
-		// mRvtUpdater = new RvtUpdater(this);
-		// mRvtTiledTexture = new RvtTiledTexture(this);
+		{
+			mRvtUpdater = new RvtUpdater(this);
+			mRvtTiledTexture = new RvtTiledTexture(this);
+		}
 
 		auto* device = renderEngine->mDevice.get();
 		auto* renderGraph = renderEngine->mRenderGraph.get();
@@ -55,15 +62,11 @@ namespace Renderer {
 			renderGraph->GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
 		{
-			// mQueuedReadbacks.resize(frameTracker->GetMaxSize());
-		}
-
-		{
 			// 创建TerrainFeedback
 			TextureDesc _TerrainFeedbackDesc{};
 			_TerrainFeedbackDesc.width = finalOutputDesc.width;
 			_TerrainFeedbackDesc.height = finalOutputDesc.height;
-			_TerrainFeedbackDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			_TerrainFeedbackDesc.format = DXGI_FORMAT_R8G8B8A8_UINT;
 			_TerrainFeedbackDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
 			_TerrainFeedbackDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 			mTerrainFeedbackMap = resourceAllocator->Allocate(
@@ -599,7 +602,7 @@ namespace Renderer {
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16_FLOAT,
-							DXGI_FORMAT_R8G8B8A8_UNORM	// TerrainFeedback
+							DXGI_FORMAT_R8G8B8A8_UINT	// TerrainFeedback
 						};
 					});
 
@@ -629,6 +632,18 @@ namespace Renderer {
 				auto* indirectArgs = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
+
+				// 更新Rvt参数
+				float rvtRadius      = mRvtUpdater->GetRvtRadius();
+				uint32_t tableSize   = mRvtUpdater->GetTableSize();
+				uint32_t maxMipLevel = mRvtUpdater->GetMaxMipLevel();
+				uint32_t tileSize    = mRvtTiledTexture->GetTileSize();
+				Math::Int2 fixedCenter = mRvtUpdater->GetFixedCenter(mRvtUpdater->GetFixedPos(
+					renderContext.resourceStorage->rootConstantsPerFrame.currentRenderCamera.position));
+				mRealTotalRect = Math::Vector4{ fixedCenter.x - rvtRadius, fixedCenter.y - rvtRadius, 2 * rvtRadius, 2 * rvtRadius };
+				
+				terrainRendererPassData.vtFeedbackParams = Math::Vector4{ (float)tableSize, (float)(tableSize * tileSize), (float)maxMipLevel - 1.0f, 0.0f };
+				terrainRendererPassData.vtRealRect = mRealTotalRect;
 
 				terrainRendererPassData.worldMeterSize = worldMeterSize;
 				terrainRendererPassData.heightScale = worldHeightScale;
@@ -725,6 +740,7 @@ namespace Renderer {
 				// TODO 判断当前帧的QueuedReadback是否仍为Fresh，如果是，则说明ProcessFeedback线程还未处理完该帧的Feedback，需要等待其不再是Fresh的状态
 				const auto& currFrameAttribute = frameTracker->GetCurrFrameAttribute();
 				mQueuedReadbacks.at(currFrameAttribute.frameIndex).renderFrameFenceValue = currFrameAttribute.fenceValue;
+				mQueuedReadbacks.at(currFrameAttribute.frameIndex).isFresh = true;
 
 				commandBuffer.D3DCommandList()->CopyTextureRegion(
 					&dstLocation,
@@ -733,6 +749,12 @@ namespace Renderer {
 					nullptr);
 			}
 			);
+	}
+
+	void TerrainSystem::FrameCompletedCallback(uint8_t frameIndex) {
+		// 渲染帧完成之后，对Feedback进行回读操作
+		// mRvtUpdater->SetFrameCompletedEvent();
+		// mQueuedReadbacks.at(frameIndex).isFresh = true;
 	}
 
 	void TerrainSystem::UpdateNodeAndLodDescriptorArray() {
@@ -765,9 +787,4 @@ namespace Renderer {
 		isInitialized = false;
 	}
 
-	void TerrainSystem::FrameCompletedCallback(uint8_t frameIndex) {
-		// 渲染帧完成之后，对Feedback进行回读操作
-		// mRvtUpdater->SetFrameCompletedEvent();
-		mQueuedReadbacks.at(frameIndex).isFresh = true;
-	}
 }

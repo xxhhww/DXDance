@@ -25,11 +25,11 @@ struct a2v {
 struct v2p {
 	float4 currCsPos : SV_POSITION;
 	float4 indexInfo : IndexInfo;	// 存储的索引信息
-}
+};
 
 struct p2o {
 	float4 rvtLookUpMap : SV_TARGET0;
-}
+};
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 	StructuredBuffer<DrawRvtLookUpMapRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.rvtDrawLookUpMapRequestBufferIndex];
@@ -42,6 +42,8 @@ v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 	v2p output;
 	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
 	output.indexInfo = float4(drawRequest.tilePos / 255.0f, drawRequest.mipLevel / 255.0f, 0.0f);
+
+	return output;
 }
 
 p2o PSMain(v2p input) {
