@@ -4,7 +4,7 @@
 #include "RvtHelper.hlsl"
 
 struct PassData{
-	uint  rvtDrawLookUpMapRequestBufferIndex;
+	uint  drawRequestBufferIndex;
 	float pad1;
 	float pad2;
 	float pad3;
@@ -32,7 +32,7 @@ struct p2o {
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
-	StructuredBuffer<DrawRvtLookUpMapRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.rvtDrawLookUpMapRequestBufferIndex];
+	StructuredBuffer<DrawRvtLookUpMapRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
 
 	DrawRvtLookUpMapRequest drawRequest = drawRequestBuffer[instanceID];
 

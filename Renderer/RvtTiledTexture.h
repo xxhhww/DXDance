@@ -14,11 +14,16 @@ namespace Renderer {
 		RvtTiledTexture(TerrainSystem* terrainSystem);
 		~RvtTiledTexture();
 
-		inline const auto& GetTileCount()           const { return mTileCount; }
-		inline const auto& GetTileSize()            const { return mTileSize; }
-		inline const auto& GetPaddingSize()         const { return mPaddingSize; }
+		inline const auto& GetTileCountPerAxis() const { return mTileCountPerAxis; }
+		inline const auto& GetTileSize()         const { return mTileSize; }
+		inline const auto& GetPaddingSize()      const { return mPaddingSize; }
+		inline const auto& GetAllTileCount()     const { return mAllTileCount; }
+		inline const auto& GetTiledMapSize()     const { return Math::Int2((int32_t)mTiledTextureWidth, (int32_t)mTiledTextureHeight); }
 
 		inline const auto GetTileSizeWithPadding() const { return mTileSize + 2u * mPaddingSize; }
+
+		inline auto& GetTiledMaps() { return mTiledMaps; }
+		inline const auto& GetTiledMaps() const { return mTiledMaps; }
 
 		/*
 		* 获取可以被淘汰的Tile的TilePos
@@ -32,16 +37,18 @@ namespace Renderer {
 
 	private:
 
-		inline const Math::Int2 IdToPos(int id)                    const { return Math::Int2(id % mTileCount, id / mTileCount); }
-		inline const int32_t    PosToId(const Math::Int2& tilePos) const { return (tilePos.y * mTileCount + tilePos.x); }
+		inline const Math::Int2 IdToPos(int id)                    const { return Math::Int2(id % mTileCountPerAxis, id / mTileCountPerAxis); }
+		inline const int32_t    PosToId(const Math::Int2& tilePos) const { return (tilePos.y * mTileCountPerAxis + tilePos.x); }
 	
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
 		TerrainSystem* mTerrainSystem{ nullptr };
 
-		uint32_t mTileCount  { 15u };	// Tile在UV方向的个数
-		uint32_t mTileSize   { 256u };	// 一个Tile的大小
-		uint32_t mPaddingSize{ 4u };	// 填充尺寸,每个Tile上下左右四个方向都要进行填充，用来支持硬件纹理过滤
+		uint32_t mTileCountPerAxis  { 15u };	// Tile在UV方向的个数
+		uint32_t mTileSize          { 256u };	// 一个Tile的大小
+		uint32_t mPaddingSize       { 4u };	// 填充尺寸,每个Tile上下左右四个方向都要进行填充，用来支持硬件纹理过滤
+
+		uint32_t mAllTileCount;
 
 		uint32_t mTiledTextureWidth;
 		uint32_t mTiledTextureHeight;

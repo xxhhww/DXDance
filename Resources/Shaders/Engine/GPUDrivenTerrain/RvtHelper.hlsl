@@ -1,8 +1,10 @@
 #ifndef _RvtHelper__
 #define _RvtHelper__
 
-struct DrawTiledTextureRequest {
-	
+struct DrawRvtTiledMapRequest {
+	float4   tileRectInWorldSpace;
+	float4   tileRectInImageSpace;
+	float4x4 mvpMatrix;
 };
 
 struct DrawRvtLookUpMapRequest {

@@ -60,7 +60,7 @@ namespace Renderer {
 
 			Math::Vector4 vtRealRect{};
 
-			Math::Vector2 worldMeterSize{ 5120u, 5120u };
+			Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
 			uint32_t heightScale{ 4096u };
 			uint32_t culledPatchListIndex;
 
@@ -106,7 +106,7 @@ namespace Renderer {
 
 	public:
 		bool isInitialized{ false };
-		Math::Vector2 worldMeterSize{ 5120u, 5120u };
+		Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
 		float worldHeightScale{ 4096u };
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
@@ -184,11 +184,7 @@ namespace Renderer {
 		* 而在ProcessFeedback线程中，也会对isFresh变量进行修改
 		*/
 		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
-		std::vector<BufferWrap> mTerrainReadbackBuffers;
-
-
-		// Rvt参数 
-		Math::Vector4 mRealTotalRect;	// 每帧更新(随渲染摄像机)
+		std::vector<BufferWrap> mTerrainReadbackBuffers; 
 
 		RvtUpdater* mRvtUpdater{ nullptr };
 		RvtTiledTexture* mRvtTiledTexture{ nullptr };

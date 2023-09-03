@@ -11,7 +11,19 @@
 
 namespace Renderer {
 
-	struct DrawRvtLookUpRequest {
+	struct GPUDrawRvtTiledMapRequest {
+	public:
+		Math::Vector4 tileRectInWorldSpace;
+		Math::Vector4 tileRectInImageSpace;
+		Math::Matrix4 mvpMatrix;
+
+		inline GPUDrawRvtTiledMapRequest(const Math::Vector4& wsTileRect, const Math::Vector4& isTileRect, const Math::Matrix4& mvp)
+		: tileRectInWorldSpace(wsTileRect)
+		, tileRectInImageSpace(isTileRect)
+		, mvpMatrix(mvp) {}
+	};
+
+	struct GPUDrawRvtLookUpMapRequest {
 	public:
 		Math::Vector4 rect;			// Draw的目标区域(x,y为x,y --- z,w为width,height)
 		int32_t mipLevel;
@@ -20,7 +32,7 @@ namespace Renderer {
 		Math::Matrix4 mvpMatrix;	// 转换到图片空间中的矩阵
 
 	public:
-		inline DrawRvtLookUpRequest(const Math::Vector4& rect, int32_t mipLevel, const Math::Vector2& tilePos)
+		inline GPUDrawRvtLookUpMapRequest(const Math::Vector4& rect, int32_t mipLevel, const Math::Vector2& tilePos)
 		: rect(rect)
 		, mipLevel(mipLevel)
 		, tilePos(tilePos) {}
@@ -38,11 +50,13 @@ namespace Renderer {
 	, mMaxMipLevel((int)std::log2(mTableSize))
 	, mRvtRadius(1024.0f)
 	, mCellSize(2 * mRvtRadius / mTableSize)
-	, mChangeViewDis((1.0f / 8.0f) * 2 * mRvtRadius) {
+	, mChangeViewDis((1.0f / 8.0f) * 2 * mRvtRadius)
+	, mLimitPerFrame(2u) {
 		mFrameCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		ASSERT_FORMAT(mFrameCompletedEvent != nullptr, "Failed to Create Frame Completed Event Handle");
 
 		mPageTable = new RvtPageTable(mTableSize);
+		mPendingDrawTileRequests.resize(mMaxRvtFrameCount);
 
 		// 创建相关纹理
 		auto* device = mRenderEngine->mDevice.get();
@@ -82,9 +96,21 @@ namespace Renderer {
 			renderGraph->ImportResource("RvtLookUpMap", mRvtLookUpMap);	// 主渲染线程中的Pass需要访问该资源
 			resourceStateTracker->StartTracking(mRvtLookUpMap);
 
+			// RvtDrawTiledMapRequestsBuffer
+			BufferDesc _RvtDrawTiledMapRequestsBufferDesc{};
+			_RvtDrawTiledMapRequestsBufferDesc.stride = sizeof(GPUDrawRvtTiledMapRequest);
+			_RvtDrawTiledMapRequestsBufferDesc.size = _RvtDrawTiledMapRequestsBufferDesc.stride * mRvtTiledTexture->GetAllTileCount();
+			_RvtDrawTiledMapRequestsBufferDesc.usage = GHL::EResourceUsage::Default;
+			_RvtDrawTiledMapRequestsBufferDesc.initialState = GHL::EResourceState::Common;
+			_RvtDrawTiledMapRequestsBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
+			mRvtDrawTiledMapRequestsBuffer = resourceAllocator->Allocate(device, _RvtDrawTiledMapRequestsBufferDesc, descriptorAllocator, nullptr);
+			mRvtDrawTiledMapRequestsBuffer->SetDebugName("RvtDrawTiledMapRequestsBuffer");
+
+			mRvtResourceStateTracker->StartTracking(mRvtDrawTiledMapRequestsBuffer);
+
 			// RvtDrawLookUpMapRequestBuffer
 			BufferDesc _RvtDrawLookUpMapRequestBufferDesc{};
-			_RvtDrawLookUpMapRequestBufferDesc.stride = sizeof(DrawRvtLookUpRequest);
+			_RvtDrawLookUpMapRequestBufferDesc.stride = sizeof(GPUDrawRvtLookUpMapRequest);
 			_RvtDrawLookUpMapRequestBufferDesc.size = _RvtDrawLookUpMapRequestBufferDesc.stride * mPageTable->GetCellCount();
 			_RvtDrawLookUpMapRequestBufferDesc.usage = GHL::EResourceUsage::Default;
 			_RvtDrawLookUpMapRequestBufferDesc.initialState = GHL::EResourceState::Common;
@@ -104,7 +130,17 @@ namespace Renderer {
 					proxy.psFilepath = proxy.vsFilepath;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
-						DXGI_FORMAT_R8G8B8A8_UNORM	// RvtLookUpMap
+						DXGI_FORMAT_R8G8B8A8_UNORM		// RvtLookUpMap
+					};
+				});
+
+			mMainShaderManger->CreateGraphicsShader("UpdateRvtTiledMap",
+				[](GraphicsStateProxy& proxy) {
+					proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/UpdateRvtTiledMap.hlsl";
+					proxy.psFilepath = proxy.vsFilepath;
+					proxy.depthStencilDesc.DepthEnable = false;
+					proxy.renderTargetFormatArray = {
+						DXGI_FORMAT_R16G16B16A16_FLOAT	// TiledMap
 					};
 				});
 		}
@@ -175,6 +211,10 @@ namespace Renderer {
 		while (mThreadRunning) {
 			uint64_t currentMainFrameFenceValue = mainFrameFence->CompletedValue();
 
+			Math::Int2 fixedCenter = GetFixedCenter(GetFixedPos(
+				mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position));
+			mCurrRvtRect = Math::Vector4{ fixedCenter.x - mRvtRadius, fixedCenter.y - mRvtRadius, 2 * mRvtRadius, 2 * mRvtRadius };
+
 			// Camera View Rect Changed
 			if (1) {	// Check Camera Position
 				// TODO...
@@ -184,24 +224,18 @@ namespace Renderer {
 			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
 				previousMainFrameFenceValue = currentMainFrameFenceValue;
 
-				// 对Feedback的Readback进行处理
-				ProcessReadback(currentMainFrameFenceValue);
-				
 				// 压入新的Rvt帧
 				mRvtFrameFence->IncrementExpectedValue();
 				mRvtFrameTracker->PushCurrentFrame(mRvtFrameFence->ExpectedValue());
 
-				/*
-				// Update TiledTexture
-				{
-					auto commandList = mRvtPoolCommandListAllocator->AllocateGraphicsCommandList();
-					CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourcUpdateLookUpMapPasseStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr};
-					UpdateTiledTexturePass(commandBuffer);
-				}
-				*/
-
-				// Update LookUpMap
+				// 对Feedback的Readback进行处理
+				ProcessReadback(currentMainFrameFenceValue);
+				
+				// Update RvtLookUpMap
 				UpdateRvtLookUpMapPass();
+
+				// Update TiledTexture
+				UpdateTiledTexturePass();
 
 				mRvtGrahpicsQueue->SignalFence(*mRvtFrameFence.get());
 			}
@@ -287,14 +321,174 @@ namespace Renderer {
 		return;
 	}
 
-	void RvtUpdater::UpdateTiledTexturePass(CommandBuffer& commandBuffer) {
+	void RvtUpdater::UpdateTiledTexturePass() {
+		auto& drawTileRequests = mPendingDrawTileRequests.at(mRvtFrameTracker->GetCurrFrameIndex());
+
+		if (drawTileRequests.empty()) {
+			return;
+		}
+
+		// 按照mipLevel进行排序
+		std::sort(drawTileRequests.begin(), drawTileRequests.end(), 
+			[](const DrawTileRequest& requestA, const DrawTileRequest& requestB) {
+				return requestA.mipLevel < requestB.mipLevel;
+		});
+
+		// 每次只处理限制个数的DrawTileRequest
+		int32_t count = mLimitPerFrame;
+		std::vector<GPUDrawRvtTiledMapRequest> gpuDrawRequests;
+		while (count > 0 && drawTileRequests.size() > 0u) {
+			// 取出mip值最大的DrawTileRequest
+			const DrawTileRequest request = drawTileRequests.back();
+			drawTileRequests.pop_back();
+
+			const RvtPageTableNodeCell cell = mPageTable->GetCell(request.x, request.y, request.mipLevel);
+			if (cell.payload.cellState != CellState::InActive) {
+				continue;
+			}
+
+			// 从TiledMap中请求一个可用的tile
+			const Math::Int2 tilePos = mRvtTiledTexture->RequestTile();
+			mRvtTiledTexture->SetActive(tilePos);
+
+			// 计算tilePos对应的图像空间下的tileRect
+			const auto& tileSizeWithPadding = mRvtTiledTexture->GetTileSizeWithPadding();
+			const Math::Int4 tileRectInImageSpace = Math::Int4{
+				tilePos.x * tileSizeWithPadding,
+				tilePos.y * tileSizeWithPadding,
+				tileSizeWithPadding,
+				tileSizeWithPadding
+			};
+
+			// 网格规格化
+			int x = request.x;
+			int y = request.y;
+			int perSize = (int)std::pow(2, request.mipLevel);
+			x = x - x % perSize;
+			y = y - y % perSize;
+
+			uint32_t paddingEffect = mRvtTiledTexture->GetPaddingSize() * perSize * (mCurrRvtRect.z / mTableSize) / mRvtTiledTexture->GetTileSize();
+			Math::Vector4 tileRectInWorldSpace = Math::Vector4{
+				mCurrRvtRect.x + ((float)x / mTableSize) * mCurrRvtRect.z - paddingEffect,
+				mCurrRvtRect.y + ((float)x / mTableSize) * mCurrRvtRect.w - paddingEffect,
+				mCurrRvtRect.z * ((float)perSize / mTableSize) + 2.0f * paddingEffect,
+				mCurrRvtRect.w * ((float)perSize / mTableSize) + 2.0f * paddingEffect
+			};
+
+			// 地块矩形
+			const Math::Vector2 terrainMeterSize = mTerrainSystem->worldMeterSize;
+			Math::Vector4 terrainRectInWorldSpace = Math::Vector4{
+				- (terrainMeterSize.x / 2.0f),
+				- (terrainMeterSize.y / 2.0f),
+				terrainMeterSize.x,
+				terrainMeterSize.y
+			};
+
+			// 将tileRectInWorldSpace与terrainRectInWorldSpace相重叠
+			float tileRectInWorldSpaceOverlappedXMin = std::max(tileRectInWorldSpace.x, terrainRectInWorldSpace.x);
+			float tileRectInWorldSpaceOverlappedZMin = std::max(tileRectInWorldSpace.y, terrainRectInWorldSpace.y);
+			float tileRectInWorldSpaceOverlappedXMax = std::min(tileRectInWorldSpace.x + tileRectInWorldSpace.z, terrainRectInWorldSpace.x + terrainRectInWorldSpace.z);
+			float tileRectInWorldSpaceOverlappedZMax = std::min(tileRectInWorldSpace.y + tileRectInWorldSpace.w, terrainRectInWorldSpace.y + terrainRectInWorldSpace.w);
+			Math::Vector4 tileRectInWorldSpaceOverlapped = Math::Vector4{
+				tileRectInWorldSpaceOverlappedXMin,
+				tileRectInWorldSpaceOverlappedZMin,
+				tileRectInWorldSpaceOverlappedXMax - tileRectInWorldSpaceOverlappedXMin,
+				tileRectInWorldSpaceOverlappedZMax - tileRectInWorldSpaceOverlappedZMin
+			};
+
+			// 计算tileRect在WorldSpace与ImageSpace之间的缩放关系
+			float scaleFactorWidth  = tileRectInImageSpace.z / tileRectInWorldSpace.z;
+			float scaleFactorHeight = tileRectInImageSpace.w / tileRectInWorldSpace.w;
+
+			Math::Vector4 tileRectInImageSpaceOverlapped = Math::Vector4{
+				tileRectInImageSpace.x + (tileRectInWorldSpaceOverlapped.x - tileRectInWorldSpace.x) * scaleFactorWidth,
+				tileRectInImageSpace.y + (tileRectInWorldSpaceOverlapped.y - tileRectInWorldSpace.y) * scaleFactorHeight,
+				tileRectInWorldSpaceOverlapped.z * scaleFactorWidth,
+				tileRectInWorldSpaceOverlapped.w * scaleFactorHeight
+			};
+
+			// 构建从局部空间到图像空间的MVP矩阵
+			const Math::Int2 tiledMapSize = mRvtTiledTexture->GetTiledMapSize();
+
+			// 左右下上
+			float l = tileRectInImageSpaceOverlapped.x * 2.0f / tiledMapSize.x - 1.0f;
+			float r = (tileRectInImageSpaceOverlapped.x + tileRectInImageSpaceOverlapped.z) * 2.0f / tiledMapSize.x - 1.0f;
+			float b = tileRectInImageSpaceOverlapped.y * 2.0f / tiledMapSize.y - 1;
+			float t = (tileRectInImageSpaceOverlapped.y + tileRectInImageSpaceOverlapped.w) * 2.0f / tiledMapSize.y - 1.0f;
+			
+			// 构建
+			Math::Matrix4 mvpMatrix{};
+			mvpMatrix.m[0][0] = r - l;
+			mvpMatrix.m[0][3] = l;
+			mvpMatrix.m[1][1] = t - b;
+			mvpMatrix.m[1][3] = b;
+			mvpMatrix.m[2][3] = -1.0f;
+			mvpMatrix.m[3][3] = 1.0f;
+
+			gpuDrawRequests.emplace_back(tileRectInWorldSpaceOverlapped, tileRectInImageSpaceOverlapped, mvpMatrix.Transpose());
+
+			count--;
+		}
+
+		if (gpuDrawRequests.empty()) {
+			return;
+		}
+
+		// 录制渲染命令
+		{
+			auto commandList = mRvtPoolCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = mMainDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), mMainShaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("UpdateTiledMapPass");
+
+			auto& tileMaps = mRvtTiledTexture->GetTiledMaps();
+			ASSERT_FORMAT(tileMaps.size() > 0u, "TileMaps Is Empty!");
+			auto& rvtTileMapDesc = tileMaps.at(0)->GetResourceFormat().GetTextureDesc();
+			uint16_t width = static_cast<uint16_t>(rvtTileMapDesc.width);
+			uint16_t height = static_cast<uint16_t>(rvtTileMapDesc.height);
+
+			// Update Pass Data
+			...修改PassData;
+			mUpdateRvtTiledMapPassData.drawRequestBufferIndex = mRvtDrawTiledMapRequestsBuffer->GetSRDescriptor()->GetHeapIndex();
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRvtTiledTexturePassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRvtTiledMapPassData, sizeof(UpdateRvtTiledTexturePassData));
+
+			// 将数据数组上传到GPU中去
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch = commandBuffer.TransitionImmediately(mRvtDrawTiledMapRequestsBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mRvtDrawTiledMapRequestsBuffer, 0u, gpuDrawRequests.data(), gpuDrawRequests.size() * sizeof(GPUDrawRvtTiledMapRequest));
+
+			// 绘制LookUpMap
+			barrierBatch = commandBuffer.TransitionImmediately(mRvtDrawTiledMapRequestsBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			barrierBatch += mMainResourceStateTracker->TransitionImmediately(tileMaps.at(0), GHL::EResourceState::RenderTarget);
+			barrierBatch += mMainResourceStateTracker->TransitionImmediately(tileMaps.at(1), GHL::EResourceState::RenderTarget);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.SetRenderTargets({ tileMaps.at(0), tileMaps.at(1) }, nullptr);
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState("UpdateRvtTiledMap");
+			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.SetVertexBuffer(0u, quadMesh->GetVertexBuffer());
+			commandBuffer.SetIndexBuffer(quadMesh->GetIndexBuffer());
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), gpuDrawRequests.size(), 0u, 0u, 0u);
+
+			commandBuffer.PIXEndEvent();
+
+			commandList->Close();
+			mRvtGrahpicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+		}
 
 	}
 
 	void RvtUpdater::UpdateRvtLookUpMapPass() {
 		// 将页表数据渲染至页表贴图
 		uint64_t currentFrameNumber = mRvtFrameTracker->GetCurrFrameNumber();
-		std::vector<DrawRvtLookUpRequest> drawRequests;
+		std::vector<GPUDrawRvtLookUpMapRequest> gpuDrawRequests;
 
 		for (const auto& pair : mActiveCells) {
 			const auto& cell = pair.second;
@@ -319,7 +513,7 @@ namespace Renderer {
 				lb.y += mTableSize;
 			}
 
-			drawRequests.emplace_back(
+			gpuDrawRequests.emplace_back(
 				Math::Vector4{ (float)lb.x, (float)lb.y, (float)cell.rect.z, (float)cell.rect.w },
 				cell.mipLevel,
 				Math::Vector2{
@@ -329,22 +523,22 @@ namespace Renderer {
 			);
 		}
 
-		if (drawRequests.empty()) {
+		if (gpuDrawRequests.empty()) {
 			return;
 		}
 
 		// 对drawRequests进行排序，值更大的mipLevel排在前面。使得值更小的mipLevel在绘制时可以覆盖值更大的mipLevel
-		std::sort(drawRequests.begin(), drawRequests.end(),
-			[](const DrawRvtLookUpRequest& requestA, const DrawRvtLookUpRequest& requestB) {
+		std::sort(gpuDrawRequests.begin(), gpuDrawRequests.end(),
+			[](const GPUDrawRvtLookUpMapRequest& requestA, const GPUDrawRvtLookUpMapRequest& requestB) {
 				return requestA.mipLevel < requestB.mipLevel;
 			});
 
 		// 计算Matrix
-		for (int i = 0; i < drawRequests.size(); i++) {
+		for (int i = 0; i < gpuDrawRequests.size(); i++) {
 			// 转换到LookUpMap的ImageSpace
-			float size = drawRequests[i].rect.z / mTableSize;
-			drawRequests[i].mvpMatrix = Math::Matrix4{
-				Math::Vector3{ drawRequests[i].rect.x / mTableSize, drawRequests[i].rect.y / mTableSize, 0.0f },
+			float size = gpuDrawRequests[i].rect.z / mTableSize;
+			gpuDrawRequests[i].mvpMatrix = Math::Matrix4{
+				Math::Vector3{ gpuDrawRequests[i].rect.x / mTableSize, gpuDrawRequests[i].rect.y / mTableSize, 0.0f },
 				Math::Quaternion{},
 				Math::Vector3{ size, size, size }
 			}.Transpose();
@@ -363,32 +557,31 @@ namespace Renderer {
 			uint16_t height = static_cast<uint16_t>(rvtLookUpMapDesc.height);
 
 			// Update Pass Data
-			mUpdateLookUpPassData.rvtDrawLookUpMapRequestBufferIndex = mRvtDrawLookUpMapRequestBuffer->GetSRDescriptor()->GetHeapIndex();
-			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateLookUpPassData));
-			memcpy(passDataAlloc.cpuAddress, &mUpdateLookUpPassData, sizeof(UpdateLookUpPassData));
+			mUpdateRvtLookUpMapPassData.drawRequestBufferIndex = mRvtDrawLookUpMapRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRvtLookUpMapPassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRvtLookUpMapPassData, sizeof(UpdateRvtLookUpMapPassData));
 
 			// 将数据数组上传到GPU中去
 			auto barrierBatch = GHL::ResourceBarrierBatch{};
 			barrierBatch = commandBuffer.TransitionImmediately(mRvtDrawLookUpMapRequestBuffer, GHL::EResourceState::CopyDestination);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
-			commandBuffer.UploadBufferRegion(mRvtDrawLookUpMapRequestBuffer, 0u, drawRequests.data(), drawRequests.size() * sizeof(DrawRvtLookUpRequest));
+			commandBuffer.UploadBufferRegion(mRvtDrawLookUpMapRequestBuffer, 0u, gpuDrawRequests.data(), gpuDrawRequests.size() * sizeof(GPUDrawRvtLookUpMapRequest));
 
 			// 绘制LookUpMap
 			barrierBatch = commandBuffer.TransitionImmediately(mRvtDrawLookUpMapRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
 			barrierBatch += mMainResourceStateTracker->TransitionImmediately(mRvtLookUpMap, GHL::EResourceState::RenderTarget);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 
-			commandBuffer.ClearRenderTarget(mRvtLookUpMap);
 			commandBuffer.SetRenderTarget(mRvtLookUpMap);
 			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 			commandBuffer.SetGraphicsRootSignature();
-			commandBuffer.SetGraphicsPipelineState("UpdateLookUpMap");
+			commandBuffer.SetGraphicsPipelineState("UpdateRvtLookUpMap");
 			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
 			commandBuffer.SetVertexBuffer(0u, quadMesh->GetVertexBuffer());
 			commandBuffer.SetIndexBuffer(quadMesh->GetIndexBuffer());
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), drawRequests.size(), 0u, 0u, 0u);
+			commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), gpuDrawRequests.size(), 0u, 0u, 0u);
 
 			commandBuffer.PIXEndEvent();
 
@@ -402,16 +595,16 @@ namespace Renderer {
 			return;
 		}
 
-		// 找到对应的Cell
-		auto& cell = mPageTable->GetCell(x, y, mipLevel);
+		// 找到对应的Cell(拷贝一份)
+		RvtPageTableNodeCell cell = mPageTable->GetCell(x, y, mipLevel);
 
 		// 检测Cell对应的贴图是否已经渲染到TileTexture中去
-		if (!cell.payload.IsReady()) {
+		if (cell.payload.cellState == CellState::InActive) {
 			// 贴图未渲染，则添加DrawRequest
 			LoadPage(x, y, mipLevel);
 
 			// 向上找到最近的父节点
-			while (mipLevel < mMaxMipLevel && !cell.payload.IsReady()) {
+			while (mipLevel < mMaxMipLevel && (cell.payload.cellState != CellState::Active)) {
 				mipLevel++;
 				cell = mPageTable->GetCell(x, y, mipLevel);
 			}
@@ -419,20 +612,21 @@ namespace Renderer {
 
 		// 激活对应的平铺贴图块
 		// 如果目标Cell的渲染数据未生成，则使用其最近且有效的父节点的渲染数据
-		if (cell.payload.IsReady()) {
+		if (cell.payload.cellState == CellState::Active) {
 			mRvtTiledTexture->SetActive(cell.payload.tileIndex);
-			cell.payload.activeFrame = mRvtFrameTracker->GetCurrFrameNumber();
+			mPageTable->GetCell(x, y, mipLevel).payload.activeFrame = mRvtFrameTracker->GetCurrFrameNumber();
 		}
 	}
 
 	void RvtUpdater::LoadPage(int x, int y, int mipLevel) {
 		auto& cell = mPageTable->GetCell(x, y, mipLevel);
-		
-		// GPU已经准备渲染对应的数据了
+
 		if (cell.payload.cellState == CellState::Loading) {
 			return;
 		}
-		mPendingDrawTileRequests.emplace_back(x, y, mipLevel);
+		cell.payload.cellState = CellState::Loading;
+
+		mPendingDrawTileRequests.at(mRvtFrameTracker->GetCurrFrameIndex()).emplace_back(x, y, mipLevel);
 	}
 
 }

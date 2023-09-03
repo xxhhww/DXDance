@@ -29,14 +29,42 @@ namespace Renderer {
 	class RvtUpdater {
 		friend class TerrainSystem;
 	public:
-		struct UpdateTiledTexturePassData {
+		struct UpdateRvtTiledTexturePassData {
 		public:
+			uint32_t terrainHeightMapIndex;
+			uint32_t terrainNormalMapIndex;
+			uint32_t terrainSplatMapIndex;
+			float heightScale;
 
+			uint32_t rChannelAlbedoMapIndex;
+			uint32_t rChannelNormalMapIndex;
+			uint32_t rChannelRoughnessMapIndex;
+			uint32_t rChannelHeightMapIndex;
+
+			uint32_t gChannelAlbedoMapIndex;
+			uint32_t gChannelNormalMapIndex;
+			uint32_t gChannelRoughnessMapIndex;
+			uint32_t gChannelHeightMapIndex;
+
+			uint32_t bChannelAlbedoMapIndex;
+			uint32_t bChannelNormalMapIndex;
+			uint32_t bChannelRoughnessMapIndex;
+			uint32_t bChannelHeightMapIndex;
+
+			uint32_t aChannelAlbedoMapIndex;
+			uint32_t aChannelNormalMapIndex;
+			uint32_t aChannelRoughnessMapIndex;
+			uint32_t aChannelHeightMapIndex;
+
+			uint32_t drawRequestBufferIndex;
+			float pad1;
+			float pad2;
+			float pad3;
 		};
 
-		struct UpdateLookUpPassData {
+		struct UpdateRvtLookUpMapPassData {
 		public:
-			uint32_t rvtDrawLookUpMapRequestBufferIndex;
+			uint32_t drawRequestBufferIndex;
 			float pad1;
 			float pad2;
 			float pad3;
@@ -56,6 +84,7 @@ namespace Renderer {
 		inline const auto& GetCellSize()      const { return mCellSize; }
 		inline const auto& GetChangeViewDis() const { return mChangeViewDis; }
 		inline const auto& GetMaxMipLevel()   const { return mMaxMipLevel; }
+		inline const auto& GetCurrRvtRect()   const { return mCurrRvtRect; }
 
 		inline const auto GetFixedPos(const Math::Vector3& pos) const {
 			return Math::Int2{
@@ -85,7 +114,7 @@ namespace Renderer {
 		/*
 		* 执行渲染操作
 		*/
-		void UpdateTiledTexturePass(CommandBuffer& commandBuffer);
+		void UpdateTiledTexturePass();
 
 		/*
 		* 更新LookUp贴图
@@ -111,7 +140,9 @@ namespace Renderer {
 		uint32_t mMaxMipLevel;
 		float mRvtRadius;		// 虚拟纹理的半径
 		float mCellSize;		// Cell的大小
-		float mChangeViewDis;	// 
+		float mChangeViewDis;
+
+		Math::Vector4 mCurrRvtRect;	// 每次循环都更新
 
 		bool mThreadRunning{ true };
 		HANDLE mFrameCompletedEvent{ nullptr };
@@ -119,14 +150,18 @@ namespace Renderer {
 
 		RvtPageTable* mPageTable{ nullptr };
 		std::unordered_map<Math::Int2, RvtPageTableNodeCell, Math::HashInt2> mActiveCells;	// First: TiledTexture的TilePos, Second: 抽象的Rvt的Cell
-		std::vector<DrawTileRequest> mPendingDrawTileRequests;
+		
+		uint32_t mLimitPerFrame;	// 一帧最大的更新个数
+		std::vector<std::vector<DrawTileRequest>> mPendingDrawTileRequests;
 
 		std::mutex  mRvtLookUpMapMutex;				// 渲染主线程和Process线程都要使用到RvtLookUpMap资源
 		TextureWrap mRvtLookUpMap;					// RvtLookUpMap(如果目标Cell的渲染数据未生成，则使用其最近且有效的父节点的渲染数据)
+		
+		BufferWrap  mRvtDrawTiledMapRequestsBuffer; // 实例化数据
 		BufferWrap  mRvtDrawLookUpMapRequestBuffer;	// 实例化数据
 
-		UpdateTiledTexturePassData mUpdateTiledTexturePass;
-		UpdateLookUpPassData       mUpdateLookUpPassData;
+		UpdateRvtTiledTexturePassData mUpdateRvtTiledMapPassData;
+		UpdateRvtLookUpMapPassData    mUpdateRvtLookUpMapPassData;
 
 		std::unique_ptr<GHL::CommandQueue>               mRvtGrahpicsQueue;
 		std::unique_ptr<GHL::Fence>                      mRvtFrameFence;

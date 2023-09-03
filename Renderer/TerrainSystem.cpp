@@ -634,16 +634,12 @@ namespace Renderer {
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
 				// 更新Rvt参数
-				float rvtRadius      = mRvtUpdater->GetRvtRadius();
 				uint32_t tableSize   = mRvtUpdater->GetTableSize();
 				uint32_t maxMipLevel = mRvtUpdater->GetMaxMipLevel();
 				uint32_t tileSize    = mRvtTiledTexture->GetTileSize();
-				Math::Int2 fixedCenter = mRvtUpdater->GetFixedCenter(mRvtUpdater->GetFixedPos(
-					renderContext.resourceStorage->rootConstantsPerFrame.currentRenderCamera.position));
-				mRealTotalRect = Math::Vector4{ fixedCenter.x - rvtRadius, fixedCenter.y - rvtRadius, 2 * rvtRadius, 2 * rvtRadius };
-				
+
 				terrainRendererPassData.vtFeedbackParams = Math::Vector4{ (float)tableSize, (float)(tableSize * tileSize), (float)maxMipLevel - 1.0f, 0.0f };
-				terrainRendererPassData.vtRealRect = mRealTotalRect;
+				terrainRendererPassData.vtRealRect = mRvtUpdater->GetCurrRvtRect();
 
 				terrainRendererPassData.worldMeterSize = worldMeterSize;
 				terrainRendererPassData.heightScale = worldHeightScale;

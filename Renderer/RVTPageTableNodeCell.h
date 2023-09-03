@@ -14,8 +14,9 @@ namespace Renderer {
 		inline RvtPageTableNodeCell() = default;
 
 		inline RvtPageTableNodeCell(int x, int y, int width, int height, int mipLevel)
-			: rect(x, y, width, height)
-			, mipLevel(mipLevel) {}
+		: rect(x, y, width, height)
+		, mipLevel(mipLevel) {}
+
 	};
 
 }

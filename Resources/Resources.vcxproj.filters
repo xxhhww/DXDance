@@ -93,5 +93,6 @@
     <FxCompile Include="Shaders\Engine\Ocean\OceanBuilder.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtLookUpMap.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\RvtHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtTiledMap.hlsl" />
   </ItemGroup>
 </Project>

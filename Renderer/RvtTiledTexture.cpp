@@ -16,10 +16,12 @@ namespace Renderer {
 
 		// ‘”œÓ
 		{
-			mTiledTextureWidth = mTileCount * GetTileSizeWithPadding();
+			mAllTileCount = mTileCountPerAxis * mTileCountPerAxis;
+
+			mTiledTextureWidth = mTileCountPerAxis * GetTileSizeWithPadding();
 			mTiledTextureHeight = mTiledTextureWidth;
 
-			mTileCache.Create(mTileCount * mTileCount);
+			mTileCache.Create(mTileCountPerAxis * mTileCountPerAxis);
 		}
 
 		// ¥¥Ω®TiledTexture(AlbedoHeight°¢Normal)

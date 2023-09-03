@@ -17,7 +17,7 @@ namespace Renderer {
 
 	public:
         RvtPageLevelTable(int32_t mip, int32_t tableSize) {
-            pageOffset = Math::Int2{ 0 ,0 };
+            pageOffset = Math::Int2{ 0, 0 };
             mipLevel = mip;
             cellSize = (int32_t)std::pow(2, mipLevel);
             cellCount = tableSize / cellSize;
@@ -27,8 +27,8 @@ namespace Renderer {
 
             for (int32_t i = 0; i < cellCount; i++) {
                 for (int32_t j = 0; j < cellCount; j++) {
-                    cells.at(i).at(j) = RvtPageTableNodeCell{ 
-                        i * cellSize, j * cellSize, cellSize, cellSize, mipLevel };
+                    cells.at(i).at(j) = std::move(RvtPageTableNodeCell{
+                        i * cellSize, j * cellSize, cellSize, cellSize, mipLevel });
                 }
             }
         }
