@@ -35,7 +35,6 @@ namespace Renderer {
 	TerrainSystem::~TerrainSystem() {
 		if (mRvtUpdater != nullptr) {
 			delete mRvtUpdater;
-			delete mRvtTiledTexture;
 		}
 	}
 
@@ -44,7 +43,6 @@ namespace Renderer {
 
 		{
 			mRvtUpdater = new RvtUpdater(this);
-			mRvtTiledTexture = new RvtTiledTexture(this);
 		}
 
 		auto* device = renderEngine->mDevice.get();
@@ -636,7 +634,7 @@ namespace Renderer {
 				// 更新Rvt参数
 				uint32_t tableSize   = mRvtUpdater->GetTableSize();
 				uint32_t maxMipLevel = mRvtUpdater->GetMaxMipLevel();
-				uint32_t tileSize    = mRvtTiledTexture->GetTileSize();
+				uint32_t tileSize    = mRvtUpdater->GetRvtTiledMap()->GetTileSize();
 
 				terrainRendererPassData.vtFeedbackParams = Math::Vector4{ (float)tableSize, (float)(tableSize * tileSize), (float)maxMipLevel - 1.0f, 0.0f };
 				terrainRendererPassData.vtRealRect = mRvtUpdater->GetCurrRvtRect();

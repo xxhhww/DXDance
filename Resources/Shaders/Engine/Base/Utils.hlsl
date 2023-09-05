@@ -30,6 +30,37 @@ float2 NDCToUV(float3 ndcPoint) {
     return uv;
 }
 
+float3 GetLODColor(uint lodLevel) {
+	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
+	if(lodLevel == 0u) {
+		lodDebugColor = float3(0.5f, 0.5f, 0.5f);
+	}
+	else if(lodLevel == 1u) {
+		lodDebugColor = float3(0.0f, 0.0f, 1.0f);
+	}
+	else if(lodLevel == 2u) {
+		lodDebugColor = float3(1.0f, 0.0f, 0.0f);
+	}
+	else if(lodLevel == 3u) {
+		lodDebugColor = float3(0.0f, 1.0f, 0.0f);
+	}
+	else if(lodLevel == 4u) {
+		lodDebugColor = float3(1.0f, 1.0f, 0.0f);
+	}
+	else if(lodLevel == 5u) {
+		lodDebugColor = float3(0.0f, 1.0f, 1.0f);
+	}
+	else if(lodLevel == 6u) {
+		lodDebugColor = float3(1.0f, 0.0f, 1.0f);
+	}
+	else if(lodLevel == 7u) {
+		lodDebugColor = float3(0.25f, 0.75f, 0.0f);
+	}
+	else { 
+		lodDebugColor = float3(1.0f, 1.0f, 0.0f);
+	}
+	return lodDebugColor;
+}
 
 
 #endif

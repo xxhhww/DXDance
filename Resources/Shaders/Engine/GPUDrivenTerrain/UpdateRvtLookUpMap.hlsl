@@ -13,6 +13,7 @@ struct PassData{
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
+#include "../Base/Utils.hlsl"
 
 struct a2v {
 	float3 lsPos     : POSITION;
@@ -37,19 +38,18 @@ v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 	DrawRvtLookUpMapRequest drawRequest = drawRequestBuffer[instanceID];
 
 	float2 pos = saturate(mul(float4(input.lsPos, 1.0f), drawRequest.mvpMatrix).xy);
-	pos.y = 1 - pos.y;
 
 	v2p output;
 	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
-	output.indexInfo = float4(drawRequest.tilePos / 255.0f, drawRequest.mipLevel / 255.0f, 0.0f);
+	output.indexInfo = float4(drawRequest.tilePos, drawRequest.mipLevel, 0.0f);
 
 	return output;
 }
 
 p2o PSMain(v2p input) {
 	p2o output;
-	output.rvtLookUpMap = input.indexInfo;
-
+	// output.rvtLookUpMap = input.indexInfo;
+	output.rvtLookUpMap = float4(GetLODColor(input.indexInfo.z), 1.0f);
 	return output;
 }
 

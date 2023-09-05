@@ -7,11 +7,9 @@ namespace Renderer {
 	class RenderEngine;
 	class RingFrameTracker;
 	class RvtUpdater;
-	class RvtTiledTexture;
 
 	class TerrainSystem {
 		friend class RvtUpdater;
-		friend class RvtTiledTexture;
 
 	public:
 		struct NodeDescriptor {
@@ -107,7 +105,7 @@ namespace Renderer {
 	public:
 		bool isInitialized{ false };
 		Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
-		float worldHeightScale{ 4096u };
+		float worldHeightScale{ 4096.0f };
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
 
@@ -187,7 +185,6 @@ namespace Renderer {
 		std::vector<BufferWrap> mTerrainReadbackBuffers; 
 
 		RvtUpdater* mRvtUpdater{ nullptr };
-		RvtTiledTexture* mRvtTiledTexture{ nullptr };
 	};
 
 }

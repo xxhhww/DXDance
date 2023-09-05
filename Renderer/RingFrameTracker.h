@@ -17,6 +17,7 @@ namespace Renderer {
 			uint64_t fenceValue; // 该FrameAttribute所代表的渲染帧所期望达到的围栏值
 			size_t   frameIndex; // 该FrameAttribute所代表的帧索引
 			size_t   size;       // 该FrameAttribute的长度(可弃用)
+			uint32_t userData;	 // 该FrameAttribute的用户数据
 		};
 
 		using NewFramePushedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
@@ -41,6 +42,11 @@ namespace Renderer {
 		* @Param completedValue: 已达到(已完成)的围栏值
 		*/
 		void PopCompletedFrame(uint64_t completedValue);
+
+		/*
+		* 自定义CompletedFrame
+		*/
+		void PopCompletedFrame(uint64_t completedValue, const std::function<void(const FrameAttribute&)>& callback);
 
 		/*
 		* 设置新的渲染帧开始录制命令时调用回调函数
@@ -68,6 +74,16 @@ namespace Renderer {
 		inline const auto& IsFirstFrame()          const { return mFirstFrame; }
 		inline const auto& GetCurrFrameIndex()     const { return mFrameAttributes.back().frameIndex; }
 		inline const auto& GetCurrFrameAttribute() const { return mFrameAttributes.back(); }
+
+		/*
+		* 设置当前帧的用户数据
+		*/
+		inline void SetCurrentFrameUserData(uint32_t userData) { mFrameAttributes.back().userData = userData; }
+
+		/*
+		* 获得当前帧的用户数据
+		*/
+		inline uint32_t GetCurrentFrameUserData()  const { return mFrameAttributes.back().userData; }
 
 	private:
 		/*

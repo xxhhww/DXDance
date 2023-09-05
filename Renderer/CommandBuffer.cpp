@@ -115,6 +115,15 @@ namespace Renderer {
 		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, &dsHandle);
 	}
 
+	void CommandBuffer::SetRenderTargets(std::vector<Texture*>&& rtTextures) {
+		uint32_t numRTVs = rtTextures.size();
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtHandles(numRTVs);
+		for (uint32_t i = 0; i < numRTVs; i++) {
+			rtHandles[i] = rtTextures[i]->GetRTDescriptor()->GetCpuHandle();
+		}
+		mCommandList->D3DCommandList()->OMSetRenderTargets(numRTVs, rtHandles.data(), false, nullptr);
+	}
+
 	void CommandBuffer::SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture) {
 		uint32_t numRTVs = rtTextures.size();
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> rtHandles(numRTVs);

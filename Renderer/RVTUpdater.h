@@ -6,6 +6,7 @@
 
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/RvtPageTable.h"
+#include "Renderer/RvtTiledTexture.h"
 
 #include "Renderer/RingFrameTracker.h"
 #include "Renderer/ResourceStateTracker.h"
@@ -23,18 +24,55 @@ namespace Renderer {
 
 	class TerrainSystem;
 	class ShaderManger;
-	class RvtTiledTexture;
 	class RenderEngine;
 
 	class RvtUpdater {
 		friend class TerrainSystem;
 	public:
-		struct UpdateRvtTiledTexturePassData {
+		enum class RvtFrameType : uint32_t {
+			ProcessFeedbackFrame = 0x01,	// 处理Feedback的帧
+			AftermathFrame		 = 0x02		// 善后帧
+		};
+
+		struct DrawTileRequest {
 		public:
+			int x{ 0 };
+			int y{ 0 };
+			int mipLevel{ 0 };
+
+			Math::Int2 tilePos{ -1, -1 };
+		public:
+			inline DrawTileRequest(int x, int y, int mipLevel) : x(x), y(y), mipLevel(mipLevel) {}
+		};
+
+		struct CellIndex {
+		public:
+			int x{ 0 };
+			int y{ 0 };
+			int mipLevel{ 0 };
+
+		public:
+			inline CellIndex(int x, int y, int mipLevel) : x(x), y(y), mipLevel(mipLevel) {}
+		};
+
+		struct UpdateRvtLookUpMapPassData {
+		public:
+			uint32_t drawRequestBufferIndex;
+			float pad1;
+			float pad2;
+			float pad3;
+		};
+
+		struct UpdateRvtTiledMapPassData {
+		public:
+			uint32_t drawRequestBufferIndex;
 			uint32_t terrainHeightMapIndex;
 			uint32_t terrainNormalMapIndex;
 			uint32_t terrainSplatMapIndex;
-			float heightScale;
+
+			Math::Vector2 terrainMeterSize;
+			float terrainHeightScale;
+			float pad;
 
 			uint32_t rChannelAlbedoMapIndex;
 			uint32_t rChannelNormalMapIndex;
@@ -55,19 +93,6 @@ namespace Renderer {
 			uint32_t aChannelNormalMapIndex;
 			uint32_t aChannelRoughnessMapIndex;
 			uint32_t aChannelHeightMapIndex;
-
-			uint32_t drawRequestBufferIndex;
-			float pad1;
-			float pad2;
-			float pad3;
-		};
-
-		struct UpdateRvtLookUpMapPassData {
-		public:
-			uint32_t drawRequestBufferIndex;
-			float pad1;
-			float pad2;
-			float pad3;
 		};
 
 	public:
@@ -78,6 +103,9 @@ namespace Renderer {
 		* 通知Process线程进行处理
 		*/
 		void SetFrameCompletedEvent();
+
+		inline auto* GetRvtTiledMap() { return mRvtTiledTexture.get(); }
+		inline const auto* GetRvtTiledMap() const { return mRvtTiledTexture.get(); }
 
 		inline const auto& GetTableSize()     const { return mTableSize; }
 		inline const auto& GetRvtRadius()     const { return mRvtRadius; }
@@ -126,14 +154,22 @@ namespace Renderer {
 
 		void LoadPage(int x, int y, int mipLevel);
 
+		/*
+		* RvtFrame帧完成后执行的回调函数
+		*/
+		void OnRvtFrameCompleted(uint8_t frameIndex);
+
 	private:
 		RenderEngine*  mRenderEngine{ nullptr };
 		TerrainSystem* mTerrainSystem{ nullptr };
+
 		ShaderManger*  mMainShaderManger{ nullptr };
 		ResourceStateTracker* mMainResourceStateTracker{ nullptr };
 		PoolDescriptorAllocator* mMainDescriptorAllocator{ nullptr };
 
-		RvtTiledTexture* mRvtTiledTexture{ nullptr };
+		std::unique_ptr<RvtTiledTexture> mRvtTiledTexture;
+		std::unique_ptr<RvtPageTable> mPageTable;
+		std::unordered_map<Math::Int2, CellIndex, Math::HashInt2> mActiveCells;	// First: TiledTexture的TilePos, Second: 抽象的Rvt的Cell的Index
 
 		uint32_t mMaxRvtFrameCount;
 		uint32_t mTableSize;
@@ -141,27 +177,24 @@ namespace Renderer {
 		float mRvtRadius;		// 虚拟纹理的半径
 		float mCellSize;		// Cell的大小
 		float mChangeViewDis;
-
 		Math::Vector4 mCurrRvtRect;	// 每次循环都更新
 
 		bool mThreadRunning{ true };
 		HANDLE mFrameCompletedEvent{ nullptr };
 		std::thread mProcessThread;
 
-		RvtPageTable* mPageTable{ nullptr };
-		std::unordered_map<Math::Int2, RvtPageTableNodeCell, Math::HashInt2> mActiveCells;	// First: TiledTexture的TilePos, Second: 抽象的Rvt的Cell
+		std::mutex  mRvtLookUpMapMutex;	// 渲染主线程和Process线程都要使用到RvtLookUpMap资源
+		TextureWrap mRvtLookUpMap;		// RvtLookUpMap(如果目标Cell的渲染数据未生成，则使用其最近且有效的父节点的渲染数据)
 		
-		uint32_t mLimitPerFrame;	// 一帧最大的更新个数
+		uint32_t mLimitPerFrame;		// 一帧最大的更新个数
+		std::vector<std::vector<DrawTileRequest>> mLoadingDrawTileRequests;	// GPU正在处理的DrawTileRequests
 		std::vector<std::vector<DrawTileRequest>> mPendingDrawTileRequests;
 
-		std::mutex  mRvtLookUpMapMutex;				// 渲染主线程和Process线程都要使用到RvtLookUpMap资源
-		TextureWrap mRvtLookUpMap;					// RvtLookUpMap(如果目标Cell的渲染数据未生成，则使用其最近且有效的父节点的渲染数据)
-		
-		BufferWrap  mRvtDrawTiledMapRequestsBuffer; // 实例化数据
 		BufferWrap  mRvtDrawLookUpMapRequestBuffer;	// 实例化数据
+		BufferWrap  mRvtDrawTiledMapRequestsBuffer; // 实例化数据
 
-		UpdateRvtTiledTexturePassData mUpdateRvtTiledMapPassData;
-		UpdateRvtLookUpMapPassData    mUpdateRvtLookUpMapPassData;
+		UpdateRvtLookUpMapPassData mUpdateRvtLookUpMapPassData;
+		UpdateRvtTiledMapPassData  mUpdateRvtTiledMapPassData;
 
 		std::unique_ptr<GHL::CommandQueue>               mRvtGrahpicsQueue;
 		std::unique_ptr<GHL::Fence>                      mRvtFrameFence;

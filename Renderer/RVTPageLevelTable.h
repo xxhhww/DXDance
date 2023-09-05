@@ -1,5 +1,5 @@
 #pragma once
-#include "Renderer/RvtPageTableNodeCell.h"
+#include "Renderer/RvtPageLevelTableCell.h"
 #include <vector>
 #include <cmath>
 
@@ -7,7 +7,7 @@ namespace Renderer {
 
 	struct RvtPageLevelTable {
 	public:
-		std::vector<std::vector<RvtPageTableNodeCell>> cells;
+		std::vector<std::vector<RvtPageLevelTableCell>> cells;
 		
         Math::Int2 pageOffset;
 
@@ -22,12 +22,12 @@ namespace Renderer {
             cellSize = (int32_t)std::pow(2, mipLevel);
             cellCount = tableSize / cellSize;
 
-            cells = std::vector<std::vector<RvtPageTableNodeCell>>{
-                (size_t)cellCount, std::vector<RvtPageTableNodeCell>{ (size_t)cellCount, RvtPageTableNodeCell{} } };
+            cells = std::vector<std::vector<RvtPageLevelTableCell>>{
+                (size_t)cellCount, std::vector<RvtPageLevelTableCell>{ (size_t)cellCount, RvtPageLevelTableCell{} } };
 
             for (int32_t i = 0; i < cellCount; i++) {
                 for (int32_t j = 0; j < cellCount; j++) {
-                    cells.at(i).at(j) = std::move(RvtPageTableNodeCell{
+                    cells.at(i).at(j) = std::move(RvtPageLevelTableCell{
                         i * cellSize, j * cellSize, cellSize, cellSize, mipLevel });
                 }
             }

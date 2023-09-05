@@ -180,9 +180,8 @@
     <ClInclude Include="RenderObjectOnTerrainPass.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="RvtPageLevelTable.h" />
-    <ClInclude Include="RvtPagePayload.h" />
     <ClInclude Include="RvtPageTable.h" />
-    <ClInclude Include="RvtPageTableNodeCell.h" />
+    <ClInclude Include="RvtPageLevelTableCell.h" />
     <ClInclude Include="RvtTiledTexture.h" />
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="SkyPass.h" />

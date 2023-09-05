@@ -70,6 +70,8 @@ namespace Renderer {
 
 		void SetRenderTarget(Texture* rtTexture, Texture* dsTexture);
 
+		void SetRenderTargets(std::vector<Texture*>&& rtTextures);
+
 		void SetRenderTargets(std::vector<Texture*>&& rtTextures, Texture* dsTexture);
 
 		// ================ RTV / DSV Clear ================

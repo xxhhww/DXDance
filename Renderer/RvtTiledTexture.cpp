@@ -4,9 +4,8 @@
 
 namespace Renderer {
 
-	RvtTiledTexture::RvtTiledTexture(TerrainSystem* terrainSystem)
-	: mRenderEngine(terrainSystem->mRenderEngine) 
-	, mTerrainSystem(terrainSystem) {
+	RvtTiledTexture::RvtTiledTexture(RenderEngine* renderEngine)
+	: mRenderEngine(renderEngine) {
 
 		auto* device = mRenderEngine->mDevice.get();
 		auto* renderGraph = mRenderEngine->mRenderGraph.get();
@@ -30,16 +29,16 @@ namespace Renderer {
 			TextureDesc _TiledTextureDesc{};
 			_TiledTextureDesc.width = mTiledTextureWidth;
 			_TiledTextureDesc.height = mTiledTextureHeight;
-			_TiledTextureDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			_TiledTextureDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			_TiledTextureDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
 			_TiledTextureDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 			mTiledMaps[0] = resourceAllocator->Allocate(device, _TiledTextureDesc, descriptorAllocator, nullptr);
-			mTiledMaps[0]->SetDebugName("TiledTextureAlbedoHeight");
+			mTiledMaps[0]->SetDebugName("TiledTextureAlbedo");
 
 			mTiledMaps[1] = resourceAllocator->Allocate(device, _TiledTextureDesc, descriptorAllocator, nullptr);
 			mTiledMaps[1]->SetDebugName("TiledTextureNormal");
 
-			renderGraph->ImportResource("TiledTextureAlbedoHeight", mTiledMaps[0]);
+			renderGraph->ImportResource("TiledTextureAlbedo", mTiledMaps[0]);
 			resourceStateTracker->StartTracking(mTiledMaps[0]);
 
 			renderGraph->ImportResource("TiledTextureNormal", mTiledMaps[1]);

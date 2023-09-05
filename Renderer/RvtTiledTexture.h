@@ -7,11 +7,10 @@
 namespace Renderer {
 
 	class RenderEngine;
-	class TerrainSystem;
 
 	class RvtTiledTexture {
 	public:
-		RvtTiledTexture(TerrainSystem* terrainSystem);
+		RvtTiledTexture(RenderEngine* renderEngine);
 		~RvtTiledTexture();
 
 		inline const auto& GetTileCountPerAxis() const { return mTileCountPerAxis; }
@@ -42,7 +41,6 @@ namespace Renderer {
 	
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
-		TerrainSystem* mTerrainSystem{ nullptr };
 
 		uint32_t mTileCountPerAxis  { 15u };	// Tile在UV方向的个数
 		uint32_t mTileSize          { 256u };	// 一个Tile的大小

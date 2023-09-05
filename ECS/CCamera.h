@@ -79,7 +79,7 @@ namespace ECS {
 			frustum.nearZ = 0.1f;
 			frustum.farZ = 1000.0f;
 			frustum.aspect = 1920.0f / 1080.0f;
-			frustum.fovY = 0.5f * DirectX::XM_PI;
+			frustum.fovY = DirectX::XM_PI / 3.0f;
 
 			viewMatrix = Math::Matrix4();
 			projMatrix = Math::Matrix4();

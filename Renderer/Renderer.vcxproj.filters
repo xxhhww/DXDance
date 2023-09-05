@@ -276,10 +276,7 @@
     <ClInclude Include="RvtPageLevelTable.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
-    <ClInclude Include="RvtPagePayload.h">
-      <Filter>头文件\Renderer\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="RvtPageTableNodeCell.h">
+    <ClInclude Include="RvtPageLevelTableCell.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="RvtTiledTexture.h">

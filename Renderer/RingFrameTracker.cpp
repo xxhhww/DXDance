@@ -35,6 +35,22 @@ namespace Renderer {
         }
 	}
 
+    void RingFrameTracker::PopCompletedFrame(uint64_t completedValue, const std::function<void(const FrameAttribute&)>& callback) {
+        while (!mFrameAttributes.empty() && mFrameAttributes.front().fenceValue <= completedValue) {
+            // (¿½±´Ò»·Ý)
+            const auto oldestFrameTail = mFrameAttributes.front();
+            mFrameAttributes.pop_front();
+
+            mUsedSize -= oldestFrameTail.size;
+            mHead = oldestFrameTail.frameIndex + oldestFrameTail.size;
+            for (const auto& callBack : mCompletedCallBacks) {
+                callBack(oldestFrameTail.frameIndex);
+            }
+
+            callback(oldestFrameTail);
+        }
+    }
+
     void RingFrameTracker::AddNewFramePushedCallBack(const NewFramePushedCallBack& callBack) {
         mNewFramePushedCallBacks.push_back(callBack);
     }
