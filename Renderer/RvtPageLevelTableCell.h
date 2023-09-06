@@ -18,7 +18,7 @@ namespace Renderer {
 
 		Math::Int2 tilePos{ smInvalidTilePos }; // 对应平铺贴图中的id
 
-		bool       activeUsed{ false }; // 激活的帧序号
+		bool       activeUsed{ false };			// 激活的帧序号
 
 		CellState  cellState{ CellState::InActive }; // 状态
 

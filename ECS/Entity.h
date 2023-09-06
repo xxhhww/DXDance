@@ -111,7 +111,7 @@ namespace ECS {
 		public:
 			uint32_t				version{ 0u };		// 实体版本号
 			bool					isActive{ false };	// 是否被激活
-			Chunk* pChunk{ nullptr };	// 指向实体数据所在的Chunk
+			Chunk*                  pChunk{ nullptr };	// 指向实体数据所在的Chunk
 			uint32_t				chunkIndex{ 0u };	// 实体在Chunk中的索引
 			int32_t					parentID{ -1 };		// 父实体ID
 			std::vector<int32_t>	childs;				// 子实体ID数组

@@ -2,6 +2,7 @@
 #include "Renderer/RvtPageLevelTableCell.h"
 #include <vector>
 #include <cmath>
+#include <functional>
 
 namespace Renderer {
 
@@ -16,22 +17,7 @@ namespace Renderer {
         int32_t cellCount{ 0 };	// cell个数
 
 	public:
-        RvtPageLevelTable(int32_t mip, int32_t tableSize) {
-            pageOffset = Math::Int2{ 0, 0 };
-            mipLevel = mip;
-            cellSize = (int32_t)std::pow(2, mipLevel);
-            cellCount = tableSize / cellSize;
-
-            cells = std::vector<std::vector<RvtPageLevelTableCell>>{
-                (size_t)cellCount, std::vector<RvtPageLevelTableCell>{ (size_t)cellCount, RvtPageLevelTableCell{} } };
-
-            for (int32_t i = 0; i < cellCount; i++) {
-                for (int32_t j = 0; j < cellCount; j++) {
-                    cells.at(i).at(j) = std::move(RvtPageLevelTableCell{
-                        i * cellSize, j * cellSize, cellSize, cellSize, mipLevel });
-                }
-            }
-        }
+        RvtPageLevelTable(int32_t mip, int32_t tableSize);
 
         inline auto& GetCell(int32_t x, int32_t y) {
             x /= cellSize;
@@ -52,6 +38,16 @@ namespace Renderer {
 
             return cells.at(x).at(y);
         }
+
+        inline const auto GetTransXY(int x, int y) const
+        {
+            return Math::Int2((x + pageOffset.x) % cellCount, (y + pageOffset.y) % cellCount);
+        }
+
+        /*
+        * viewRectOffset以mTableSize为单位
+        */
+        void ViewRectChanged(Math::Int2 viewRectOffset, const std::function<void(const Math::Int2&)>& retiredFunc);
 	};
 
 }

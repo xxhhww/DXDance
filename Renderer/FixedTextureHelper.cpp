@@ -34,7 +34,7 @@ namespace Renderer {
 		else if (ext == "png") {
 			HRASSERT(DirectX::LoadFromWICFile(
 				Tool::StrUtil::UTF8ToWString(filepath).c_str(),
-				DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+				DirectX::WIC_FLAGS::WIC_FLAGS_IGNORE_SRGB,
 				nullptr,
 				baseImage
 			));

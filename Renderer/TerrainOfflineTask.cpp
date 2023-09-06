@@ -20,7 +20,8 @@ namespace Renderer {
         uint32_t normalMapIndex = 0u;
         uint32_t heightMapWidth = 0u;
         uint32_t heightMapHeight = 0u;
-        Math::Vector2 worldMeterSize{ 5120u, 5120u };
+        // Math::Vector2 worldMeterSize{ 5120u, 5120u };
+        Math::Vector2 worldMeterSize{ 10240u, 10240u };
         float worldHeightScale{ 4096u };
         float pad1;
     };

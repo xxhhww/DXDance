@@ -479,6 +479,9 @@
     <ClCompile Include="RvtTiledTexture.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
+    <ClCompile Include="RvtPageLevelTable.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="RenderGraph.inl">

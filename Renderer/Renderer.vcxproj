@@ -256,6 +256,7 @@
     <ClCompile Include="PlaceObjectOnTerrainPass.cpp" />
     <ClCompile Include="RenderObjectOnTerrainPass.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
+    <ClCompile Include="RvtPageLevelTable.cpp" />
     <ClCompile Include="RvtPageTable.cpp" />
     <ClCompile Include="RvtTiledTexture.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />

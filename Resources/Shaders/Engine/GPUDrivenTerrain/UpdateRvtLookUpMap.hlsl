@@ -21,6 +21,7 @@ struct a2v {
 	float3 lsNormal  : NORMAL;
 	float3 tangent   : TANGENT;
 	float3 bitangent : BITANGENT;
+	float4 color     : COLOR;
 };
 
 struct v2p {

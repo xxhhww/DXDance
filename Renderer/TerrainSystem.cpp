@@ -111,6 +111,7 @@ namespace Renderer {
 						Math::Vector2{ x * uvStrip, z * uvStrip },
 						Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{}
 					);
+					vertices.back().uv = Math::Vector2{ x * uvStrip, z * uvStrip };
 				}
 			}
 
@@ -152,7 +153,7 @@ namespace Renderer {
 		{
 			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/MinMaxHeightMap_4096H.dds");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/MinMaxHeightMap_5120W_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap);
 		}
 
@@ -160,7 +161,7 @@ namespace Renderer {
 		{
 			heightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/HeightMap.png"
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png"
 			);
 			resourceStateTracker->StartTracking(heightMap);
 			resourceStorage->ImportResource("TerrainHeightMap", heightMap);
@@ -170,7 +171,7 @@ namespace Renderer {
 		{
 			normalMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/NormalMap_4096H.png");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/NormalMap_5120W_4096H.png");
 			resourceStateTracker->StartTracking(normalMap);
 			resourceStorage->ImportResource("TerrainNormalMap", normalMap);
 		}

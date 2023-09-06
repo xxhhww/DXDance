@@ -7,7 +7,11 @@ namespace Renderer {
 	class RvtPageTable {
 	public:
 		RvtPageTable(int32_t tableSize);
-		~RvtPageTable();
+
+		/*
+		* viewRectOffset以mTableSize为单位
+		*/
+		void ViewRectChanged(Math::Int2 viewRectOffset, const std::function<void(const Math::Int2&)>& retiredFunc);
 
 		inline RvtPageLevelTable& GetPage(int mipLevel) { return mPageLevelTables.at(mipLevel); }
 		inline const RvtPageLevelTable& GetPage(int mipLevel) const { return mPageLevelTables.at(mipLevel); }

@@ -211,6 +211,16 @@ namespace Renderer {
 		mProcessThread.join();
 	}
 
+	void RvtUpdater::Initialize(RenderEngine* renderEngine) {
+
+	}
+
+	void RvtUpdater::AddPass(RenderEngine* renderEngine) {
+		auto* renderGraph = renderEngine->mRenderGraph.get();
+
+
+	}
+
 	void RvtUpdater::SetFrameCompletedEvent() {
 		SetEvent(mFrameCompletedEvent);
 	}
@@ -221,17 +231,49 @@ namespace Renderer {
 
 		bool moreTask = false;
 
+		{
+			const Math::Int2 fixedCenter = GetFixedCenter(GetFixedPos(
+				mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position));
+			mCurrRvtRectCenter = Math::Vector2{ (float)fixedCenter.x, (float)fixedCenter.y };
+			mCurrRvtRect = Math::Vector4{ 
+				mCurrRvtRectCenter.x - mRvtRadius,
+				mCurrRvtRectCenter.y - mRvtRadius,
+				2 * mRvtRadius, 2 * mRvtRadius 
+			};
+		}
+
 		while (mThreadRunning) {
 			uint64_t currentMainFrameFenceValue = mainFrameFence->CompletedValue();
 
-			Math::Int2 fixedCenter = GetFixedCenter(GetFixedPos(
-				mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position));
-			mCurrRvtRect = Math::Vector4{ fixedCenter.x - mRvtRadius, fixedCenter.y - mRvtRadius, 2 * mRvtRadius, 2 * mRvtRadius };
-
-			// Camera View Rect Changed
-			if (1) {	// Check Camera Position
-				// TODO...
+			const Math::Int2 newFixedPos = GetFixedPos(
+				mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position);
+			const Math::Int2 newFixedCenter = GetFixedCenter(newFixedPos);
+			float xDiff = (float)newFixedPos.x - mCurrRvtRectCenter.x;
+			float yDiff = (float)newFixedPos.y - mCurrRvtRectCenter.y;
+			
+			/*
+			// ViewRectChanged
+			if (std::abs(xDiff) > mChangeViewDis || std::abs(yDiff) > mChangeViewDis) {
+				// rtJob.ClearJob();
+				
+				mCurrRvtRect = Math::Vector4{
+					newFixedCenter.x - mRvtRadius,
+					newFixedCenter.y - mRvtRadius,
+					2 * mRvtRadius, 2 * mRvtRadius 
+				};
+				const Math::Int2 viewRectOffset = (newFixedCenter - mCurrRvtRectCenter) / (2 * (int32_t)mRvtRadius / mTableSize);
+				mPageTable->ViewRectChanged(viewRectOffset, std::bind(&RvtUpdater::RetireTilePos, this, std::placeholders::_1));
+				
+				if (this.UseFeed)
+				{
+					feedbackRender.FeedbackCamera.Render();
+					feedbackReader.NewRequest(feedbackRender.TargetTexture, true);
+					feedbackReader.UpdateRequest();
+					rtJob.Update();
+					feedbackReader.UpdateRequest();
+				}
 			}
+			*/
 
 			// 新的主渲染帧完成
 			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
@@ -370,17 +412,8 @@ namespace Renderer {
 			const Math::Int2 tilePos = mRvtTiledTexture->RequestTile();
 			mRvtTiledTexture->SetActive(tilePos);
 			drawTileRequest.tilePos = tilePos;
-
 			// 如果需要，将申请到的tilePos的对应的Cell进行修改，并删除对应关系
-			auto it = mActiveCells.find(tilePos);
-			if (it != mActiveCells.end()) {
-				const auto cellIndex = it->second;
-				auto& retiredCell = mPageTable->GetCell(cellIndex.x, cellIndex.y, cellIndex.mipLevel);
-
-				retiredCell.cellState = CellState::InActive;
-				retiredCell.tilePos = RvtPageLevelTableCell::smInvalidTilePos;
-				mActiveCells.erase(it);
-			}
+			RetireTilePos(tilePos);
 
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mRvtTiledTexture->GetTileSizeWithPadding();
@@ -707,6 +740,18 @@ namespace Renderer {
 
 		cell.cellState = CellState::Loading;
 		mPendingDrawTileRequests.at(mRvtFrameTracker->GetCurrFrameIndex()).emplace_back(x, y, mipLevel);
+	}
+
+	void RvtUpdater::RetireTilePos(const Math::Int2& tilePos) {
+		auto it = mActiveCells.find(tilePos);
+		if (it != mActiveCells.end()) {
+			const auto cellIndex = it->second;
+			auto& retiredCell = mPageTable->GetCell(cellIndex.x, cellIndex.y, cellIndex.mipLevel);
+
+			retiredCell.cellState = CellState::InActive;
+			retiredCell.tilePos = RvtPageLevelTableCell::smInvalidTilePos;
+			mActiveCells.erase(it);
+		}
 	}
 
 	void RvtUpdater::OnRvtFrameCompleted(uint8_t frameIndex) {

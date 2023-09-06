@@ -100,6 +100,16 @@ namespace Renderer {
 		~RvtUpdater();
 
 		/*
+		* 初始化
+		*/
+		void Initialize(RenderEngine* renderEngine);
+
+		/*
+		* 添加Pass至RenderGraph
+		*/
+		void AddPass(RenderEngine* renderEngine);
+
+		/*
 		* 通知Process线程进行处理
 		*/
 		void SetFrameCompletedEvent();
@@ -154,6 +164,8 @@ namespace Renderer {
 
 		void LoadPage(int x, int y, int mipLevel);
 
+		void RetireTilePos(const Math::Int2& tilePos);
+
 		/*
 		* RvtFrame帧完成后执行的回调函数
 		*/
@@ -177,7 +189,9 @@ namespace Renderer {
 		float mRvtRadius;		// 虚拟纹理的半径
 		float mCellSize;		// Cell的大小
 		float mChangeViewDis;
-		Math::Vector4 mCurrRvtRect;	// 每次循环都更新
+
+		Math::Vector2 mCurrRvtRectCenter;
+		Math::Vector4 mCurrRvtRect;
 
 		bool mThreadRunning{ true };
 		HANDLE mFrameCompletedEvent{ nullptr };

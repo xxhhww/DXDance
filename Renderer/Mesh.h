@@ -25,7 +25,6 @@ namespace Renderer {
 		Math::Vector4 color;
 
 		Math::Vector4 userData;		// 用户自定义数据
-
 	public:
 		Vertex() 
 		: position(0.0f, 0.0f, 0.0f)

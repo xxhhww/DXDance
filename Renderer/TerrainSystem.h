@@ -29,7 +29,7 @@ namespace Renderer {
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
 
-			Math::Vector2 worldMeterSize{ 5120u, 5120u };				// 世界在XZ轴方向的大小(米)
+			Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };				// 世界在XZ轴方向的大小(米)
 			uint32_t heightScale{ 4096u };
 			uint32_t currPassLOD;
 

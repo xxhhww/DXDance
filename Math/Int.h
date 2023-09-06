@@ -11,7 +11,12 @@ namespace Math {
 	class Int2 : public XMINT2 {
 	public:
 		inline Int2() : XMINT2(0, 0) {}
+		inline Int2(float xy) : XMINT2(xy, xy) {}
 		inline Int2(int32_t x, int32_t y) : XMINT2(x, y) {}
+		inline Int2(const XMVECTOR& vec) { XMStoreSInt2(this, vec); }
+		inline Int2(XMVECTOR&& vec) { XMStoreSInt2(this, std::move(vec)); }
+
+		inline operator XMVECTOR() const { return XMLoadSInt2(this); }
 
 		inline bool operator<  (Int2 v) const { return (x < v.x&& y < v.y); }
 		inline bool operator<= (Int2 v) const { return (x <= v.x && y <= v.y); }
@@ -19,6 +24,25 @@ namespace Math {
 		inline bool operator>= (Int2 v) const { return (x >= v.x && y >= v.y); }
 		inline bool operator!= (Int2 v) const { return (x != v.x || y != v.y); }
 		inline bool operator== (Int2 v) const { return (x == v.x && y == v.y); }
+
+		inline Int2 operator- () const { return XMVectorNegate(*this); }
+
+		inline Int2 operator+ (Int2 v) const { return XMVectorAdd(*this, v); }
+		inline Int2 operator- (Int2 v) const { return XMVectorSubtract(*this, v); }
+		inline Int2 operator* (Int2 v) const { return XMVectorMultiply(*this, v); }
+		inline Int2 operator/ (Int2 v) const { return XMVectorDivide(*this, v); }
+		inline Int2 operator+ (int32_t  v) const { return *this * Int2(v); }
+		inline Int2 operator- (int32_t  v) const { return *this * Int2(v); }
+		inline Int2 operator* (int32_t  v) const { return *this * Int2(v); }
+		inline Int2 operator/ (int32_t  v) const { return *this / Int2(v); }
+
+		inline Int2& operator += (Int2 v) { *this = *this + v; return *this; }
+		inline Int2& operator -= (Int2 v) { *this = *this - v; return *this; }
+		inline Int2& operator *= (Int2 v) { *this = *this * v; return *this; }
+		inline Int2& operator /= (Int2 v) { *this = *this / v; return *this; }
+
+		inline friend Int2 operator* (int32_t   v1, Int2 v2) { return Int2(v1) * v2; }
+		inline friend Int2 operator/ (int32_t   v1, Int2 v2) { return Int2(v1) / v2; }
 	};
 
 	struct HashInt2 {

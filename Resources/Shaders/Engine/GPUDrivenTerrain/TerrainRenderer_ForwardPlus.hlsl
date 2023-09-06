@@ -54,6 +54,7 @@ struct a2v {
 	float3 lsNormal  : NORMAL;
 	float3 tangent   : TANGENT;
 	float3 bitangent : BITANGENT;
+	float4 color     : COLOR;
 };
 
 struct v2p {
@@ -61,10 +62,12 @@ struct v2p {
 	float4 prevCsPos : POSITION1;
 	float3 wsPos     : POSITION2;
 	float3 vsPos     : POSITION3;
-	float2 uv        : TEXCOORD0;
+	float2 uvHeight  : TEXCOORD0;
 	float2 uvVT      : TEXCOORD1;
+	float2 uv        : TEXCOORD2;
 	float2 position  : POSITION4;
 	uint   lod       : LOD;
+	float3 viewVec   : POSITION5;
 };
 
 struct p2o {
@@ -96,71 +99,94 @@ float4 SampleTerrainSplatMap(float2 uv) {
 }
 
 float3 SampleColorMapWithTriMapping(Texture2D colorMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-		float2 uvX = position.zy * textureScale.x;
-		float2 uvY = position.xz * textureScale.y;
-		float2 uvZ = position.xy * textureScale.z;
+	float2 uvX = position.zy * textureScale.x;
+	float2 uvY = position.xz * textureScale.y;
+	float2 uvZ = position.xy * textureScale.z;
 
-		float3 weights = pow(abs(normal), sharpness);
-		weights /= dot(weights, 1.0f);
+	float3 weights = pow(abs(normal), sharpness);
+	weights /= dot(weights, 1.0f);
 
-		float3 xDiff = colorMap.SampleLevel(SamplerLinearWrap, uvX, 0).rgb;
-        float3 yDiff = colorMap.SampleLevel(SamplerLinearWrap, uvY, 0).rgb;
-        float3 zDiff = colorMap.SampleLevel(SamplerLinearWrap, uvZ, 0).rgb;
+	float3 xDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvX, 0), 2.2f).rgb;
+    float3 yDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvY, 0), 2.2f).rgb;
+    float3 zDiff = pow(colorMap.SampleLevel(SamplerLinearWrap, uvZ, 0), 2.2f).rgb;
 
-		float3 color = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
+	float3 color = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
 
-		return color;
+	return color;
+}
+
+float3 SampleColorMap(Texture2D colorMap, float3 position, float3 wsNormal, float textureScale) {
+	float2 uv = position.xz * textureScale;
+	float3 color = pow(colorMap.SampleLevel(SamplerLinearWrap, uv, 0), 2.2f).rgb;
+
+	return color;
 }
 
 float SampleHeightMapWithTriMapping(Texture2D heightMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-		float2 uvX = position.zy * textureScale.x;
-		float2 uvY = position.xz * textureScale.y;
-		float2 uvZ = position.xy * textureScale.z;
+	float2 uvX = position.zy * textureScale.x;
+	float2 uvY = position.xz * textureScale.y;
+	float2 uvZ = position.xy * textureScale.z;
 
-		float3 weights = pow(abs(normal), sharpness);
-		weights /= dot(weights, 1.0f);
+	float3 weights = pow(abs(normal), sharpness);
+	weights /= dot(weights, 1.0f);
 
-		float xDiff = heightMap.SampleLevel(SamplerLinearWrap, uvX, 0).r;
-        float yDiff = heightMap.SampleLevel(SamplerLinearWrap, uvY, 0).r;
-        float zDiff = heightMap.SampleLevel(SamplerLinearWrap, uvZ, 0).r;
+	float xDiff = heightMap.SampleLevel(SamplerLinearWrap, uvX, 0).r;
+    float yDiff = heightMap.SampleLevel(SamplerLinearWrap, uvY, 0).r;
+    float zDiff = heightMap.SampleLevel(SamplerLinearWrap, uvZ, 0).r;
 
-		float height = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
+	float height = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
 
-		return height;
+	return height;
+}
+
+float SampleHeightMap(Texture2D heightMap, float3 position, float3 wsNormal, float textureScale) {
+	float2 uv = position.xz * textureScale;
+	float height = heightMap.SampleLevel(SamplerLinearWrap, uv, 0).r;
+
+	return height;
 }
 
 float3 SampleNormalMapWithTriMapping(Texture2D normalMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-		float2 uvX = position.zy * textureScale.x;
-		float2 uvY = position.xz * textureScale.y;
-		float2 uvZ = position.xy * textureScale.z;
+	float2 uvX = position.zy * textureScale.x;
+	float2 uvY = position.xz * textureScale.y;
+	float2 uvZ = position.xy * textureScale.z;
 
-		float3 weights = pow(abs(normal), sharpness);
-		weights /= dot(weights, 1.0f);
+	float3 weights = pow(abs(normal), sharpness);
+	weights /= dot(weights, 1.0f);
 
-		float3 tnormalX = normalMap.SampleLevel(SamplerLinearWrap, uvX, 0).xyz * 2.0f - 1.0f;
-        float3 tnormalY = normalMap.SampleLevel(SamplerLinearWrap, uvY, 0).xyz * 2.0f - 1.0f;
-        float3 tnormalZ = normalMap.SampleLevel(SamplerLinearWrap, uvZ, 0).xyz * 2.0f - 1.0f;
+	float3 tnormalX = normalMap.SampleLevel(SamplerLinearWrap, uvX, 0).xyz * 2.0f - 1.0f;
+    float3 tnormalY = normalMap.SampleLevel(SamplerLinearWrap, uvY, 0).xyz * 2.0f - 1.0f;
+    float3 tnormalZ = normalMap.SampleLevel(SamplerLinearWrap, uvZ, 0).xyz * 2.0f - 1.0f;
 
-		tnormalX = float3(
-			tnormalX.xy + normal.zy,
-			abs(tnormalX.z) * normal.x
-			);
-		tnormalY = float3(
-			tnormalY.xy + normal.xz,
-			abs(tnormalY.z) * normal.y
-			);
-		tnormalZ = float3(
-			tnormalZ.xy + normal.xy,
-			abs(tnormalZ.z) * normal.z
-			);
-
-		float3 wsNormal = normalize(
-			tnormalX.zyx * weights.x +
-			tnormalY.xzy * weights.y +
-			tnormalZ.xyz * weights.z
+	tnormalX = float3(
+		tnormalX.xy + normal.zy,
+		abs(tnormalX.z) * normal.x
+		);
+	tnormalY = float3(
+		tnormalY.xy + normal.xz,
+		abs(tnormalY.z) * normal.y
+		);
+	tnormalZ = float3(
+		tnormalZ.xy + normal.xy,
+		abs(tnormalZ.z) * normal.z
 		);
 
-		return wsNormal;
+	float3 wsNormal = normalize(
+		tnormalX.zyx * weights.x +
+		tnormalY.xzy * weights.y +
+		tnormalZ.xyz * weights.z
+	);
+
+	return wsNormal;
+}
+
+float3 SampleNormalMap(Texture2D normalMap, float3 position, float3 wsNormal, float textureScale) {
+	float2 uv = position.xz * textureScale;
+	float3 normal = normalMap.SampleLevel(SamplerLinearWrap, uv, 0).xyz * 2.0f - 1.0f;
+
+	// normal = float3(normal.xy + wsNormal.xz, abs(normal.z) * wsNormal.y);
+
+	return wsNormal;
 }
 
 float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4 splatWeight) {
@@ -170,18 +196,6 @@ float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4
     //与权重最大的通道进行对比，高度差在_Weight范围内的将会保留,_Weight不可以为0
     blend = max(blend - ma + 0.2f, 0.0f) * splatWeight;
     return blend / (blend.r + blend.g + blend.b + blend.a);
-}
-
-float3 SampleNormalMap(Texture2D<float4> normalMap, SamplerState s, float2 uv) {
-    float3 N = normalMap.SampleLevel(s, uv, 0.0f).xyz;
-    bool reconstructZ = N.z == 0.f;
-    N = N * 2.f - 1.f;
-
-    if (reconstructZ) {
-        N.z = sqrt(1.f - dot(N.xy, N.xy));
-    }
-
-    return N;
 }
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
@@ -217,10 +231,11 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	output.prevCsPos = prevCsPos;
 	output.wsPos = currWsPos;
 	output.vsPos = currVsPos;
-	output.uv = heightUV;
+	output.uvHeight = heightUV;
+	output.uv = input.uv;
 	output.position = patch.position;
 	output.lod = lod;
-
+	output.viewVec = FrameDataCB.CurrentEditorCamera.Position.xyz - output.wsPos;
 	return output;
 }
 
@@ -261,9 +276,11 @@ p2o PSMain(v2p input) {
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
 	float3 wsPos = input.wsPos;
-	float3 wsNormal = SampleTerrainNormalMap(input.uv);
-	float4 splatWeight = SampleTerrainSplatMap(input.uv);
-
+	float3 wsNormal = SampleTerrainNormalMap(input.uvHeight);
+	float4 splatWeight = SampleTerrainSplatMap(input.uvHeight);
+	bool isSteep = (wsNormal.y < 0.9f) ? true : false;
+	isSteep = false;
+	
 	float4 albedo = float4(0.5f, 0.5f, 0.5f, 1.0f);
 	float  roughness = 0.99f;
 
@@ -286,24 +303,58 @@ p2o PSMain(v2p input) {
 	float  textureScale = 1.0f / 64.0f;
 
 	// Height
-	float rChannelHeight = SampleHeightMapWithTriMapping(rChannelHeightMap, wsPos, wsNormal, textureScale);
-	float gChannelHeight = SampleHeightMapWithTriMapping(gChannelHeightMap, wsPos, wsNormal, textureScale);
-	float bChannelHeight = SampleHeightMapWithTriMapping(bChannelHeightMap, wsPos, wsNormal, textureScale);
-	float aChannelHeight = SampleHeightMapWithTriMapping(aChannelHeightMap, wsPos, wsNormal, textureScale);
+	float rChannelHeight = 0.0f;
+	float gChannelHeight = 0.0f;
+	float bChannelHeight = 0.0f;
+	float aChannelHeight = 0.0f;
+
+	if(isSteep) {
+		rChannelHeight = SampleHeightMapWithTriMapping(rChannelHeightMap, wsPos, wsNormal, textureScale);
+		gChannelHeight = SampleHeightMapWithTriMapping(gChannelHeightMap, wsPos, wsNormal, textureScale);
+		bChannelHeight = SampleHeightMapWithTriMapping(bChannelHeightMap, wsPos, wsNormal, textureScale);
+		aChannelHeight = SampleHeightMapWithTriMapping(aChannelHeightMap, wsPos, wsNormal, textureScale);
+	}
+	else {
+		rChannelHeight = SampleHeightMap(rChannelHeightMap, wsPos, wsNormal, textureScale);
+		gChannelHeight = SampleHeightMap(gChannelHeightMap, wsPos, wsNormal, textureScale);
+		bChannelHeight = SampleHeightMap(bChannelHeightMap, wsPos, wsNormal, textureScale);
+		aChannelHeight = SampleHeightMap(aChannelHeightMap, wsPos, wsNormal, textureScale);
+	}
 	splatWeight = GetHeightBlend(rChannelHeight, gChannelHeight, bChannelHeight, aChannelHeight, splatWeight);
 
 	// Albedo
-	float3 rChannel = SampleColorMapWithTriMapping(rChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 gChannel = SampleColorMapWithTriMapping(gChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 bChannel = SampleColorMapWithTriMapping(bChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 aChannel = SampleColorMapWithTriMapping(aChannelAlbedoMap, wsPos, wsNormal, textureScale);
+	float3 rChannel = float3(0.0f, 0.0f, 0.0f);
+	float3 gChannel = float3(0.0f, 0.0f, 0.0f);
+	float3 bChannel = float3(0.0f, 0.0f, 0.0f);
+	float3 aChannel = float3(0.0f, 0.0f, 0.0f);
+
+	if(isSteep) {
+		rChannel = SampleColorMapWithTriMapping(rChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		gChannel = SampleColorMapWithTriMapping(gChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		bChannel = SampleColorMapWithTriMapping(bChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		aChannel = SampleColorMapWithTriMapping(aChannelAlbedoMap, wsPos, wsNormal, textureScale);
+	}
+	else {
+		rChannel = SampleColorMap(rChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		gChannel = SampleColorMap(gChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		bChannel = SampleColorMap(bChannelAlbedoMap, wsPos, wsNormal, textureScale);
+		aChannel = SampleColorMap(aChannelAlbedoMap, wsPos, wsNormal, textureScale);
+	}
 	albedo.rgb = saturate(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
 	
 	// Normal
-	rChannel = SampleNormalMapWithTriMapping(rChannelNormalMap, wsPos, wsNormal, textureScale);
-	gChannel = SampleNormalMapWithTriMapping(gChannelNormalMap, wsPos, wsNormal, textureScale);
-	bChannel = SampleNormalMapWithTriMapping(bChannelNormalMap, wsPos, wsNormal, textureScale);
-	aChannel = SampleNormalMapWithTriMapping(aChannelNormalMap, wsPos, wsNormal, textureScale);
+	if(isSteep) {
+		rChannel = SampleNormalMapWithTriMapping(rChannelNormalMap, wsPos, wsNormal, textureScale);
+		gChannel = SampleNormalMapWithTriMapping(gChannelNormalMap, wsPos, wsNormal, textureScale);
+		bChannel = SampleNormalMapWithTriMapping(bChannelNormalMap, wsPos, wsNormal, textureScale);
+		aChannel = SampleNormalMapWithTriMapping(aChannelNormalMap, wsPos, wsNormal, textureScale);
+	}
+	else {
+		rChannel = SampleNormalMap(rChannelNormalMap, wsPos, wsNormal, textureScale);
+		gChannel = SampleNormalMap(gChannelNormalMap, wsPos, wsNormal, textureScale);
+		bChannel = SampleNormalMap(bChannelNormalMap, wsPos, wsNormal, textureScale);
+		aChannel = SampleNormalMap(aChannelNormalMap, wsPos, wsNormal, textureScale);
+	}
 	wsNormal.xyz = normalize(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
 
 	Surface surface;

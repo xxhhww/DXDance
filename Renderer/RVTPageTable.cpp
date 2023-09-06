@@ -13,7 +13,15 @@ namespace Renderer {
         }
     }
 
-    RvtPageTable::~RvtPageTable() {
+    void RvtPageTable::ViewRectChanged(
+        Math::Int2 viewRectOffset,
+        const std::function<void(const Math::Int2&)>& retiredFunc) {
+
+        for (int i = 0; i <= mMaxMipLevel; i++) {
+            mPageLevelTables[i].ViewRectChanged(viewRectOffset, retiredFunc);
+        }
+
+
     }
 
 }
