@@ -32,8 +32,8 @@ namespace Renderer {
 		mTileUpdater = std::make_unique<TileUpdater>(mDevice, mFrameTracker, &mTextureStorages, mDataUploader.get());
 
 		// 注册渲染帧完成的回调函数
-		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
-			FrameCompletedCallback(frameIndex);
+		mFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			FrameCompletedCallback(attribute.frameIndex);
 		});
 	}
 

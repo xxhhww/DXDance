@@ -285,6 +285,18 @@
     <ClInclude Include="LruCache.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="PageTable.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeVirtualTextureSystem.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="TileCache.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="RvtPhysicalTexture.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -480,6 +492,18 @@
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="RvtPageLevelTable.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeVirtualTextureSystem.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="PageTable.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="TileCache.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="RvtPhysicalTexture.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>

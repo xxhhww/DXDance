@@ -145,6 +145,7 @@
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Rect.h" />
+    <ClInclude Include="Scale.h" />
     <ClInclude Include="Spectrum.h" />
     <ClInclude Include="Vector.h" />
   </ItemGroup>

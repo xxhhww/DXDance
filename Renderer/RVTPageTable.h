@@ -6,7 +6,7 @@ namespace Renderer {
 
 	class RvtPageTable {
 	public:
-		RvtPageTable(int32_t tableSize);
+		RvtPageTable(int32_t tableSize, int32_t maxMipLevel);
 
 		/*
 		* viewRectOffset以mTableSize为单位

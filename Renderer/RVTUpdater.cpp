@@ -2,6 +2,8 @@
 #include "Renderer/RvtTiledTexture.h"
 #include "Renderer/TerrainSystem.h"
 #include "Renderer/RenderEngine.h"
+#include "Renderer/RenderGraph.h"
+#include "Renderer/RenderGraphBuilder.h"
 
 #include "Tools/Assert.h"
 #include "Math/Vector.h"
@@ -42,7 +44,7 @@ namespace Renderer {
 
 	RvtUpdater::RvtUpdater(TerrainSystem* terrainSystem)
 	: mRenderEngine(terrainSystem->mRenderEngine)
-	, mTerrainSystem(terrainSystem) 
+	, mTerrainSystem(terrainSystem)
 	, mMainShaderManger(mRenderEngine->mShaderManger.get())
 	, mMainResourceStateTracker(mRenderEngine->mResourceStateTracker.get())
 	, mMainDescriptorAllocator(mRenderEngine->mDescriptorAllocator.get())
@@ -54,13 +56,18 @@ namespace Renderer {
 	, mChangeViewDis((1.0f / 8.0f) * 2 * mRvtRadius)
 	, mLimitPerFrame(2u) {
 
+		mTableSize = (uint32_t)mTerrainSystem->worldMeterSize.x / mTerrainSystem->mostDetailNodeMeterSize;
+		mMaxMipLevel = 4u;
+		mRvtRadius = mTerrainSystem->worldMeterSize.x / 2.0f;
+		mCellSize = 2.0f * mRvtRadius / mTableSize;
+
 		// 杂项初始化
 		{
 			mFrameCompletedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 			ASSERT_FORMAT(mFrameCompletedEvent != nullptr, "Failed to Create Frame Completed Event Handle");
 
 			mRvtTiledTexture = std::make_unique<RvtTiledTexture>(mRenderEngine);
-			mPageTable = std::make_unique<RvtPageTable>(mTableSize);
+			mPageTable = std::make_unique<RvtPageTable>(mTableSize, mMaxMipLevel);
 			mLoadingDrawTileRequests.resize(mMaxRvtFrameCount);
 			mPendingDrawTileRequests.resize(mMaxRvtFrameCount);
 		}
@@ -86,9 +93,11 @@ namespace Renderer {
 			mRvtLinearBufferAllocator = std::make_unique<Renderer::LinearBufferAllocator>(device, mRvtFrameTracker.get());
 			mRvtPoolCommandListAllocator = std::make_unique<Renderer::PoolCommandListAllocator>(device, mRvtFrameTracker.get());
 		
-			mRvtFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
-				this->OnRvtFrameCompleted(frameIndex);
-			});
+			mRvtFrameTracker->AddFrameCompletedCallBack(
+				[this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+					this->OnRvtFrameCompleted(attribute, completedValue);
+				}
+			);
 		}
 
 		// 创建RvtLookUpMap相关变量
@@ -211,16 +220,6 @@ namespace Renderer {
 		mProcessThread.join();
 	}
 
-	void RvtUpdater::Initialize(RenderEngine* renderEngine) {
-
-	}
-
-	void RvtUpdater::AddPass(RenderEngine* renderEngine) {
-		auto* renderGraph = renderEngine->mRenderGraph.get();
-
-
-	}
-
 	void RvtUpdater::SetFrameCompletedEvent() {
 		SetEvent(mFrameCompletedEvent);
 	}
@@ -243,6 +242,8 @@ namespace Renderer {
 		}
 
 		while (mThreadRunning) {
+			continue;
+
 			uint64_t currentMainFrameFenceValue = mainFrameFence->CompletedValue();
 
 			const Math::Int2 newFixedPos = GetFixedPos(
@@ -251,8 +252,8 @@ namespace Renderer {
 			float xDiff = (float)newFixedPos.x - mCurrRvtRectCenter.x;
 			float yDiff = (float)newFixedPos.y - mCurrRvtRectCenter.y;
 			
-			/*
 			// ViewRectChanged
+			/*
 			if (std::abs(xDiff) > mChangeViewDis || std::abs(yDiff) > mChangeViewDis) {
 				// rtJob.ClearJob();
 				
@@ -739,7 +740,7 @@ namespace Renderer {
 		}
 
 		cell.cellState = CellState::Loading;
-		mPendingDrawTileRequests.at(mRvtFrameTracker->GetCurrFrameIndex()).emplace_back(x, y, mipLevel);
+		// mPendingDrawTileRequests.at(mRvtFrameTracker->GetCurrFrameIndex()).emplace_back(x, y, mipLevel);
 	}
 
 	void RvtUpdater::RetireTilePos(const Math::Int2& tilePos) {
@@ -754,7 +755,8 @@ namespace Renderer {
 		}
 	}
 
-	void RvtUpdater::OnRvtFrameCompleted(uint8_t frameIndex) {
+	void RvtUpdater::OnRvtFrameCompleted(const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+		uint8_t frameIndex = attribute.frameIndex;
 		// 完成的帧所处理的DrawTileRequests
 		auto& completedDrawTileRequests = mLoadingDrawTileRequests.at(frameIndex);
 

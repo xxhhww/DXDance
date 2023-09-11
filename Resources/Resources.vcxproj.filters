@@ -94,5 +94,6 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtLookUpMap.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\RvtHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtTiledMap.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer_VirtualTexture.hlsl" />
   </ItemGroup>
 </Project>

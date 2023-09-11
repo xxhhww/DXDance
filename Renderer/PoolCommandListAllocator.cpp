@@ -6,9 +6,11 @@ namespace Renderer {
 	PoolCommandListAllocator::PoolCommandListAllocator(const GHL::Device* device, RingFrameTracker* ringFrameTracker)
 	: mDevice(device)
 	, mFrameTracker(ringFrameTracker) {
-		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
-			CleanUpPendingDeallocation(frameIndex);
-		});
+		mFrameTracker->AddFrameCompletedCallBack(
+			[this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+				CleanUpPendingDeallocation(attribute.frameIndex);
+			}
+		);
 
 		mPendingDeallocations.resize(mFrameTracker->GetMaxSize());
 	}

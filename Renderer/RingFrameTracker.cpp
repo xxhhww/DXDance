@@ -15,27 +15,13 @@ namespace Renderer {
         // 调用NewFrame回调函数
         const auto& newestFrameTail = mFrameAttributes.back();
         for (const auto& callBack : mNewFramePushedCallBacks) {
-            callBack(newestFrameTail.frameIndex);
+            callBack(newestFrameTail, expectedValue);
         }
 	}
 
 	void RingFrameTracker::PopCompletedFrame(uint64_t completedValue) {
         // We can release all tails whose associated fence value is less 
         // than or equal to CompletedFenceValue
-        while (!mFrameAttributes.empty() && mFrameAttributes.front().fenceValue <= completedValue) {
-            const auto& oldestFrameTail = mFrameAttributes.front();
-
-            mUsedSize -= oldestFrameTail.size;
-            mHead = oldestFrameTail.frameIndex + oldestFrameTail.size;
-            for (const auto& callBack : mCompletedCallBacks) {
-                callBack(oldestFrameTail.frameIndex);
-            }
-
-            mFrameAttributes.pop_front();
-        }
-	}
-
-    void RingFrameTracker::PopCompletedFrame(uint64_t completedValue, const std::function<void(const FrameAttribute&)>& callback) {
         while (!mFrameAttributes.empty() && mFrameAttributes.front().fenceValue <= completedValue) {
             // (拷贝一份)
             const auto oldestFrameTail = mFrameAttributes.front();
@@ -44,12 +30,10 @@ namespace Renderer {
             mUsedSize -= oldestFrameTail.size;
             mHead = oldestFrameTail.frameIndex + oldestFrameTail.size;
             for (const auto& callBack : mCompletedCallBacks) {
-                callBack(oldestFrameTail.frameIndex);
+                callBack(oldestFrameTail, completedValue);
             }
-
-            callback(oldestFrameTail);
         }
-    }
+	}
 
     void RingFrameTracker::AddNewFramePushedCallBack(const NewFramePushedCallBack& callBack) {
         mNewFramePushedCallBacks.push_back(callBack);

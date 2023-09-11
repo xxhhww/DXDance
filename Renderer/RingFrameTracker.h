@@ -20,8 +20,8 @@ namespace Renderer {
 			uint32_t userData;	 // 该FrameAttribute的用户数据
 		};
 
-		using NewFramePushedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
-		using FrameCompletedCallBack = std::function<void(const size_t&)>; // (const size_t&)表示帧索引
+		using NewFramePushedCallBack = std::function<void(const FrameAttribute&, uint64_t)>;	// (const FrameAttribute&)表示帧属性, uint64_t表示当前主渲染帧的围栏的期望值
+		using FrameCompletedCallBack = std::function<void(const FrameAttribute&, uint64_t)>;	// (const FrameAttribute&)表示帧属性, uint64_t表示当前主渲染帧的围栏的达到值
 
 		static const size_t Invalid = static_cast<size_t>(-1);
 
@@ -42,11 +42,6 @@ namespace Renderer {
 		* @Param completedValue: 已达到(已完成)的围栏值
 		*/
 		void PopCompletedFrame(uint64_t completedValue);
-
-		/*
-		* 自定义CompletedFrame
-		*/
-		void PopCompletedFrame(uint64_t completedValue, const std::function<void(const FrameAttribute&)>& callback);
 
 		/*
 		* 设置新的渲染帧开始录制命令时调用回调函数

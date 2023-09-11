@@ -6,12 +6,12 @@ namespace Renderer {
 	: mDevice(device)
 	, mFrameTracker(frameTracker) {
 
-		mFrameTracker->AddNewFramePushedCallBack([this](const size_t& frameIndex) {
-			NewFramePushedCallback(frameIndex);
+		mFrameTracker->AddNewFramePushedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			NewFramePushedCallback(attribute.frameIndex);
 		});
 
-		mFrameTracker->AddFrameCompletedCallBack([this](const size_t& frameIndex) {
-			FrameCompletedCallback(frameIndex);
+		mFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			FrameCompletedCallback(attribute.frameIndex);
 		});
 
 		mQueryHeap = std::make_unique<GHL::QueryHeap>(mDevice, smMaxProfilesPerFrame * 2 * mFrameTracker->GetMaxSize(), GHL::EQueryHeapType::Timestamp);

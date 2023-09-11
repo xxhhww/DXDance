@@ -100,16 +100,6 @@ namespace Renderer {
 		~RvtUpdater();
 
 		/*
-		* 初始化
-		*/
-		void Initialize(RenderEngine* renderEngine);
-
-		/*
-		* 添加Pass至RenderGraph
-		*/
-		void AddPass(RenderEngine* renderEngine);
-
-		/*
 		* 通知Process线程进行处理
 		*/
 		void SetFrameCompletedEvent();
@@ -138,7 +128,6 @@ namespace Renderer {
 		}
 
 	private:
-
 		/*
 		* Process线程
 		*/
@@ -169,7 +158,7 @@ namespace Renderer {
 		/*
 		* RvtFrame帧完成后执行的回调函数
 		*/
-		void OnRvtFrameCompleted(uint8_t frameIndex);
+		void OnRvtFrameCompleted(const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue);
 
 	private:
 		RenderEngine*  mRenderEngine{ nullptr };

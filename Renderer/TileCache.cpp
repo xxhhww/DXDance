@@ -1,0 +1,59 @@
+#include "Renderer/TileCache.h"
+
+namespace Renderer {
+
+	TileCache::TileCache(int32_t cacheCount, int32_t tileCountPerAxis) {
+		mNodes.resize(cacheCount);
+
+		for (int32_t i = 0; i < cacheCount; i++) {
+			mNodes[i] = new Node(i, Math::Int2{ i % tileCountPerAxis, i / tileCountPerAxis });
+		}
+		for (int32_t i = 0; i < cacheCount; i++) {
+			mNodes[i]->next = (i + 1 < cacheCount) ? mNodes[i + 1] : nullptr;
+			mNodes[i]->prev = (i != 0) ? mNodes[i - 1] : nullptr;
+		}
+		mHead = mNodes[0];
+		mTail = mNodes[cacheCount - 1];
+	}
+
+	TileCache::~TileCache() {
+		for (uint32_t i = 0; i < mNodes.size(); i++) {
+			delete mNodes[i];
+		}
+
+		mNodes.clear();
+	}
+
+	void TileCache::AddTail(TileCache::Node* node) {
+		if (node == mTail) {
+			return;
+		}
+
+		auto* lastTail = mTail;
+		lastTail->next = node;
+		mTail = node;
+		node->prev = lastTail;
+	}
+
+	void TileCache::AddHead(TileCache::Node* node) {
+		if (node == mHead) {
+			return;
+		}
+
+		auto* lastHead = mHead;
+		lastHead->prev = node;
+		mHead = node;
+		node->next = lastHead;
+	}
+
+	void TileCache::Remove(TileCache::Node* node) {
+		if (mHead == node) {
+			mHead = node->next;
+		}
+		else {
+			node->prev->next = node->next;
+			node->next->prev = node->prev;
+		}
+	}
+
+}

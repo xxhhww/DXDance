@@ -3,9 +3,9 @@
 
 namespace Renderer {
 
-    RvtPageTable::RvtPageTable(int32_t tableSize) 
+    RvtPageTable::RvtPageTable(int32_t tableSize, int32_t maxMipLevel)
     : mTableSize(tableSize)
-    , mMaxMipLevel((int32_t)std::log2(tableSize)) {
+    , mMaxMipLevel(maxMipLevel) {
 
         for (int32_t i = 0; i <= mMaxMipLevel; i++) {
             mPageLevelTables.emplace_back(i, tableSize);

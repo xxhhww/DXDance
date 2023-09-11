@@ -7,9 +7,11 @@ namespace Renderer {
 	class RenderEngine;
 	class RingFrameTracker;
 	class RvtUpdater;
+	class RuntimeVirtualTextureSystem;
 
 	class TerrainSystem {
 		friend class RvtUpdater;
+		friend class RuntimeVirtualTextureSystem;
 
 	public:
 		struct NodeDescriptor {
@@ -182,7 +184,7 @@ namespace Renderer {
 		* 而在ProcessFeedback线程中，也会对isFresh变量进行修改
 		*/
 		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
-		std::vector<BufferWrap> mTerrainReadbackBuffers; 
+		std::vector<BufferWrap> mTerrainReadbackBuffers;
 
 		RvtUpdater* mRvtUpdater{ nullptr };
 	};

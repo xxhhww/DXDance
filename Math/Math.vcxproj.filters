@@ -81,6 +81,9 @@
     <ClInclude Include="Int.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Scale.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector.cpp">
