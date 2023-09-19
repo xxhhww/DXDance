@@ -23,7 +23,7 @@ namespace Renderer {
 
 		public:
 			inline Node(int32_t id, const Math::Int2& pos) : tileID(id), tilePos(pos) {}
-			~Node() = default;
+			inline ~Node() = default;
 		};
 
 	public:
@@ -45,7 +45,7 @@ namespace Renderer {
 		// 获取列表尾节点（最活跃节点）
 		inline TileCache::Node* GetTail() { return mTail; }
 
-	private:
+	public:
 		std::vector<TileCache::Node*> mNodes;
 		TileCache::Node* mHead{ nullptr };
 		TileCache::Node* mTail{ nullptr };

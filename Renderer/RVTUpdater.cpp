@@ -532,9 +532,9 @@ namespace Renderer {
 
 			// Update Pass Data
 			mUpdateRvtTiledMapPassData.drawRequestBufferIndex = mRvtDrawTiledMapRequestsBuffer->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRvtTiledMapPassData.terrainHeightMapIndex = mTerrainSystem->heightMap->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRvtTiledMapPassData.terrainNormalMapIndex = mTerrainSystem->normalMap->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRvtTiledMapPassData.terrainSplatMapIndex = mTerrainSystem->splatMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRvtTiledMapPassData.terrainHeightMapIndex = mTerrainSystem->terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRvtTiledMapPassData.terrainNormalMapIndex = mTerrainSystem->terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRvtTiledMapPassData.terrainSplatMapIndex = mTerrainSystem->terrainSplatMap->GetSRDescriptor()->GetHeapIndex();
 			mUpdateRvtTiledMapPassData.terrainMeterSize = mTerrainSystem->worldMeterSize;
 			mUpdateRvtTiledMapPassData.terrainHeightScale = mTerrainSystem->worldHeightScale;
 

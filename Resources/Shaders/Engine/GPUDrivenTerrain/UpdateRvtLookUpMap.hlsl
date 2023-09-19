@@ -42,15 +42,15 @@ v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 
 	v2p output;
 	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
-	output.indexInfo = float4(drawRequest.tilePos, drawRequest.mipLevel, 0.0f);
+	output.indexInfo = float4(drawRequest.tilePos, drawRequest.mipLevel, 1.0f);
 
 	return output;
 }
 
 p2o PSMain(v2p input) {
 	p2o output;
-	// output.rvtLookUpMap = input.indexInfo;
-	output.rvtLookUpMap = float4(GetLODColor(input.indexInfo.z), 1.0f);
+	output.rvtLookUpMap = input.indexInfo;
+	// output.rvtLookUpMap = float4(GetLODColor(input.indexInfo.z), 1.0f);
 	return output;
 }
 

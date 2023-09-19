@@ -5,7 +5,7 @@ namespace Renderer {
 	PageTable::PageTable(int32_t maxLevel, int32_t mostDetailTileCountPerAxis)
 	: maxLevel(maxLevel)
 	, mostDetailTileCountPerAxis(mostDetailTileCountPerAxis) {
-		mPageLevelTables.resize(maxLevel);
+		mPageLevelTables.resize(maxLevel + 1);
 		
 		int32_t currDetailTileCountPerAxis = mostDetailTileCountPerAxis;
 		int32_t currDetailTileSize = 1;		// 当前细节尺度下单个Tile的大小

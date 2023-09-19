@@ -1,6 +1,7 @@
 #include "Renderer/RuntimeVirtualTextureSystem.h"
 #include "Renderer/TerrainSystem.h"
 #include "Renderer/RenderEngine.h"
+#include "Tools/Assert.h"
 
 namespace Renderer {
 
@@ -10,11 +11,17 @@ namespace Renderer {
 		Math::Vector4 tileRectInImageSpace;
 		Math::Matrix4 mvpMatrix;
 
+		Math::Vector4 blendOffset;
+		Math::Vector4 tileOffset;
+
 	public:
-		inline GPUDrawPhysicalTextureRequest(const Math::Vector4& wsTileRect, const Math::Vector4& isTileRect, const Math::Matrix4& mvp)
+		inline GPUDrawPhysicalTextureRequest(const Math::Vector4& wsTileRect, const Math::Vector4& isTileRect, const Math::Matrix4& mvp,
+			const Math::Vector4& blendOffset, const Math::Vector4& tileOffset)
 			: tileRectInWorldSpace(wsTileRect)
 			, tileRectInImageSpace(isTileRect)
-			, mvpMatrix(mvp) {}
+			, mvpMatrix(mvp) 
+			, blendOffset(blendOffset)
+			, tileOffset(tileOffset) {}
 	};
 
 	struct GPUDrawPageTableTextureRequest {
@@ -44,15 +51,14 @@ namespace Renderer {
 	, mPaddingSize(4u) 
 	, mLimitTaskPerFrame(6u) {
 
+		mCurrRvtRect = Math::Vector4{
+			0.0f - terrainSystem->worldMeterSize.x / 2.0f,
+			0.0f - terrainSystem->worldMeterSize.y / 2.0f,
+			terrainSystem->worldMeterSize.x,
+			terrainSystem->worldMeterSize.y
+		};
+
 		mLoadingTasks.resize(mMaxRvtFrameCount);
-
-		// 初始化图形对象
-		InitializeGraphicsObject(mTerrainSystem);
-
-		// 启动处理线程
-		mProcessThread = std::thread([this]() {
-			this->UpdateThread();
-		});
 
 		// 填充虚拟纹理参数
 		uint32_t pixelPerMeter = 128u;	// 每米的像素值
@@ -62,11 +68,26 @@ namespace Renderer {
 		mTileCount = mTileCountPerAxis * mTileCountPerAxis;
 		mVirtualTextureSize = mTileCountPerAxis * mTileSize;
 
-		mMaxMipLevel = 9u;
+		// 除以2直到mTileCountPerAxis不能再被2整除
+		mMaxMipLevel = 0u;
+		uint32_t tempCount = mTileCountPerAxis;
+		while (tempCount != 1 && tempCount % 2 == 0) {
+			mMaxMipLevel++;
+			tempCount /= 2;
+		}
 
 		// 初始化PageTable于物理纹理
 		mPageTable = std::make_unique<PageTable>(mMaxMipLevel, mTileCountPerAxis);
 		mRvtPhysicalTexture = std::make_unique<RvtPhysicalTexture>(this);
+
+		// 初始化图形对象
+		InitializeGraphicsObject(mTerrainSystem);
+
+		// 启动处理线程
+		mProcessThread = std::thread([this]() {
+			this->UpdateThread();
+			}
+		);
 	}
 
 	RuntimeVirtualTextureSystem::~RuntimeVirtualTextureSystem() {
@@ -86,7 +107,7 @@ namespace Renderer {
 			// 新的主渲染帧完成
 			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
 				previousMainFrameFenceValue = currentMainFrameFenceValue;
-
+				
 				// 压入新的Rvt帧
 				mRvtFrameFence->IncrementExpectedValue();
 				mRvtFrameTracker->PushCurrentFrame(mRvtFrameFence->ExpectedValue());
@@ -95,6 +116,9 @@ namespace Renderer {
 				// 在处理过程中会将长时间未使用的Tile从缓存列表中分配出去，也就是说缓存列表发生了改变
 				ProcessFeedback(currentMainFrameFenceValue);
 
+				// 锁住GPU资源状态
+				LockGPUResource();
+
 				// 处理任务列表，并将对应的GPU任务塞入GPU队列中
 				UpdatePhysicalTexturePass();
 
@@ -102,6 +126,9 @@ namespace Renderer {
 				UpdatePageTableTexturePass();
 
 				mRvtGrahpicsQueue->SignalFence(*mRvtFrameFence.get());
+
+				// 解锁
+				UnlockGPUResource();
 			}
 
 			// 检测RvtFrame是否过载
@@ -156,28 +183,35 @@ namespace Renderer {
 			// 这其中有些Tile的渲染命令已经被提交到GPU上去，这一部分我们不予处理，让其随着LRU Cache的变动而被剔除
 			// 这其中的另外一部分Tile的渲染命令未被提交，将这些任务清除掉
 			ClearTaskQueue();
-
 			TextureWrap& terrainFeedbackMap = mTerrainSystem->mTerrainFeedbackMap;
 			auto& textureDesc = terrainFeedbackMap->GetResourceFormat().GetTextureDesc();
 
 			BufferWrap& terrainReadbackBuffer = terrainReadbackBuffers.at(targetFeedbackIndex);
-			uint8_t* pResolvedData = terrainReadbackBuffer->Map();
-
-			uint32_t height = textureDesc.height;
+			uint16_t* pResolvedData = reinterpret_cast<uint16_t*>(terrainReadbackBuffer->Map());
+			
 			uint32_t width = textureDesc.width;
+			uint32_t height = textureDesc.height;
+
+			// rowByteSize的单位是Byte，而我们是2Byte读取的，因此要除以2
 			uint32_t rowByteSize = (width * GHL::GetFormatStride(textureDesc.format) + 0x0ff) & ~0x0ff;
+			rowByteSize /= (sizeof(uint16_t) / sizeof(uint8_t));
 
 			for (uint32_t y = 0u; y < height; y++) {
 				for (uint32_t x = 0u; x < rowByteSize;) {
-					uint8_t r = pResolvedData[x++];	// page0PosX
-					uint8_t g = pResolvedData[x++];	// page0PosY
-					uint8_t b = pResolvedData[x++];	// mipLevel
-					uint8_t a = pResolvedData[x++];
+					
+					uint16_t r = pResolvedData[x++];	// page0PosX
+					uint16_t g = pResolvedData[x++];	// page0PosY
+					uint16_t b = pResolvedData[x++];	// mipLevel
+					uint16_t a = pResolvedData[x++];
 
 					if (a == 0u) {
 						continue;
 					}
 
+					if (g >= 1536 && g < 2048)
+					{
+						int i = 32;
+					}
 					// 分配一个Tile
 					DistributeTile(r, g, b);
 				}
@@ -187,7 +221,6 @@ namespace Renderer {
 			}
 			terrainReadbackBuffer->UnMap();
 		}
-
 		return;
 	}
 
@@ -196,7 +229,6 @@ namespace Renderer {
 		if (mTasks.empty()) {
 			return;
 		}
-
 		// 按照mipLevel进行排序(mipLevel从小到大)
 		std::sort(mTasks.begin(), mTasks.end(),
 			[](const Task& taskA, const Task& taskB) {
@@ -204,21 +236,39 @@ namespace Renderer {
 			}
 		);
 
-		auto& tileCache = mRvtPhysicalTexture->GetTileCache();
-
 		// 每次只处理限制个数的Task
+		auto& tileCache = mRvtPhysicalTexture->GetTileCache();
 		int32_t count = mLimitTaskPerFrame;
 		std::vector<GPUDrawPhysicalTextureRequest> gpuDrawRequests;
 		while (count > 0 && mTasks.size() > 0u) {
-			// 取出mip值最大的DrawTileRequest
 			Task task = mTasks.back();
 			mTasks.pop_back();
 			// Task task = mTasks.at(mTasks.size() - count);
 
+			// Request Head Node
+			auto* head = tileCache.GetHead();
+			if (head->page0Pos.x != -1 && head->page0Pos.y != -1 && head->mipLevel != -1) {
+				task.prevPage0Pos = head->page0Pos;
+				task.prevMipLevel = head->mipLevel;
+			}
+			// take out head node
+			tileCache.Remove(head);
+			task.node = head;
+
 			// 修改状态
-			auto& chunk = mPageTable->GetChunk(task.nextPage0Pos.x, task.nextPage0Pos.y, task.nextMipLevel);
-			chunk.inQueue = false;
-			chunk.inLoading = true;
+			if (task.prevMipLevel != -1 && task.prevPage0Pos != Math::Int2{ -1, -1 }) {
+				auto& prevChunk = mPageTable->GetChunk(task.prevPage0Pos.x, task.prevPage0Pos.y, task.prevMipLevel);
+				prevChunk.SetInActive();
+				prevChunk.node = nullptr;
+			}
+			if (task.nextMipLevel != -1 && task.nextPage0Pos != Math::Int2{ -1, -1 }) {
+				auto& nextChunk = mPageTable->GetChunk(task.nextPage0Pos.x, task.nextPage0Pos.y, task.nextMipLevel);
+				nextChunk.SetInLoading();
+			}
+			if (task.node != nullptr) {
+				task.node->page0Pos = Math::Int2{ -1, -1 };
+				task.node->mipLevel = -1;
+			}
 
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mRvtPhysicalTexture->GetTileSizeWithPadding();
@@ -236,12 +286,12 @@ namespace Renderer {
 			x = x - x % perSize;
 			y = y - y % perSize;
 
-			uint32_t paddingEffect = mRvtPhysicalTexture->GetPaddingSize() * perSize * (mTerrainSystem->worldMeterSize.x / mTileCountPerAxis) / mTileSize;
+			uint32_t paddingEffect = mRvtPhysicalTexture->GetPaddingSize() * perSize * (mCurrRvtRect.z / mTileCountPerAxis) / mTileSize;
 			Math::Vector4 tileRectInWorldSpace = Math::Vector4{
-				0.0f + ((float)x / mTileCountPerAxis) * mTerrainSystem->worldMeterSize.x - paddingEffect,
-				0.0f + ((float)y / mTileCountPerAxis) * mTerrainSystem->worldMeterSize.y - paddingEffect,
-				mTerrainSystem->worldMeterSize.x * ((float)perSize / mTileCountPerAxis) + 2.0f * paddingEffect,
-				mTerrainSystem->worldMeterSize.y * ((float)perSize / mTileCountPerAxis) + 2.0f * paddingEffect
+				mCurrRvtRect.x + ((float)x / mTileCountPerAxis) * mCurrRvtRect.z - paddingEffect,
+				mCurrRvtRect.y + ((float)y / mTileCountPerAxis) * mCurrRvtRect.w - paddingEffect,
+				mCurrRvtRect.z * ((float)perSize / mTileCountPerAxis) + 2.0f * paddingEffect,
+				mCurrRvtRect.w * ((float)perSize / mTileCountPerAxis) + 2.0f * paddingEffect
 			};
 
 			// 地块矩形
@@ -276,6 +326,19 @@ namespace Renderer {
 				tileRectInWorldSpaceOverlapped.w * scaleFactorHeight
 			};
 
+			// tileRect与terrainRect的长宽缩放与原点（左下角）平移
+			Math::Vector4 scaleOffset = Math::Vector4{
+				tileRectInWorldSpaceOverlapped.z / terrainRectInWorldSpace.z,
+				tileRectInWorldSpaceOverlapped.w / terrainRectInWorldSpace.w,
+				(tileRectInWorldSpaceOverlapped.x - terrainRectInWorldSpace.x) / terrainRectInWorldSpace.z,
+				(tileRectInWorldSpaceOverlapped.y - terrainRectInWorldSpace.y) / terrainRectInWorldSpace.w
+			};
+
+			Math::Vector2 nowScale = Math::Vector2(terrainRectInWorldSpace.z / 15.0f,
+				terrainRectInWorldSpace.w / 15.0f);
+			Math::Vector4 tileOffset = Math::Vector4(nowScale.x * scaleOffset.x,
+				nowScale.y * scaleOffset.y, scaleOffset.z * nowScale.x, scaleOffset.w * nowScale.y);
+
 			// 构建从局部空间到图像空间的MVP矩阵
 			float physicalTextureSize = (float)mRvtPhysicalTexture->GetPhysicalTextureSize();
 
@@ -298,7 +361,7 @@ namespace Renderer {
 			mvpMatrix._34 = 1.0f;
 			mvpMatrix._44 = 1.0f;
 
-			gpuDrawRequests.emplace_back(tileRectInWorldSpaceOverlapped, tileRectInImageSpaceOverlapped, mvpMatrix);
+			gpuDrawRequests.emplace_back(tileRectInWorldSpaceOverlapped, tileRectInImageSpaceOverlapped, mvpMatrix, scaleOffset, tileOffset);
 			mLoadingTasks.at(mRvtFrameTracker->GetCurrFrameIndex()).emplace_back(task);
 
 			count--;
@@ -324,9 +387,9 @@ namespace Renderer {
 
 			// Update Pass Data
 			mUpdatePhysicalTexturePassData.drawRequestBufferIndex = mDrawPhysicalTextureRequestBuffer->GetSRDescriptor()->GetHeapIndex();
-			mUpdatePhysicalTexturePassData.terrainHeightMapIndex = mTerrainSystem->heightMap->GetSRDescriptor()->GetHeapIndex();
-			mUpdatePhysicalTexturePassData.terrainNormalMapIndex = mTerrainSystem->normalMap->GetSRDescriptor()->GetHeapIndex();
-			mUpdatePhysicalTexturePassData.terrainSplatMapIndex = mTerrainSystem->splatMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdatePhysicalTexturePassData.terrainHeightMapIndex = mTerrainSystem->terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdatePhysicalTexturePassData.terrainNormalMapIndex = mTerrainSystem->terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
+			mUpdatePhysicalTexturePassData.terrainSplatMapIndex = mTerrainSystem->terrainSplatMap->GetSRDescriptor()->GetHeapIndex();
 			mUpdatePhysicalTexturePassData.terrainMeterSize = mTerrainSystem->worldMeterSize;
 			mUpdatePhysicalTexturePassData.terrainHeightScale = mTerrainSystem->worldHeightScale;
 
@@ -385,9 +448,11 @@ namespace Renderer {
 
 	// 更新页表纹理
 	void RuntimeVirtualTextureSystem::UpdatePageTableTexturePass() {
+
 		// 每次更新都只更新当前PhysicalTexture中存在的Tile
 		auto& tileCache = mRvtPhysicalTexture->GetTileCache();
 		auto* currNode = tileCache.GetHead();
+		auto* currTail = tileCache.GetTail();
 
 		std::vector<GPUDrawPageTableTextureRequest> gpuDrawRequests;
 		while (currNode != nullptr) {
@@ -476,14 +541,11 @@ namespace Renderer {
 
 		for (auto& task : mTasks) {
 			if (task.prevMipLevel != -1 && task.prevPage0Pos != Math::Int2{ -1, -1 }) {
-				auto& prevChunk = mPageTable->GetChunk(task.prevPage0Pos.x, task.prevPage0Pos.y, task.prevMipLevel);
-				prevChunk.node = task.node;
-				prevChunk.inTexture = true;
+				// do nothing
 			}
 			if (task.nextMipLevel != -1 && task.nextPage0Pos != Math::Int2{ -1, -1 }) {
 				auto& nextChunk = mPageTable->GetChunk(task.nextPage0Pos.x, task.nextPage0Pos.y, task.nextMipLevel);
-				nextChunk.inQueue = false;
-				nextChunk.node = nullptr;
+				nextChunk.SetInActive();
 			}
 
 			if (task.node != nullptr) {
@@ -496,10 +558,14 @@ namespace Renderer {
 	}
 
 	void RuntimeVirtualTextureSystem::DistributeTile(int page0PosX, int page0PosY, int mipLevel) {
+		if (mipLevel > mMaxMipLevel || mipLevel < 0 || 
+			page0PosX < 0 || page0PosY < 0 ||
+			page0PosX >= mTileCountPerAxis || page0PosY >= mTileCountPerAxis) {
+			return;
+		}
 
 		auto& chunk = mPageTable->GetChunk(page0PosX, page0PosY, mipLevel);
 		auto& tileCache = mRvtPhysicalTexture->GetTileCache();
-
 		// Use inQueue and inTexture to test whether need to enqueue the task
 		if (chunk.inQueue || chunk.inLoading) {
 			// do nothing
@@ -510,35 +576,16 @@ namespace Renderer {
 			tileCache.AddTail(chunk.node);
 		}
 		else {
-			auto* node = tileCache.GetHead();
-
-			Math::Int2 unloadPage0Pos{ -1, -1 };
-			int32_t unloadMipLevel = -1;
-
-			//Use inQueue and inTexture to test whether need to enqueue the task
-			//If the node is previously assigned to a chunk, set the original chunk who points this tile to null
-			if (node->page0Pos.x != -1 && node->page0Pos.y != -1 && node->mipLevel != -1) {
-				unloadPage0Pos = node->page0Pos;
-				unloadMipLevel = node->mipLevel;
-
-				auto& unloadChunk = mPageTable->GetChunk(node->page0Pos.x, node->page0Pos.y, node->mipLevel);
-				unloadChunk.inTexture = false;
-				unloadChunk.node = nullptr;
-			}
-
-			// take out node
-			tileCache.Remove(node);
-
 			// push task
-			mTasks.emplace_back(node, unloadPage0Pos, unloadMipLevel, Math::Int2{ page0PosX, page0PosY }, mipLevel);
-
+			mTasks.emplace_back(Math::Int2{ page0PosX, page0PosY }, mipLevel);
 			// update chunk
-			chunk.inQueue = true;
+			chunk.SetInQueue();
 		}
 
 	}
 
 	void RuntimeVirtualTextureSystem::OnRvtFrameCompleted(uint8_t rvtFrameIndex) {
+
 		// 获取该帧结束后完成的任务
 		auto& completedTasks = mLoadingTasks.at(rvtFrameIndex);
 
@@ -549,11 +596,12 @@ namespace Renderer {
 		// 更新TileCache
 		for (auto& task : completedTasks) {
 			auto& chunk = mPageTable->GetChunk(task.nextPage0Pos.x, task.nextPage0Pos.y, task.nextMipLevel);
-			chunk.inLoading = false;
-			chunk.inTexture = true;
+			chunk.SetInTexture();
 			chunk.node = task.node;
 
 			if (task.node != nullptr) {
+				task.node->page0Pos = task.nextPage0Pos;
+				task.node->mipLevel = task.nextMipLevel;
 				auto& tileCache = mRvtPhysicalTexture->GetTileCache();
 				tileCache.AddTail(task.node);
 			}
@@ -593,14 +641,18 @@ namespace Renderer {
 		// 创建QuadMesh
 		{
 			std::vector<Vertex> vertices;
-			vertices.emplace_back(Math::Vector3{ 0.0f, 1.0f, 0.0f }, Math::Vector2{ 0.0f, 1.0f },
-				Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{});
-			vertices.emplace_back(Math::Vector3{ 0.0f, 0.0f, 0.0f }, Math::Vector2{ 0.0f, 0.0f },
-				Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{});
-			vertices.emplace_back(Math::Vector3{ 1.0f, 0.0f, 0.0f }, Math::Vector2{ 1.0f, 0.0f },
-				Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{});
-			vertices.emplace_back(Math::Vector3{ 1.0f, 1.0f, 0.0f }, Math::Vector2{ 1.0f, 1.0f },
-				Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{});
+			vertices.resize(6u);
+			vertices[0].position = Math::Vector3{ 0.0f, 1.0f, 0.0f };
+			vertices[0].uv = Math::Vector2{ 0.0f, 1.0f };
+
+			vertices[1].position = Math::Vector3{ 0.0f, 0.0f, 0.0f };
+			vertices[1].uv = Math::Vector2{ 0.0f, 0.0f };
+
+			vertices[2].position = Math::Vector3{ 1.0f, 0.0f, 0.0f };
+			vertices[2].uv = Math::Vector2{ 1.0f, 0.0f };
+
+			vertices[3].position = Math::Vector3{ 1.0f, 1.0f, 0.0f };
+			vertices[3].uv = Math::Vector2{ 1.0f, 1.0f };
 
 			std::vector<uint32_t> indices;
 			indices.emplace_back(0u);
@@ -674,7 +726,6 @@ namespace Renderer {
 		_DrawPageTableTextureRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 		_DrawPageTableTextureRequestBufferDesc.initialState = GHL::EResourceState::Common;
 		_DrawPageTableTextureRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
-
 		mDrawPageTableTextureRequestBuffer = resourceAllocator->Allocate(device, _DrawPageTableTextureRequestBufferDesc, descriptorAllocator, nullptr);
 		mDrawPageTableTextureRequestBuffer->SetDebugName("DrawPageTableTextureRequestBuffer");
 
@@ -687,7 +738,6 @@ namespace Renderer {
 		_PageTableTextureDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		_PageTableTextureDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
 		_PageTableTextureDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-
 		mPageTableTexture = resourceAllocator->Allocate(device, _PageTableTextureDesc, descriptorAllocator, nullptr);
 		mPageTableTexture->SetDebugName("PageTableTexture");
 

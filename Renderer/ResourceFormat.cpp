@@ -201,7 +201,9 @@ namespace Renderer {
 				placedLayouts.data(), numRows.data(), rowSizeInBytes.data(), &requiredSize);
 
 			D3D12_RESOURCE_ALLOCATION_INFO allocInfo = mDevice->D3DDevice()->GetResourceAllocationInfo(mDevice->GetNodeMask(), 1, &mResourceDesc);
-			
+
+			mRequiredSize = requiredSize;
+
 			mAlignment = allocInfo.Alignment;
 			mSizeInBytes = allocInfo.SizeInBytes;
 

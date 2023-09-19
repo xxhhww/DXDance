@@ -15,5 +15,4 @@ namespace Renderer {
 		passNode->renderPass = mRenderGraphPasses.back().get();
 	}
 
-
 }

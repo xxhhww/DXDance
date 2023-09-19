@@ -5,11 +5,11 @@
 namespace Renderer {
 
 	RvtPhysicalTexture::RvtPhysicalTexture(RuntimeVirtualTextureSystem* rvtSystem)
-	: mRenderEngine(mRvtSystem->mRenderEngine)
+	: mRenderEngine(rvtSystem->mRenderEngine)
 	, mRvtSystem(rvtSystem) 
 	, mTileSize(rvtSystem->GetTileSize()) 
 	, mPaddingSize(rvtSystem->GetPaddingSize())
-	, mTileCountPerAxis(15u) 
+	, mTileCountPerAxis(30u) 
 	, mTileCount(mTileCountPerAxis * mTileCountPerAxis)
 	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis) 
 	, mTileCache(mTileCount, mTileCountPerAxis) {

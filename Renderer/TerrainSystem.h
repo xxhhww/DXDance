@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/ResourceAllocator.h"
+#include "Renderer/RuntimeVirtualTextureSystem.h"
 #include "Math/Int.h"
 
 namespace Renderer {
@@ -52,13 +53,17 @@ namespace Renderer {
 		};
 
 		struct TerrainRendererPassData {
-			// x: page size
+			// x: page table size
 			// y: virtual texture size
 			// z: max mipmap level
 			// w: mipmap level bias
 			Math::Vector4 vtFeedbackParams{};
-
 			Math::Vector4 vtRealRect{};
+			// x: padding size
+			// y: tileSize
+			// z: physical texture size x
+			// w: physical texture size y
+			Math::Vector4 vtPhysicalMapParams{};
 
 			Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
 			uint32_t heightScale{ 4096u };
@@ -68,6 +73,11 @@ namespace Renderer {
 			uint32_t normalMapIndex;
 			uint32_t lodDebug{ 0u };
 			uint32_t splatMapIndex;
+
+			uint32_t pageTableMapIndex;
+			uint32_t physicalAlbedoMapIndex;
+			uint32_t physicalNormalMapIndex;
+			float pad1;
 
 			uint32_t rChannelAlbedoMapIndex;
 			uint32_t rChannelNormalMapIndex;
@@ -108,6 +118,9 @@ namespace Renderer {
 		bool isInitialized{ false };
 		Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
 		float worldHeightScale{ 4096.0f };
+		bool lodDebug{ 0u };
+		bool useVT{ 1u };
+
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
 
@@ -119,10 +132,10 @@ namespace Renderer {
 
 		std::unique_ptr<Renderer::Mesh> patchMesh;
 		TextureWrap minmaxHeightMap;
-		TextureWrap heightMap;
-		TextureWrap normalMap;
+		TextureWrap terrainHeightMap;
+		TextureWrap terrainNormalMap;
 
-		TextureWrap splatMap;	// 纹理混合
+		TextureWrap terrainSplatMap;	// 纹理混合
 
 		// channel R
 		TextureWrap grassAlbedoMap;
@@ -186,7 +199,8 @@ namespace Renderer {
 		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
 		std::vector<BufferWrap> mTerrainReadbackBuffers;
 
-		RvtUpdater* mRvtUpdater{ nullptr };
+		std::unique_ptr<RuntimeVirtualTextureSystem> mRvtSystem;
+		// RvtUpdater* mRvtUpdater{ nullptr };
 	};
 
 }

@@ -4,6 +4,7 @@
 
 namespace Renderer {
 
+	class RenderEngine;
 	class RuntimeVirtualTextureSystem;
 
 	class RvtPhysicalTexture {

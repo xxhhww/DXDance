@@ -163,12 +163,13 @@ RecordRenderCommand:
 					auto* currFence = mFences.at(queueIndex).get();
 
 					for (auto& passNode : passNodes) {
+						passNode->renderPass->Begin();
 						// 创建CommandList
 						auto commandList = mCommandListAllocator->AllocateCommandList((GHL::EGPUQueue)queueIndex);
 						CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
 						auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 						commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
-						
+
 						// 收集渲染命令
 						commandBuffer.PIXBeginEvent(passNode->renderPass->GetName());
 						passNode->renderPass->Execute(commandBuffer, renderContext);
@@ -189,6 +190,7 @@ RecordRenderCommand:
 							currFence->IncrementExpectedValue();
 							currCommandQueue->SignalFence(*currFence);
 						}
+						passNode->renderPass->End();
 					}
 				}
 			}

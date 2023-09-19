@@ -147,5 +147,6 @@ namespace Renderer {
 
 		size_t mAlignment{ 0u };
 		size_t mSizeInBytes{ 0u };
+		size_t mRequiredSize{ 0u };
 	};
 }

@@ -39,15 +39,9 @@ namespace Renderer {
 			int32_t    nextMipLevel{ -1 };
 
 		public:
-			inline Task(
-				TileCache::Node* node,
-				const Math::Int2& prevPage0Pos, int32_t prevMipLevel,
-				const Math::Int2& nextPage0Pos, int32_t nextMipLevel)
-				: node(node)
-				, prevPage0Pos(prevPage0Pos)
-				, prevMipLevel(prevMipLevel)
-				, nextPage0Pos(nextPage0Pos)
-				, nextMipLevel(nextMipLevel) {}
+			inline Task(const Math::Int2& nextPage0Pos, int32_t nextMipLevel) 
+			: nextPage0Pos(nextPage0Pos)
+			, nextMipLevel(nextMipLevel) {}
 
 			~Task() = default;
 		};
@@ -103,8 +97,13 @@ namespace Renderer {
 		inline const auto& GetTileCount()        const { return mTileCount; }
 		inline const auto& GetVTSize()           const { return mVirtualTextureSize; }
 		inline const auto& GetMaxMipLevel()      const { return mMaxMipLevel; }
+		inline const auto& GetCurrRvtRect()      const { return mCurrRvtRect; }
 
-		inline const auto  GetTileSizeWithPadding() const { return mTileSize + 2u * mPaddingSize; }
+		inline const auto GetPhysicalTextureSize() const { return mRvtPhysicalTexture->GetPhysicalTextureSize(); }
+		inline const auto GetTileSizeWithPadding() const { return mTileSize + 2u * mPaddingSize; }
+
+		inline void LockGPUResource()	{ mMutex.lock(); }
+		inline void UnlockGPUResource() { mMutex.unlock(); }
 
 	private:
 		// 初始化图形对象
@@ -156,6 +155,7 @@ namespace Renderer {
 		// Thread Parameters
 		bool mThreadRunning{ true };
 		std::thread mProcessThread;
+		std::mutex mMutex;
 
 		// Misc Parameters(虚拟纹理的杂项参数)
 		uint32_t mTileSize;				// 虚拟纹理中Tile的尺寸大小
@@ -165,6 +165,8 @@ namespace Renderer {
 		uint32_t mVirtualTextureSize;	// 虚拟纹理的尺寸大小(mTileSize * mTileCount)
 
 		uint32_t mMaxMipLevel;
+
+		Math::Vector4 mCurrRvtRect;
 
 		// Rvt页表
 		std::unique_ptr<PageTable> mPageTable;

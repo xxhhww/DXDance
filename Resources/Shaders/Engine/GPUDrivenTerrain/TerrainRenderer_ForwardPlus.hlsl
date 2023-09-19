@@ -5,22 +5,31 @@
 #include "../Base/Light.hlsl"
 
 struct PassData {
-	// x: page size
+	// x: page table size
 	// y: virtual texture size
 	// z: max mipmap level
 	// w: mipmap level bias
 	float4 vtFeedbackParams;
-
 	float4 vtRealRect;
+	// x: padding size
+	// y: tileSize
+	// z: physical texture size x
+	// w: physical texture size y
+	float4 vtPhysicalMapParams;
 
 	float2 worldSize;
-	uint   heightScale;
-	uint   culledPatchListIndex;
+	uint heightScale;
+	uint culledPatchListIndex;
 
-	uint   heightMapIndex;
-	uint   normalMapIndex;
-	uint   lodDebug;
-	uint   splatMapIndex;
+	uint heightMapIndex;
+	uint normalMapIndex;
+	uint lodDebug;
+	uint splatMapIndex;
+
+	uint pageTableMapIndex;
+	uint physicalAlbedoMapIndex;
+	uint physicalNormalMapIndex;
+	float pad1;
 
 	uint rChannelAlbedoMapIndex;
 	uint rChannelNormalMapIndex;
@@ -65,9 +74,7 @@ struct v2p {
 	float2 uvHeight  : TEXCOORD0;
 	float2 uvVT      : TEXCOORD1;
 	float2 uv        : TEXCOORD2;
-	float2 position  : POSITION4;
 	uint   lod       : LOD;
-	float3 viewVec   : POSITION5;
 };
 
 struct p2o {
@@ -184,9 +191,7 @@ float3 SampleNormalMap(Texture2D normalMap, float3 position, float3 wsNormal, fl
 	float2 uv = position.xz * textureScale;
 	float3 normal = normalMap.SampleLevel(SamplerLinearWrap, uv, 0).xyz * 2.0f - 1.0f;
 
-	// normal = float3(normal.xy + wsNormal.xz, abs(normal.z) * wsNormal.y);
-
-	return wsNormal;
+	return normal * 0.0f + wsNormal;
 }
 
 float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4 splatWeight) {
@@ -224,18 +229,14 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	// 前一帧的CsPos，不需要加上上一帧的抖动，在PS中计算时再加上这一帧的uv抖动，从而保证计算motionVector时消除抖动
 	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
 
-	// 计算改点在VT上的uv值
-	output.uvVT = (currWsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
-
 	output.currCsPos = currCsPos;
 	output.prevCsPos = prevCsPos;
 	output.wsPos = currWsPos;
 	output.vsPos = currVsPos;
 	output.uvHeight = heightUV;
+	output.uvVT = (currWsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
 	output.uv = input.uv;
-	output.position = patch.position;
 	output.lod = lod;
-	output.viewVec = FrameDataCB.CurrentEditorCamera.Position.xyz - output.wsPos;
 	return output;
 }
 
@@ -300,7 +301,7 @@ p2o PSMain(v2p input) {
 	Texture2D aChannelNormalMap = ResourceDescriptorHeap[PassDataCB.aChannelNormalMapIndex];
 	Texture2D aChannelHeightMap = ResourceDescriptorHeap[PassDataCB.aChannelHeightMapIndex];
 
-	float  textureScale = 1.0f / 64.0f;
+	float  textureScale = 1.0f / 32.0f;
 
 	// Height
 	float rChannelHeight = 0.0f;

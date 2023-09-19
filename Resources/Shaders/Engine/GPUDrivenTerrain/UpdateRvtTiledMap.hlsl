@@ -48,9 +48,10 @@ struct a2v {
 
 
 struct v2p {
-	float4 currCsPos : SV_POSITION;
-	float3 wsPos     : POSITION1;
-	float2 heightUV  : TEXCOORD0;
+	float4 currCsPos   : SV_POSITION;
+	float2 uv          : TEXCOORD0;
+	float4 blendTile   : Offset0;
+	float4 tileOffset  : Offset1;
 };
 
 struct p2o {
@@ -58,18 +59,7 @@ struct p2o {
 	float4 normal : SV_TARGET1;
 };
 
-float3 SampleTerrainNormalMap(float2 uv) {
-	Texture2D<float4> normalMap = ResourceDescriptorHeap[PassDataCB.terrainNormalMapIndex];
-
-    float3 normal;
-    normal.xz = normalMap.SampleLevel(SamplerAnisotropicWrap, uv, 0u).xy * 2.0f - 1.0f;
-    normal.y = sqrt(max(0u, 1u - dot(normal.xz, normal.xz)));
-
-    return normalize(normal);
-}
-
 float4 SampleTerrainSplatMap(float2 uv) {
-	// uv.x = 1.0f - uv.x;
 	uv.y = 1.0f - uv.y;
 
 	Texture2D<float4> splatMap = ResourceDescriptorHeap[PassDataCB.terrainSplatMapIndex];
@@ -77,74 +67,6 @@ float4 SampleTerrainSplatMap(float2 uv) {
 	float4 splat = splatMap.SampleLevel(SamplerLinearWrap, uv, 0u).rgba;
 
 	return splat;
-}
-
-float3 SampleColorMapWithTriMapping(Texture2D colorMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-	float2 uvX = position.zy * textureScale.x;
-	float2 uvY = position.xz * textureScale.y;
-	float2 uvZ = position.xy * textureScale.z;
-
-	float3 weights = pow(abs(normal), sharpness);
-	weights /= dot(weights, 1.0f);
-
-	float3 xDiff = colorMap.SampleLevel(SamplerLinearWrap, uvX, 0).rgb;
-    float3 yDiff = colorMap.SampleLevel(SamplerLinearWrap, uvY, 0).rgb;
-    float3 zDiff = colorMap.SampleLevel(SamplerLinearWrap, uvZ, 0).rgb;
-
-	float3 color = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
-
-	return color;
-}
-
-float SampleHeightMapWithTriMapping(Texture2D heightMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-	float2 uvX = position.zy * textureScale.x;
-	float2 uvY = position.xz * textureScale.y;
-	float2 uvZ = position.xy * textureScale.z;
-
-	float3 weights = pow(abs(normal), sharpness);
-	weights /= dot(weights, 1.0f);
-
-	float xDiff = heightMap.SampleLevel(SamplerLinearWrap, uvX, 0).r;
-    float yDiff = heightMap.SampleLevel(SamplerLinearWrap, uvY, 0).r;
-    float zDiff = heightMap.SampleLevel(SamplerLinearWrap, uvZ, 0).r;
-
-	float height = xDiff * weights.x + yDiff * weights.y + zDiff * weights.z;
-
-	return height;
-}
-
-float3 SampleNormalMapWithTriMapping(Texture2D normalMap, float3 position, float3 normal, float3 textureScale, float sharpness = 15.0f) {
-	float2 uvX = position.zy * textureScale.x;
-	float2 uvY = position.xz * textureScale.y;
-	float2 uvZ = position.xy * textureScale.z;
-
-	float3 weights = pow(abs(normal), sharpness);
-	weights /= dot(weights, 1.0f);
-
-	float3 tnormalX = normalMap.SampleLevel(SamplerLinearWrap, uvX, 0).xyz * 2.0f - 1.0f;
-    float3 tnormalY = normalMap.SampleLevel(SamplerLinearWrap, uvY, 0).xyz * 2.0f - 1.0f;
-    float3 tnormalZ = normalMap.SampleLevel(SamplerLinearWrap, uvZ, 0).xyz * 2.0f - 1.0f;
-
-	tnormalX = float3(
-		tnormalX.xy + normal.zy,
-		abs(tnormalX.z) * normal.x
-		);
-	tnormalY = float3(
-		tnormalY.xy + normal.xz,
-		abs(tnormalY.z) * normal.y
-		);
-	tnormalZ = float3(
-		tnormalZ.xy + normal.xy,
-		abs(tnormalZ.z) * normal.z
-		);
-
-	float3 wsNormal = normalize(
-		tnormalX.zyx * weights.x +
-		tnormalY.xzy * weights.y +
-		tnormalZ.xyz * weights.z
-	);
-
-	return wsNormal;
 }
 
 float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4 splatWeight) {
@@ -158,23 +80,13 @@ float4 GetHeightBlend(float high1, float high2, float high3, float high4, float4
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 	StructuredBuffer<DrawRvtTiledMapRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
-	Texture2D<float4> heightMap = ResourceDescriptorHeap[PassDataCB.terrainHeightMapIndex];
-
 	DrawRvtTiledMapRequest drawRequest = drawRequestBuffer[instanceID];
-	float2 scale = drawRequest.tileRectInWorldSpace.zw;
-	float3 wsPos = float3(0.0f, 0.0f, 0.0f);
-	wsPos.xz = input.lsPos.xy * scale;
-	wsPos.xz += drawRequest.tileRectInWorldSpace.xy;
-
-	float2 heightUV = (wsPos.xz + (PassDataCB.terrainMeterSize * 0.5f) + 0.5f) / (PassDataCB.terrainMeterSize + 1.0f);
-	heightUV *= 1.0f;
-	float height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
-	wsPos.y = height * PassDataCB.terrainHeightScale;
 
 	v2p output;
 	output.currCsPos = mul(float4(input.lsPos, 1.0f), drawRequest.mvpMatrix);
-	output.wsPos = wsPos;
-    output.heightUV = heightUV;
+	output.uv = input.uv;
+	output.blendTile = drawRequest.blendTile;
+	output.tileOffset = drawRequest.tileOffset;
 
 	return output;
 }
@@ -196,39 +108,39 @@ p2o PSMain(v2p input) {
 	Texture2D aChannelNormalMap = ResourceDescriptorHeap[PassDataCB.aChannelNormalMapIndex];
 	Texture2D aChannelHeightMap = ResourceDescriptorHeap[PassDataCB.aChannelHeightMapIndex];
 
-	float  textureScale = 1.0f / 64.0f;
+	float2 blendUV = input.uv * input.blendTile.xy + input.blendTile.zw;
+	float4 blend = SampleTerrainSplatMap(blendUV);
 
-	float3 wsPos = input.wsPos;
-	float3 wsNormal = SampleTerrainNormalMap(input.heightUV);
-	float4 splatWeight = SampleTerrainSplatMap(input.heightUV);
-
-	float3 finalAlbedo = float3(0.0f, 0.0f, 0.0f);
-	float3 finalNormal = float3(0.0f, 0.0f, 0.0f);
+	float4 finalAlbedo = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	float4 finalNormal = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Height
-	float rChannelHeight = SampleHeightMapWithTriMapping(rChannelHeightMap, wsPos, wsNormal, textureScale);
-	float gChannelHeight = SampleHeightMapWithTriMapping(gChannelHeightMap, wsPos, wsNormal, textureScale);
-	float bChannelHeight = SampleHeightMapWithTriMapping(bChannelHeightMap, wsPos, wsNormal, textureScale);
-	float aChannelHeight = SampleHeightMapWithTriMapping(aChannelHeightMap, wsPos, wsNormal, textureScale);
-	splatWeight = GetHeightBlend(rChannelHeight, gChannelHeight, bChannelHeight, aChannelHeight, splatWeight);
 
-	// Albedo
-	float3 rChannel = SampleColorMapWithTriMapping(rChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 gChannel = SampleColorMapWithTriMapping(gChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 bChannel = SampleColorMapWithTriMapping(bChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	float3 aChannel = SampleColorMapWithTriMapping(aChannelAlbedoMap, wsPos, wsNormal, textureScale);
-	finalAlbedo.rgb = saturate(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
-	
-	// Normal
-	rChannel = SampleNormalMapWithTriMapping(rChannelNormalMap, wsPos, wsNormal, textureScale);
-	gChannel = SampleNormalMapWithTriMapping(gChannelNormalMap, wsPos, wsNormal, textureScale);
-	bChannel = SampleNormalMapWithTriMapping(bChannelNormalMap, wsPos, wsNormal, textureScale);
-	aChannel = SampleNormalMapWithTriMapping(aChannelNormalMap, wsPos, wsNormal, textureScale);
-	finalNormal.xyz = normalize(splatWeight.r * rChannel + splatWeight.g * gChannel + splatWeight.b * bChannel + splatWeight.a * aChannel);
+    float2 transUv = input.uv * input.tileOffset.xy + input.tileOffset.zw;
+    float4 rChannelAlbedo = pow(rChannelAlbedoMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba, 2.2f);
+    float4 rChannelNormal = rChannelNormalMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba;
+
+    transUv = input.uv * input.tileOffset.xy + input.tileOffset.zw;
+    float4 gChannelAlbedo = pow(gChannelAlbedoMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba, 2.2f);
+    float4 gChannelNormal = gChannelNormalMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba;
+
+    
+	transUv = input.uv * input.tileOffset.xy + input.tileOffset.zw;
+    float4 bChannelAlbedo = pow(bChannelAlbedoMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba, 2.2f);
+    float4 bChannelNormal = bChannelNormalMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba;
+
+    
+	transUv = input.uv * input.tileOffset.xy + input.tileOffset.zw;
+    float4 aChannelAlbedo = pow(aChannelAlbedoMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba, 2.2f);
+    float4 aChannelNormal = aChannelNormalMap.SampleLevel(SamplerLinearWrap, transUv, 0).rgba;
+
+	// Blend
+	finalAlbedo = blend.r * rChannelAlbedo + blend.g * gChannelAlbedo + blend.b * bChannelAlbedo + blend.a * aChannelAlbedo;
+    finalNormal = blend.r * rChannelNormal + blend.g * gChannelNormal + blend.b * bChannelNormal + blend.a * aChannelNormal;
 
 	p2o output;
-	output.albedo.rgba = float4(finalAlbedo, 0.0f);
-	output.normal.xyzw = float4(finalNormal, 0.0f);
+	output.albedo.rgba = finalAlbedo;
+	output.normal.xyzw = finalNormal;
 	return output;
 }
 

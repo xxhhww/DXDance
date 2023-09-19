@@ -33,16 +33,13 @@ namespace Renderer {
 	}
 
 	TerrainSystem::~TerrainSystem() {
-		if (mRvtUpdater != nullptr) {
-			delete mRvtUpdater;
-		}
 	}
 
 	void TerrainSystem::Initialize(RenderEngine* renderEngine) {
 		mRenderEngine = renderEngine;
 
 		{
-			mRvtUpdater = new RvtUpdater(this);
+			mRvtSystem = std::make_unique<RuntimeVirtualTextureSystem>(this);
 		}
 
 		auto* device = renderEngine->mDevice.get();
@@ -64,7 +61,7 @@ namespace Renderer {
 			TextureDesc _TerrainFeedbackDesc{};
 			_TerrainFeedbackDesc.width = finalOutputDesc.width;
 			_TerrainFeedbackDesc.height = finalOutputDesc.height;
-			_TerrainFeedbackDesc.format = DXGI_FORMAT_R8G8B8A8_UINT;
+			_TerrainFeedbackDesc.format = DXGI_FORMAT_R16G16B16A16_UINT;
 			_TerrainFeedbackDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
 			_TerrainFeedbackDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 			mTerrainFeedbackMap = resourceAllocator->Allocate(
@@ -159,21 +156,21 @@ namespace Renderer {
 
 		// Load HeightMap From File
 		{
-			heightMap = FixedTextureHelper::LoadFromFile(
+			terrainHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png"
 			);
-			resourceStateTracker->StartTracking(heightMap);
-			resourceStorage->ImportResource("TerrainHeightMap", heightMap);
+			resourceStateTracker->StartTracking(terrainHeightMap);
+			resourceStorage->ImportResource("TerrainHeightMap", terrainHeightMap);
 		}
 
 		// Load NormalMap From File
 		{
-			normalMap = FixedTextureHelper::LoadFromFile(
+			terrainNormalMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/NormalMap_5120W_4096H.png");
-			resourceStateTracker->StartTracking(normalMap);
-			resourceStorage->ImportResource("TerrainNormalMap", normalMap);
+			resourceStateTracker->StartTracking(terrainNormalMap);
+			resourceStorage->ImportResource("TerrainNormalMap", terrainNormalMap);
 		}
 
 		// Load Grass Texture
@@ -262,11 +259,11 @@ namespace Renderer {
 
 		// Load SplatMap From File
 		{
-			splatMap = FixedTextureHelper::LoadFromFile(
+			terrainSplatMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/SplatMap.dds");
-			resourceStateTracker->StartTracking(splatMap.Get());
-			resourceStorage->ImportResource("SplatMap", splatMap);
+			resourceStateTracker->StartTracking(terrainSplatMap);
+			resourceStorage->ImportResource("SplatMap", terrainSplatMap);
 		}
 	}
 
@@ -591,19 +588,36 @@ namespace Renderer {
 				builder.DeclareBuffer("TerrainRendererIndirectArgs", _TerrainRendererIndirectArgsProperties);
 				builder.WriteCopyDstBuffer("TerrainRendererIndirectArgs");
 
-				shaderManger.CreateGraphicsShader("TerrainRenderer",
-					[](GraphicsStateProxy& proxy) {
-						proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_ForwardPlus.hlsl";
-						proxy.psFilepath = proxy.vsFilepath;
-						proxy.depthStencilDesc.DepthEnable = true;
-						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
-						proxy.renderTargetFormatArray = {
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16_FLOAT,
-							DXGI_FORMAT_R8G8B8A8_UINT	// TerrainFeedback
-						};
-					});
+				if (!useVT) {
+					shaderManger.CreateGraphicsShader("TerrainRenderer",
+						[](GraphicsStateProxy& proxy) {
+							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_ForwardPlus.hlsl";
+							proxy.psFilepath = proxy.vsFilepath;
+							proxy.depthStencilDesc.DepthEnable = true;
+							proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+							proxy.renderTargetFormatArray = {
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R16G16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_UINT	// TerrainFeedback
+							};
+						});
+				}
+				else {
+					shaderManger.CreateGraphicsShader("TerrainRenderer",
+						[](GraphicsStateProxy& proxy) {
+							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_VirtualTexture.hlsl";
+							proxy.psFilepath = proxy.vsFilepath;
+							proxy.depthStencilDesc.DepthEnable = true;
+							proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+							proxy.renderTargetFormatArray = {
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R16G16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_UINT	// TerrainFeedback
+							};
+						});
+				}
 
 				commandSignatureManger.CreateCommandSignature("TerrainRenderer",
 					[&](GHL::CommandSignature& proxy) {
@@ -630,22 +644,34 @@ namespace Renderer {
 				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
 
+				auto* pageTableTexture = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
+				auto* physicalTextureAlbedo = resourceStorage->GetResourceByName("PhysicalTextureAlbedo")->GetTexture();
+				auto* physicalTextureNormal = resourceStorage->GetResourceByName("PhysicalTextureNormal")->GetTexture();
+
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
 				// 更新Rvt参数
-				uint32_t tableSize   = mRvtUpdater->GetTableSize();
-				uint32_t maxMipLevel = mRvtUpdater->GetMaxMipLevel();
-				uint32_t tileSize    = mRvtUpdater->GetRvtTiledMap()->GetTileSize();
+				uint32_t tileCountPerAxis = mRvtSystem->GetTileCountPerAxis();
+				uint32_t maxMipLevel = mRvtSystem->GetMaxMipLevel();
+				uint32_t tileSize = mRvtSystem->GetTileSize();
+				uint32_t paddingSize = mRvtSystem->GetPaddingSize();
+				uint32_t physicalTextureSize = mRvtSystem->GetPhysicalTextureSize();
 
-				terrainRendererPassData.vtFeedbackParams = Math::Vector4{ (float)tableSize, (float)(tableSize * tileSize), (float)maxMipLevel - 1.0f, 0.0f };
-				terrainRendererPassData.vtRealRect = mRvtUpdater->GetCurrRvtRect();
+				terrainRendererPassData.vtFeedbackParams = Math::Vector4{ (float)tileCountPerAxis, (float)(tileCountPerAxis * tileSize), (float)maxMipLevel, 0.0f };
+				terrainRendererPassData.vtRealRect = mRvtSystem->GetCurrRvtRect();
+				terrainRendererPassData.vtPhysicalMapParams = Math::Vector4{ (float)paddingSize, (float)tileSize, (float)physicalTextureSize, (float)physicalTextureSize };
 
 				terrainRendererPassData.worldMeterSize = worldMeterSize;
 				terrainRendererPassData.heightScale = worldHeightScale;
 				terrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
-				terrainRendererPassData.heightMapIndex = heightMap->GetSRDescriptor()->GetHeapIndex();
-				terrainRendererPassData.normalMapIndex = normalMap->GetSRDescriptor()->GetHeapIndex();
-				terrainRendererPassData.splatMapIndex = splatMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.heightMapIndex = terrainHeightMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.normalMapIndex = terrainNormalMap->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.splatMapIndex = terrainSplatMap->GetSRDescriptor()->GetHeapIndex();
+
+				// 三个纹理比较特殊，会被其他线程引用
+				terrainRendererPassData.pageTableMapIndex = pageTableTexture->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.physicalAlbedoMapIndex = physicalTextureAlbedo->GetSRDescriptor()->GetHeapIndex();
+				terrainRendererPassData.physicalNormalMapIndex = physicalTextureNormal->GetSRDescriptor()->GetHeapIndex();
 
 				terrainRendererPassData.rChannelAlbedoMapIndex = grassAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 				terrainRendererPassData.rChannelNormalMapIndex = grassNormalMap->GetSRDescriptor()->GetHeapIndex();
@@ -685,7 +711,11 @@ namespace Renderer {
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				barrierBatch = commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
-				barrierBatch += commandBuffer.TransitionImmediately(heightMap.Get(), GHL::EResourceState::PixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(terrainHeightMap, GHL::EResourceState::PixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(pageTableTexture, GHL::EResourceState::PixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(physicalTextureAlbedo, GHL::EResourceState::PixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(physicalTextureNormal, GHL::EResourceState::PixelShaderAccess);
+
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
@@ -704,6 +734,7 @@ namespace Renderer {
 				uint16_t width = static_cast<uint16_t>(shadingResultDesc.width);
 				uint16_t height = static_cast<uint16_t>(shadingResultDesc.height);
 				commandBuffer.ClearRenderTarget(terrainFeedback);
+
 				commandBuffer.SetRenderTargets(
 					{
 						shadingResult,
@@ -712,6 +743,7 @@ namespace Renderer {
 						terrainFeedback,
 					},
 					depthStencil);
+
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 				commandBuffer.SetGraphicsRootSignature();
@@ -742,6 +774,12 @@ namespace Renderer {
 					0, 0, 0,
 					&srcLocation,
 					nullptr);
+			},
+			[=]() {
+				mRvtSystem->LockGPUResource();
+			},
+			[=]() {
+				mRvtSystem->UnlockGPUResource();
 			}
 			);
 	}

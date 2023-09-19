@@ -5,6 +5,9 @@ struct DrawRvtTiledMapRequest {
 	float4   tileRectInWorldSpace;
 	float4   tileRectInImageSpace;
 	float4x4 mvpMatrix;
+
+	float4 blendTile;
+	float4 tileOffset;
 };
 
 struct DrawRvtLookUpMapRequest {

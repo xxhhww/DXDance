@@ -56,6 +56,12 @@ float3 GetLODColor(uint lodLevel) {
 	else if(lodLevel == 7u) {
 		lodDebugColor = float3(0.25f, 0.75f, 0.0f);
 	}
+	else if(lodLevel == 8u) {
+		lodDebugColor = float3(0.0f, 0.25f, 0.75f);
+	}
+	else if(lodLevel == 9u) {
+		lodDebugColor = float3(0.0f, 0.75f, 0.25f);
+	}
 	else { 
 		lodDebugColor = float3(1.0f, 1.0f, 0.0f);
 	}

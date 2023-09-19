@@ -49,11 +49,18 @@ namespace Renderer {
 	void TileCache::Remove(TileCache::Node* node) {
 		if (mHead == node) {
 			mHead = node->next;
+			mHead->prev = nullptr;
+		}
+		else if (mTail == node) {
+			mTail = node->prev;
+			mTail->next = nullptr;
 		}
 		else {
 			node->prev->next = node->next;
 			node->next->prev = node->prev;
 		}
+		node->prev = nullptr;
+		node->next = nullptr;
 	}
 
 }

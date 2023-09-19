@@ -13,6 +13,12 @@ namespace Renderer {
 		bool inTexture{ false };	// 是否位于物理纹理中
 
 		TileCache::Node* node{ nullptr };	// 对应的Tile节点
+
+	public:
+		inline void SetInActive()	{ inQueue = false; inLoading = false; inTexture = false; }
+		inline void SetInQueue()	{ inQueue = true;  inLoading = false; inTexture = false; }
+		inline void SetInLoading()	{ inQueue = false; inLoading = true;  inTexture = false; }
+		inline void SetInTexture()	{ inQueue = false; inLoading = false; inTexture = true;  }
 	};
 
 	struct PageLevelTable {
@@ -24,7 +30,6 @@ namespace Renderer {
 		std::vector<std::vector<PageLevelTableChunk>> chunks;
 
 	public:
-
 		inline auto& GetChunk(int32_t page0PosX, int32_t page0PosY) {
 			page0PosX /= chunkMipSize;
 			page0PosY /= chunkMipSize;
