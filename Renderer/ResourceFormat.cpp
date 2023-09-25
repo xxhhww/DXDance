@@ -122,6 +122,11 @@ namespace Renderer {
 				if (HasAllFlags(desc.expectedState, GHL::EResourceState::UnorderedAccess)) {
 					mResourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 				}
+
+				mResourceDesc1 = Convert2D3D12ResourceDesc1(mResourceDesc);
+				mResourceDesc1.SamplerFeedbackMipRegion.Height = desc.tileTexelHeight;
+				mResourceDesc1.SamplerFeedbackMipRegion.Width = desc.tileTexelWidth;
+				mResourceDesc1.SamplerFeedbackMipRegion.Depth = desc.tileTexelDepth;
 			},
 			[this](BufferDesc& desc) {
 				if (desc.usage == GHL::EResourceUsage::Default) {
@@ -234,6 +239,40 @@ namespace Renderer {
 			, mResourceDescVariant);
 
 		return subresourceCount;
+	}
+
+	D3D12_RESOURCE_DESC  ResourceFormat::Convert2D3D12ResourceDesc(D3D12_RESOURCE_DESC1 resourceDesc1) {
+		D3D12_RESOURCE_DESC resourceDesc{};
+
+		resourceDesc.Dimension = resourceDesc1.Dimension;
+		resourceDesc.Format = resourceDesc1.Format;
+		resourceDesc.MipLevels = resourceDesc1.MipLevels;
+		resourceDesc.Alignment = resourceDesc1.Alignment;
+		resourceDesc.DepthOrArraySize = resourceDesc1.DepthOrArraySize;
+		resourceDesc.Height = resourceDesc1.Height;
+		resourceDesc.Width = resourceDesc1.Width;
+		resourceDesc.Flags = resourceDesc1.Flags;
+		resourceDesc.SampleDesc.Count = resourceDesc1.SampleDesc.Count;
+		resourceDesc.SampleDesc.Quality = resourceDesc1.SampleDesc.Quality;
+
+		return resourceDesc;
+	}
+
+	D3D12_RESOURCE_DESC1 ResourceFormat::Convert2D3D12ResourceDesc1(D3D12_RESOURCE_DESC resourceDesc) {
+		D3D12_RESOURCE_DESC1 resourceDesc1{};
+
+		resourceDesc1.Dimension = resourceDesc.Dimension;
+		resourceDesc1.Format = resourceDesc.Format;
+		resourceDesc1.MipLevels = resourceDesc.MipLevels;
+		resourceDesc1.Alignment = resourceDesc.Alignment;
+		resourceDesc1.DepthOrArraySize = resourceDesc.DepthOrArraySize;
+		resourceDesc1.Height = resourceDesc.Height;
+		resourceDesc1.Width = resourceDesc.Width;
+		resourceDesc1.Flags = resourceDesc.Flags;
+		resourceDesc1.SampleDesc.Count = resourceDesc.SampleDesc.Count;
+		resourceDesc1.SampleDesc.Quality = resourceDesc.SampleDesc.Quality;
+
+		return resourceDesc1;
 	}
 
 }

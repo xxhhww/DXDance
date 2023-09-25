@@ -120,6 +120,12 @@
     <ClInclude Include="Box.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DirectStorageFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectStorageQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -210,6 +216,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Box.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectStorageFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectStorageQueue.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -79,8 +79,11 @@
     <Filter Include="头文件\Renderer\Terrain">
       <UniqueIdentifier>{f1734a5b-1928-4c53-b453-ada76f981bdd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\SoftwareVirtualTextureSystem">
-      <UniqueIdentifier>{215ae7ff-91c5-4369-87fc-5bc488b2f59e}</UniqueIdentifier>
+    <Filter Include="头文件\Renderer\StreamVirtualTextureSystem">
+      <UniqueIdentifier>{b3714281-59aa-48d6-93c6-88159617eb70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\StreamVirtualTextureSystem">
+      <UniqueIdentifier>{53e65f89-2b01-4703-934b-b3ca5b12dbc8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -300,6 +303,18 @@
     <ClInclude Include="RvtPhysicalTexture.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="StreamVirtualTextureSystem.h">
+      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamVirtualTexture.h">
+      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="TileUploader.h">
+      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="XetTextureGenerator.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -508,6 +523,18 @@
     </ClCompile>
     <ClCompile Include="RvtPhysicalTexture.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamVirtualTextureSystem.cpp">
+      <Filter>源文件\StreamVirtualTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamVirtualTexture.cpp">
+      <Filter>源文件\StreamVirtualTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="TileUploader.cpp">
+      <Filter>源文件\StreamVirtualTextureSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="XetTextureGenerator.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

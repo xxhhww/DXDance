@@ -165,6 +165,7 @@
     <ClInclude Include="FoliagePass.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="GBufferPass.h" />
+    <ClInclude Include="XetTextureGenerator.h" />
     <ClInclude Include="GPUData.h" />
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="GrassPass.h" />
@@ -188,6 +189,8 @@
     <ClInclude Include="RvtTiledTexture.h" />
     <ClInclude Include="SkyGenerationPass.h" />
     <ClInclude Include="SkyPass.h" />
+    <ClInclude Include="StreamVirtualTexture.h" />
+    <ClInclude Include="StreamVirtualTextureSystem.h" />
     <ClInclude Include="TAAPass.h" />
     <ClInclude Include="TerrainSystem.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
@@ -225,6 +228,7 @@
     <ClInclude Include="TileUpdater.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="TileUploader.h" />
     <ClInclude Include="ToneMappingPass.h" />
     <ClInclude Include="UploaderEngine.h" />
     <ClInclude Include="UploadList.h" />
@@ -249,6 +253,7 @@
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
+    <ClCompile Include="XetTextureGenerator.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="GrassPass.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
@@ -268,6 +273,8 @@
     <ClCompile Include="RvtTiledTexture.cpp" />
     <ClCompile Include="SkyGenerationPass.cpp" />
     <ClCompile Include="SkyPass.cpp" />
+    <ClCompile Include="StreamVirtualTexture.cpp" />
+    <ClCompile Include="StreamVirtualTextureSystem.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="TerrainSystem.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
@@ -306,6 +313,7 @@
     <ClCompile Include="TileUpdater.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="TileUploader.cpp" />
     <ClCompile Include="ToneMappingPass.cpp" />
     <ClCompile Include="UploaderEngine.cpp" />
     <ClCompile Include="UploadList.cpp" />

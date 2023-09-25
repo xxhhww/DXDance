@@ -5,6 +5,7 @@
 
 #include "Renderer/TerrainOfflineTask.h"
 #include "Renderer/GenerateCloudNoiseTask.h"
+#include "Renderer/XetTextureGenerator.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -369,7 +370,9 @@ void DoGenerateCloudNoiseTask() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
-    RunRenderer();
+    XetTextureGenerator generator;
+    generator.Generate("E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.dds");
+    // RunRenderer();
     // DoTerrainOfflineTask();
     // DoGenerateCloudNoiseTask();
 }

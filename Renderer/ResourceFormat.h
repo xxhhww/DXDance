@@ -24,6 +24,11 @@ namespace Renderer {
 		GHL::EResourceState    initialState = GHL::EResourceState::Common;
 		GHL::EResourceState    expectedState = GHL::EResourceState::Common;
 		GHL::ECreatedMethod    createdMethod = GHL::ECreatedMethod::Committed;
+
+		// For Sampler Feedback Texture
+		uint32_t			   tileTexelHeight = 0u;
+		uint32_t			   tileTexelWidth = 0u;
+		uint32_t			   tileTexelDepth = 1u;
 	};
 
 	/*
@@ -105,7 +110,8 @@ namespace Renderer {
 
 		bool CanUseClearValue();
 
-		inline const auto& D3DResourceDesc() const { return mResourceDesc; }
+		inline const auto& D3DResourceDesc()  const { return mResourceDesc; }
+		inline const auto& D3DResourceDesc1() const { return mResourceDesc1; }
 
 		inline const auto& GetAlignment()              const { return mAlignment; }
 		inline const auto& GetSizeInBytes()            const { return mSizeInBytes; }
@@ -128,6 +134,9 @@ namespace Renderer {
 		*/
 		void SetBackBufferStates();
 
+		static D3D12_RESOURCE_DESC  Convert2D3D12ResourceDesc(D3D12_RESOURCE_DESC1 resourceDesc1);
+		static D3D12_RESOURCE_DESC1 Convert2D3D12ResourceDesc1(D3D12_RESOURCE_DESC resourceDesc);
+
 	private:
 		void ResolveD3DResourceDesc();
 
@@ -135,7 +144,8 @@ namespace Renderer {
 
 	private:
 		const GHL::Device* mDevice{ nullptr };
-		D3D12_RESOURCE_DESC mResourceDesc{};
+		D3D12_RESOURCE_DESC  mResourceDesc{};
+		D3D12_RESOURCE_DESC1 mResourceDesc1{};
 
 		ResourceDescVariant mResourceDescVariant{};
 

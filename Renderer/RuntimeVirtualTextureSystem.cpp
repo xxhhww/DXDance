@@ -334,8 +334,8 @@ namespace Renderer {
 				(tileRectInWorldSpaceOverlapped.y - terrainRectInWorldSpace.y) / terrainRectInWorldSpace.w
 			};
 
-			Math::Vector2 nowScale = Math::Vector2(terrainRectInWorldSpace.z / 15.0f,
-				terrainRectInWorldSpace.w / 15.0f);
+			Math::Vector2 nowScale = Math::Vector2(terrainRectInWorldSpace.z / 25.0f,
+				terrainRectInWorldSpace.w / 25.0f);
 			Math::Vector4 tileOffset = Math::Vector4(nowScale.x * scaleOffset.x,
 				nowScale.y * scaleOffset.y, scaleOffset.z * nowScale.x, scaleOffset.w * nowScale.y);
 
