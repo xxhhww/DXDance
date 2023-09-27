@@ -18,8 +18,8 @@ namespace Renderer
 		StreamVirtualTextureSystem(
 			const GHL::Device* device,
 			const GHL::Fence* mainFrameFence,
-			const GHL::DirectStorageFactory* dStorageFactory,
-			const GHL::DirectStorageQueue* dStorageFileCopyQueue,
+			GHL::DirectStorageFactory* dStorageFactory,
+			GHL::DirectStorageQueue* dStorageFileCopyQueue,
 			Renderer::PoolDescriptorAllocator* mainPoolDescriptorAllocator,
 			Renderer::BuddyHeapAllocator* mainBuddyHeapAllocator,
 			Renderer::RingFrameTracker* mainRingFrameTracker
@@ -27,18 +27,25 @@ namespace Renderer
 
 		~StreamVirtualTextureSystem();
 
+		// called by stream virtual texture to update their minmipmap
+		void SetResidencyChanged();
+
 	private:
 		// 初始化图形对象
 		void InitializeGraphicsObject();
 
 		// 处理线程
 		void ProcessThread();
+
+		// 更新驻留信息线程
+		void UpdateResidencyThread();
+
 	private:
 		// Graphics Object
 		const GHL::Device* mDevice{ nullptr };
 		const GHL::Fence* mMainFrameFence{ nullptr };
-		const GHL::DirectStorageFactory* mDStorageFactory{ nullptr };
-		const GHL::DirectStorageQueue* mDStorageFileCopyQueue{ nullptr };
+		GHL::DirectStorageFactory* mDStorageFactory{ nullptr };
+		GHL::DirectStorageQueue* mDStorageFileCopyQueue{ nullptr };
 
 		Renderer::PoolDescriptorAllocator* mMainPoolDescriptorAllocator{ nullptr };
 		Renderer::BuddyHeapAllocator* mMainBuddyHeapAllocator{ nullptr };
@@ -49,16 +56,17 @@ namespace Renderer
 		std::unique_ptr<GHL::CommandQueue> mMappingQueue;
 		std::unique_ptr<GHL::Fence> mMappingFence;			// 标记显存映射操作
 
+		// Tile Uploader
+		std::unique_ptr<TileUploader> mTileUploader;
+
 		// 纹理数组
 		std::vector<std::unique_ptr<StreamVirtualTexture>> mStreamVirtualTextures;
 
 		// Thread Parameters
 		bool mThreadRunning{ true };
 		std::thread mProcessThread;
-		std::mutex mMutex;
-
-		// Tile Uploader
-		std::unique_ptr<TileUploader> mTileUploader;
+		std::thread mUpdateResidencyThread;
+		HANDLE mResidencyChangedEvent{ nullptr };
 	};
 
 }

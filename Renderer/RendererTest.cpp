@@ -371,7 +371,9 @@ void DoGenerateCloudNoiseTask() {
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     XetTextureGenerator generator;
-    generator.Generate("E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.dds");
+    generator.Generate(
+        "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.dds",
+        "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.xet");
     // RunRenderer();
     // DoTerrainOfflineTask();
     // DoGenerateCloudNoiseTask();

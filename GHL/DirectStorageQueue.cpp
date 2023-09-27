@@ -16,5 +16,16 @@ namespace GHL {
 		HRASSERT(factory->GetDStorageFactory()->CreateQueue(&queueDesc, IID_PPV_ARGS(&mDStorageQueue)));
 	}
 
+	void DirectStorageQueue::EnqueueRequest(const DSTORAGE_REQUEST* request) { 
+		mDStorageQueue->EnqueueRequest(request); 
+	}
+
+	void DirectStorageQueue::EnqueueSignal(const Fence& fence, std::optional<uint64_t> expectedValue) {
+		mDStorageQueue->EnqueueSignal(fence.D3DFence(), expectedValue.value_or(fence.ExpectedValue()));
+	}
+
+	void DirectStorageQueue::Submit() {
+		mDStorageQueue->Submit();
+	}
 
 }

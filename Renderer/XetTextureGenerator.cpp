@@ -378,7 +378,7 @@ namespace Renderer {
         }
     }
 
-    UINT GetAlignedSize(UINT in_numBytes) {
+    UINT XetTextureGenerator::GetAlignedSize(UINT in_numBytes) {
         UINT alignment = 4096 - 1;
         UINT aligned = (in_numBytes + alignment) & (~alignment);
         return aligned;

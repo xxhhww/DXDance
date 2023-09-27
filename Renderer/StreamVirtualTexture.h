@@ -1,11 +1,16 @@
 #pragma once
 #include "GHL/DirectStorageFactory.h"
 #include "GHL/DirectStorageQueue.h"
+
 #include "Renderer/XeTextureFormat.h"
 #include "Renderer/FileHandle.h"
+
 #include "Renderer/RingFrameTracker.h"
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/BuddyHeapAllocator.h"
+#include "Renderer/ResourceStateTracker.h"
+
+#include "Renderer/CommandBuffer.h"
 
 #include "Tools/TemplateAllocator.h"
 
@@ -21,14 +26,43 @@ namespace Renderer {
 			TileUploader* tileUploader,
 			RingFrameTracker* mainRingFrameTracker,
 			ResourceAllocator* mainResourceAllocator,
-			PoolDescriptorAllocator* mainPooldescriptorAllocator,
 			BuddyHeapAllocator* mainBuddyheapAllocator,
+			ResourceStateTracker* mainResourceStateTracker,
+			PoolDescriptorAllocator* mainPooldescriptorAllocator,
 			const XeTexureFormat& fileFormat,
 			std::unique_ptr<FileHandle>&& fileHandle
 		);
 
 		~StreamVirtualTexture();
 
+		// 处理Feedback
+		void ProcessFeedback(uint64_t completedFenceValue);
+
+		// 处理PendingTileLoadings
+		uint32_t ProcessTileLoadings();
+
+		// 处理PendingTileEvictions
+		uint32_t ProcessTileEvictions();
+
+		// PendingTileLoadings完成后的回调函数
+		void OnCopyCompleted(std::vector<D3D12_TILED_RESOURCE_COORDINATE>& coords);
+
+		// 更新驻留MinMip信息
+		void UpdateMinMipMap();
+
+		// 录制Feedback的清理命令
+		void RecordClearFeedback(CommandBuffer& commandBuffer);
+
+		// 录制解算Feedback的命令
+		void RecordResolve(CommandBuffer& commandBuffer);
+
+		// 录制回读ResolvedResource的命令
+		void RecordReadback(CommandBuffer& commandBuffer);
+
+		inline bool IsStale() const { return mPendingTileLoadings.size() || mPendingTileEvictions.GetReadyToEvict().size(); }
+
+		inline auto*       D3DResource()       { return mInternalTexture.Get()->D3DResource(); }
+		inline const auto* D3DResource() const { return mInternalTexture.Get()->D3DResource(); }
 
 		inline const auto& GetPackedMipInfo()      const { return mPackedMipInfo; }
 		inline const auto& GetTileShape()          const { return mTileShape; }
@@ -46,12 +80,24 @@ namespace Renderer {
 		inline const auto* GetFileHandle()         const { return mFileHandle.get(); }
 
 	private:
+		void SetMinMip(uint8_t currentMip, uint32_t x, uint32_t y, uint8_t desiredMip);
+		void AddTileRef(uint32_t x, uint32_t y, uint32_t s);
+		void DecTileRef(uint32_t x, uint32_t y, uint32_t s);
+
+		void RescanPendingTileLoads();
+
+		void SetResidencyChanged();
+
+	private:
+		inline static uint32_t smTileSize = 65536u;
+		inline static uint32_t smMaxTileCountPerLoop = 64u;	// 每一次循环要处理的最大Tile个数 
 		// Graphics Object
 		const GHL::Device* mDevice{ nullptr };
 		TileUploader* mTileUploader{ nullptr };
 		RingFrameTracker* mMainRingFrameTracker{ nullptr };					// 主渲染线程的帧追踪器
 		ResourceAllocator* mMainResourceAllocator{ nullptr };				// 创建InternalTexture
 		BuddyHeapAllocator* mMainBuddyHeapAllocator{ nullptr };				// 显存堆分配器
+		ResourceStateTracker* mMainResourceStateTracker{ nullptr };			// 资源状态追踪器
 		PoolDescriptorAllocator* mMainPoolDescriptorAllocator{ nullptr };	// 描述符分配器
 		TextureWrap mInternalTexture;
 
@@ -89,11 +135,11 @@ namespace Renderer {
 		BuddyHeapAllocator::Allocation* mPackedMipsHeapAllocation{ nullptr };
 
 		// ResidencyMipMap
+		std::atomic<bool> mResidencyChanged{ false };	// 被MonitorThread和UpdateResidencyThread访问与修改
 		std::vector<uint8_t> mMinMipMapCache;
 		std::vector<BYTE, AlignedAllocator<BYTE>> mMinMipMap; // 该纹理的MipLevel驻留信息，总是需要更新到GlobalMinMipMap中
 		uint64_t mResidencyMapOffset{ 0u }; // 该纹理的驻留信息在全局驻留信息中的偏移量(索引)
 
-		/*
 		// Tile页表
 		class TileMappingState {
 			friend class StreamTexture;
@@ -106,26 +152,27 @@ namespace Renderer {
 				NotResident = 0,
 				Resident = 1,
 				Loading = 2,
-				Evicting = 3
 			};
 		public:
 			TileMappingState(uint32_t mipNums, std::vector<D3D12_SUBRESOURCE_TILING>& subresourceTilings);
 			~TileMappingState();
 
-			void SetRefCount(uint32_t x, uint32_t y, uint32_t s, uint32_t refCount);
-			void IncRefCount(uint32_t x, uint32_t y, uint32_t s);
-			void DecRefCount(uint32_t x, uint32_t y, uint32_t s);
-			void SetResidencyState(uint32_t x, uint32_t y, uint32_t s, ResidencyState state);
-			void SetHeapAllocation(uint32_t x, uint32_t y, uint32_t s, BuddyHeapAllocator::Allocation* buddyHeapAllocation);
+			inline void SetRefCount(uint32_t x, uint32_t y, uint32_t s, uint32_t refCount) { mRefCounts[s][y][x] = refCount; }
+			
+			inline void IncRefCount(uint32_t x, uint32_t y, uint32_t s) { mRefCounts[s][y][x] ++; }
+			inline void DecRefCount(uint32_t x, uint32_t y, uint32_t s) { mRefCounts[s][y][x] --; }
+
+			inline void SetResidencyState(uint32_t x, uint32_t y, uint32_t s, ResidencyState state) { mResidencyStates[s][y][x] = state; }
+			inline void SetHeapAllocation(uint32_t x, uint32_t y, uint32_t s, BuddyHeapAllocator::Allocation* heapAllocation) { mHeapAllocations[s][y][x] = heapAllocation; }
 
 			inline const auto& GetRefCount(uint32_t x, uint32_t y, uint32_t s)       const { return mRefCounts[s][y][x]; }
 			inline const auto& GetResidencyState(uint32_t x, uint32_t y, uint32_t s) const { return mResidencyStates[s][y][x]; }
-			inline auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s)       const { return mBuddyHeapAllocations[s][y][x]; }
+			inline auto* GetHeapAllocation(uint32_t x, uint32_t y, uint32_t s)       const { return mHeapAllocations[s][y][x]; }
 
 		private:
 			TileSeq<uint32_t> mRefCounts;								// 每一个Tile的引用计数
 			TileSeq<ResidencyState> mResidencyStates;					// 每一个Tile的驻留状态
-			TileSeq<BuddyHeapAllocator::Allocation*> mBuddyHeapAllocations;	// 每一个Tile的分配信息
+			TileSeq<BuddyHeapAllocator::Allocation*> mHeapAllocations;	// 每一个Tile的分配信息
 		};
 		std::unique_ptr<TileMappingState> mTileMappingState;
 
@@ -134,10 +181,12 @@ namespace Renderer {
 		class EvictionDelay {
 		public:
 			EvictionDelay(uint32_t nFrames = 3u);
-			~EvictionDelay() = default;
+			~EvictionDelay();
 
-			void Append(D3D12_TILED_RESOURCE_COORDINATE coord) { mEvictionsBuffer[0].push_back(coord); }
-			std::vector<D3D12_TILED_RESOURCE_COORDINATE>& GetReadyToEvict() { return mEvictionsBuffer.back(); }
+			inline void Append(D3D12_TILED_RESOURCE_COORDINATE coord) { mEvictionsBuffer[0].push_back(coord); }
+
+			inline std::vector<D3D12_TILED_RESOURCE_COORDINATE>&       GetReadyToEvict()       { return mEvictionsBuffer.back(); }
+			inline const std::vector<D3D12_TILED_RESOURCE_COORDINATE>& GetReadyToEvict() const { return mEvictionsBuffer.back(); }
 
 			void MoveToNextFrame();
 			void Clear();
@@ -149,9 +198,6 @@ namespace Renderer {
 			std::vector<std::vector<D3D12_TILED_RESOURCE_COORDINATE>> mEvictionsBuffer;
 		};
 		EvictionDelay mPendingTileEvictions;
-		*/
-
-
 	};
 
 }
