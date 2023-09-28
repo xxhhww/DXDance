@@ -315,6 +315,9 @@
     <ClInclude Include="XetTextureGenerator.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainNodeManger.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -535,6 +538,9 @@
     </ClCompile>
     <ClCompile Include="XetTextureGenerator.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="TileNodeManger.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
