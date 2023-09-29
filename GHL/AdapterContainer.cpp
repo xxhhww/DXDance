@@ -10,7 +10,7 @@ namespace GHL {
         uint32_t i = 0;
         Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
 
-        while (mDXGIFactory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND) {
+        while (mDXGIFactory->EnumAdapterByGpuPreference(i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND) {
             DXGI_ADAPTER_DESC1 desc{};
             adapter->GetDesc1(&desc);
 

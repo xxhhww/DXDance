@@ -150,7 +150,7 @@ namespace Renderer {
 		{
 			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/MinMaxHeightMap_5120W_4096H.dds");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/MinMaxHeightMap_8192W_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap);
 		}
 
@@ -168,7 +168,7 @@ namespace Renderer {
 		{
 			terrainNormalMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/NormalMap_5120W_4096H.png");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/NormalMap_8192W_4096H.png");
 			resourceStateTracker->StartTracking(terrainNormalMap);
 			resourceStorage->ImportResource("TerrainNormalMap", terrainNormalMap);
 		}
@@ -271,8 +271,8 @@ namespace Renderer {
 		auto* renderGraph = renderEngine->mRenderGraph.get();
 		auto* frameTracker = renderEngine->mFrameTracker.get();
 
-		uint32_t _MaxNodeListSize = 200u;
-		uint32_t _TmpNodeListSize = 50u;
+		uint32_t _MaxNodeListSize = 600u;
+		uint32_t _TmpNodeListSize = 150u;
 
 		UpdateNodeAndLodDescriptorArray();
 
@@ -794,11 +794,15 @@ namespace Renderer {
 		uint32_t nodeCount{ 0u };
 
 		lodDescriptors.resize(maxLOD + 1u);
+		uint32_t nodeCountPerAxisInMaxLOD = 0u;
 		for (int32_t i = maxLOD; i >= 0; i--) {
 			auto& lodDescriptor = lodDescriptors.at(i);
 
 			uint32_t currDetailNodeSize = mostDetailNodeMeterSize * pow(2, i);
 			uint32_t nodeCountPerAxis = terrainBuilderPassData.worldMeterSize.x / currDetailNodeSize;
+			if (i == maxLOD) {
+				nodeCountPerAxisInMaxLOD = nodeCountPerAxis;
+			}
 
 			lodDescriptor.nodeSize = currDetailNodeSize;
 			lodDescriptor.nodeStartOffset = nodeCount;
@@ -808,8 +812,8 @@ namespace Renderer {
 		}
 		nodeDescriptors.resize(nodeCount);
 
-		for (uint32_t i = 0; i < 5; i++) {
-			for (uint32_t j = 0; j < 5; j++) {
+		for (uint32_t i = 0; i < nodeCountPerAxisInMaxLOD; i++) {
+			for (uint32_t j = 0; j < nodeCountPerAxisInMaxLOD; j++) {
 				NodeLocation nodeLocation;
 				nodeLocation.x = i;
 				nodeLocation.y = j;

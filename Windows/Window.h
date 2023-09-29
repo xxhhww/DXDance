@@ -17,6 +17,9 @@ namespace Windows {
 		static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		static LRESULT CALLBACK HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		LRESULT WINAPI HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+		static LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 	public:
 		Tool::Event<EKey> keyPressedEvent;
 		Tool::Event<EKey> keyReleasedEvent;
@@ -30,6 +33,6 @@ namespace Windows {
 		int32_t mWidth;
 		int32_t mHeight;
 		HWND mHwnd{ nullptr };
-		WNDCLASSEXW mWc{};
+		WNDCLASSEXW mWc{ 0 };
 	};
 }

@@ -27,8 +27,10 @@ namespace Renderer {
 		DirectX::TexMetadata GetTexMetadata(const Renderer::TextureDesc& textureDesc);
 
 	private:
-		// inline static uint32_t smMostDetailedPatchSize = 640; // 整个地形需要最精细的Patch 640 * 640 才能填充完
-		inline static uint32_t smMostDetailedPatchSize = 1280; // 整个地形需要最精细的Patch 1280 * 1280 才能填充完
+		// inline static uint32_t smMostDetailedPatchSize = (5120  / 8); // 整个地形需要最精细的Patch 640 * 640 才能填充完
+		// inline static uint32_t smMostDetailedPatchSize = (10240 / 8); // 整个地形需要最精细的Patch 1280 * 1280 才能填充完
+		inline static uint32_t smMostDetailedPatchSize = (8192 / 8);
+
 		inline static uint32_t smThreadSizeInGroup1 = 8u; // 8 * 8 * 1 as a thread group
 		inline static uint32_t smThreadSizeInGroup2 = 5u;
 		inline static uint32_t smThreadSizeInGroup3 = 8u;

@@ -1,9 +1,16 @@
 #pragma once
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers.
+#endif
 #include <string>
 #include <Windows.h>
 
 namespace Windows {
 	struct WindowSetting {
+		HINSTANCE hInstance = nullptr;
+		int nCmdShow = 0;
+
 		/*
 		* Title of the window (Displayed in the title bar)
 		*/

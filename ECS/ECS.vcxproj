@@ -134,6 +134,8 @@
   <ItemGroup>
     <ClInclude Include="Archetype.h" />
     <ClInclude Include="CCamera.h" />
+    <ClInclude Include="CCollisionShape.h" />
+    <ClInclude Include="CTerrainTile.h" />
     <ClInclude Include="CLight.h" />
     <ClInclude Include="CMeshRenderer.h" />
     <ClInclude Include="CSky.h" />

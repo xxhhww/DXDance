@@ -36,7 +36,7 @@ namespace GHL {
 		static bool IsHighPerformanceAdapter(const std::wstring& adapterName);
 
 	private:
-		Microsoft::WRL::ComPtr<IDXGIFactory2> mDXGIFactory;
+		Microsoft::WRL::ComPtr<IDXGIFactory7> mDXGIFactory;
 		std::unique_ptr<Adapter> mWARPAdapter;
 		std::vector<Adapter> mHardwareAdapters;
 	};

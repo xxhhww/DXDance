@@ -141,6 +141,8 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManger.h" />
     <ClInclude Include="ServiceLocator.h" />
+    <ClInclude Include="World.h" />
+    <ClInclude Include="WorldManger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
@@ -149,6 +151,8 @@
     <ClCompile Include="EditorAssetManger.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManger.cpp" />
+    <ClCompile Include="World.cpp" />
+    <ClCompile Include="WorldManger.cpp" />
     <None Include="TestDeserializeSceneOutput.json" />
     <None Include="TestRapidjson.json">
       <FileType>Document</FileType>

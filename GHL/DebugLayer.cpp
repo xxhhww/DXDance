@@ -2,6 +2,7 @@
 #include "Tools/Assert.h"
 
 namespace GHL {
+
 	void EnableDebugLayer() {
 #ifdef _DEBUG
 		Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
@@ -9,4 +10,5 @@ namespace GHL {
 		debugController->EnableDebugLayer();
 #endif // _DEBUG
 	}
+
 }

@@ -10,18 +10,12 @@ namespace Windows {
 	, mWidth(setting.width) 
 	, mHeight(setting.height) {
 		// register window class
-		mWc.cbSize = sizeof(mWc);
+		mWc.cbSize = sizeof(WNDCLASSEX);
 		mWc.style = CS_HREDRAW | CS_VREDRAW;
 		mWc.lpfnWndProc = &Window::HandleMsgSetup;
-		mWc.cbClsExtra = 0;
-		mWc.cbWndExtra = 0;
-		mWc.hInstance = GetModuleHandle(NULL);
-		mWc.hIcon = NULL;
-		mWc.hCursor = NULL;
+		mWc.hInstance = setting.hInstance == nullptr ? GetModuleHandle(NULL) : setting.hInstance;
 		mWc.hbrBackground = (HBRUSH)(GetStockObject(BLACK_BRUSH));
-		mWc.lpszMenuName = NULL;
 		mWc.lpszClassName = L"Window Class";
-		mWc.hIconSm = NULL;
 		::RegisterClassExW(&mWc);
 
 		// dwStyle
@@ -54,11 +48,23 @@ namespace Windows {
 			}
 		}
 
+		RECT windowRect = { 0, 0, static_cast<LONG>(mWidth), static_cast<LONG>(mHeight) };
+		AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
+
 		// create window
 		mHwnd = ::CreateWindow(
-			mWc.lpszClassName, StrUtil::UTF8ToWString(mTitle).c_str(),
-			dwStyle, 0, 0, mWidth, mHeight,
-			NULL, NULL, mWc.hInstance, this);
+			mWc.lpszClassName, 
+			StrUtil::UTF8ToWString(mTitle).c_str(),
+			dwStyle,
+			CW_USEDEFAULT, 
+			CW_USEDEFAULT, 
+			windowRect.right - windowRect.left,
+			windowRect.bottom - windowRect.top,
+			nullptr, 
+			nullptr, 
+			mWc.hInstance, 
+			this);
+
 		if (mHwnd == nullptr) {
 			assert(false);
 		}

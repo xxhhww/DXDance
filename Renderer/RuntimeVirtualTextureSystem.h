@@ -141,7 +141,7 @@ namespace Renderer {
 
 		// Graphics API Object
 		uint32_t mMaxRvtFrameCount;
-		std::unique_ptr<GHL::CommandQueue> mRvtGrahpicsQueue;
+		GHL::CommandQueue* mRvtGrahpicsQueue;
 		std::unique_ptr<GHL::Fence>        mRvtFrameFence;
 
 		std::unique_ptr<Renderer::RingFrameTracker>         mRvtFrameTracker;

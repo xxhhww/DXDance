@@ -57,6 +57,12 @@
     <ClInclude Include="EditorAssetManger.h">
       <Filter>头文件\AssetManger</Filter>
     </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>头文件\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldManger.h">
+      <Filter>头文件\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CoreTest.cpp">
@@ -76,6 +82,12 @@
     </ClCompile>
     <ClCompile Include="EditorAssetManger.cpp">
       <Filter>源文件\AssetManger</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>源文件\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldManger.cpp">
+      <Filter>源文件\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

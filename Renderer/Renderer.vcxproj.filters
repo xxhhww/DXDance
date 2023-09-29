@@ -318,6 +318,9 @@
     <ClInclude Include="TerrainNodeManger.h">
       <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
+    <ClInclude Include="Task_SplitHeightMap.h">
+      <Filter>头文件\OfflineTaskHepler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -541,6 +544,9 @@
     </ClCompile>
     <ClCompile Include="TileNodeManger.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="Task_SplitHeightMap.cpp">
+      <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

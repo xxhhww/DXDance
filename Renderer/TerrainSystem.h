@@ -32,7 +32,7 @@ namespace Renderer {
 		struct TerrainBuilderPassData {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
 
-			Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };				// 世界在XZ轴方向的大小(米)
+			Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };				// 世界在XZ轴方向的大小(米)
 			uint32_t heightScale{ 4096u };
 			uint32_t currPassLOD;
 
@@ -65,7 +65,7 @@ namespace Renderer {
 			// w: physical texture size y
 			Math::Vector4 vtPhysicalMapParams{};
 
-			Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
+			Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };
 			uint32_t heightScale{ 4096u };
 			uint32_t culledPatchListIndex;
 
@@ -116,7 +116,7 @@ namespace Renderer {
 
 	public:
 		bool isInitialized{ false };
-		Math::Vector2 worldMeterSize{ 5120.0f, 5120.0f };
+		Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };
 		float worldHeightScale{ 4096.0f };
 		bool lodDebug{ 0u };
 		bool useVT{ 1u };

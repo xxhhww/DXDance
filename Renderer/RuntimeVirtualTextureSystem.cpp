@@ -125,7 +125,7 @@ namespace Renderer {
 				// 将缓存列表的更新提交到GPU上去
 				UpdatePageTableTexturePass();
 
-				mRvtGrahpicsQueue->SignalFence(*mRvtFrameFence.get());
+				mRvtGrahpicsQueue ->SignalFence(*mRvtFrameFence.get());
 
 				// 解锁
 				UnlockGPUResource();
@@ -622,8 +622,9 @@ namespace Renderer {
 
 		// 创建图形API对象并设置回调函数
 		{
-			mRvtGrahpicsQueue = std::make_unique<GHL::GraphicsQueue>(device);
-			mRvtGrahpicsQueue->SetDebugName("RuntimeVirtualTextureSystem");
+			// mRvtGrahpicsQueue = std::make_unique<GHL::GraphicsQueue>(device);
+			// mRvtGrahpicsQueue->SetDebugName("RuntimeVirtualTextureSystem");
+			mRvtGrahpicsQueue = mRenderEngine->mGraphicsQueue.get();
 			mRvtFrameFence = std::make_unique<GHL::Fence>(device);
 
 			mRvtFrameTracker = std::make_unique<Renderer::RingFrameTracker>(mMaxRvtFrameCount);
@@ -709,7 +710,7 @@ namespace Renderer {
 		// 创建RequestBuffer
 		BufferDesc _DrawPhysicalTextureRequestBufferDesc{};
 		_DrawPhysicalTextureRequestBufferDesc.stride = sizeof(GPUDrawPhysicalTextureRequest);
-		_DrawPhysicalTextureRequestBufferDesc.size = _DrawPhysicalTextureRequestBufferDesc.stride * mTileCount;
+		_DrawPhysicalTextureRequestBufferDesc.size = _DrawPhysicalTextureRequestBufferDesc.stride * (mTileCount / 8);
 		_DrawPhysicalTextureRequestBufferDesc.usage = GHL::EResourceUsage::Default;
 		_DrawPhysicalTextureRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 		_DrawPhysicalTextureRequestBufferDesc.initialState = GHL::EResourceState::Common;

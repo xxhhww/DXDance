@@ -6,6 +6,7 @@
 #include "Renderer/TerrainOfflineTask.h"
 #include "Renderer/GenerateCloudNoiseTask.h"
 #include "Renderer/XetTextureGenerator.h"
+#include "Renderer/Task_SplitHeightMap.h"
 
 #include "Windows/Window.h"
 #include "Windows/InputManger.h"
@@ -143,10 +144,10 @@ void RunRenderer() {
     // EditorCamera
     ECS::Camera editorCamera;
     editorCamera.frustum.farZ = 5000.0f;
-    editorCamera.translationSpeed *= 10.0f;
+    editorCamera.translationSpeed *= 1.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
-    editorTransform.worldPosition.y = 1700.0f;
+    editorTransform.worldPosition.y = 2000.0f;
     editorTransform.worldPosition.z = 0.0f;
 
     // MainCamera(RenderCamera)
@@ -154,7 +155,7 @@ void RunRenderer() {
         auto mainCamera = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
         
         auto& transform = mainCamera.GetComponent<ECS::Transform>();
-        transform.worldPosition = Math::Vector3{ 0.0f, 1700.0f, 0.0f };
+        transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 0.0f };
 
         auto& camera = mainCamera.GetComponent<ECS::Camera>();
         camera.cameraType = ECS::CameraType::RenderCamera;
@@ -254,6 +255,7 @@ void RunRenderer() {
 
         updateCameraMatrix(editorCamera, editorTransform);
         ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
+
             const float rt = fmod(transform.worldRotation.y, DirectX::XM_2PI);
 
             if (rt > DirectX::XM_PI)
@@ -290,7 +292,7 @@ void DoTerrainOfflineTask() {
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
     TerrainOfflineTask _TerrainOfflineTask;
     _TerrainOfflineTask.Initialize(
-        "E:/MyProject/DXDance/Resources/Textures/HeightMap.png",
+        "E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png",
         &renderEngine
     );
     renderEngine.mOfflineTaskPass += std::bind(
@@ -370,11 +372,16 @@ void DoGenerateCloudNoiseTask() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+    // Task_SplitHeightMap task;
+    // task.Run("E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png");
+
+    /*
     XetTextureGenerator generator;
     generator.Generate(
         "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.dds",
         "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.xet");
-    // RunRenderer();
+        */
+    RunRenderer();
     // DoTerrainOfflineTask();
     // DoGenerateCloudNoiseTask();
 }

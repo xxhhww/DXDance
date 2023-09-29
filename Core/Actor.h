@@ -111,12 +111,10 @@ namespace Core {
 		void DeserializeJson(const Tool::JsonReader& reader) override;
 
 	public:
-		// Actor创建回调，链接到编辑层的Hierarchy
+		// Actor创建回调
 		inline static Tool::Event<Actor*> ActorCreatedEvent;
-		// Actor销毁回调，链接到编辑层的Hierarchy
+		// Actor销毁回调
 		inline static Tool::Event<Actor*> ActorDestoryedEvent;
-		
-		inline static Tool::Event<Actor*, Actor*> ActorAttachEvent;
 
 	private:
 		int64_t				mActorID{ -1 };		// 物体ID(与Entity的ID不同，ActorID需要持久化存储)

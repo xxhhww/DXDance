@@ -48,6 +48,12 @@
     <ClInclude Include="CSky.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
+    <ClInclude Include="CTerrainTile.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="CCollisionShape.h">
+      <Filter>头文件\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Metatype.inl">
