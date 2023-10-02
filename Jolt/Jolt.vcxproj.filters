@@ -1,0 +1,1305 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AABBTree\NodeCodec\NodeCodecQuadTreeHalfFloat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AABBTree\TriangleCodec\TriangleCodecIndexed8BitPackSOA4Flags.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AABBTree\AABBTreeBuilder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AABBTree\AABBTreeToBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ARMNeon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Atomics.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ByteBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Color.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Core.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Factory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FixedSizeFreeList.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FPControlWord.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FPException.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FPFlushDenormals.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HashCombine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\InsertionSort.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IssueReporting.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\JobSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\JobSystemSingleThreaded.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\JobSystemThreadPool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\JobSystemWithBarrier.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\LinearCurve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\LockFreeHashMap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Memory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Mutex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MutexArray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NonCopyable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Profiler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\QuickSort.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Reference.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Result.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\RTTI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Semaphore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StaticArray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\STLAlignedAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\STLAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\STLTempAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StreamIn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StreamOut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StreamUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StreamWrapper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StringTools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TempAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TickCounter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UnorderedMap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UnorderedSet.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\AABox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\AABox4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\ClipPoly.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\ClosestPoint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\ConvexHullBuilder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\ConvexHullBuilder2D.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\ConvexSupport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Ellipse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\EPAConvexHullBuilder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\EPAPenetrationDepth.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\GJKClosestPoint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\IndexedTriangle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Indexify.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\MortonCode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\OrientedBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Plane.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayAABox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayAABox8.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayCapsule.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayCylinder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RaySphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayTriangle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\RayTriangle8.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\Triangle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\DMat44.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Double3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\DVec3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\DynMatrix.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\EigenValueSymmetric.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\FindRoot.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Float4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\GaussianElimination.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\HalfFloat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Mat44.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Math.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathTypes.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Matrix.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Quat.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Real.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Swizzle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Trigonometry.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\UVec4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\UVec8.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vec3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vec4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vec8.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\GetPrimitiveTypeOfType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStream.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamBinaryIn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamBinaryOut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamIn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamOut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamTextIn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamTextOut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\ObjectStreamTypes.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\SerializableAttribute.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\SerializableAttributeEnum.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\SerializableAttributeTyped.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\SerializableObject.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectStream\TypeDeclarations.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\AllowedDOFs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\Body.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyAccess.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyActivationListener.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyCreationSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyFilter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyID.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyInterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyLock.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyLockInterface.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyLockMulti.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyPair.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\BodyType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\MassProperties.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\MotionProperties.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\MotionQuality.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Body\MotionType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Character\Character.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Character\CharacterBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Character\CharacterVirtual.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\BroadPhase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\BroadPhaseBruteForce.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\BroadPhaseLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\BroadPhaseQuadTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\BroadPhaseQuery.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BroadPhase\QuadTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\BoxShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\CapsuleShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\CompoundShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\CompoundShapeVisitors.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\ConvexHullShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\ConvexShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\CylinderShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\DecoratedShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\GetTrianglesContext.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\HeightFieldShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\MeshShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\MutableCompoundShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\OffsetCenterOfMassShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\PolyhedronSubmergedVolumeCalculator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\RotatedTranslatedShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\ScaledShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\ScaleHelpers.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\Shape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\SphereShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\StaticCompoundShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\SubShapeID.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\SubShapeIDPair.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\TaperedCapsuleShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\Shape\TriangleShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\AABoxCast.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ActiveEdgeMode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ActiveEdges.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\BackFaceMode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CastConvexVsTriangles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CastResult.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CastSphereVsTriangles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollectFacesMode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollideConvexVsTriangles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollidePointResult.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollideShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollideSphereVsTriangles.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollisionCollector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollisionCollectorImpl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollisionDispatch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\CollisionGroup.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ContactListener.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\EstimateCollisionResponse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\GroupFilter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\GroupFilterTable.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ManifoldBetweenTwoFaces.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\NarrowPhaseQuery.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\NarrowPhaseStats.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ObjectLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\PhysicsMaterial.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\PhysicsMaterialSimple.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\RayCast.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ShapeCast.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\ShapeFilter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\SortReverseAndStore.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Collision\TransformedShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\AngleConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\AxisConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\DualAxisConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\GearConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\HingeRotationConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\IndependentAxisConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\PointConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\RackAndPinionConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\RotationEulerConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\RotationQuatConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\SpringPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintPart\SwingTwistConstraintPart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConeConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\Constraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ConstraintManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\ContactConstraintManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\DistanceConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\FixedConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\GearConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\HingeConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\MotorSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\PathConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\PathConstraintPath.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\PathConstraintPathHermite.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\PointConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\PulleyConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\RackAndPinionConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\SixDOFConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\SliderConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\SpringSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\SwingTwistConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Constraints\TwoBodyConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Ragdoll\Ragdoll.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodyCreationSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodyMotionProperties.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodyShape.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodySharedSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodyUpdateContext.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\SoftBody\SoftBodyVertex.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\MotorcycleController.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\TrackedVehicleController.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleAntiRollBar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleCollisionTester.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleConstraint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleController.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleDifferential.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleEngine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleTrack.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\VehicleTransmission.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\Wheel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Vehicle\WheeledVehicleController.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\DeterminismLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\EActivation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\EPhysicsUpdateError.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\IslandBuilder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\LargeIslandSplitter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsLock.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsScene.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsStepListener.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\PhysicsUpdateContext.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\StateRecorder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\StateRecorderImpl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DebugRenderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DebugRendererPlayback.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DebugRendererRecorder.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton\SkeletalAnimation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton\Skeleton.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton\SkeletonMapper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton\SkeletonPose.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleGrouper\TriangleGrouper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleGrouper\TriangleGrouperClosestCentroid.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleGrouper\TriangleGrouperMorton.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitterBinning.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitterFixedLeafSize.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitterLongestAxis.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitterMean.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangleSplitter\TriangleSplitterMorton.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigurationString.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Jolt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RegisterTypes.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AABBTree\AABBTreeBuilder.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Color.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Factory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IssueReporting.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\JobSystemSingleThreaded.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\JobSystemThreadPool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\JobSystemWithBarrier.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\LinearCurve.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Memory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Profiler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\RTTI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Semaphore.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\StringTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TickCounter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\ConvexHullBuilder.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\ConvexHullBuilder2D.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\Indexify.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\OrientedBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vec3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStream.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamBinaryIn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamBinaryOut.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamIn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamOut.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamTextIn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\ObjectStreamTextOut.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\SerializableObject.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectStream\TypeDeclarations.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\Body.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\BodyAccess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\BodyCreationSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\BodyInterface.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\BodyManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\MassProperties.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Body\MotionProperties.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Character\Character.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Character\CharacterBase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Character\CharacterVirtual.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\BroadPhase\BroadPhase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\BroadPhase\BroadPhaseBruteForce.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\BroadPhase\BroadPhaseQuadTree.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\BroadPhase\QuadTree.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\BoxShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\CapsuleShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\CompoundShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\ConvexHullShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\ConvexShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\CylinderShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\DecoratedShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\HeightFieldShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\MeshShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\MutableCompoundShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\OffsetCenterOfMassShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\RotatedTranslatedShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\ScaledShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\Shape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\SphereShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\StaticCompoundShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\TaperedCapsuleShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\Shape\TriangleShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CastConvexVsTriangles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CastSphereVsTriangles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CollideConvexVsTriangles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CollideSphereVsTriangles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CollisionDispatch.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\CollisionGroup.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\EstimateCollisionResponse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\GroupFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\GroupFilterTable.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\ManifoldBetweenTwoFaces.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\NarrowPhaseQuery.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\NarrowPhaseStats.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\PhysicsMaterial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\PhysicsMaterialSimple.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collision\TransformedShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\ConeConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\Constraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\ConstraintManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\ContactConstraintManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\DistanceConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\FixedConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\GearConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\HingeConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\MotorSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\PathConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\PathConstraintPath.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\PathConstraintPathHermite.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\PointConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\PulleyConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\RackAndPinionConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\SixDOFConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\SliderConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\SpringSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\SwingTwistConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Constraints\TwoBodyConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Ragdoll\Ragdoll.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\SoftBody\SoftBodyCreationSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\SoftBody\SoftBodyMotionProperties.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\SoftBody\SoftBodyShape.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\SoftBody\SoftBodySharedSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\MotorcycleController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\TrackedVehicleController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleAntiRollBar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleCollisionTester.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleConstraint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleDifferential.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleEngine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleTrack.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\VehicleTransmission.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\Wheel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Vehicle\WheeledVehicleController.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\DeterminismLog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\IslandBuilder.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\LargeIslandSplitter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsLock.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsScene.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\PhysicsUpdateContext.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\StateRecorderImpl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DebugRenderer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DebugRendererPlayback.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DebugRendererRecorder.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton\SkeletalAnimation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton\Skeleton.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton\SkeletonMapper.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton\SkeletonPose.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleGrouper\TriangleGrouperClosestCentroid.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleGrouper\TriangleGrouperMorton.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitterBinning.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitterFixedLeafSize.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitterLongestAxis.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitterMean.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleSplitter\TriangleSplitterMorton.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RegisterTypes.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Core\FixedSizeFreeList.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Core\JobSystem.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Core\LockFreeHashMap.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Core\Profiler.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\DMat44.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\DVec3.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\Mat44.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\Quat.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\UVec4.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\UVec8.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\Vec3.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\Vec4.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Math\Vec8.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Physics\Body\Body.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Physics\Body\MotionProperties.inl">
+      <Filter>头文件</Filter>
+    </None>
+    <None Include="Jolt.cmake" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Jolt.natvis" />
+  </ItemGroup>
+</Project>

@@ -1,5 +1,6 @@
 #pragma once
 #include "Game/Context.h"
+#include "Game/GameInitializer.h"
 
 namespace Game {
 
@@ -20,7 +21,9 @@ namespace Game {
 		void PostUpdate(float delta);
 
 	private:
+		bool mPause{ true };
 		Context& mContext;
+		GameInitializer mGameInitializer;
 	};
 
 }

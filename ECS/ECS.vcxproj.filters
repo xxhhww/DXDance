@@ -42,16 +42,13 @@
     <ClInclude Include="CLight.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
-    <ClInclude Include="CTerrainRenderer.h">
-      <Filter>头文件\Components</Filter>
-    </ClInclude>
     <ClInclude Include="CSky.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
-    <ClInclude Include="CTerrainTile.h">
+    <ClInclude Include="CHeightField.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
-    <ClInclude Include="CCollisionShape.h">
+    <ClInclude Include="CCollisionBody.h">
       <Filter>头文件\Components</Filter>
     </ClInclude>
   </ItemGroup>

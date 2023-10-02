@@ -123,6 +123,7 @@ namespace Renderer {
 
 		uint32_t maxLOD{ 4u };	// 最大LOD等级
 		uint32_t mostDetailNodeMeterSize{ 64u }; // 最精细的节点的大小(单位: 米)
+		uint32_t nodeCountPerAxisInMaxLOD{ 0u };
 
 		std::vector<NodeDescriptor> nodeDescriptors;
 		std::vector<LODDescriptor>  lodDescriptors;

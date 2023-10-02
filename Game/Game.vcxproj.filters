@@ -19,6 +19,24 @@
     <Filter Include="源文件\Core">
       <UniqueIdentifier>{fb13f215-cbec-45da-8b67-1b2cf0d5d548}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\System">
+      <UniqueIdentifier>{4c3137ba-12ca-43ec-95a2-5ba5206e3bc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\System">
+      <UniqueIdentifier>{e05e155b-170f-498f-956b-e92d94bd7f32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Component">
+      <UniqueIdentifier>{f92a04ce-afb4-4dcd-9754-4abe3b8be1ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Component">
+      <UniqueIdentifier>{0bcfcdce-c05b-4a97-90c4-fe8b81b60d43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\System\User">
+      <UniqueIdentifier>{605ada1b-75a3-4388-86fd-c50bc388549c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\System\User">
+      <UniqueIdentifier>{b9639338-ed68-4b19-a868-b176b4210537}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -28,6 +46,30 @@
       <Filter>头文件\Core</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomMemoryHook.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="GameInitializer.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemManger.h">
+      <Filter>头文件\System</Filter>
+    </ClInclude>
+    <ClInclude Include="ISystem.h">
+      <Filter>头文件\System</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamPhysicsSystem.h">
+      <Filter>头文件\System\User</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraSystem.h">
+      <Filter>头文件\System\User</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalData.h">
+      <Filter>头文件\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManger.h">
       <Filter>头文件\Core</Filter>
     </ClInclude>
   </ItemGroup>
@@ -43,6 +85,24 @@
     </ClCompile>
     <ClCompile Include="GameMain.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomMemoryHook.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="GameInitializer.cpp">
+      <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemManger.cpp">
+      <Filter>源文件\System</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamPhysicsSystem.cpp">
+      <Filter>源文件\System\User</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSystem.cpp">
+      <Filter>源文件\System\User</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetManger.cpp">
+      <Filter>源文件\Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

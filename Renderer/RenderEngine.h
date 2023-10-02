@@ -5,6 +5,8 @@
 #include "GHL/AdapterContainer.h"
 #include "GHL/Display.h"
 #include "GHL/CommandQueue.h"
+#include "GHL/DirectStorageFactory.h"
+#include "GHL/DirectStorageQueue.h"
 
 #include "ECS/CCamera.h"
 #include "ECS/CTransform.h"

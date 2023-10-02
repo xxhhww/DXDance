@@ -38,7 +38,7 @@ namespace Core {
 		mParent = parent;
 		mParent->mChilds.push_back(this);
 
-		ActorAttachEvent.Invoke(this, mParent);
+		// ActorAttachEvent.Invoke(this, mParent);
 	}
 
 	void Actor::DetachParent() {

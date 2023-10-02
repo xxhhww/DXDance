@@ -246,7 +246,9 @@ namespace ECS {
 
 	template<typename F>
 	static void Entity::Foreach(F&& task) {
+		JPH::JobSystem::Barrier* barrier = sJobSystem->CreateBarrier();
 		Processor<F> processor;
+
 		for (auto& pair : sArchetypeMap) {
 			Archetype& archetype = pair.second;
 			// archetypeÃ»ÓÐChunk
@@ -263,12 +265,17 @@ namespace ECS {
 			if (isMatch) {
 				Chunk* pCurrChunk = archetype.chunkListHead;
 				while (pCurrChunk != nullptr) {
-					processor.AddTask(pCurrChunk, task);
+					processor.AddTaskEx(pCurrChunk, task, sJobSystem, barrier);
 					pCurrChunk = pCurrChunk->header.next;
 				}
 			}
 		}
-		processor.RunAllTask();
+
+		sJobSystem->WaitForJobs(barrier);
+		sJobSystem->DestroyBarrier(barrier);
+
+		// processor.RunAllTaskEx();
+		// processor.Destory();
 	}
 
 	template<typename F>

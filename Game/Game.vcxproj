@@ -105,7 +105,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;JPH_PROFILE_ENABLED;JPH_DEBUG_RENDERER;JPH_FLOATING_POINT_EXCEPTIONS_ENABLED;JPH_USE_AVX2;JPH_USE_AVX;JPH_USE_SSE4_1;JPH_USE_SSE4_2;JPH_USE_LZCNT;JPH_USE_TZCNT;JPH_USE_F16C;JPH_USE_FMADD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\;..\ThirdParty\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -137,14 +137,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="AssetManger.h" />
+    <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="Context.h" />
+    <ClInclude Include="CustomMemoryHook.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameInitializer.h" />
+    <ClInclude Include="GlobalData.h" />
+    <ClInclude Include="ISystem.h" />
+    <ClInclude Include="StreamPhysicsSystem.h" />
+    <ClInclude Include="SystemManger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="AssetManger.cpp" />
+    <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="Context.cpp" />
+    <ClCompile Include="CustomMemoryHook.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameInitializer.cpp" />
     <ClCompile Include="GameMain.cpp" />
+    <ClCompile Include="StreamPhysicsSystem.cpp" />
+    <ClCompile Include="SystemManger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
@@ -152,6 +166,9 @@
     </ProjectReference>
     <ProjectReference Include="..\ECS\ECS.vcxproj">
       <Project>{50ff7f0a-d1ee-4ba5-8a02-96a2bd2367fc}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Jolt\Jolt.vcxproj">
+      <Project>{becd20b7-37ec-41a3-9932-335507fc69e2}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Physics\Physics.vcxproj">
       <Project>{a7bf572b-d52c-4d35-8598-b9c01cf63f9d}</Project>

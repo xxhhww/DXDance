@@ -18,5 +18,19 @@
     <ClCompile Include="PhysicsTest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="PhysicsSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PhysicsSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Layers.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="pbh.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

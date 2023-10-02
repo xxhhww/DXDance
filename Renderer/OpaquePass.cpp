@@ -79,6 +79,8 @@ namespace Renderer {
 				auto* screenVelocity  = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
 				auto* depthStencil    = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
 
+
+
 				commandBuffer.ClearRenderTarget(shadingResult);
 				commandBuffer.ClearRenderTarget(normalRoughness);
 				commandBuffer.ClearRenderTarget(screenVelocity);

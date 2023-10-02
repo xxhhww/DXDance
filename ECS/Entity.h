@@ -1,10 +1,17 @@
 #pragma once
+#include <Jolt/Jolt.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+
 #include "Archetype.h"
 #include "IComponent.h"
 #include "Tools/TaskProxy.h"
 #include <queue>
 #include <algorithm>
 #include <unordered_map>
+
+// Disable common warnings triggered by Jolt, you can use JPH_SUPPRESS_WARNING_PUSH / JPH_SUPPRESS_WARNING_POP to store and restore the warning state
+JPH_SUPPRESS_WARNINGS
+
 
 namespace ECS {
 	/*
@@ -69,6 +76,18 @@ namespace ECS {
 		}
 
 		/*
+		* 添加任务
+		*/
+		void AddTaskEx(Chunk* chunk, ClassType& lambda, JPH::JobSystem* jobSystem, JPH::JobSystem::Barrier* barrier) {
+			auto tup = std::make_tuple(ComponentArrayBuildHelper<Args>::Build(chunk)...);
+			for (int32_t i = chunk->header.validCount - 1; i >= 0; i--) {
+				// 注意！！！：必须要加上std::ref，这是因为std::bind默认会将值复制一份再传递。有些任务内需要更改组件的值，值传递的方式会导致错误
+				JPH::JobHandle jobHandle = jobSystem->CreateJob("Xaun!", JPH::Color::sGreen, std::bind(lambda, std::ref(std::get<decltype(ComponentArrayBuildHelper<Args>::Build(chunk))>(tup)[i])...));
+				barrier->AddJobs(&jobHandle, 1u);
+			}
+		}
+
+		/*
 		* 运行任务
 		*/
 		void RunAllTask() {
@@ -125,6 +144,12 @@ namespace ECS {
 		};
 
 	public:
+
+		/*
+		* 设置任务系统
+		*/
+		static void SetJobSystem(JPH::JobSystem* jobSystem);
+
 		/*
 		* 测试使用的构造函数
 		*/
@@ -256,6 +281,7 @@ namespace ECS {
 		Entity::ID mID{ -1 };	// 实体的ID不需要持久化存储
 
 	private:
+		static JPH::JobSystem*                          sJobSystem;				// 任务系统
 		static std::unordered_map<size_t, Metatype>		sMetatypeMap;			// 存储所有的组件反射类对象
 		static std::unordered_map<size_t, Archetype>	sArchetypeMap;			// 存储所有的原型
 		static std::vector<EntityStorage>				sEntityStorageArray;	// 存储实体详细数据

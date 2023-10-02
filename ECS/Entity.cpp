@@ -2,10 +2,15 @@
 #include <assert.h>
 
 namespace ECS {
+	JPH::JobSystem*                         Entity::sJobSystem{ nullptr };
 	std::unordered_map<size_t, Metatype>	Entity::sMetatypeMap;
 	std::unordered_map<size_t, Archetype>	Entity::sArchetypeMap;
 	std::vector<Entity::EntityStorage>		Entity::sEntityStorageArray;
 	std::queue<Entity::ID>					Entity::sDeletedEntities;
+
+	void Entity::SetJobSystem(JPH::JobSystem* jobSystem) {
+		sJobSystem = jobSystem;
+	}
 
 	void Entity::ForeachComp(std::function<void(IComponent*)>&& lambda) const {
 		const auto& storage = sEntityStorageArray[mID];

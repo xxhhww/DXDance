@@ -794,7 +794,6 @@ namespace Renderer {
 		uint32_t nodeCount{ 0u };
 
 		lodDescriptors.resize(maxLOD + 1u);
-		uint32_t nodeCountPerAxisInMaxLOD = 0u;
 		for (int32_t i = maxLOD; i >= 0; i--) {
 			auto& lodDescriptor = lodDescriptors.at(i);
 
