@@ -1,13 +1,12 @@
 #include "Game/AssetManger.h"
 #include "Core/ServiceLocator.h"
-#include "Renderer/RenderEngine.h"
 
 namespace Game {
 
-	AssetManger::AssetManger(const std::string& path) 
+	AssetManger::AssetManger(Renderer::RenderEngine* renderEngine, const std::string& path)
 	: mModelsPath(path + "/Models") {
 
-		auto& graphicsKernel = CORESERVICE(Renderer::RenderEngine);
+		auto& graphicsKernel = *renderEngine;
 		auto* device = graphicsKernel.mDevice.get();
 		auto* descriptorAllocator = graphicsKernel.mDescriptorAllocator.get();
 		auto* heapAllocator = graphicsKernel.mHeapAllocator.get();

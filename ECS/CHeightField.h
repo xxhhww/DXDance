@@ -1,5 +1,6 @@
 #pragma once
 #include "ECS/IComponent.h"
+#include "ECS/CCollisionBody.h"
 
 #include "Math/Vector.h"
 
@@ -20,6 +21,8 @@ namespace ECS {
 		float heightScale{ 4096.0f };
 
 		JPH::RefConst<JPH::HeightFieldShape> heightFieldShape;
+		JPH::BodyID bodyID;
+		BodyState state{ BodyState::UnLoad };
 
 		std::string GetHeightMapBinFilename() const { 
 			return "HeightMap_" + std::to_string((uint32_t)tileIndex.x) + "_" + std::to_string((uint32_t)tileIndex.y) + ".bin"; 

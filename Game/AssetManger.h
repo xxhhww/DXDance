@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer/Model.h"
 #include "Renderer/Mesh.h"
+#include "Renderer/RenderEngine.h"
 
 namespace Game {
 
@@ -9,7 +10,7 @@ namespace Game {
 	*/
 	class AssetManger {
 	public:
-		AssetManger(const std::string& path);
+		AssetManger(Renderer::RenderEngine* renderEngine, const std::string& path);
 		~AssetManger();
 
 		Renderer::Model* GetModel(const std::string& name);

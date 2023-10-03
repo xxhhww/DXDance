@@ -9,14 +9,6 @@
 
 namespace Game {
 
-	void CameraSystem::Create() {
-
-	}
-
-	void CameraSystem::Destory() {
-
-	}
-
 	void CameraSystem::Run() {
 		bool isPaused = CORESERVICE(GlobalData).isPaused;
 		float dt = CORESERVICE(Tool::Clock).GetDeltaTime();
@@ -90,12 +82,15 @@ namespace Game {
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			// 处理摄像机行为
 			if (camera.cameraType == ECS::CameraType::RenderCamera && !isPaused) {
-				rotateCamera(camera, transform);
+				// rotateCamera(camera, transform);
 			}
 
-			if (camera.cameraType == ECS::CameraType::EditorCamera && isPaused) {
-				moveCamera(camera, transform);
-				rotateCamera(camera, transform);
+			if (camera.cameraType == ECS::CameraType::EditorCamera) {
+				// 编辑摄像机需要按住右键
+				if (CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_RBUTTON)) {
+					moveCamera(camera, transform);
+					rotateCamera(camera, transform);
+				}
 			}
 
 			// 更新摄像机矩阵

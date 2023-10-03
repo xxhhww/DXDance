@@ -1,9 +1,20 @@
 #include "Physics/PhysicsSystem.h"
 
+#include "ECS/Entity.h"
+#include "ECS/CTransform.h"
+#include "ECS/CMeshRenderer.h"
+#include "ECS/CCollisionBody.h"
+
 namespace Physics {
 
 	PhysicsSystem::PhysicsSystem(JPH::JobSystem* jobSystem) 
 	: mJobSystem(jobSystem) {
+		// Create factory
+		JPH::Factory::sInstance = new JPH::Factory;
+
+		// Register physics types with the factory
+		JPH::RegisterTypes();
+
 		mTempAllocator = new TempAllocatorImpl(32 * 1024 * 1024);
 
 		mPhysicsSystem = new JPH::PhysicsSystem();
@@ -12,10 +23,17 @@ namespace Physics {
 
 		// Restore gravity
 		mPhysicsSystem->SetGravity(mGravity);
+
+		mBodyInterface = &mPhysicsSystem->GetBodyInterface();
 	}
 
 	PhysicsSystem::~PhysicsSystem() {
 		delete mPhysicsSystem;
+
+		JPH::UnregisterTypes();
+
+		delete JPH::Factory::sInstance;
+		JPH::Factory::sInstance = nullptr;
 	}
 
 	void PhysicsSystem::StepPhysics() {
@@ -33,6 +51,18 @@ namespace Physics {
 		std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(clock_end - clock_start);
 		mTotalTime += duration;
 		mStepNumber++;
+
+		// 将物理空间中的数据更新到游戏空间中
+		ECS::Entity::Foreach([&](ECS::Entity::ID& id, ECS::Transform& transform, ECS::CollisionBody& collisionBody, ECS::MeshRenderer& meshRenderer) {
+			// 碰撞体已加载，并且状态合法
+			if (collisionBody.state == ECS::BodyState::Loaded && !collisionBody.bodyID.IsInvalid()) {
+				auto rVec3 = mBodyInterface->GetCenterOfMassPosition(collisionBody.bodyID);
+				auto rQuat = mBodyInterface->GetRotation(collisionBody.bodyID);
+
+				transform.worldPosition = Math::Vector3{ rVec3.GetX(), rVec3.GetY(), rVec3.GetZ() };
+				transform.worldRotation = Math::Quaternion{ rQuat.GetX(), rQuat.GetY(), rQuat.GetZ(), rQuat.GetW() };
+			}
+		});
 	}
 
 }

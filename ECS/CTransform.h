@@ -9,15 +9,17 @@ namespace ECS {
 
 	class Transform : public ECS::IComponent {
 	public:
-		Math::Vector3	worldPosition;	// 相对于世界原点的位置
-		Math::Vector3	worldRotation;	// 相对于世界原点的旋转(弧度制)
-		Math::Vector3	worldScaling;	// 相对于世界原点的缩放
-		Math::Matrix4	worldMatrix;	// 相对于世界原点的变换
+		Math::Vector3		worldPosition;	// 相对于世界原点的位置
+		Math::Quaternion	worldRotation;	// 相对于世界原点的旋转(弧度制)
+		Math::Vector3		worldScaling;	// 相对于世界原点的缩放
+
+		Math::Matrix4	prevworldMatrix;	// 相对于世界原点的变换
+		Math::Matrix4	currWorldMatrix;
 
 	public:
 		Transform()
 		: worldPosition(0.0f, 0.0f, 0.0f)
-		, worldRotation(0.0f, 0.0f, 0.0f)
+		, worldRotation(Math::Quaternion{})
 		, worldScaling(1.0f, 1.0f, 1.0f) {}
 
 		inline Math::Vector3 GetDirection() const {
@@ -26,8 +28,13 @@ namespace ECS {
 			return Math::Vector3{ 0.0f, 0.0f, -1.0f }.TransformAsVector(worldRotation.RotationMatrix());
 		}
 
+		inline Math::Matrix4 GetWorldMatrix() {
+			return Math::Matrix4(worldPosition, worldRotation, worldScaling);
+		}
+
 	public:
 		void SerializeJson(Tool::JsonWriter& writer) const override {
+			/*
 			using namespace Tool;
 
 			writer.StartObject();
@@ -40,9 +47,11 @@ namespace ECS {
 			SerializeHelper::SerializeMatrix(writer, "WorldMatrix", worldMatrix);
 
 			writer.EndObject();
+			*/
 		}
 
 		void DeserializeJson(const Tool::JsonReader& reader) override {
+			/*
 			using namespace Tool;
 
 			// Typename由上层解析
@@ -50,9 +59,11 @@ namespace ECS {
 			SerializeHelper::DeserializeVector3(reader, "WorldRotation", worldRotation);
 			SerializeHelper::DeserializeVector3(reader, "WorldScaling", worldScaling);
 			SerializeHelper::DeserializeMatrix(reader, "WorldMatrix", worldMatrix);
+			*/
 		}
 
 		void OnInspector(UI::IWidgetContainer* container) override {
+			/*
 			auto* group = &container->CreateWidget<UI::GroupCollapsable>("Transform");
 			
 			auto& posItem = group->CreateWidget<UI::DragFloat3>("Position", worldPosition);
@@ -78,6 +89,7 @@ namespace ECS {
 			sclItem.dataProvider = [this](Math::Vector3 newValue) {
 				worldScaling = newValue;
 			};
+			*/
 		}
 
 	};

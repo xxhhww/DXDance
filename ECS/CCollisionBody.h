@@ -5,17 +5,18 @@
 
 namespace ECS {
 
+	enum class BodyState {
+		UnLoad,
+		Loading,
+		Loaded
+	};
+
 	class CollisionBody : public IComponent {
 	public:
-		enum class State {
-			UnLoad,
-			Loading,
-			Loaded
-		};
 
 	public:
 		JPH::BodyID bodyID;
-		State state{ State::UnLoad };
+		BodyState state{ BodyState::UnLoad };
 
 	public:
 		void SerializeJson(Tool::JsonWriter& writer) const override {

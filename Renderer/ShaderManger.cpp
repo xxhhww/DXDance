@@ -7,9 +7,14 @@ namespace Renderer {
 	, mCompiler() {
 		mBaseRootSignature = std::make_unique<GHL::RootSignature>(mDevice);
 		mBaseRootSignature->InitStaticSampler();
+		// rootParamIndex 0 : b0,s10
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 0u, 10u });
+		// rootParamIndex 1 : b1,s10
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 1u, 10u });
+		// rootParamIndex 2 : t0,s10
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootShaderResourceParameter{ 0u, 10u });
+		// rootParamIndex 3 : b0,s0
+		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 0u, 0u });
 		mBaseRootSignature->Compile();
 	}
 

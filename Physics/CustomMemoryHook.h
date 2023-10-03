@@ -1,7 +1,7 @@
 #pragma once
-#include "Jolt/Jolt.h"
+#include "Physics/pbh.h"
 
-namespace Game {
+namespace Physics {
 
     /// Register hook that detects allocations that aren't made through the custom allocator
     void RegisterCustomMemoryHook();

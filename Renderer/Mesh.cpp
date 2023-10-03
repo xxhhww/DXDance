@@ -31,6 +31,7 @@ namespace Renderer {
 	}
 
 	void Mesh::LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices) {
+		BuildBoundingBox(vertices);
 		mVertexCount = vertices.size();
 
 		DSTORAGE_REQUEST request = {};
@@ -57,6 +58,7 @@ namespace Renderer {
 	}
 
 	void Mesh::LoadDataFromMemory(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence, std::vector<Vertex>& vertices, std::vector<uint32_t>& indices) {
+		BuildBoundingBox(vertices);
 		mVertexCount = vertices.size();
 		mIndexCount = indices.size();
 		
@@ -92,6 +94,16 @@ namespace Renderer {
 		copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
 		copyDsQueue->Submit();
 		copyFence->Wait();
+	}
+
+	void Mesh::BuildBoundingBox(const std::vector<Vertex>& vertices) {
+		std::vector<XMFLOAT3> PositionArray;
+		for (const auto& v : vertices) {
+			PositionArray.emplace_back(v.position);
+		}
+		DirectX::BoundingBox::CreateFromPoints(mBoundingBox,
+			PositionArray.size(), PositionArray.data(), sizeof(XMFLOAT3)
+		);
 	}
 
 }

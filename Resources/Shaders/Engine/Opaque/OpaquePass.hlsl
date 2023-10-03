@@ -11,6 +11,16 @@ struct PassData {
 #define PassDataType PassData
 
 #include "../Base/MainEntryPoint.hlsl"
+#include "../Base/Utils.hlsl"
+
+cbuffer ItemData : register(b0, space0) 
+{
+	float4x4 prevModelTrans;	// 前一帧的世界变换矩阵
+	float4x4 currModelTrans;    // 当前帧的世界变换矩阵
+    float4 center;				// boundingBox
+    float4 extend;
+};
+
 
 struct a2v {
 	float3 lsPos     : POSITION;
@@ -18,10 +28,16 @@ struct a2v {
 	float3 lsNormal  : NORMAL;
 	float3 tangent   : TANGENT;
 	float3 bitangent : BITANGENT;
+	float4 color     : COLOR;
 };
 
 struct v2p {
-	float4 csPos : SV_POSITION;
+	float4 currCsPos : SV_POSITION;
+	float4 prevCsPos : POSITION1;
+	float3 wsPos     : POSITION2;
+	float3 vsPos     : POSITION3;
+	float2 uv        : TEXCOORD2;
+	float3 wsNormal  : NORMAL0;
 };
 
 struct p2o {
@@ -33,19 +49,44 @@ struct p2o {
 v2p VSMain(a2v input) {
 	v2p output;
 
-	// TODO 修改
-	output.csPos = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float3 currWsPos = mul(float4(input.lsPos, 1.0f), currModelTrans).xyz;
+	float3 prevWsPos = mul(float4(input.lsPos, 1.0f), prevModelTrans).xyz;
+
+	float3 wsNormal = mul(float4(input.lsNormal, 0.0f), currModelTrans).xyz;
+
+	float3 currVsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.View).xyz;
+	float4 currCsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);
+	// 前一帧的CsPos，不需要加上上一帧的抖动，在PS中计算时再加上这一帧的uv抖动，从而保证计算motionVector时消除抖动
+	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
+
+	output.currCsPos = currCsPos;
+	output.prevCsPos = prevCsPos;
+	output.wsPos = currWsPos;
+	output.vsPos = currVsPos;
+	output.uv = input.uv;
+	output.wsNormal = wsNormal;
 
 	return output;
 }
 
 p2o PSMain(v2p input) {
+	// 当前帧的uv抖动
+	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
+    float3 prevNDCPos = input.prevCsPos.xyz / input.prevCsPos.w;
+    float2 prevScreenUV = NDCToUV(prevNDCPos);
+    prevScreenUV += uvJitter; // Get rid of the jitter caused by perspective interpolation with W from jittered matrix
+    float3 prevUVSpacePos = float3(prevScreenUV, prevNDCPos.z);
+
+    float2 currScreenUV = (floor(input.currCsPos.xy) + 0.5f) * FrameDataCB.FinalRTResolutionInv;
+    float3 currUVSpacePos = float3(currScreenUV, input.currCsPos.z);
+
+    float3 velocity = currUVSpacePos - prevUVSpacePos;
+
 	p2o output;
 
-	// TODO 修改
-	output.shadingResult   = float4(0.0f, 0.0f, 0.0f, 0.0f);
-	output.normalRoughness = float4(1.0f, 1.0f, 1.0f, 1.0f);
-	output.screenVelocity    = float2(0.0f, 0.0f);
+	output.shadingResult   = float4(0.5f, 0.5f, 0.5f, 1.0f);
+	output.normalRoughness = float4(input.wsNormal, 1.0f);
+	output.screenVelocity  = float2(velocity.xy);
 
 	return output;
 }

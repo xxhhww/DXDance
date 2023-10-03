@@ -48,9 +48,6 @@
     <ClInclude Include="Game.h">
       <Filter>头文件\Core</Filter>
     </ClInclude>
-    <ClInclude Include="CustomMemoryHook.h">
-      <Filter>头文件\Core</Filter>
-    </ClInclude>
     <ClInclude Include="GameInitializer.h">
       <Filter>头文件\Core</Filter>
     </ClInclude>
@@ -85,9 +82,6 @@
     </ClCompile>
     <ClCompile Include="GameMain.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CustomMemoryHook.cpp">
-      <Filter>源文件\Core</Filter>
     </ClCompile>
     <ClCompile Include="GameInitializer.cpp">
       <Filter>源文件\Core</Filter>

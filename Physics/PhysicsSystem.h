@@ -28,6 +28,7 @@ namespace Physics {
 
 		JPH::JobSystem* mJobSystem{ nullptr };
 		JPH::PhysicsSystem* mPhysicsSystem{ nullptr };
+		JPH::BodyInterface* mBodyInterface{ nullptr };
 		JPH::PhysicsSettings mPhysicsSettings;
 		JPH::Vec3 mGravity{ 0.0f, -9.81f, 0.0f };
 

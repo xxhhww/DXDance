@@ -28,10 +28,16 @@ namespace Game {
 	}
 
 	void Game::Update(float delta) {
+		// 处理额外的用户操作
+		HandlePlayerInput();
+
 		// 实体行为
 		CORESERVICE(SystemManger).Run();
 
 		// 物理解算
+		if (!CORESERVICE(GlobalData).isPaused) {
+			CORESERVICE(Physics::PhysicsSystem).StepPhysics();
+		}
 
 		// 执行渲染
 		ECS::Camera* editorCamera = nullptr;
@@ -43,8 +49,10 @@ namespace Game {
 			}
 		});
 		CORESERVICE(Renderer::RenderEngine).Update(
-			mContext.clock->GetDeltaTime(), mContext.clock->GetTimeSinceStart(),
-			*editorCamera, *editorTransform);
+			CORESERVICE(Tool::Clock).GetDeltaTime(), 
+			CORESERVICE(Tool::Clock).GetTimeSinceStart(),
+			*editorCamera, 
+			*editorTransform);
 		CORESERVICE(Renderer::RenderEngine).Render();
 	}
 
@@ -54,6 +62,12 @@ namespace Game {
 
 	void Game::PostUpdate(float delta) {
 		mContext.inputManger->PostUpdate();
+	}
+
+	void Game::HandlePlayerInput() {
+		if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_P)) {
+			CORESERVICE(GlobalData).isPaused = !CORESERVICE(GlobalData).isPaused;
+		}
 	}
 
 }

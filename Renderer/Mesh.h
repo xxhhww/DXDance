@@ -89,6 +89,11 @@ namespace Renderer {
 		inline auto* GetVertexBuffer() const { return mVertexBuffer.get(); }
 		inline auto* GetIndexBuffer()  const { return mIndexBuffer.get();  }
 
+		inline const auto& GetBoundingBox() const { return mBoundingBox; }
+
+	private:
+		void BuildBoundingBox(const std::vector<Vertex>& vertices);
+
 	private:
 		const GHL::Device* mDevice{ nullptr };
 		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
@@ -98,6 +103,8 @@ namespace Renderer {
 		uint32_t mIndexCount{ 0u };
 		std::unique_ptr<Buffer> mVertexBuffer;
 		std::unique_ptr<Buffer> mIndexBuffer;
+
+		DirectX::BoundingBox mBoundingBox; // АќЮЇКа
 	};
 
 }

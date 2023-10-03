@@ -1,14 +1,15 @@
 #include "Game/Context.h"
-#include "Game/CustomMemoryHook.h"
 #include "Core/ServiceLocator.h"
 
 #include "ECS/Entity.h"
+
+#include "Physics/CustomMemoryHook.h"
 
 namespace Game {
 
 	Context::Context(const std::string& name, HINSTANCE hInstance, int nCmdShow) {
 		GHL::EnableDebugLayer();
-		RegisterCustomMemoryHook();
+		Physics::RegisterCustomMemoryHook();
 
 		// 初始化Win32窗口
 		Windows::WindowSetting winSetting{};
@@ -43,7 +44,7 @@ namespace Game {
 		systemManger = std::make_unique<Game::SystemManger>();
 
 		// 初始化游戏资产
-		assetManger = std::make_unique<Game::AssetManger>();
+		assetManger = std::make_unique<Game::AssetManger>(renderEngine.get(), "E:/MyProject/DXDance/Resources");
 
 		// 初始化全局数据
 		globalData = std::make_unique<Game::GlobalData>();

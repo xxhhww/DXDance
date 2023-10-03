@@ -11,6 +11,7 @@
 #include "ECS/CTransform.h"
 #include "ECS/CCollisionBody.h"
 #include "ECS/CHeightField.h"
+#include "ECS/CMeshRenderer.h"
 
 #include "Physics/PhysicsSystem.h"
 
@@ -36,10 +37,9 @@ namespace Game {
 		return data;
 	}
 
-	void StreamPhysicsSystem::Create() {
-	}
-
-	void StreamPhysicsSystem::Destory() {
+	StreamPhysicsSystem::StreamPhysicsSystem() {
+		// 初始化就是润一下，把附近的地块和可碰撞物体加入到物理世界中
+		Run();
 	}
 
 	void StreamPhysicsSystem::Run() {
@@ -56,12 +56,11 @@ namespace Game {
 		Physics::PhysicsSystem* physicsSystem = &CORESERVICE(Physics::PhysicsSystem);
 		JPH::BodyInterface& bodyInterface = physicsSystem->GetBodyInterface();
 
-		ECS::Entity::Foreach([&](ECS::Entity::ID& id, ECS::Transform& transform, ECS::HeightField& heightField, ECS::CollisionBody& collisionBody) {
-			
+		ECS::Entity::Foreach([&](ECS::Entity::ID& id, ECS::Transform& transform, ECS::HeightField& heightField) {
 			// 计算XZ平面上的距离
 			float distance = Math::Vector2{ cameraPos.x - transform.worldPosition.x, cameraPos.z - transform.worldPosition.z }.Length();
-			if (distance < 1024.0f && collisionBody.state == ECS::CollisionBody::State::UnLoad) {
-				collisionBody.state = ECS::CollisionBody::State::Loading;
+			if (distance < 1024.0f && heightField.state == ECS::BodyState::UnLoad) {
+				heightField.state = ECS::BodyState::Loading;
 				jobSystem->CreateJob("", JPH::ColorArg::sGreen, [&]() {
 					const int n = 1024;
 
@@ -95,9 +94,32 @@ namespace Game {
 					JPH::Body& terrain = *bodyInterface.CreateBody(JPH::BodyCreationSettings(heightField.heightFieldShape, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING));
 					bodyInterface.AddBody(terrain.GetID(), JPH::EActivation::DontActivate);
 
-					collisionBody.bodyID = terrain.GetID();
-					collisionBody.state = ECS::CollisionBody::State::Loaded;
+					heightField.bodyID = terrain.GetID();
+					heightField.state = ECS::BodyState::Loaded;
 				});
+			}
+		});
+
+
+		ECS::Entity::Foreach([&](ECS::Entity::ID& id, ECS::Transform& transform, ECS::CollisionBody& collisionBody, ECS::MeshRenderer& meshRenderer) {
+			// 计算空间距离
+			float distance = Math::Vector3{ cameraPos.x - transform.worldPosition.x, cameraPos.y - transform.worldPosition.y, cameraPos.z - transform.worldPosition.z }.Length();
+			if (distance < 1024.0f && collisionBody.state == ECS::BodyState::UnLoad) {
+				collisionBody.state = ECS::BodyState::Loading;
+				auto& boundingBox = meshRenderer.mesh->GetBoundingBox();
+				jobSystem->CreateJob("", JPH::ColorArg::sGreen, [&]() {
+					JPH::Body& body = *bodyInterface.CreateBody(
+						JPH::BodyCreationSettings(new JPH::BoxShape(JPH::Vec3(boundingBox.Extents.x, boundingBox.Extents.y, boundingBox.Extents.z)),
+						JPH::RVec3{ transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z }, 
+						JPH::Quat{ transform.worldRotation.x, transform.worldRotation.y, transform.worldRotation.z, transform.worldRotation.w },
+						JPH::EMotionType::Dynamic,
+						Layers::MOVING)
+					);
+					bodyInterface.AddBody(body.GetID(), EActivation::Activate);
+					collisionBody.bodyID = body.GetID();
+					collisionBody.state = ECS::BodyState::Loaded;
+				});
+
 			}
 		});
 	}

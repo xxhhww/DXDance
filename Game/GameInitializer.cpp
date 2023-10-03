@@ -33,7 +33,7 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 0.0f };
+            transform.worldPosition = Math::Vector3{ 0.0f, 1500.0f, 1024.0f };
 
             auto& camera = entity.GetComponent<ECS::Camera>();
             camera.cameraType = ECS::CameraType::RenderCamera;
@@ -46,9 +46,10 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 0.0f };
+            transform.worldPosition = Math::Vector3{ 0.0f, 1500.0f, 1024.0f };
 
             auto& camera = entity.GetComponent<ECS::Camera>();
+            camera.translationSpeed *= 5.0f;
             camera.cameraType = ECS::CameraType::EditorCamera;
             camera.frustum.farZ = 5000.0f;
         }
@@ -74,22 +75,21 @@ namespace Game {
             Math::Vector2 worldMeterSize = terrainSystem->worldMeterSize;
             uint32_t nodeCountPerAxisInMaxLOD = terrainSystem->nodeCountPerAxisInMaxLOD;
             float nodeSizeInMaxLOD = std::pow(2, terrainSystem->maxLOD) * terrainSystem->mostDetailNodeMeterSize;
-            for (int32_t i = 0; i < nodeCountPerAxisInMaxLOD; i++) {
-                for (int32_t j = 0; j < nodeCountPerAxisInMaxLOD; j++) {
+            for (int32_t row = 0; row < nodeCountPerAxisInMaxLOD; row++) {
+                for (int32_t col = 0; col < nodeCountPerAxisInMaxLOD; col++) {
                     auto entity = ECS::Entity::Create<ECS::Transform, ECS::HeightField, ECS::CollisionBody>();
 
                     auto& transform = entity.GetComponent<ECS::Transform>();
                     auto& heightField = entity.GetComponent<ECS::HeightField>();
-                    auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
                     // 计算当前地块的中心点的坐标和rectInWorldSpace
 
                     // 先以左上角为原点计算每一个地块的左上角的坐标
-                    Math::Vector2 ltOriginPos = Math::Vector2{ j * nodeSizeInMaxLOD - worldMeterSize.x / 2.0f, -i * nodeSizeInMaxLOD + worldMeterSize.y / 2.0f };
+                    Math::Vector2 ltOriginPos = Math::Vector2{ col * nodeSizeInMaxLOD - worldMeterSize.x / 2.0f, -row * nodeSizeInMaxLOD + worldMeterSize.y / 2.0f };
                     Math::Vector2 centerPos = Math::Vector2{ ltOriginPos.x + nodeSizeInMaxLOD / 2.0f, ltOriginPos.y - nodeSizeInMaxLOD / 2.0f };
 
                     transform.worldPosition = Math::Vector3{ centerPos.x, 0.0f, centerPos.y };
-                    heightField.tileIndex = Math::Vector2{ static_cast<float>(i), static_cast<float>(j) };
+                    heightField.tileIndex = Math::Vector2{ static_cast<float>(row), static_cast<float>(col) };
                     heightField.centerPos = centerPos;
                     heightField.extend = nodeSizeInMaxLOD / 2.0f;
                     heightField.lbOriginPos = Math::Vector2{ centerPos.x - nodeSizeInMaxLOD / 2.0f, centerPos.y - nodeSizeInMaxLOD / 2.0f  };
@@ -106,7 +106,16 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 0.0f };
+            transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 1024.0f };
+            meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
+        }
+        {
+            auto entity = ECS::Entity::Create<ECS::Transform, ECS::MeshRenderer, ECS::CollisionBody>();
+            auto& transform = entity.GetComponent<ECS::Transform>();
+            auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
+            auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
+
+            transform.worldPosition = Math::Vector3{ 0.0f, 1850.0f, 1024.0f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }
     }

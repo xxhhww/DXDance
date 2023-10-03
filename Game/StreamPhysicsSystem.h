@@ -5,9 +5,7 @@ namespace Game {
 
 	class StreamPhysicsSystem : public ISystem {
 	public:
-		virtual void Create() override;
-
-		virtual void Destory() override;
+		StreamPhysicsSystem();
 
 		virtual void Run() override;
 	};

@@ -140,7 +140,6 @@
     <ClInclude Include="AssetManger.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="Context.h" />
-    <ClInclude Include="CustomMemoryHook.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameInitializer.h" />
     <ClInclude Include="GlobalData.h" />
@@ -153,7 +152,6 @@
     <ClCompile Include="AssetManger.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="Context.cpp" />
-    <ClCompile Include="CustomMemoryHook.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameInitializer.cpp" />
     <ClCompile Include="GameMain.cpp" />

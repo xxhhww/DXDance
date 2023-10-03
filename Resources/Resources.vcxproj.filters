@@ -97,5 +97,7 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer_VirtualTexture.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainFeedback.hlsl" />
     <FxCompile Include="Shaders\Engine\UAVClear\TextureUAVClear.hlsl" />
+    <FxCompile Include="Shaders\Engine\Opaque\GpuCullingPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\Opaque\OpaqueHelper.hlsl" />
   </ItemGroup>
 </Project>

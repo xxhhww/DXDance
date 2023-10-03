@@ -20,6 +20,9 @@ namespace Game {
 		// 编辑器后处理函数
 		void PostUpdate(float delta);
 
+		// 处理玩家的额外操作
+		void HandlePlayerInput();
+
 	private:
 		bool mPause{ true };
 		Context& mContext;
