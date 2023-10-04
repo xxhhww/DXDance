@@ -108,6 +108,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 
 	float2 heightUV = (input.lsPos.xz + (PassDataCB.worldSize * 0.5f) + 0.5f) / (PassDataCB.worldSize + 1.0f);
 	heightUV *= 1.0f;
+	heightUV.y = 1.0f - heightUV.y;
 	float height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
 	input.lsPos.y = height * PassDataCB.heightScale;
 
@@ -132,6 +133,8 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 p2o PSMain(v2p input) {
+	float3 lodDebugColor = GetLODColor(input.lod);
+
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
     float3 prevNDCPos = input.prevCsPos.xyz / input.prevCsPos.w;
@@ -227,6 +230,7 @@ p2o PSMain(v2p input) {
 
 	p2o output;
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
+	// output.shadingResult = float4(lodDebugColor, 1.0f);
 	// output.shadingResult   = float4(indexInfo.z * 0.1f, 0.0f, 0.0f, 1.0f);
 	output.normalRoughness = float4(normal, roughness);
 	output.screenVelocity  = float2(velocity.xy);

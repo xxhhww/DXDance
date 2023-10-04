@@ -17,6 +17,7 @@ namespace ECS {
 		Math::Vector2 tileIndex{ 0.0f, 0.0f };
 		Math::Vector2 centerPos{ 0.0f, 0.0f };
 		Math::Vector2 lbOriginPos{ 0.0f, 0.0f };	// 地形左下角的点
+		Math::Vector2 ltOriginPosInRightHanded{ 0.0f, 0.0f };	// 地形左上角的点在右手坐标系下的坐标(因为物理引擎是右手坐标系，左上角为初始偏移量)
 		float extend{ 1024.0f / 2.0f };
 		float heightScale{ 4096.0f };
 

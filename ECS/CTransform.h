@@ -5,6 +5,8 @@
 #include "Math/Quaternion.h"
 #include "Math/Matrix.h"
 
+#include "Jolt/Jolt.h"
+
 namespace ECS {
 
 	class Transform : public ECS::IComponent {
@@ -31,6 +33,26 @@ namespace ECS {
 		inline Math::Matrix4 GetWorldMatrix() {
 			return Math::Matrix4(worldPosition, worldRotation, worldScaling);
 		}
+
+
+		/*
+		* 物理引擎是基于右手坐标系的，因此需要将坐标与旋转都转换到右手坐标系
+		*/
+		inline JPH::Vec3 GetPhysicalSpaceWorldPosition() const {
+			return JPH::Vec3{ worldPosition.x, worldPosition.y, -worldPosition.z };
+		};
+
+		inline JPH::Quat GetPhysicalSpaceWorldRotation() const {
+			return JPH::Quat{ worldRotation.x, worldRotation.y, worldRotation.z, worldRotation.w };
+		};
+
+		inline void SetPhysicalSpaceWorldPosition(const JPH::Vec3& position) {
+			worldPosition = Math::Vector3{ position.GetX(), position.GetY(), -position.GetZ() };
+		};
+
+		inline void SetPhysicalSpaceWorldRotation(const JPH::Quat& rotation) {
+			worldRotation = Math::Quaternion{ -rotation.GetX(), rotation.GetY(), -rotation.GetZ(), rotation.GetW() };
+		};
 
 	public:
 		void SerializeJson(Tool::JsonWriter& writer) const override {

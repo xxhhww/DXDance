@@ -58,9 +58,8 @@ namespace Physics {
 			if (collisionBody.state == ECS::BodyState::Loaded && !collisionBody.bodyID.IsInvalid()) {
 				auto rVec3 = mBodyInterface->GetCenterOfMassPosition(collisionBody.bodyID);
 				auto rQuat = mBodyInterface->GetRotation(collisionBody.bodyID);
-
-				transform.worldPosition = Math::Vector3{ rVec3.GetX(), rVec3.GetY(), rVec3.GetZ() };
-				transform.worldRotation = Math::Quaternion{ rQuat.GetX(), rQuat.GetY(), rQuat.GetZ(), rQuat.GetW() };
+				transform.SetPhysicalSpaceWorldPosition(rVec3);
+				transform.SetPhysicalSpaceWorldRotation(rQuat);
 			}
 		});
 	}

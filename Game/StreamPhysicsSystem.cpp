@@ -77,7 +77,7 @@ namespace Game {
 					memcpy(terrainData.data(), data.data(), terrainSize * terrainSize * sizeof(float));
 
 					// Determine scale and offset
-					JPH::Vec3 terrainOffset = JPH::Vec3(heightField.lbOriginPos.x, 0.0f, heightField.lbOriginPos.y);
+					JPH::Vec3 terrainOffset = JPH::Vec3(heightField.ltOriginPosInRightHanded.x, 0.0f, heightField.ltOriginPosInRightHanded.y);
 					JPH::Vec3 terrainScale  = JPH::Vec3(1.0f, heightField.heightScale, 1.0f);
 
 					JPH::PhysicsMaterialList materials;
@@ -108,10 +108,15 @@ namespace Game {
 				collisionBody.state = ECS::BodyState::Loading;
 				auto& boundingBox = meshRenderer.mesh->GetBoundingBox();
 				jobSystem->CreateJob("", JPH::ColorArg::sGreen, [&]() {
-					JPH::Body& body = *bodyInterface.CreateBody(
-						JPH::BodyCreationSettings(new JPH::BoxShape(JPH::Vec3(boundingBox.Extents.x, boundingBox.Extents.y, boundingBox.Extents.z)),
-						JPH::RVec3{ transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z }, 
-						JPH::Quat{ transform.worldRotation.x, transform.worldRotation.y, transform.worldRotation.z, transform.worldRotation.w },
+					JPH::Vec3 inHalfExtents{ 
+						boundingBox.Extents.x * transform.worldScaling.x, 
+						boundingBox.Extents.y * transform.worldScaling.y,
+						boundingBox.Extents.z * transform.worldScaling.z };
+
+;					JPH::Body& body = *bodyInterface.CreateBody(
+						JPH::BodyCreationSettings(new JPH::BoxShape(inHalfExtents),
+						transform.GetPhysicalSpaceWorldPosition(),
+						transform.GetPhysicalSpaceWorldRotation(),
 						JPH::EMotionType::Dynamic,
 						Layers::MOVING)
 					);

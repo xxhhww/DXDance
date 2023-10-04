@@ -25,6 +25,7 @@ namespace Game {
 	}
 
     void GameInitializer::InitializeEntity() {
+        Math::Vector2 testPositionXZ = Math::Vector2{ 0.0f, 0.0f };
         /*
         * …Ë÷√…„œÒª˙
         */
@@ -33,7 +34,7 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ 0.0f, 1500.0f, 1024.0f };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1650.0f, testPositionXZ.y };
 
             auto& camera = entity.GetComponent<ECS::Camera>();
             camera.cameraType = ECS::CameraType::RenderCamera;
@@ -46,7 +47,7 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ 0.0f, 1500.0f, 1024.0f };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1650.0f, testPositionXZ.y };
 
             auto& camera = entity.GetComponent<ECS::Camera>();
             camera.translationSpeed *= 5.0f;
@@ -93,6 +94,7 @@ namespace Game {
                     heightField.centerPos = centerPos;
                     heightField.extend = nodeSizeInMaxLOD / 2.0f;
                     heightField.lbOriginPos = Math::Vector2{ centerPos.x - nodeSizeInMaxLOD / 2.0f, centerPos.y - nodeSizeInMaxLOD / 2.0f  };
+                    heightField.ltOriginPosInRightHanded = Math::Vector2{ heightField.lbOriginPos.x, -(heightField.lbOriginPos.y + nodeSizeInMaxLOD) };
                 }
             }
         }
@@ -106,7 +108,8 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ 0.0f, 2000.0f, 1024.0f };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 2000.0f, testPositionXZ.y };
+            transform.worldScaling = Math::Vector3{ 0.02f,0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }
         {
@@ -115,7 +118,8 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ 0.0f, 1850.0f, 1024.0f };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1850.0f, testPositionXZ.y };
+            transform.worldScaling = Math::Vector3{ 0.02f, 0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }
     }
