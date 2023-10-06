@@ -9,7 +9,13 @@
 
 namespace Game {
 
-	void CameraSystem::Run() {
+	void CameraSystem::Create() {
+	}
+
+	void CameraSystem::Destory() {
+	}
+
+	void CameraSystem::PrePhysicsUpdate() {
 		bool isPaused = CORESERVICE(GlobalData).isPaused;
 		float dt = CORESERVICE(Tool::Clock).GetDeltaTime();
 
@@ -108,6 +114,9 @@ namespace Game {
 			*/
 			updateCameraMatrix(camera, transform);
 		});
+	}
+
+	void CameraSystem::PostPhysicsUpdate() {
 	}
 
 }

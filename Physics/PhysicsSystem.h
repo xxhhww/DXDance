@@ -10,6 +10,7 @@ namespace Physics {
 
 		void StepPhysics();
 
+		inline JPH::PhysicsSystem* GetPhysicsSystem() const { return mPhysicsSystem; }
 		inline JPH::BodyInterface& GetBodyInterface() const { return mPhysicsSystem->GetBodyInterface(); }
 
 	private:

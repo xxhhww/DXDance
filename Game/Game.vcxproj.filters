@@ -69,6 +69,21 @@
     <ClInclude Include="AssetManger.h">
       <Filter>头文件\Core</Filter>
     </ClInclude>
+    <ClInclude Include="CTank.h">
+      <Filter>头文件\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CTankWheel.h">
+      <Filter>头文件\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CTankTurret.h">
+      <Filter>头文件\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CTankBarrel.h">
+      <Filter>头文件\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="TankSystem.h">
+      <Filter>头文件\System\User</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -97,6 +112,21 @@
     </ClCompile>
     <ClCompile Include="AssetManger.cpp">
       <Filter>源文件\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="CTank.cpp">
+      <Filter>源文件\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="CTankBarrel.cpp">
+      <Filter>源文件\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="CTankTurret.cpp">
+      <Filter>源文件\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="CTankWheel.cpp">
+      <Filter>源文件\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TankSystem.cpp">
+      <Filter>源文件\System\User</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

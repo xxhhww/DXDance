@@ -37,12 +37,15 @@ namespace Game {
 		return data;
 	}
 
-	StreamPhysicsSystem::StreamPhysicsSystem() {
+	void StreamPhysicsSystem::Create() {
 		// 初始化就是润一下，把附近的地块和可碰撞物体加入到物理世界中
-		Run();
+		PrePhysicsUpdate();
 	}
 
-	void StreamPhysicsSystem::Run() {
+	void StreamPhysicsSystem::Destory() {
+	}
+
+	void StreamPhysicsSystem::PrePhysicsUpdate() {
 
 		// 获得当前渲染摄像机的位置
 		Math::Vector3 cameraPos{ 0.0f, 0.0f, 0.0f };
@@ -127,6 +130,9 @@ namespace Game {
 
 			}
 		});
+	}
+
+	void StreamPhysicsSystem::PostPhysicsUpdate() {
 	}
 
 }

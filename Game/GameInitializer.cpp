@@ -1,8 +1,9 @@
 #include "Game/GameInitializer.h"
-#include "Game/SystemManger.h"
-#include "Game/StreamPhysicsSystem.h"
-#include "Game/CameraSystem.h"
 #include "Game/AssetManger.h"
+#include "Game/SystemManger.h"
+#include "Game/TankSystem.h"
+#include "Game/CameraSystem.h"
+#include "Game/StreamPhysicsSystem.h"
 
 #include "ECS/Entity.h"
 #include "ECS/CTransform.h"
@@ -125,8 +126,11 @@ namespace Game {
     }
 
     void GameInitializer::InitializeSystem() {
+        CORESERVICE(Game::SystemManger).Emplace(std::make_unique<TankSystem>());
         CORESERVICE(Game::SystemManger).Emplace(std::make_unique<CameraSystem>());
         CORESERVICE(Game::SystemManger).Emplace(std::make_unique<StreamPhysicsSystem>());
+
+        CORESERVICE(Game::SystemManger).Create();
     }
 
 }

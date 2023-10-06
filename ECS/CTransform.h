@@ -43,7 +43,7 @@ namespace ECS {
 		};
 
 		inline JPH::Quat GetPhysicalSpaceWorldRotation() const {
-			return JPH::Quat{ worldRotation.x, worldRotation.y, worldRotation.z, worldRotation.w };
+			return JPH::Quat{ -worldRotation.x, worldRotation.y, -worldRotation.z, worldRotation.w };
 		};
 
 		inline void SetPhysicalSpaceWorldPosition(const JPH::Vec3& position) {
@@ -51,7 +51,7 @@ namespace ECS {
 		};
 
 		inline void SetPhysicalSpaceWorldRotation(const JPH::Quat& rotation) {
-			worldRotation = Math::Quaternion{ -rotation.GetX(), rotation.GetY(), -rotation.GetZ(), rotation.GetW() };
+			worldRotation = Math::Quaternion{ -rotation.GetX(), -rotation.GetY(), rotation.GetZ(), rotation.GetW() };
 		};
 
 	public:

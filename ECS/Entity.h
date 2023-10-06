@@ -156,6 +156,11 @@ namespace ECS {
 		inline Entity(int32_t id = -1) : mID(id) {}
 
 		/*
+		* 获取EntityID
+		*/
+		inline const auto& GetID() const { return mID; }
+
+		/*
 		* 添加组件
 		*/
 		template<typename Comp>

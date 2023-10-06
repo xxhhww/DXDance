@@ -3,7 +3,7 @@
 
 namespace Game {
 
-	class CameraSystem : public ISystem {
+	class TankSystem : public ISystem {
 	public:
 		virtual void Create() override;
 
@@ -12,6 +12,8 @@ namespace Game {
 		virtual void PrePhysicsUpdate() override;
 
 		virtual void PostPhysicsUpdate() override;
+
+	private:
 	};
 
 }

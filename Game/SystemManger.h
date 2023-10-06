@@ -7,9 +7,15 @@ namespace Game {
 
 	class SystemManger {
 	public:
+		~SystemManger();
+
+		void Create();
+
 		void Emplace(std::unique_ptr<ISystem>&& system);
 
-		void Run();
+		void PrePhysicsUpdate();
+
+		void PostPhysicsUpdate();
 
 	private:
 		std::vector<std::unique_ptr<ISystem>> mSystems;

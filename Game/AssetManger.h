@@ -6,7 +6,7 @@
 namespace Game {
 
 	/*
-	* 管理游戏中使用到的资产
+	* 管理游戏中使用到的预设资产，标准的几何模型与着色器等
 	*/
 	class AssetManger {
 	public:

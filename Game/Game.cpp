@@ -32,12 +32,15 @@ namespace Game {
 		HandlePlayerInput();
 
 		// 实体行为
-		CORESERVICE(SystemManger).Run();
+		CORESERVICE(SystemManger).PrePhysicsUpdate();
 
 		// 物理解算
 		if (!CORESERVICE(GlobalData).isPaused) {
 			CORESERVICE(Physics::PhysicsSystem).StepPhysics();
 		}
+
+		// 借由物理空间更新游戏空间
+		CORESERVICE(SystemManger).PostPhysicsUpdate();
 
 		// 执行渲染
 		ECS::Camera* editorCamera = nullptr;

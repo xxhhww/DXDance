@@ -38,6 +38,7 @@ struct v2p {
 	float3 vsPos     : POSITION3;
 	float2 uv        : TEXCOORD2;
 	float3 wsNormal  : NORMAL0;
+	float3 debugColor: COLOR0;
 };
 
 struct p2o {
@@ -46,7 +47,7 @@ struct p2o {
 	float2 screenVelocity  : SV_TARGET2;
 };
 
-v2p VSMain(a2v input) {
+v2p VSMain(a2v input, uint vertexID : SV_VERTEXID) {
 	v2p output;
 
 	float3 currWsPos = mul(float4(input.lsPos, 1.0f), currModelTrans).xyz;
@@ -65,6 +66,15 @@ v2p VSMain(a2v input) {
 	output.vsPos = currVsPos;
 	output.uv = input.uv;
 	output.wsNormal = wsNormal;
+	if(vertexID % 3 == 0) {
+		output.debugColor = float3(1.0f, 0.0f, 0.0f);
+	}
+	else if(vertexID % 3 == 1) {
+		output.debugColor = float3(0.0f, 1.0f, 0.0f);
+	}
+	else if(vertexID % 3 == 2) {
+		output.debugColor = float3(0.0f, 0.0f, 1.0f);
+	}
 
 	return output;
 }
@@ -83,8 +93,7 @@ p2o PSMain(v2p input) {
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
 	p2o output;
-
-	output.shadingResult   = float4(0.5f, 0.5f, 0.5f, 1.0f);
+	output.shadingResult   = float4(input.debugColor, 1.0f);
 	output.normalRoughness = float4(input.wsNormal, 1.0f);
 	output.screenVelocity  = float2(velocity.xy);
 

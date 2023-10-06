@@ -140,23 +140,33 @@
     <ClInclude Include="AssetManger.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="Context.h" />
+    <ClInclude Include="CTank.h" />
+    <ClInclude Include="CTankBarrel.h" />
+    <ClInclude Include="CTankTurret.h" />
+    <ClInclude Include="CTankWheel.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameInitializer.h" />
     <ClInclude Include="GlobalData.h" />
     <ClInclude Include="ISystem.h" />
     <ClInclude Include="StreamPhysicsSystem.h" />
     <ClInclude Include="SystemManger.h" />
+    <ClInclude Include="TankSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AssetManger.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="Context.cpp" />
+    <ClCompile Include="CTank.cpp" />
+    <ClCompile Include="CTankBarrel.cpp" />
+    <ClCompile Include="CTankTurret.cpp" />
+    <ClCompile Include="CTankWheel.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameInitializer.cpp" />
     <ClCompile Include="GameMain.cpp" />
     <ClCompile Include="StreamPhysicsSystem.cpp" />
     <ClCompile Include="SystemManger.cpp" />
+    <ClCompile Include="TankSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
