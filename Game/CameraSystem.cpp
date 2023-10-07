@@ -1,15 +1,61 @@
 #include "Game/CameraSystem.h"
 #include "Game/GlobalData.h"
-#include "Core/ServiceLocator.h"
+#include "Game/CTank.h"
+
 #include "ECS/Entity.h"
 #include "ECS/CCamera.h"
 #include "ECS/CTransform.h"
+
+#include "Core/ServiceLocator.h"
+
 #include "Tools/Clock.h"
+
 #include "Windows/InputManger.h"
 
 namespace Game {
+	/*			    Camera
+	*				  |\
+	* TopViewHeight-> | \
+	*				  |  \ Player
+	*/
+	inline static constexpr float sCameraTopViewHeight = 15.0f;	// 摄像机俯视高度
 
 	void CameraSystem::Create() {
+
+		Math::Vector3 playerPosition = CORESERVICE(Game::GlobalData).playerPosition;
+
+		// 计算摄像机出现的位置(以Tank为中心的半球面坐标系，高度角45度 高度50米 半径50根号2)
+		Math::Vector3 cameraPosition{ playerPosition.x, playerPosition.y + sCameraTopViewHeight,  playerPosition.z - sCameraTopViewHeight };
+		Math::Quaternion cameraRotation{};
+
+		// RenderCamera(球面摄像机)
+		{
+			auto renderCameraEntity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
+
+			auto& renderCameraTransform = renderCameraEntity.GetComponent<ECS::Transform>();
+			renderCameraTransform.worldPosition = cameraPosition;
+			renderCameraTransform.worldRotation = cameraRotation;
+
+			auto& renderCameraComponent = renderCameraEntity.GetComponent<ECS::Camera>();
+			renderCameraComponent.cameraType = ECS::CameraType::RenderCamera;
+			renderCameraComponent.mainCamera = true;
+			renderCameraComponent.frustum.farZ = 5000.0f;
+		}
+
+		// EditorCamera(FPS摄像机)
+		{
+			auto editorCameraEntity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
+
+			auto& editorCameraTransform = editorCameraEntity.GetComponent<ECS::Transform>();
+			editorCameraTransform.worldPosition = cameraPosition;
+			editorCameraTransform.worldRotation = cameraRotation;
+
+			auto& editorCameraComponent = editorCameraEntity.GetComponent<ECS::Camera>();
+			editorCameraComponent.translationSpeed *= 5.0f;
+			editorCameraComponent.cameraType = ECS::CameraType::EditorCamera;
+			editorCameraComponent.mainCamera = false;
+			editorCameraComponent.frustum.farZ = 5000.0f;
+		}
 	}
 
 	void CameraSystem::Destory() {

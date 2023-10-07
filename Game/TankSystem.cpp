@@ -1,5 +1,6 @@
 #include "Game/TankSystem.h"
 #include "Game/AssetManger.h"
+#include "Game/GlobalData.h"
 #include "Game/CTank.h"
 #include "Game/CTankBarrel.h"
 #include "Game/CTankTurret.h"
@@ -24,6 +25,8 @@ namespace Game {
 	inline static constexpr float sSuspensionMaxLength	{ 0.5f };
 	inline static constexpr float sSuspensionFrequency	{ 1.0f };
 
+	inline static Math::Vector3 sStartPosition { 0.0f, 1620.0f, 0.0f };
+
 	inline static JPH::Vec3 sWheelPosition[] = {
 		JPH::Vec3{ 0.0f, -0.0f, 2.95f  },
 		JPH::Vec3{ 0.0f, -0.3f, 2.1f   },
@@ -41,6 +44,7 @@ namespace Game {
 		JPH::GroupFilter* filter = new JPH::GroupFilterTable;
 		JPH::PhysicsSystem* physicsSystem = CORESERVICE(Physics::PhysicsSystem).GetPhysicsSystem();
 		JPH::BodyInterface& bodyInterface = CORESERVICE(Physics::PhysicsSystem).GetBodyInterface();
+		CORESERVICE(Game::GlobalData).playerPosition = sStartPosition;
 
 		// create tank entity
 		auto tankEntity = ECS::Entity::Create<ECS::Transform, ECS::MeshRenderer, Game::CTank>();
@@ -50,7 +54,7 @@ namespace Game {
 
 		tankMeshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
 		auto& boundingBox = tankMeshRenderer.mesh->GetBoundingBox();
-		tankTransform.worldPosition = Math::Vector3{ 0.0f, 1620.0f, 0.0f };
+		tankTransform.worldPosition = sStartPosition;
 		tankTransform.worldScaling = Math::Vector3{ 
 			sHalfVehicleWidth  / boundingBox.Extents.x,
 			sHalfVehicleHeight / boundingBox.Extents.y,

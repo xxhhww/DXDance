@@ -27,34 +27,6 @@ namespace Game {
 
     void GameInitializer::InitializeEntity() {
         Math::Vector2 testPositionXZ = Math::Vector2{ 0.0f, 0.0f };
-        /*
-        * …Ë÷√…„œÒª˙
-        */
-        // RenderCamera
-        {
-            auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
-
-            auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1650.0f, testPositionXZ.y };
-
-            auto& camera = entity.GetComponent<ECS::Camera>();
-            camera.cameraType = ECS::CameraType::RenderCamera;
-            camera.mainCamera = true;
-            camera.frustum.farZ = 5000.0f;
-        }
-
-        // EditorCamera
-        {
-            auto entity = ECS::Entity::Create<ECS::Transform, ECS::Camera>();
-
-            auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1650.0f, testPositionXZ.y };
-
-            auto& camera = entity.GetComponent<ECS::Camera>();
-            camera.translationSpeed *= 5.0f;
-            camera.cameraType = ECS::CameraType::EditorCamera;
-            camera.frustum.farZ = 5000.0f;
-        }
 
         /*
         * …Ë÷√Sky
