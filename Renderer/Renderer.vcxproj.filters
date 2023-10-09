@@ -321,9 +321,6 @@
     <ClInclude Include="Task_SplitHeightMap.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
-    <ClInclude Include="Task_GenerateVegetation.h">
-      <Filter>头文件\OfflineTaskHepler</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -549,9 +546,6 @@
       <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="Task_SplitHeightMap.cpp">
-      <Filter>源文件\OfflineTaskHelper</Filter>
-    </ClCompile>
-    <ClCompile Include="Task_GenerateVegetation.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
   </ItemGroup>

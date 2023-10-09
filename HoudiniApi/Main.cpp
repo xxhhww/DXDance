@@ -1,10 +1,9 @@
-#include <iostream>
-#include <windows.h>
+#include <string>
+#include <Windows.h>
 #include "HAPI/HAPI.h"
 #include "HoudiniApi/HoudiniApi.h"
 
-int main()
-{
+int main() {
 	//HAPIµÄDLLµÄÂ·¾¶£º
 	const std::wstring HAPIDllPath = L"E:/Houdini/bin/libHAPIL.dll";
 

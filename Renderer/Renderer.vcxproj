@@ -169,7 +169,6 @@
     <ClInclude Include="FoliagePass.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="GBufferPass.h" />
-    <ClInclude Include="Task_GenerateVegetation.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainNodeManger.h" />
     <ClInclude Include="XetTextureGenerator.h" />
@@ -260,7 +259,6 @@
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
-    <ClCompile Include="Task_GenerateVegetation.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TileNodeManger.cpp" />
     <ClCompile Include="XetTextureGenerator.cpp" />

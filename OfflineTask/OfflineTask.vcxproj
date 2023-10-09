@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{ca8adc57-ddad-4332-b6e4-2f8346f0e260}</ProjectGuid>
-    <RootNamespace>HoudiniApi</RootNamespace>
+    <ProjectGuid>{8bf0d595-770c-4857-b957-a85f0dfccffa}</ProjectGuid>
+    <RootNamespace>OfflineTask</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -129,22 +129,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="HoudiniApi.cpp" />
-    <ClCompile Include="HoudiniApiUtility.cpp" />
-    <ClCompile Include="HoudiniAsset.cpp" />
-    <ClCompile Include="HoudiniGeoNode.cpp" />
-    <ClCompile Include="HoudiniObjectNode.cpp" />
-    <ClCompile Include="HoudiniPartData.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClInclude Include="ResolveHDAFile.h" />
+    <ClInclude Include="SplitHeightMap.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HoudiniApi.h" />
-    <ClInclude Include="HoudiniApiUtility.h" />
-    <ClInclude Include="HoudiniAsset.h" />
-    <ClInclude Include="HoudiniGeoNode.h" />
-    <ClInclude Include="HoudiniObjectNode.h" />
-    <ClInclude Include="HoudiniPartData.h" />
-    <ClInclude Include="HoudiniTemplateUtility.h" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="ResolveHDAFile.cpp" />
+    <ClCompile Include="SplitHeightMap.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HoudiniApi\HoudiniApi.vcxproj">
+      <Project>{ca8adc57-ddad-4332-b6e4-2f8346f0e260}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

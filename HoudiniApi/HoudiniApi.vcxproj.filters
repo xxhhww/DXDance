@@ -15,15 +15,48 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HoudiniApiTest.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="HoudiniApi.cpp">
-      <Filter>资源文件</Filter>
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HoudiniApiUtility.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HoudiniObjectNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HoudiniGeoNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HoudiniAsset.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="HoudiniPartData.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HoudiniApi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniApiUtility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniObjectNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniGeoNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniTemplateUtility.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniAsset.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniPartData.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
