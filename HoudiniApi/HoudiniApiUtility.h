@@ -9,6 +9,13 @@ namespace Houdini {
 	*/
 	struct HoudiniApiUtility {
 	public:
+
+		static bool HasValidInstanceAttribute(const HAPI_Session* session, HAPI_NodeId geoID, HAPI_PartId partID, std::string attribName);
+
+		static bool GetAttributeInfo(const HAPI_Session* session, HAPI_NodeId geoID, HAPI_PartId partID, std::string attribName, HAPI_AttributeInfo* attribInfo);
+
+		static bool IsSupportedPolygonType(HAPI_PartType partType);
+
 		static void SetCookOptions(HAPI_CookOptions& cookOptions);
 
 		// Cooks nodeand returns true if successfull.

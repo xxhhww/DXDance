@@ -36,6 +36,9 @@
     <ClCompile Include="HoudiniPartData.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="HoudiniInputNode.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HoudiniApi.h">
@@ -57,6 +60,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="HoudiniPartData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="HoudiniInputNode.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

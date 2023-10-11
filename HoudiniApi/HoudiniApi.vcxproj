@@ -133,6 +133,7 @@
     <ClCompile Include="HoudiniApiUtility.cpp" />
     <ClCompile Include="HoudiniAsset.cpp" />
     <ClCompile Include="HoudiniGeoNode.cpp" />
+    <ClCompile Include="HoudiniInputNode.cpp" />
     <ClCompile Include="HoudiniObjectNode.cpp" />
     <ClCompile Include="HoudiniPartData.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="HoudiniApiUtility.h" />
     <ClInclude Include="HoudiniAsset.h" />
     <ClInclude Include="HoudiniGeoNode.h" />
+    <ClInclude Include="HoudiniInputNode.h" />
     <ClInclude Include="HoudiniObjectNode.h" />
     <ClInclude Include="HoudiniPartData.h" />
     <ClInclude Include="HoudiniTemplateUtility.h" />

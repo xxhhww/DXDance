@@ -1,8 +1,34 @@
 #include "HoudiniApi/HoudiniApiUtility.h"
+#include "HoudiniApi/HoudiniTemplateUtility.h"
 #include "Tools/Assert.h"
 
 
 namespace Houdini {
+	bool HoudiniApiUtility::HasValidInstanceAttribute(const HAPI_Session* session, HAPI_NodeId geoID, HAPI_PartId partID, std::string attribName) {
+		HAPI_AttributeInfo instanceAttrInfo{};
+		GetAttributeInfo(session, geoID, partID, attribName, &instanceAttrInfo);
+		return (instanceAttrInfo.exists && instanceAttrInfo.count > 0);
+	}
+
+	bool HoudiniApiUtility::GetAttributeInfo(const HAPI_Session* session, HAPI_NodeId geoID, HAPI_PartId partID, std::string attribName, HAPI_AttributeInfo* attribInfo) {
+		HAPI_Result hapiResult = HAPI_RESULT_FAILURE;
+		for (int32_t type = 0; type < HAPI_ATTROWNER_MAX; ++type) {
+			hapiResult = FHoudiniApi::GetAttributeInfo(session, geoID, partID, attribName.c_str(), (HAPI_AttributeOwner)type, attribInfo);
+			if (hapiResult != HAPI_RESULT_SUCCESS) {
+				attribInfo->exists = false;
+				return false;
+			}
+			else if (attribInfo->exists) {
+				break;
+			}
+		}
+		return true;
+	}
+
+	bool HoudiniApiUtility::IsSupportedPolygonType(HAPI_PartType partType) {
+		return partType == HAPI_PARTTYPE_MESH || partType == HAPI_PARTTYPE_BOX || partType == HAPI_PARTTYPE_SPHERE;
+	}
+
 	void HoudiniApiUtility::SetCookOptions(HAPI_CookOptions& cookOptions) {
 		// In keeping consistency with other plugins, we don't support splitting by groups or attributes.
 		// Though allowing it now behind an option.
@@ -33,7 +59,7 @@ namespace Houdini {
 		cookOptions.splitGeosByGroup |= bSplitGeosByGroup;
 
 		HAPI_Result hapiResult = FHoudiniApi::CookNode(session, nodeID, &cookOptions);
-		ASSERT_FORMAT(false, "Cook Node Failed");
+		ASSERT_FORMAT(hapiResult == HAPI_RESULT_SUCCESS, "Cook Node Failed");
 	}
 
 	void HoudiniApiUtility::ProcessHoudiniCookStatus(const HAPI_Session* session, std::string assetName) {
@@ -72,11 +98,11 @@ namespace Houdini {
 		// First compose the internal list and get the count, then get the actual list.
 		int count = -1;
 		HAPI_Result hapiResult = FHoudiniApi::ComposeChildNodeList(session, parentNodeID, nodeTypeFilter, nodeFlagFilter, bRecursive, &count);
-		ASSERT_FORMAT(hapiResult != HAPI_RESULT_SUCCESS, "ComposeChildNodeList Failed");
+		ASSERT_FORMAT(hapiResult == HAPI_RESULT_SUCCESS, "ComposeChildNodeList Failed");
 		if (count > 0) {
 			childNodeIDs.resize(count);
 			hapiResult = FHoudiniApi::GetComposedChildNodeList(session, parentNodeID, childNodeIDs.data(), count);
-			ASSERT_FORMAT(hapiResult != HAPI_RESULT_SUCCESS, "GetComposedChildNodeList Failed");
+			ASSERT_FORMAT(hapiResult == HAPI_RESULT_SUCCESS, "GetComposedChildNodeList Failed");
 		}
 	}
 
@@ -145,15 +171,12 @@ namespace Houdini {
 					}
 				}
 
-
-				if (!HEU_SessionManager.GetComposedObjectListMemorySafe(session, nodeInfo.parentId, objectInfos, 0, objectCount)) {
-					return false;
-				}
+				HoudiniTemplateUtility::GetArray1ArgFunc<HAPI_ObjectInfo> func1 = std::bind(FHoudiniApi::GetComposedObjectList, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+				HoudiniTemplateUtility::GetArray1Arg(session, nodeInfo.parentId, func1, objectInfos.data(), 0, objectCount);
 
 				// Now get the object transforms
-				if (!HEU_SessionManager.GetComposedObjectTransformsMemorySafe(session, nodeInfo.parentId, HAPI_SRT, objectTransforms, 0, objectCount)) {
-					return false;
-				}
+				HoudiniTemplateUtility::GetArray2ArgFunc<HAPI_RSTOrder, HAPI_Transform> func2 = std::bind(FHoudiniApi::GetComposedObjectTransforms, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+				HoudiniTemplateUtility::GetArray2Arg(session, nodeInfo.parentId, HAPI_SRT, func2, objectTransforms.data(), 0, objectCount);
 
 				if (addSelf) {
 					objectTransforms[objectCount] = HAPI_Transform{};
