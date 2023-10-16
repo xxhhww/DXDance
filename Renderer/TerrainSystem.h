@@ -33,7 +33,7 @@ namespace Renderer {
 			Math::Vector4 nodeEvaluationC{ 1.2f, 0.0f, 0.0f, 0.0f };	// 用户控制的节点评估系数
 
 			Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };				// 世界在XZ轴方向的大小(米)
-			uint32_t heightScale{ 4096u };
+			uint32_t heightScale{ 1325 };
 			uint32_t currPassLOD;
 
 			uint32_t consumeNodeListIndex;
@@ -66,7 +66,7 @@ namespace Renderer {
 			Math::Vector4 vtPhysicalMapParams{};
 
 			Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };
-			uint32_t heightScale{ 4096u };
+			uint32_t heightScale{ 1325 };
 			uint32_t culledPatchListIndex;
 
 			uint32_t heightMapIndex;
@@ -117,7 +117,7 @@ namespace Renderer {
 	public:
 		bool isInitialized{ false };
 		Math::Vector2 worldMeterSize{ 8192.0f, 8192.0f };
-		float worldHeightScale{ 4096.0f };
+		float worldHeightScale{ 1325.0f };
 		bool lodDebug{ 0u };
 		bool useVT{ 1u };
 

@@ -1,5 +1,5 @@
 #include "Game/CameraSystem.h"
-#include "Game/GlobalData.h"
+#include "Game/GlobalSetting.h"
 #include "Game/CTank.h"
 
 #include "ECS/Entity.h"
@@ -22,7 +22,7 @@ namespace Game {
 
 	void CameraSystem::Create() {
 
-		Math::Vector3 playerPosition = CORESERVICE(Game::GlobalData).playerPosition;
+		Math::Vector3 playerPosition = CORESERVICE(Game::GlobalSetting).playerPosition;
 
 		// 计算摄像机出现的位置(以Tank为中心的半球面坐标系，高度角45度 高度50米 半径50根号2)
 		Math::Vector3 cameraPosition{ playerPosition.x, playerPosition.y + sCameraTopViewHeight,  playerPosition.z - sCameraTopViewHeight };
@@ -62,7 +62,7 @@ namespace Game {
 	}
 
 	void CameraSystem::PrePhysicsUpdate() {
-		bool isPaused = CORESERVICE(GlobalData).isPaused;
+		bool isPaused = CORESERVICE(Game::GlobalSetting).isPaused;
 		float dt = CORESERVICE(Tool::Clock).GetDeltaTime();
 
 		// 处理摄像机移动
@@ -133,11 +133,14 @@ namespace Game {
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			// 处理摄像机行为
-			if (camera.cameraType == ECS::CameraType::RenderCamera && !isPaused) {
-				// rotateCamera(camera, transform);
+
+			// 游戏运行时，两个摄像机都随着Tank移动而移动
+			if (!isPaused) {
+				rotateCamera(camera, transform);
 			}
 
-			if (camera.cameraType == ECS::CameraType::EditorCamera) {
+			// 游戏暂停时，编辑摄像机可以自由移动
+			if (isPaused && camera.cameraType == ECS::CameraType::EditorCamera) {
 				// 编辑摄像机需要按住右键
 				if (CORESERVICE(Windows::InputManger).IsMouseButtonPressed(Windows::EMouseButton::MOUSE_RBUTTON)) {
 					moveCamera(camera, transform);

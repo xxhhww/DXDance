@@ -63,7 +63,7 @@
     <ClInclude Include="CameraSystem.h">
       <Filter>头文件\System\User</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalData.h">
+    <ClInclude Include="GlobalSetting.h">
       <Filter>头文件\Core</Filter>
     </ClInclude>
     <ClInclude Include="AssetManger.h">

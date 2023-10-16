@@ -35,7 +35,7 @@ namespace Game {
 		CORESERVICE(SystemManger).PrePhysicsUpdate();
 
 		// ŒÔ¿ÌΩ‚À„
-		if (!CORESERVICE(GlobalData).isPaused) {
+		if (!CORESERVICE(GlobalSetting).isPaused) {
 			CORESERVICE(Physics::PhysicsSystem).StepPhysics();
 		}
 
@@ -68,8 +68,8 @@ namespace Game {
 	}
 
 	void Game::HandlePlayerInput() {
-		if (CORESERVICE(Windows::InputManger).IsKeyDown(Windows::EKey::KEY_P)) {
-			CORESERVICE(GlobalData).isPaused = !CORESERVICE(GlobalData).isPaused;
+		if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_P)) {
+			CORESERVICE(GlobalSetting).isPaused = !CORESERVICE(GlobalSetting).isPaused;
 		}
 	}
 

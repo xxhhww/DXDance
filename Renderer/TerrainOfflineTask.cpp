@@ -23,7 +23,7 @@ namespace Renderer {
         // Math::Vector2 worldMeterSize{ 5120u, 5120u };
         // Math::Vector2 worldMeterSize{ 10240u, 10240u };
         Math::Vector2 worldMeterSize{ 8192u, 8192u };
-        float worldHeightScale{ 4096u };
+        float worldHeightScale{ 1325.0f };
         float pad1;
     };
 
@@ -343,6 +343,7 @@ namespace Renderer {
                     nullptr
                 );
             }
+
         }
     }
 

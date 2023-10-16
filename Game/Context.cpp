@@ -47,7 +47,7 @@ namespace Game {
 		assetManger = std::make_unique<Game::AssetManger>(renderEngine.get(), "E:/MyProject/DXDance/Resources");
 
 		// 初始化全局数据
-		globalData = std::make_unique<Game::GlobalData>();
+		globalSetting = std::make_unique<Game::GlobalSetting>();
 
 		// 注册全局服务
 		Core::ServiceLocator::Provide(*window.get());
@@ -58,7 +58,7 @@ namespace Game {
 		Core::ServiceLocator::Provide(*renderEngine.get());
 		Core::ServiceLocator::Provide(*systemManger.get());
 		Core::ServiceLocator::Provide(*assetManger.get());
-		Core::ServiceLocator::Provide(*globalData.get());
+		Core::ServiceLocator::Provide(*globalSetting.get());
 	}
 
 	Context::~Context() {

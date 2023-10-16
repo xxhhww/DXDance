@@ -1,4 +1,6 @@
 #include "OfflineTask/ResolveHDAFile.h"
+#include "OfflineTask/SplitHeightMap.h"
+#include "OfflineTask/GeneralTasks.h"
 #include "HoudiniApi/HoudiniApi.h"
 #include <Windows.h>
 
@@ -16,7 +18,18 @@ int main() {
 	// 执行离线任务
 	{
 		OfflineTask::ResolveHDAFile resolveHDAFile;
-		resolveHDAFile.Run("E:/MyProject/DXDance/Resources/HDAs/HE_Platform_maker.hda");
+		OfflineTask::SplitHeightMap splitHeightMap;
+
+		OfflineTask::GeneralTasks::MergeTextures(
+			"E:/MyProject/DXDance/Resources/Textures/OfflineTask/New/rChannelFile.png",
+			"E:/MyProject/DXDance/Resources/Textures/OfflineTask/New/ClayMask.png",
+			"E:/MyProject/DXDance/Resources/Textures/OfflineTask/New/Rock.png",
+			"E:/MyProject/DXDance/Resources/Textures/OfflineTask/New/gChannelFile.png",
+			"E:/MyProject/DXDance/Resources/Textures/OfflineTask/New/SplatMap.png"
+		);
+
+		// resolveHDAFile.Run("E:/MyProject/DXDance/Resources/HDAs/HE_Platform_maker.hda");
+		// splitHeightMap.Run("E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png");
 	}
 
 	// 释放DLL

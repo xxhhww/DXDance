@@ -1,6 +1,6 @@
 #include "Game/TankSystem.h"
 #include "Game/AssetManger.h"
-#include "Game/GlobalData.h"
+#include "Game/GlobalSetting.h"
 #include "Game/CTank.h"
 #include "Game/CTankBarrel.h"
 #include "Game/CTankTurret.h"
@@ -15,6 +15,8 @@
 #include "Physics/Layers.h"
 #include "Physics/PhysicsSystem.h"
 
+#include "Windows/InputManger.h"
+
 namespace Game {
 	inline static constexpr float sWheelRadius			{ 0.3f };
 	inline static constexpr float sWheelWidth			{ 0.1f };
@@ -24,6 +26,8 @@ namespace Game {
 	inline static constexpr float sSuspensionMinLength	{ 0.3f };
 	inline static constexpr float sSuspensionMaxLength	{ 0.5f };
 	inline static constexpr float sSuspensionFrequency	{ 1.0f };
+
+	inline static constexpr float sMinVelocityPivotTurn { 1.0f };	// 最小速度枢轴转动
 
 	inline static Math::Vector3 sStartPosition { 0.0f, 1620.0f, 0.0f };
 
@@ -44,7 +48,7 @@ namespace Game {
 		JPH::GroupFilter* filter = new JPH::GroupFilterTable;
 		JPH::PhysicsSystem* physicsSystem = CORESERVICE(Physics::PhysicsSystem).GetPhysicsSystem();
 		JPH::BodyInterface& bodyInterface = CORESERVICE(Physics::PhysicsSystem).GetBodyInterface();
-		CORESERVICE(Game::GlobalData).playerPosition = sStartPosition;
+		CORESERVICE(Game::GlobalSetting).playerPosition = sStartPosition;
 
 		// create tank entity
 		auto tankEntity = ECS::Entity::Create<ECS::Transform, ECS::MeshRenderer, Game::CTank>();
@@ -147,7 +151,39 @@ namespace Game {
 			float& rightRatio = tank.rightRatio;
 			float& brake = tank.brake;
 
+			if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_W)) {
+				forward = -1.0f;
+			}
+			else if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_S)) {
+				forward = 1.0f;
+			}
+			else if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_SPACE)) {
+				brake = 1.0f;
+			}
+
 			float velocity = (bodyInterface.GetRotation(tank.tankBodyID).Conjugated() * bodyInterface.GetLinearVelocity(tank.tankBodyID)).GetZ();
+			if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_A)) {
+				if (brake == 0.0f && forward == 0.0f && std::abs(velocity) < sMinVelocityPivotTurn) {
+					// Pivot turn
+					leftRatio = -1.0f;
+					forward = 1.0f;
+				}
+				else {
+					leftRatio = 0.6f;
+				}
+			}
+			else if (CORESERVICE(Windows::InputManger).IsKeyPressed(Windows::EKey::KEY_D)) {
+				if (brake == 0.0f && forward == 0.0f && abs(velocity) < sMinVelocityPivotTurn)
+				{
+					// Pivot turn
+					rightRatio = -1.0f;
+					forward = 1.0f;
+				}
+				else {
+					rightRatio = 0.6f;
+				}
+			}
+
 
 			// Check if we're reversing direction
 			if (prevForward * forward < 0.0f) {

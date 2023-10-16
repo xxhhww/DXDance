@@ -15,7 +15,7 @@
 #include "Physics/PhysicsSystem.h"
 
 #include "Game/SystemManger.h"
-#include "Game/GlobalData.h"
+#include "Game/GlobalSetting.h"
 #include "Game/AssetManger.h"
 
 namespace Game {
@@ -53,7 +53,7 @@ namespace Game {
 		std::unique_ptr<AssetManger>             assetManger;
 
 		// 游戏的全局数据
-		std::unique_ptr<GlobalData>              globalData;
+		std::unique_ptr<GlobalSetting>           globalSetting;
 	};
 
 }

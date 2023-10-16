@@ -99,5 +99,6 @@
     <FxCompile Include="Shaders\Engine\UAVClear\TextureUAVClear.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\GpuCullingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\OpaqueHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassBladeBaking.hlsl" />
   </ItemGroup>
 </Project>

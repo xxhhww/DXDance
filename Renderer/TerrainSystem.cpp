@@ -150,7 +150,7 @@ namespace Renderer {
 		{
 			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/MinMaxHeightMap_8192W_4096H.dds");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/MinMaxHeightMap_8192W_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap);
 		}
 
@@ -158,7 +158,7 @@ namespace Renderer {
 		{
 			terrainHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png"
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.png"
 			);
 			resourceStateTracker->StartTracking(terrainHeightMap);
 			resourceStorage->ImportResource("TerrainHeightMap", terrainHeightMap);
@@ -168,9 +168,18 @@ namespace Renderer {
 		{
 			terrainNormalMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/NormalMap_8192W_4096H.png");
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/NormalMap_8192W_4096H.png");
 			resourceStateTracker->StartTracking(terrainNormalMap);
 			resourceStorage->ImportResource("TerrainNormalMap", terrainNormalMap);
+		}
+
+		// Load SplatMap From File
+		{
+			terrainSplatMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/SplatMap.dds");
+			resourceStateTracker->StartTracking(terrainSplatMap);
+			resourceStorage->ImportResource("SplatMap", terrainSplatMap);
 		}
 
 		// Load Grass Texture
@@ -255,15 +264,6 @@ namespace Renderer {
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Snow_Height.png");
 			resourceStateTracker->StartTracking(snowHeightMap);
 			resourceStorage->ImportResource("SnowHeightMap", snowHeightMap);
-		}
-
-		// Load SplatMap From File
-		{
-			terrainSplatMap = FixedTextureHelper::LoadFromFile(
-				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/SplatMap.dds");
-			resourceStateTracker->StartTracking(terrainSplatMap);
-			resourceStorage->ImportResource("SplatMap", terrainSplatMap);
 		}
 	}
 

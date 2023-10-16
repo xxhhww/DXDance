@@ -146,7 +146,7 @@
     <ClInclude Include="CTankWheel.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameInitializer.h" />
-    <ClInclude Include="GlobalData.h" />
+    <ClInclude Include="GlobalSetting.h" />
     <ClInclude Include="ISystem.h" />
     <ClInclude Include="StreamPhysicsSystem.h" />
     <ClInclude Include="SystemManger.h" />

@@ -19,6 +19,8 @@
 #include "ECS/CSky.h"
 #include "ECS/Entity.h"
 
+#include "Physics/CustomMemoryHook.h"
+
 #include "Tools/Clock.h"
 
 using namespace Renderer;
@@ -144,7 +146,7 @@ void RunRenderer() {
     // EditorCamera
     ECS::Camera editorCamera;
     editorCamera.frustum.farZ = 5000.0f;
-    editorCamera.translationSpeed *= 1.0f;
+    editorCamera.translationSpeed *= 10.0f;
     ECS::Transform editorTransform;
     editorTransform.worldPosition.x = 0.0f;
     editorTransform.worldPosition.y = 2000.0f;
@@ -292,7 +294,7 @@ void DoTerrainOfflineTask() {
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
     TerrainOfflineTask _TerrainOfflineTask;
     _TerrainOfflineTask.Initialize(
-        "E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png",
+        "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.png",
         &renderEngine
     );
     renderEngine.mOfflineTaskPass += std::bind(
@@ -372,6 +374,16 @@ void DoGenerateCloudNoiseTask() {
 }
 
 int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+    uint32_t maxJobs{ 2048u };
+    uint32_t maxBarriers{ 8u };
+
+    Physics::RegisterCustomMemoryHook();
+    // 初始化任务系统
+    std::unique_ptr<JPH::JobSystemThreadPool> jobSystem = std::make_unique<JPH::JobSystemThreadPool>(maxJobs, maxBarriers, std::thread::hardware_concurrency() - 4);
+
+    // 为ECS设置任务系统
+    ECS::Entity::SetJobSystem(jobSystem.get());
+
     // Task_SplitHeightMap task;
     // task.Run("E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap.png");
 

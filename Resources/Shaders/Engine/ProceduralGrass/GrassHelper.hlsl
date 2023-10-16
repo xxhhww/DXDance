@@ -13,7 +13,6 @@ struct GrassVertex {
 };
 
 struct GrassBlade {
-
 	float3 position;
 	float2 facing;
 
@@ -31,8 +30,24 @@ struct GrassBlade {
 	float  sideCurve;
 };
 
+struct BakedGrassBlade {
+	float3 position;
+	float2 facing;
 
-struct ClumpParametersStruct {
+	float  hash;
+	uint   type;
+
+	float  height;
+	float  width;
+	float  tilt;		// 描述草叶的倾斜状态
+	float  bend;		// 控制草叶的弯曲(其实就是控制贝塞尔样条曲线)
+	float  sideCurve;	// 控制草叶的边的弯曲
+
+	// float  clumpCenterDistanceFade	// 到草群中心的归一化距离
+}
+
+
+struct ClumpParameter {
 	float pullToCentre;
 	float pointInSameDirection;
 	float baseHeight;
@@ -44,13 +59,6 @@ struct ClumpParametersStruct {
 	float baseBend;
 	float bendRandom;
 };
-
-/*
-struct BoundingBox {
-    float4 minPosition;
-    float4 maxPosition;
-};
-*/
 
 float2 hashwithoutsine22(float2 p) {
 	float3 p3 = frac(float3(p.xyx) * float3(.1031, .1030, .0973));

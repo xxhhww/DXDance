@@ -30,6 +30,13 @@ float2 NDCToUV(float3 ndcPoint) {
     return uv;
 }
 
+float2 N22(float2 p) {
+    float3 a = frac(p.xyx * float3(123.34, 234.34, 345.65));
+    a += dot(a, a + 34.45);
+    return frac(float2(a.x * a.y, a.y * a.z));
+            
+}
+
 float3 GetLODColor(uint lodLevel) {
 	float3 lodDebugColor = float3(0.0f, 0.0f, 0.0f);
 	if(lodLevel == 0u) {

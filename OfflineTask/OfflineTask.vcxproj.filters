@@ -21,6 +21,12 @@
     <ClInclude Include="SplitHeightMap.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GeneralTasks.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GenerateGrassBlade.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ResolveHDAFile.cpp">
@@ -30,6 +36,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SplitHeightMap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneralTasks.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GenerateGrassBlade.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
