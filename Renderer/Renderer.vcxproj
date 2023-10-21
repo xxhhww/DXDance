@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -174,6 +174,10 @@
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainNodeManger.h" />
+    <ClInclude Include="TerrainQuadTree.h" />
+    <ClInclude Include="VegetationPhysicalDataCache.h" />
+    <ClInclude Include="VegetationSystem.h" />
+    <ClInclude Include="VegetationVirtualTable.h" />
     <ClInclude Include="XetTextureGenerator.h" />
     <ClInclude Include="GPUData.h" />
     <ClInclude Include="GPUProfiler.h" />
@@ -263,7 +267,11 @@
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
+    <ClCompile Include="TerrainQuadTree.cpp" />
     <ClCompile Include="TileNodeManger.cpp" />
+    <ClCompile Include="VegetationPhysicalDataCache.cpp" />
+    <ClCompile Include="VegetationSystem.cpp" />
+    <ClCompile Include="VegetationVirtualTable.cpp" />
     <ClCompile Include="XetTextureGenerator.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="GrassPass.cpp" />

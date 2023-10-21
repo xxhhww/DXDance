@@ -1,5 +1,4 @@
 #include <DirectStorage/dstorage.h>
-#include <DirectXTex/DirectXTex.h>
 #include <fstream>
 
 #include "Renderer/LinearBufferAllocator.h"
@@ -11,7 +10,13 @@
 
 namespace OfflineTask {
 
-	void GenerateGrassBlade::Initialize(const std::string& heightMapFilepath, const std::string& grassLayerFilepath, Renderer::RenderEngine* renderEngine) {
+	void GenerateGrassBlade::Initialize(
+		const std::string& heightMapFilepath, 
+		const std::string& grassLayerFilepath, 
+		const std::string& targetPath,
+		Renderer::RenderEngine* renderEngine) {
+		mTargetPath = targetPath;
+
 		FillClumpParameters();
 
 		auto* device = renderEngine->mDevice.get();
@@ -111,9 +116,10 @@ namespace OfflineTask {
 		// 创建ClumpParametersBuffer
 		Renderer::BufferDesc _ClumpParametersBufferDesc{};
 		_ClumpParametersBufferDesc.size = sizeof(ClumpParameter) * mClumpParameters.size();
-		_ClumpParametersBufferDesc.stride = 0u;
+		_ClumpParametersBufferDesc.stride = sizeof(ClumpParameter);
 		_ClumpParametersBufferDesc.usage = GHL::EResourceUsage::Default;
-		_ClumpParametersBufferDesc.initialState = GHL::EResourceState::CopyDestination;
+		_ClumpParametersBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_ClumpParametersBufferDesc.initialState = GHL::EResourceState::Common;
 		_ClumpParametersBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
 		mClumpParametersBuffer = std::make_unique<Renderer::Buffer>(
 			device,
@@ -126,10 +132,10 @@ namespace OfflineTask {
 		Renderer::TextureDesc _ClumpMapDesc{};
 		_ClumpMapDesc.width = smClumpMapSize;
 		_ClumpMapDesc.height = smClumpMapSize;
-		_ClumpMapDesc.mipLevals = 0u;
+		_ClumpMapDesc.mipLevals = 1u;
 		_ClumpMapDesc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		_ClumpMapDesc.initialState = GHL::EResourceState::UnorderedAccess;
-		_ClumpMapDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopySource;
+		_ClumpMapDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::NonPixelShaderAccess;
 		mClumpMap = std::make_unique<Renderer::Texture>(
 			device,
 			Renderer::ResourceFormat{ device, _ClumpMapDesc },
@@ -157,9 +163,10 @@ namespace OfflineTask {
 		// 创建GrassBladesBuffer
 		Renderer::BufferDesc _GrassBladeBufferDesc{};
 		_GrassBladeBufferDesc.size = sizeof(BakedGrassBlade) * smGrassResolution * smGrassResolution;
-		_GrassBladeBufferDesc.stride = 0u;
+		_GrassBladeBufferDesc.stride = sizeof(BakedGrassBlade);
 		_GrassBladeBufferDesc.usage = GHL::EResourceUsage::Default;
-		_GrassBladeBufferDesc.initialState = GHL::EResourceState::UnorderedAccess;
+		_GrassBladeBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GrassBladeBufferDesc.initialState = GHL::EResourceState::Common;
 		_GrassBladeBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopySource;
 		mGrassBladesBuffer = std::make_unique<Renderer::Buffer>(
 			device,
@@ -225,7 +232,9 @@ namespace OfflineTask {
 		resourceStateTracker->StartTracking(mClumpMap.get());
 		resourceStateTracker->StartTracking(mClumpMapReadback.get());
 		resourceStateTracker->StartTracking(mGrassBladesBuffer.get());
+		resourceStateTracker->StartTracking(mGrassBladesBuffer->GetCounterBuffer());
 		resourceStateTracker->StartTracking(mGrassBladesBufferReadback.get());
+		resourceStateTracker->StartTracking(mGrassBladesCountBufferReadback.get());
 	}
 
 	void GenerateGrassBlade::Generate(Renderer::CommandBuffer& commandBuffer, Renderer::RenderContext& renderContext) {
@@ -309,14 +318,16 @@ namespace OfflineTask {
 		{
 			auto barrierBatch = GHL::ResourceBarrierBatch{};
 			barrierBatch += commandBuffer.TransitionImmediately(mGrassBladesBuffer.get(), GHL::EResourceState::CopySource);
+			barrierBatch += commandBuffer.TransitionImmediately(mGrassBladesBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
 			barrierBatch += commandBuffer.TransitionImmediately(mGrassBladesBufferReadback.get(), GHL::EResourceState::CopyDestination);
+			barrierBatch += commandBuffer.TransitionImmediately(mGrassBladesCountBufferReadback.get(), GHL::EResourceState::CopyDestination);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 
 			size_t sizeInBytes = mGrassBladesBuffer->GetResourceFormat().GetSizeInBytes();
 			commandBuffer.CopyBufferRegion(mGrassBladesBufferReadback.get(), 0u, mGrassBladesBuffer.get(), 0u, sizeInBytes);
 
 			sizeInBytes = mGrassBladesBuffer->GetCounterBuffer()->GetResourceFormat().GetSizeInBytes();
-			commandBuffer.CopyBufferRegion(mGrassBladesCountBufferReadback.get(), 0u, mGrassBladesBuffer.get(), 0, sizeInBytes);
+			commandBuffer.CopyBufferRegion(mGrassBladesCountBufferReadback.get(), 0u, mGrassBladesBuffer->GetCounterBuffer(), 0, sizeInBytes);
 		}
 
 		// 更新参数
@@ -351,6 +362,7 @@ namespace OfflineTask {
 	void GenerateGrassBlade::OnCompleted() {
 		// 当前帧任务完成，将结果保存到磁盘中
 
+
 		uint32_t* pCounterBufferReadbackData = reinterpret_cast<uint32_t*>(mGrassBladesCountBufferReadback->Map());
 		uint32_t bladeCount = pCounterBufferReadbackData[0];
 
@@ -359,7 +371,7 @@ namespace OfflineTask {
 		}
 
 		// 创建文件二进制输出流
-		std::string outputFilename = "GrassBlade_" + std::to_string(currRowIndex) + "_" + std::to_string(currColIndex);
+		std::string outputFilename = mTargetPath + "/GrassBlade_" + std::to_string(currRowIndex) + "_" + std::to_string(currColIndex) + ".bin";
 		std::ofstream outFileStream(outputFilename.c_str(), std::ios::app | std::ios::binary);
 
 		BakedGrassBlade* pBakedGrassBladesData = reinterpret_cast<BakedGrassBlade*>(mGrassBladesBufferReadback->Map());
@@ -370,8 +382,22 @@ namespace OfflineTask {
 			finalBlade.height = blade.height;
 			finalBlade.width = blade.width;
 			float angle = std::atan2(blade.facing.y, blade.facing.x);
-			angle = angle < 0.0f ? angle + 360.0f : angle;
-			finalBlade.angle = (angle / 360.0f) * 255u;
+
+			/*
+			if (angle < 0.0f) {
+				int i = 32;
+			}
+			if (blade.tilt > 1.0f || blade.tilt < 0.0f) {
+				int i = 32;
+			}
+			if (blade.bend > 1.0f || blade.bend < 0.0f) {
+				int i = 32;
+			}
+			*/
+
+			angle = angle < 0.0f ? angle + DirectX::XM_2PI : angle;
+			angle *= (180.0f / DirectX::XM_PI);	// 弧度改角度
+			finalBlade.angle = (angle / 360.0f) * 255u;	// 归一为 0 - 255
 			finalBlade.tilt = blade.tilt * 255u;
 			finalBlade.bend = blade.bend * 255u;
 
@@ -392,39 +418,39 @@ namespace OfflineTask {
 
 		mClumpParameters[0];
 		mClumpParameters[0].pullToCentre = 0;
-		mClumpParameters[0].pointInSameDirection = 0;
-		mClumpParameters[0].baseHeight = 1;
-		mClumpParameters[0].heightRandom = 0.5;
-		mClumpParameters[0].baseWidth = 0.02;
-		mClumpParameters[0].widthRandom = 0.02;
-		mClumpParameters[0].baseTilt = 0.8;
-		mClumpParameters[0].tiltRandom = 0.5;
-		mClumpParameters[0].baseBend = 0.1;
-		mClumpParameters[0].bendRandom = 0.05;
+		mClumpParameters[0].pointInSameDirection = 0.6;
+		mClumpParameters[0].baseHeight = 0.6;
+		mClumpParameters[0].heightRandom = 0.1;
+		mClumpParameters[0].baseWidth = 0.03;
+		mClumpParameters[0].widthRandom = 0.01;
+		mClumpParameters[0].baseTilt = 0.93;
+		mClumpParameters[0].tiltRandom = 0.07;
+		mClumpParameters[0].baseBend = 0.05;
+		mClumpParameters[0].bendRandom = 0.01;
 
 		mClumpParameters[1];
 		mClumpParameters[1].pullToCentre = 0;
-		mClumpParameters[1].pointInSameDirection = 0;
-		mClumpParameters[1].baseHeight = 1.2;
-		mClumpParameters[1].heightRandom = 0.5;
-		mClumpParameters[1].baseWidth = 0.02;
-		mClumpParameters[1].widthRandom = 0.02;
-		mClumpParameters[1].baseTilt = 0.9;
-		mClumpParameters[1].tiltRandom = 0;
-		mClumpParameters[1].baseBend = 0.1;
-		mClumpParameters[1].bendRandom = 0.05;
+		mClumpParameters[1].pointInSameDirection = 0.2;
+		mClumpParameters[1].baseHeight = 0.5;
+		mClumpParameters[1].heightRandom = 0.1;
+		mClumpParameters[1].baseWidth = 0.03;
+		mClumpParameters[1].widthRandom = 0.01;
+		mClumpParameters[1].baseTilt = 0.93;
+		mClumpParameters[1].tiltRandom = 0.07;
+		mClumpParameters[1].baseBend = 0.08;
+		mClumpParameters[1].bendRandom = 0.01;
 
 		mClumpParameters[2];
 		mClumpParameters[2].pullToCentre = 0;
-		mClumpParameters[2].pointInSameDirection = 0;
-		mClumpParameters[2].baseHeight = 1.1;
-		mClumpParameters[2].heightRandom = 0.5;
-		mClumpParameters[2].baseWidth = 0.02;
-		mClumpParameters[2].widthRandom = 0.02;
-		mClumpParameters[2].baseTilt = 0.8;
-		mClumpParameters[2].tiltRandom = 0;
-		mClumpParameters[2].baseBend = 0.1;
-		mClumpParameters[2].bendRandom = 0.05;
+		mClumpParameters[2].pointInSameDirection = 0.2;
+		mClumpParameters[2].baseHeight = 0.8;
+		mClumpParameters[2].heightRandom = 0.1;
+		mClumpParameters[2].baseWidth = 0.03;
+		mClumpParameters[2].widthRandom = 0.01;
+		mClumpParameters[2].baseTilt = 0.93;
+		mClumpParameters[2].tiltRandom = 0.07;
+		mClumpParameters[2].baseBend = 0.08;
+		mClumpParameters[2].bendRandom = 0.01;
 	}
 
 	Renderer::TextureDesc GenerateGrassBlade::GetTextureDesc(const DirectX::TexMetadata& metadata) {

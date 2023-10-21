@@ -71,7 +71,7 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
     float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXYZ.xyz);
     float nodeMeterSize = currLODDescriptor.nodeSize;
     float f = dis / (nodeMeterSize * PassDataCB.nodeEvaluationC.x);
-    if(f < 1){
+    if(f < 1) {
         return true;
     }
     return false;

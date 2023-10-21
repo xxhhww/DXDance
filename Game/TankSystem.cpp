@@ -29,7 +29,7 @@ namespace Game {
 
 	inline static constexpr float sMinVelocityPivotTurn { 1.0f };	// 最小速度枢轴转动
 
-	inline static Math::Vector3 sStartPosition { 0.0f, 1620.0f, 0.0f };
+	inline static Math::Vector3 sStartPosition { 0.0f, 500.0f, 0.0f };
 
 	inline static JPH::Vec3 sWheelPosition[] = {
 		JPH::Vec3{ 0.0f, -0.0f, 2.95f  },

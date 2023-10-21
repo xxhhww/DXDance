@@ -230,7 +230,7 @@ p2o PSMain(v2p input) {
 
 	p2o output;
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
-	// output.shadingResult = float4(lodDebugColor, 1.0f);
+	output.shadingResult = float4(lodDebugColor, 1.0f);
 	// output.shadingResult   = float4(indexInfo.z * 0.1f, 0.0f, 0.0f, 1.0f);
 	output.normalRoughness = float4(normal, roughness);
 	output.screenVelocity  = float2(velocity.xy);

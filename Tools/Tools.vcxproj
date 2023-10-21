@@ -138,6 +138,7 @@
     <ClInclude Include="Event.h" />
     <ClInclude Include="ISerializable.h" />
     <ClInclude Include="JsonHelper.h" />
+    <ClInclude Include="LRUCache.h" />
     <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="MetaFile.h" />
     <ClInclude Include="Pool.h" />
@@ -158,6 +159,7 @@
     <None Include="BuddyAllocator.inl" />
     <None Include="ConcurrentQueue.inl" />
     <None Include="Event.inl" />
+    <None Include="LRUCache.inl" />
     <None Include="MemoryStream.inl" />
     <None Include="MetaFile.inl" />
     <None Include="Pool.inl" />

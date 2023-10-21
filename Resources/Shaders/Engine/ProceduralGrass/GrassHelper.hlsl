@@ -44,7 +44,7 @@ struct BakedGrassBlade {
 	float  sideCurve;	// 控制草叶的边的弯曲
 
 	// float  clumpCenterDistanceFade	// 到草群中心的归一化距离
-}
+};
 
 
 struct ClumpParameter {

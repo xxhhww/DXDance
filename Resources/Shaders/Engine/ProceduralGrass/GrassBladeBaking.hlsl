@@ -4,7 +4,7 @@
 #include "GrassHelper.hlsl"
 
 struct PassData {
-	float4 terrainTileRect;		// 地形块矩形，前两个分量是地形块左下角的原点，后两个分量是地块的长度
+	float4 terrainTileRect;		// 地块矩形，前两个分量是地形块左下角的原点，后两个分量是地块的长度
 
     float2 terrainWorldMeterSize;
 	uint   terrainHeightMapIndex;
@@ -32,12 +32,12 @@ struct PassData {
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID) {
-	if(dispatchThreadID.x < PassDataCB.grassResolution.x && dispatchThreadID.y < PassDataCB.grassResolution.y) {
-		Texture2D<float>  terrainTileHeightMap = ResourceDescriptorHeap[PassDataCB.terrainTileHeightMapIndex];
+	if(dispatchThreadID.x < PassDataCB.grassResolution && dispatchThreadID.y < PassDataCB.grassResolution) {
+		Texture2D<float>  terrainHeightMap = ResourceDescriptorHeap[PassDataCB.terrainHeightMapIndex];
 		Texture2D<float4> clumpMap = ResourceDescriptorHeap[PassDataCB.clumpMapIndex];
 		StructuredBuffer<ClumpParameter> clumpParametersBuffer = ResourceDescriptorHeap[PassDataCB.clumpParameterBufferIndex];
-        AppendStructuredBuffer<BakedGrassBlade> grassBladeBuffer = ResourceDescriptorHeap[PassDataCB.grassBladeBufferIndex];
         Texture2D<float> grassLayerMap = ResourceDescriptorHeap[PassDataCB.grassLayerMapIndex];
+        AppendStructuredBuffer<BakedGrassBlade> grassBladeBuffer = ResourceDescriptorHeap[PassDataCB.grassBladeBufferIndex];
 
         // 草的间隔
         float grassSpacing = PassDataCB.terrainTileRect.z / PassDataCB.grassResolution;
@@ -47,21 +47,23 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
         position.x += PassDataCB.terrainTileRect.x;
         position.z += PassDataCB.terrainTileRect.y;
 
-        float2 heightUV = float2(position.x / PassDataCB.terrainWorldMeterSize.x, position.z / PassDataCB.terrainWorldMeterSize.x);
+        float2 heightUV = float2(
+            (position.x + (PassDataCB.terrainWorldMeterSize.x / 2.0f)) / PassDataCB.terrainWorldMeterSize.x, 
+            (position.z + (PassDataCB.terrainWorldMeterSize.x / 2.0f)) / PassDataCB.terrainWorldMeterSize.x);
         heightUV.y = 1.0f - heightUV.y;
 
-        float  hasGrass = grassLayerMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r;
-        if(hasGrass <= 0) {
+        float  hasGrass = grassLayerMap.SampleLevel(SamplerLinearClamp, heightUV, 0u).r;
+        if(hasGrass <= 0.0f) {
             return;
         }
 
-        float  height = heightMap.SampleLevel(SamplerLinearWrap, heightUV, 0u).r * PassDataCB.heightScale;
+        float  height = terrainHeightMap.SampleLevel(SamplerLinearClamp, heightUV, 0u).r * PassDataCB.heightScale;
         position.y = height;
         
         float2 hash = hashwithoutsine22(dispatchThreadID.xy);
 
         // Jitter xz
-        float2 jitter = ((hash * 2) -1) * PassDataCB.jitterStrength;
+        float2 jitter = ((hash * 2) - 1) * PassDataCB.jitterStrength;
 
         position.xz += jitter;
 
@@ -78,7 +80,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
         ClumpParameter bladeParameters = clumpParametersBuffer[int((clumpParamsIndex))]; 
 
         //Compute the clump centre in world space by finding its offsetted position in texture space and -dividing- that by the voronoi tiling 
-        float2 clumpCentre = (clumpData.yz + floor(clumpUV)) / float2(_ClumpScale.xx);
+        float2 clumpCentre = (clumpData.yz + floor(clumpUV)) / float2(PassDataCB.clumpMapScale.xx);
 
         //Pull position to centre of clump based on pullToCentre
         position.xz = lerp(position.xz, clumpCentre, bladeParameters.pullToCentre);
@@ -96,7 +98,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
         float bendRandom = bladeParameters.bendRandom;
             
         //Start building grassblade struct
-        GrassBlade blade;
+        BakedGrassBlade blade;
 
         blade.position = position;
 
@@ -119,10 +121,12 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
         float sideCurve = smoothstep(0.3, 0, viewAlignment)*1.5;     
         */
         blade.sideCurve = 0.3f * 1.5f;
-
-        float distanceToCentre = distance(blade.position,  clumpCentre);
+        blade.type = 0u;
+        /*
+        float distanceToCentre = distance(blade.position.xz,  clumpCentre);
         float atten = 1 - smoothstep(PassDataCB.centerColorSmoothStepLower, PassDataCB.centerColorSmoothStepUpper, distanceToCentre);
         blade.clumpCenterDistanceFade = atten;
+        */
 
         grassBladeBuffer.Append(blade);
 	}

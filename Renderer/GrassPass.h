@@ -15,8 +15,8 @@ namespace Renderer {
 			uint32_t terrainHeightMapIndex;
 			uint32_t terrainNormalMapIndex;
 
-			Math::Vector2 worldMeterSize{ 5120, 5120 };	// 世界在XZ轴方向的大小(米)
-			uint32_t heightScale{ 4096u };				// 世界的Y轴缩放
+			Math::Vector2 worldMeterSize{ 8192, 8192 };	// 世界在XZ轴方向的大小(米)
+			uint32_t heightScale{ 1325 };				// 世界的Y轴缩放
 			uint32_t grassBladeSizePerAxisPerTile;
 
 			uint32_t useFrustumCull{ 1u };

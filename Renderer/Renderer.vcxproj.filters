@@ -85,6 +85,12 @@
     <Filter Include="源文件\StreamVirtualTextureSystem">
       <UniqueIdentifier>{53e65f89-2b01-4703-934b-b3ca5b12dbc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\Terrain\VegetationSystem">
+      <UniqueIdentifier>{002a59dc-3426-434c-a021-371b5e042c81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\Terrain\VegetationSystem">
+      <UniqueIdentifier>{6740483a-1cce-40d7-a1db-ce8834fcb538}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -321,6 +327,18 @@
     <ClInclude Include="Task_SplitHeightMap.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainQuadTree.h">
+      <Filter>头文件\Renderer\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationSystem.h">
+      <Filter>头文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationPhysicalDataCache.h">
+      <Filter>头文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="VegetationVirtualTable.h">
+      <Filter>头文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -547,6 +565,18 @@
     </ClCompile>
     <ClCompile Include="Task_SplitHeightMap.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainQuadTree.cpp">
+      <Filter>源文件\Renderer\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationSystem.cpp">
+      <Filter>源文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationPhysicalDataCache.cpp">
+      <Filter>源文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="VegetationVirtualTable.cpp">
+      <Filter>源文件\Renderer\Terrain\VegetationSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

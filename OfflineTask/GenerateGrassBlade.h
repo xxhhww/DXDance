@@ -1,4 +1,5 @@
 #pragma once
+#include <DirectXTex/DirectXTex.h>
 #include "Renderer/RenderEngine.h"
 #include <string>
 
@@ -66,7 +67,11 @@ namespace OfflineTask {
 
 	class GenerateGrassBlade {
 	public:
-		void Initialize(const std::string& heightMapFilepath, const std::string& grassLayerFilepath, Renderer::RenderEngine* renderEngine);
+		void Initialize(
+			const std::string& heightMapFilepath, 
+			const std::string& grassLayerFilepath,
+			const std::string& targetPath,
+			Renderer::RenderEngine* renderEngine);
 
 		void Generate(Renderer::CommandBuffer& commandBuffer, Renderer::RenderContext& renderContext);
 
@@ -107,8 +112,11 @@ namespace OfflineTask {
 		GenerateClumpMapPassData mGenerateClumpMapPassData{};
 		GenerateGrassBladePassData mGenerateGrassBladePassData{};
 
-		uint32_t currRowIndex = 0u;	// 当前处理的行索引
-		uint32_t currColIndex = 0u;	// 当前处理的列索引
+		int32_t currRowIndex = 120;	// 当前处理的行索引(121)
+		int32_t currColIndex = 0;	// 当前处理的列索引(5)
+
+		// 结果保存到的磁盘位置
+		std::string mTargetPath;
 	};
 
 }

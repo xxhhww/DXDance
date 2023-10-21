@@ -5,7 +5,7 @@ struct PassData{
 	float2 clumpMapSize;
 	uint   numClumps;
 	uint   clumpMapIndex;
-}
+};
 
 #define PassDataType PassData
 
