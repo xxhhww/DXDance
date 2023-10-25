@@ -1,4 +1,5 @@
 #include "Renderer/VegetationPhysicalDataCache.h"
+#include "Renderer/FixedTextureHelper.h"
 
 namespace Renderer {
 
@@ -17,28 +18,37 @@ namespace Renderer {
 		uint32_t nodeIndex = 0u;
 		mGrassClusterCache = std::make_unique<GrassClusterCache>(grassClusterCacheCount);
 		mGrassClusterCache->Foreach([&](GrassClusterCache::Node* node) {
-			node->userData.bufferByteOffset = nodeIndex * sizeof(GrassBlade) * maxGrassBladeCountPerCluster;
+			node->userData.grassBladeBufferIndex = nodeIndex  * maxGrassBladeCountPerCluster;
 			nodeIndex++;
 		});
 
-		BufferDesc _GrassBladePhysicalBuffer{};
-		_GrassBladePhysicalBuffer.stride = sizeof(GrassBlade);
-		_GrassBladePhysicalBuffer.size = grassClusterCacheCount * sizeof(GrassBlade) * maxGrassBladeCountPerCluster;
-		_GrassBladePhysicalBuffer.usage = GHL::EResourceUsage::Default;
-		_GrassBladePhysicalBuffer.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-		_GrassBladePhysicalBuffer.initialState = GHL::EResourceState::Common;
-		_GrassBladePhysicalBuffer.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::NonPixelShaderAccess;
-		mGrassBladePhysicalBuffer = resourceAllocator->Allocate(device, _GrassBladePhysicalBuffer, descriptorAllocator, nullptr);
+		BufferDesc _GrassBladeBufferDesc{};
+		_GrassBladeBufferDesc.stride = sizeof(GrassBlade);
+		_GrassBladeBufferDesc.size = grassClusterCacheCount * sizeof(GrassBlade) * maxGrassBladeCountPerCluster;
+		_GrassBladeBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GrassBladeBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GrassBladeBufferDesc.initialState = GHL::EResourceState::Common;
+		_GrassBladeBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::NonPixelShaderAccess;
+		mGrassBladeBuffer = resourceAllocator->Allocate(device, _GrassBladeBufferDesc, descriptorAllocator, nullptr);
+		renderGraph->ImportResource("BakedGrassBladeBuffer", mGrassBladeBuffer);
+		resourceStateTracker->StartTracking(mGrassBladeBuffer);
 	}
 
 	// 配置草遮罩Cache的初始化参数
-	void VegetationDataCache::ConfigureGrassMaskCache(uint32_t grassMaskCacheCount, uint32_t resolutionPerTile) {
+	void VegetationDataCache::ConfigureGrassMaskCache(const std::string& pathname, uint32_t grassMaskCacheCount, uint32_t resolutionPerTile) {
 		auto* device = mRenderEngine->mDevice.get();
 		auto* renderGraph = mRenderEngine->mRenderGraph.get();
 		auto* resourceAllocator = mRenderEngine->mResourceAllocator.get();
 		auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
 
+		auto* copyDsQueue = mRenderEngine->mUploaderEngine->GetMemoryCopyQueue();
+		auto* copyFence = mRenderEngine->mUploaderEngine->GetCopyFence();
+
+		// 创建GrassLayerMask
+		mGrassLayerMask = FixedTextureHelper::LoadFromFile(device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence, pathname);
+		renderGraph->ImportResource("GrassLayerMask", mGrassLayerMask);
+		resourceStateTracker->StartTracking(mGrassLayerMask);
 	}
 
 	// 激活GrassClusterCache(可能激活失败，这是因为GrassClusterRect对应的Cache已经被其他GrassClusterRect使用了)
@@ -52,14 +62,19 @@ namespace Renderer {
 				targetNode == node;
 			}
 		});
-		mGrassClusterCache->SetActive(targetNode);
+
+		if (targetNode != nullptr) {
+			mGrassClusterCache->SetActive(targetNode);
+		}
 
 		return targetNode;
 	}
 
 	// 获取当前可用的GrassClusterCacheNode
 	VegetationDataCache::GrassClusterCache::Node* VegetationDataCache::GetAvailableGrassClusterCache() {
-		return mGrassClusterCache->GetHead();
+		GrassClusterCache::Node* targetNode = mGrassClusterCache->GetHead();
+		mGrassClusterCache->SetActive(targetNode);
+		return targetNode;
 	}
 
 }

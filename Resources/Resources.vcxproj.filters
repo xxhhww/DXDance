@@ -100,5 +100,8 @@
     <FxCompile Include="Shaders\Engine\Opaque\GpuCullingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\OpaqueHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassBladeBaking.hlsl" />
+    <FxCompile Include="Shaders\Engine\ProceduralGrass\BakeGrassBlade.hlsl" />
+    <FxCompile Include="Shaders\Engine\ProceduralGrass\CullGrassBlade.hlsl" />
+    <FxCompile Include="Shaders\Engine\ProceduralGrass\ProceduralGrassHelper.hlsl" />
   </ItemGroup>
 </Project>

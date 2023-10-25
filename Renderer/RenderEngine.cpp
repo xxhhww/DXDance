@@ -352,6 +352,10 @@ namespace Renderer {
 			mPipelineResourceStorage->rootLightDataPerFrame.size();
 	}
 
+	void RenderEngine::UpdateSubSystem() {
+
+	}
+
 	void RenderEngine::Render() {
 		// Ñ¹ÈëÐÂµÄäÖÈ¾Ö¡
 		mRenderFrameFence->IncrementExpectedValue();

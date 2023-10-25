@@ -92,6 +92,11 @@ namespace Renderer {
 		*/
 		void UpdateLights();
 
+		/*
+		* 更新部分子系统
+		*/
+		void UpdateSubSystem();
+
 	public:
 		// ==========================...杂项...==========================
 		HWND mWindowHandle{ nullptr };

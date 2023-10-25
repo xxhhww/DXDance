@@ -11,9 +11,6 @@ namespace Renderer {
 		Math::Vector3 position;
 		Math::Vector2 facing;
 
-		float    hash;
-		uint32_t type;
-
 		float    height;
 		float    width;
 		float    tilt;		// 描述草叶的倾斜状态
@@ -29,7 +26,7 @@ namespace Renderer {
 		struct GrassClusterCacheNodeData {
 		public:
 			std::optional<Math::Vector4> opGrassClusterRect = std::nullopt;		// 草群的矩形大小(用来标记当前CacheNode对应的草群位置)
-			uint64_t bufferByteOffset;		// 在GrassBladeBuffer中的字节偏移
+			uint64_t grassBladeBufferIndex;		// 在GrassBladeBuffer中的字节偏移
 		};
 		using GrassClusterCache = Tool::LRUCache<GrassClusterCacheNodeData>;
 
@@ -48,7 +45,7 @@ namespace Renderer {
 		void ConfigureGrassClusterCache(uint32_t grassClusterCacheCount, uint32_t maxGrassBladeCountPerCluster);
 
 		// 配置草遮罩Cache的初始化参数
-		void ConfigureGrassMaskCache(uint32_t grassMaskCacheCount, uint32_t resolutionPerTile);
+		void ConfigureGrassMaskCache(const std::string& pathname, uint32_t grassMaskCacheCount, uint32_t resolutionPerTile);
 
 		// 激活GrassClusterCache(可能激活失败，这是因为GrassClusterRect对应的Cache已经被其他GrassClusterRect使用了)
 		GrassClusterCache::Node* ActivateGrassClusterCache(const Math::Vector4& targetGrassClusterRect);
@@ -60,11 +57,10 @@ namespace Renderer {
 		RenderEngine* mRenderEngine{ nullptr };
 
 		std::unique_ptr<GrassClusterCache> mGrassClusterCache;
-		BufferWrap mGrassBladePhysicalBuffer;
+		BufferWrap mGrassBladeBuffer;
 
-		std::unique_ptr<GrassMaskCache> mGrassMaskCache;
-		TextureWrap mGrassMaskPhysicalTexture;
-		
+		std::unique_ptr<GrassMaskCache> mGrassLayerMaskCache;
+		TextureWrap mGrassLayerMask;
 	};
 
 }
