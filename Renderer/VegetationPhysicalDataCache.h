@@ -6,18 +6,6 @@
 
 namespace Renderer {
 
-	struct GrassBlade {
-	public:
-		Math::Vector3 position;
-		Math::Vector2 facing;
-
-		float    height;
-		float    width;
-		float    tilt;		// 描述草叶的倾斜状态
-		float    bend;		// 控制草叶的弯曲(其实就是控制贝塞尔样条曲线)
-		float    sideCurve;	// 控制草叶的边的弯曲
-	};
-
 	/*
 	* 植被系统的数据管理器，负责对显存数据和内存数据进行管理，其他地方则存放数据索引信息
 	*/
