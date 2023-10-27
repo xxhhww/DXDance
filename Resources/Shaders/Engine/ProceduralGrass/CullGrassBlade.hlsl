@@ -1,5 +1,5 @@
-#ifndef CullGrassBlade
-#define CullGrassBlade
+#ifndef _CullGrassBlade__
+#define _CullGrassBlade__
 
 #include "ProceduralGrassHelper.hlsl"
 #include "../GPUDrivenTerrain/TerrainHelper.hlsl"

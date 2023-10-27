@@ -4,19 +4,6 @@
 namespace Renderer {
 
 	/*
-	* 关卡块
-	*/
-	struct LevelSector {
-	public:
-		bool growTree{ false };		// 该关卡块是否长树 
-		bool growGrass{ false };	// 该关卡块是否长草
-
-		TreeCluster treeCluster;
-		std::vector<GrassCluster> grassClusters;
-
-	};
-
-	/*
 	* 四叉树节点内容描述
 	*/
 	struct TerrainQuadNodeDescriptor {
@@ -46,8 +33,6 @@ namespace Renderer {
 
 		void AddPass(RenderEngine* renderEngine);
 
-		static void FindTargetLevelSector(const Math::Vector4& targetRect, std::vector<LevelSector>& levelSectors);
-
 	private:
 		inline static float smWorldMeterSize{ 8192.0f };
 		inline static float smWorldHeightScale{ 1325.0f };
@@ -57,8 +42,6 @@ namespace Renderer {
 
 		std::vector<TerrainQuadTree*> mRootQuadNodes;	// 四叉树的n个根节点
 		std::vector<TerrainQuadNodeDescriptor> mTerrainQuadNodeDescriptors;	// 四叉树全节点内容描述列表
-
-		std::vector<LevelSector> mLevelSectors;
 	};
 
 

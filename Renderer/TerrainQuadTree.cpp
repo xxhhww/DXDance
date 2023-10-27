@@ -10,8 +10,4 @@ namespace Renderer {
 
 	}
 
-	void TerrainQuadTree::FindTargetLevelSector(const Math::Vector4& targetRect, std::vector<LevelSector>& levelSectors) {
-
-	}
-
 }

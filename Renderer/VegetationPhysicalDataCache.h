@@ -14,7 +14,7 @@ namespace Renderer {
 		struct GrassClusterCacheNodeData {
 		public:
 			std::optional<Math::Vector4> opGrassClusterRect = std::nullopt;		// 草群的矩形大小(用来标记当前CacheNode对应的草群位置)
-			uint64_t grassBladeBufferIndex;		// 在GrassBladeBuffer中的字节偏移
+			uint32_t grassBladeBufferIndex;		// 在GrassBladeBuffer中的索引偏移
 		};
 		using GrassClusterCache = Tool::LRUCache<GrassClusterCacheNodeData>;
 

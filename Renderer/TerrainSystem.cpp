@@ -152,6 +152,7 @@ namespace Renderer {
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
 				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/MinMaxHeightMap_8192W_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap);
+			resourceStorage->ImportResource("MinMaxHeightMap", minmaxHeightMap);
 		}
 
 		// Load HeightMap From File

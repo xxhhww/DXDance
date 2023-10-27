@@ -2,8 +2,17 @@
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderGraphBuilder.h"
 #include "Renderer/TerrainSystem.h"
+#include "Renderer/FixedTextureHelper.h"
 
 namespace Renderer {
+
+	struct IndirectDispatch {
+		D3D12_GPU_VIRTUAL_ADDRESS frameDataAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS passDataAddress;
+		D3D12_GPU_VIRTUAL_ADDRESS lightDataAddress;
+		D3D12_DISPATCH_ARGUMENTS  dispatchArguments;
+		uint32_t pad1;
+	};
 
 	struct IndirectDraw {
 	public:
@@ -23,6 +32,7 @@ namespace Renderer {
 
 		mDataCacher = std::make_unique<VegetationDataCache>(mRenderEngine);
 		mDataCacher->ConfigureGrassClusterCache(smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis * 1.5f, smMaxGrassBladeCountPerAxis);
+		mDataCacher->ConfigureGrassMaskCache("E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/GrassLayer.png", 16, 256);
 		mVegetationVirtualTable = std::make_unique<VegetationVirtualTable>(mDataCacher.get(), smVisibleGrassClusterCountPerAxis, smGrassClusterMeterSize, terrainSystem->worldMeterSize);
 	}
 
@@ -31,23 +41,24 @@ namespace Renderer {
 	*/
 	void VegetationSystem::Update(const Math::Vector2& cameraPosition) {
 		mNeedBakedGpuGrassClusters.clear();
-		mVisibleGpuGrassClusters.clear();
+		mNeedCulledGpuGrassClusters.clear();
 
-		std::vector<VegetationVirtualTable::VirtualTableCell&> changedVirtualTableCells;
+		std::vector<VegetationVirtualTable::VirtualTableCell> changedVirtualTableCells;
 		mVegetationVirtualTable->Update(cameraPosition, changedVirtualTableCells);
 
 		auto& allVirtualTableCells = mVegetationVirtualTable->GetVirtualTable();
 
-		// 填充两个GpuGrassClusters
+		// 获取需要重新烘焙的GrassCluster
 		for (const auto& cell : changedVirtualTableCells) {
 			mNeedBakedGpuGrassClusters.emplace_back(
 				GpuGrassCluster{ cell.targetGrassClusterRect, cell.cahce->userData.grassBladeBufferIndex }
 			);
 		}
 
+		// 获取可见的GrassCluster(CPU上做裁剪)
 		for (const auto& tableRow : allVirtualTableCells) {
 			for (const auto& cell : tableRow) {
-				mVisibleGpuGrassClusters.emplace_back(
+				mNeedCulledGpuGrassClusters.emplace_back(
 					GpuGrassCluster{ cell.targetGrassClusterRect, cell.cahce->userData.grassBladeBufferIndex }
 				);
 			}
@@ -113,17 +124,18 @@ namespace Renderer {
 		);
 
 		/*
-		* 草点的实时烘焙与剔除
+		* GrassCluster的烘焙与剔除
 		*/
 		renderGraph.AddPass(
-			"BakeAndCullGrassBlade",
+			"BakeAndCullGrassCluster",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
-				
+
 				builder.ReadBuffer("ClumpParametersBuffer", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("ClumpMap", ShaderAccessFlag::NonPixelShader);
 
 				builder.ReadTexture("TerrainHeightMap", ShaderAccessFlag::NonPixelShader);	// 由TerrainSystem导入
+				builder.ReadTexture("MinMaxHeightMap", ShaderAccessFlag::NonPixelShader);	// 由TerrainSystem导入
 				builder.ReadTexture("GrassLayerMask", ShaderAccessFlag::NonPixelShader);	// 由VegetationDataCache导入
 				builder.WriteBuffer("BakedGrassBladeList");									// 由VegetationDataCache导入
 
@@ -135,32 +147,22 @@ namespace Renderer {
 				builder.DeclareBuffer("GrassClusterList", _GrassClusterListProperties);
 				builder.WriteCopyDstBuffer("GrassClusterList");
 
-				// 8 MB(LOD 0)
-				NewBufferProperties _VisibleLOD0GrassBladeIndexListProperties{};
-				_VisibleLOD0GrassBladeIndexListProperties.stride = sizeof(uint32_t);
-				_VisibleLOD0GrassBladeIndexListProperties.size = smMaxGrassBladeCountPerAxis * smMaxGrassBladeCountPerAxis * smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis / 2u;
-				_VisibleLOD0GrassBladeIndexListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				_VisibleLOD0GrassBladeIndexListProperties.aliased = false;
-				builder.DeclareBuffer("VisibleLOD0GrassBladeIndexList", _VisibleLOD0GrassBladeIndexListProperties);
-				builder.WriteBuffer("VisibleLOD0GrassBladeIndexList");
-
-				// 8MB(LOD 1)
-				NewBufferProperties _VisibleLOD1GrassBladeIndexListProperties{};
-				_VisibleLOD1GrassBladeIndexListProperties.stride = sizeof(uint32_t);
-				_VisibleLOD1GrassBladeIndexListProperties.size = smMaxGrassBladeCountPerAxis * smMaxGrassBladeCountPerAxis * smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis / 2u;
-				_VisibleLOD1GrassBladeIndexListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				_VisibleLOD1GrassBladeIndexListProperties.aliased = false;
-				builder.DeclareBuffer("VisibleLOD1GrassBladeIndexList", _VisibleLOD1GrassBladeIndexListProperties);
-				builder.WriteBuffer("VisibleLOD1GrassBladeIndexList");
+				NewBufferProperties _VisibleGrassClusterListProperties{};
+				_VisibleGrassClusterListProperties.stride = sizeof(GpuGrassCluster);
+				_VisibleGrassClusterListProperties.size = smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis * _VisibleGrassClusterListProperties.stride;
+				_VisibleGrassClusterListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_VisibleGrassClusterListProperties.aliased = false;
+				builder.DeclareBuffer("VisibleGrassClusterList", _VisibleGrassClusterListProperties);
+				builder.WriteBuffer("VisibleGrassClusterList");
 
 				shaderManger.CreateComputeShader("BakeGrassBlade",
 					[](ComputeStateProxy& proxy) {
 						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/ProceduralGrass/BakeGrassBlade.hlsl";
 					});
 
-				shaderManger.CreateComputeShader("CullGrassBlade",
+				shaderManger.CreateComputeShader("CullGrassCluster",
 					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/ProceduralGrass/CullGrassBlade.hlsl";
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/ProceduralGrass/CullGrassCluster.hlsl";
 					});
 
 			},
@@ -171,12 +173,13 @@ namespace Renderer {
 				auto* clumpParametersBuffer = resourceStorage->GetResourceByName("ClumpParametersBuffer")->GetBuffer();
 				auto* clumpMap = resourceStorage->GetResourceByName("ClumpMap")->GetTexture();
 				auto* terrainHeightMap = resourceStorage->GetResourceByName("TerrainHeightMap")->GetTexture();
+				auto* minmaxHeightMap = resourceStorage->GetResourceByName("MinMaxHeightMap")->GetTexture();
 				auto* grassLayerMask = resourceStorage->GetResourceByName("GrassLayerMask")->GetTexture();
 				auto* bakedGrassBladeList = resourceStorage->GetResourceByName("BakedGrassBladeList")->GetBuffer();
 				auto* grassClusterList = resourceStorage->GetResourceByName("GrassClusterList")->GetBuffer();
-				auto* visibleLOD0GrassBladeIndexList = resourceStorage->GetResourceByName("VisibleLOD0GrassBladeIndexList")->GetBuffer();
-				auto* visibleLOD1GrassBladeIndexList = resourceStorage->GetResourceByName("VisibleLOD1GrassBladeIndexList")->GetBuffer();
+				auto* visibleGrassClusterList = resourceStorage->GetResourceByName("VisibleGrassClusterList")->GetBuffer();
 
+				// 执行GrassCluster的烘焙工作
 				if (!mNeedBakedGpuGrassClusters.empty()) {
 
 					mBakeGrassBladePassData.terrainWorldMeterSize = mTerrainSystem->worldMeterSize;
@@ -207,8 +210,99 @@ namespace Renderer {
 					commandBuffer.Dispatch(mNeedBakedGpuGrassClusters.size(), threadGroupCountY, threadGroupCountZ);
 				}
 
+				// 执行GrassCluster的剔除工作
+				mCullGrassClusterPassData.needCullGrassClusterListIndex = grassClusterList->GetSRDescriptor()->GetHeapIndex();
+				mCullGrassClusterPassData.visibleGrassClusterListIndex = visibleGrassClusterList->GetUADescriptor()->GetHeapIndex();
+				mCullGrassClusterPassData.minMaxHeightMapIndex = minmaxHeightMap->GetSRDescriptor()->GetHeapIndex();
+				mCullGrassClusterPassData.terrainWorldMeterSize = mTerrainSystem->worldMeterSize;
+				mCullGrassClusterPassData.terrainHeightScale = mTerrainSystem->worldHeightScale;
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(VegetationSystem::CullGrassClusterPassData), 256u);
+				memcpy(passDataAlloc.cpuAddress, &mCullGrassClusterPassData, sizeof(VegetationSystem::CullGrassClusterPassData));
+
+				{
+					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(visibleGrassClusterList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
+
+				commandBuffer.UploadBufferRegion(grassClusterList, 0u, mNeedCulledGpuGrassClusters.data(), mNeedCulledGpuGrassClusters.size() * sizeof(GpuGrassCluster));
+				commandBuffer.ClearCounterBuffer(visibleGrassClusterList, 0u);
+
+				uint32_t threadGroupCountX = (mNeedCulledGpuGrassClusters.size() + smCullGrassClusterThreadSizeInGroup - 1) / smCullGrassClusterThreadSizeInGroup;
+
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("CullGrassCluster");
+				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
+				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+				commandBuffer.Dispatch(threadGroupCountX, 1u, 1u);
+			});
+
+		/*
+		* 草点的实时烘焙与剔除
+		*/
+		renderGraph.AddPass(
+			"CullGrassBlade",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
+
+				builder.ReadBuffer("BakedGrassBladeList", ShaderAccessFlag::NonPixelShader);		// 由VegetationDataCache导入
+				builder.ReadBuffer("VisibleGrassClusterList", ShaderAccessFlag::NonPixelShader);
+
+				// 8 MB(LOD 0)
+				NewBufferProperties _VisibleLOD0GrassBladeIndexListProperties{};
+				_VisibleLOD0GrassBladeIndexListProperties.stride = sizeof(uint32_t);
+				_VisibleLOD0GrassBladeIndexListProperties.size = smMaxGrassBladeCountPerAxis * smMaxGrassBladeCountPerAxis * smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis / 2u;
+				_VisibleLOD0GrassBladeIndexListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_VisibleLOD0GrassBladeIndexListProperties.aliased = false;
+				builder.DeclareBuffer("VisibleLOD0GrassBladeIndexList", _VisibleLOD0GrassBladeIndexListProperties);
+				builder.WriteBuffer("VisibleLOD0GrassBladeIndexList");
+
+				// 8MB(LOD 1)
+				NewBufferProperties _VisibleLOD1GrassBladeIndexListProperties{};
+				_VisibleLOD1GrassBladeIndexListProperties.stride = sizeof(uint32_t);
+				_VisibleLOD1GrassBladeIndexListProperties.size = smMaxGrassBladeCountPerAxis * smMaxGrassBladeCountPerAxis * smVisibleGrassClusterCountPerAxis * smVisibleGrassClusterCountPerAxis / 2u;
+				_VisibleLOD1GrassBladeIndexListProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_VisibleLOD1GrassBladeIndexListProperties.aliased = false;
+				builder.DeclareBuffer("VisibleLOD1GrassBladeIndexList", _VisibleLOD1GrassBladeIndexListProperties);
+				builder.WriteBuffer("VisibleLOD1GrassBladeIndexList");
+
+				NewBufferProperties _CullGrassBladeIndirectArgsProperties{};
+				_CullGrassBladeIndirectArgsProperties.stride = sizeof(IndirectDispatch);
+				_CullGrassBladeIndirectArgsProperties.size = sizeof(IndirectDispatch);
+				_CullGrassBladeIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_CullGrassBladeIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("CullGrassBladeIndirectArgs", _CullGrassBladeIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("CullGrassBladeIndirectArgs");
+
+				shaderManger.CreateComputeShader("CullGrassBlade",
+					[](ComputeStateProxy& proxy) {
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/ProceduralGrass/CullGrassBlade.hlsl";
+					});
+
+				commandSignatureManger.CreateCommandSignature("CullGrassBlade",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });	// FrameDataCB
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });	// PassDataCB
+						proxy.AddIndirectArgument(GHL::IndirectShaderResourceViewArgument{ 2u });	// LightDataSB
+						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDispatch));
+					});
+
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage = renderContext.resourceStorage;
+
+				auto* bakedGrassBladeList = resourceStorage->GetResourceByName("BakedGrassBladeList")->GetBuffer();
+				auto* visibleGrassClusterList = resourceStorage->GetResourceByName("VisibleGrassClusterList")->GetBuffer();
+				auto* visibleLOD0GrassBladeIndexList = resourceStorage->GetResourceByName("VisibleLOD0GrassBladeIndexList")->GetBuffer();
+				auto* visibleLOD1GrassBladeIndexList = resourceStorage->GetResourceByName("VisibleLOD1GrassBladeIndexList")->GetBuffer();
+				auto* cullGrassBladeIndirectArgs = resourceStorage->GetResourceByName("CullGrassBladeIndirectArgs")->GetBuffer();
+
 				// 执行剔除工作
-				mCullGrassBladePassData.visibleGrassClusterListIndex = grassClusterList->GetUADescriptor()->GetHeapIndex();
+				mCullGrassBladePassData.visibleGrassClusterListIndex = visibleGrassClusterList->GetUADescriptor()->GetHeapIndex();
 				mCullGrassBladePassData.bakedGrassBladeListIndex = bakedGrassBladeList->GetSRDescriptor()->GetHeapIndex();
 				mCullGrassBladePassData.visibleLOD0GrassBladeIndexListIndex = visibleLOD0GrassBladeIndexList->GetUADescriptor()->GetHeapIndex();
 				mCullGrassBladePassData.visibleLOD1GrassBladeIndexListIndex = visibleLOD1GrassBladeIndexList->GetUADescriptor()->GetHeapIndex();
@@ -217,11 +311,8 @@ namespace Renderer {
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(VegetationSystem::CullGrassBladePassData), 256u);
 				memcpy(passDataAlloc.cpuAddress, &mCullGrassBladePassData, sizeof(VegetationSystem::CullGrassBladePassData));
 
-				commandBuffer.UploadBufferRegion(grassClusterList, 0, mVisibleGpuGrassClusters.data(), sizeof(GpuGrassCluster)* mVisibleGpuGrassClusters.size());
-
 				{
 					auto barrierBatch = GHL::ResourceBarrierBatch{};
-					barrierBatch += commandBuffer.TransitionImmediately(bakedGrassBladeList, GHL::EResourceState::NonPixelShaderAccess);
 					barrierBatch += commandBuffer.TransitionImmediately(visibleLOD0GrassBladeIndexList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 					barrierBatch += commandBuffer.TransitionImmediately(visibleLOD1GrassBladeIndexList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 					commandBuffer.FlushResourceBarrier(barrierBatch);
@@ -232,6 +323,7 @@ namespace Renderer {
 
 				{
 					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(visibleGrassClusterList->GetCounterBuffer(), GHL::EResourceState::CopySource);
 					barrierBatch += commandBuffer.TransitionImmediately(visibleLOD0GrassBladeIndexList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 					barrierBatch += commandBuffer.TransitionImmediately(visibleLOD1GrassBladeIndexList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 					commandBuffer.FlushResourceBarrier(barrierBatch);
@@ -240,11 +332,27 @@ namespace Renderer {
 				uint32_t threadGroupCountY = (smMaxGrassBladeCountPerAxis + smCullGrassBladeThreadSizeInGroup - 1) / smCullGrassBladeThreadSizeInGroup;
 				uint32_t threadGroupCountZ = threadGroupCountY;
 
+				IndirectDispatch indirectDispatch{};
+				indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectDispatch.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
+				indirectDispatch.passDataAddress = passDataAlloc.gpuAddress;
+				indirectDispatch.dispatchArguments.ThreadGroupCountX = 0;
+				indirectDispatch.dispatchArguments.ThreadGroupCountY = threadGroupCountY;
+				indirectDispatch.dispatchArguments.ThreadGroupCountZ = threadGroupCountZ;
+
+				commandBuffer.UploadBufferRegion(cullGrassBladeIndirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
+				commandBuffer.CopyBufferRegion(cullGrassBladeIndirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u, visibleGrassClusterList->GetCounterBuffer(), 0u, sizeof(uint32_t));
+
+				{
+					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(cullGrassBladeIndirectArgs, GHL::EResourceState::IndirectArgument);
+					barrierBatch += commandBuffer.TransitionImmediately(cullGrassBladeIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
+
 				commandBuffer.SetComputeRootSignature();
 				commandBuffer.SetComputePipelineState("CullGrassBlade");
-				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
-				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
-				commandBuffer.Dispatch(mVisibleGpuGrassClusters.size(), threadGroupCountY, threadGroupCountZ);
+				commandBuffer.ExecuteIndirect("CullGrassBlade", cullGrassBladeIndirectArgs, 1u);
 			});
 
 		/*
@@ -366,6 +474,7 @@ namespace Renderer {
 					auto barrierBatch = GHL::ResourceBarrierBatch{};
 					barrierBatch += commandBuffer.TransitionImmediately(grassBladeRendererIndirectArgs, GHL::EResourceState::IndirectArgument);
 					barrierBatch += commandBuffer.TransitionImmediately(grassBladeRendererIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
 				}
 
 				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
@@ -392,6 +501,8 @@ namespace Renderer {
 		auto* resourceAllocator = mRenderEngine->mResourceAllocator.get();
 		auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
+		auto* copyDsQueue = mRenderEngine->mUploaderEngine->GetMemoryCopyQueue();
+		auto* copyFence = mRenderEngine->mUploaderEngine->GetCopyFence();
 
 		// Fill Clump Parameters
 		{
@@ -436,17 +547,138 @@ namespace Renderer {
 
 		// Load LOD0 Vertices & Indices Data
 		{
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.45f, 0.22f }, 0.309f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.55f, 0.0f  }, 0.0f  , 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.45f, 0.0f  }, 0.0f  , 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.55f, 0.22f }, 0.309f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.55f, 0.38f }, 0.472f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.45f, 0.38f }, 0.472f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.54f, 0.54f }, 0.601f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.46f, 0.54f }, 0.601f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.54f, 0.67f }, 0.716f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.46f, 0.67f }, 0.716f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.53f, 0.78f }, 0.817f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.47f, 0.78f }, 0.817f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.53f, 0.89f }, 0.913f, 1.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.48f, 0.89f }, 0.913f, 0.0f);
+			mLOD0GrassVertices.emplace_back(Math::Vector2{ 0.5f, 1.0f   }, 1.0f  , 0.498f);
 
+			mLOD0GrassIndices = {
+				0,  1,  2,
+				0,  3,  1,
+				0,  4,  3,
+				0,  5,  4,
+				5,  6,  4,
+				5,  7,  6,
+				7,  8,  6,
+				7,  9,  8,
+				9,  10, 8,
+				9,  11, 10,
+				12, 10, 11,
+				11, 13, 12,
+				13, 14, 12
+			};
+
+			// 创建VertexBuffer / IndexBuffer
+			Renderer::BufferDesc vertexBufferDesc{};
+			vertexBufferDesc.stride = sizeof(GrassVertexAttribute);
+			vertexBufferDesc.size = vertexBufferDesc.stride * mLOD0GrassVertices.size();
+			vertexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mLOD0GrassVertexBuffer = resourceAllocator->Allocate(device, vertexBufferDesc, descriptorAllocator, nullptr);
+
+			Renderer::BufferDesc indexBufferDesc{};
+			indexBufferDesc.stride = sizeof(uint32_t);
+			indexBufferDesc.size = indexBufferDesc.stride * mLOD0GrassIndices.size();
+			indexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mLOD0GrassIndexBuffer = resourceAllocator->Allocate(device, indexBufferDesc, descriptorAllocator, nullptr);
+
+			// upload vertices
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_BUFFER;
+
+			request.Source.Memory.Source = static_cast<void*>(mLOD0GrassVertices.data());
+			request.Source.Memory.Size = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			request.Destination.Buffer.Resource = mLOD0GrassVertexBuffer->D3DResource();
+			request.Destination.Buffer.Offset = 0u;
+			request.Destination.Buffer.Size = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			request.UncompressedSize = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			copyDsQueue->EnqueueRequest(&request);
+
+			// upload indices
+			request.Source.Memory.Source = static_cast<void*>(mLOD0GrassIndices.data());
+			request.Source.Memory.Size = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			request.Destination.Buffer.Resource = mLOD0GrassIndexBuffer->D3DResource();
+			request.Destination.Buffer.Offset = 0u;
+			request.Destination.Buffer.Size = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			request.UncompressedSize = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			copyDsQueue->EnqueueRequest(&request);
+
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
 		}
 
 		// Load LOD1 Vertices & Indices Data
 		{
+			// 创建VertexBuffer / IndexBuffer
+			Renderer::BufferDesc vertexBufferDesc{};
+			vertexBufferDesc.stride = sizeof(GrassVertexAttribute);
+			vertexBufferDesc.size = vertexBufferDesc.stride * mLOD0GrassVertices.size();
+			vertexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mLOD1GrassVertexBuffer = resourceAllocator->Allocate(device, vertexBufferDesc, descriptorAllocator, nullptr);
 
+			Renderer::BufferDesc indexBufferDesc{};
+			indexBufferDesc.stride = sizeof(uint32_t);
+			indexBufferDesc.size = indexBufferDesc.stride * mLOD0GrassIndices.size();
+			indexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mLOD1GrassIndexBuffer = resourceAllocator->Allocate(device, indexBufferDesc, descriptorAllocator, nullptr);
+
+			// upload vertices
+			DSTORAGE_REQUEST request = {};
+			request.Options.CompressionFormat = DSTORAGE_COMPRESSION_FORMAT_NONE;
+			request.Options.SourceType = DSTORAGE_REQUEST_SOURCE_MEMORY;
+			request.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_BUFFER;
+
+			request.Source.Memory.Source = static_cast<void*>(mLOD0GrassVertices.data());
+			request.Source.Memory.Size = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			request.Destination.Buffer.Resource = mLOD1GrassVertexBuffer->D3DResource();
+			request.Destination.Buffer.Offset = 0u;
+			request.Destination.Buffer.Size = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			request.UncompressedSize = mLOD0GrassVertices.size() * sizeof(GrassVertexAttribute);
+			copyDsQueue->EnqueueRequest(&request);
+
+			// upload indices
+			request.Source.Memory.Source = static_cast<void*>(mLOD0GrassIndices.data());
+			request.Source.Memory.Size = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			request.Destination.Buffer.Resource = mLOD1GrassIndexBuffer->D3DResource();
+			request.Destination.Buffer.Offset = 0u;
+			request.Destination.Buffer.Size = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			request.UncompressedSize = mLOD0GrassIndices.size() * sizeof(uint32_t);
+			copyDsQueue->EnqueueRequest(&request);
+
+			copyFence->IncrementExpectedValue();
+			copyDsQueue->EnqueueSignal(copyFence->D3DFence(), copyFence->ExpectedValue());
+			copyDsQueue->Submit();
+			copyFence->Wait();
 		}
 
 		// Load Grass Albedo & Normal
 		{
+			// 加载GrassAlbedoMap
+			mGrassAlbedoMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Grass/Grass_Albedo.png");
+			resourceStateTracker->StartTracking(mGrassAlbedoMap);
 
+			// 加载GrassNormalMap
+			mGrassNormalMap = FixedTextureHelper::LoadFromFile(
+				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+				"E:/MyProject/DXDance/Resources/Textures/Grass/Grass_Normal.png"
+			);
+			resourceStateTracker->StartTracking(mGrassNormalMap);
 		}
 	}
 }

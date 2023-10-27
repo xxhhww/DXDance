@@ -57,7 +57,7 @@ float3 GetNodeWSPositionXYZ(uint2 nodeLoc, uint lod) {
 	Texture2D<float4> minMaxHeightMap = ResourceDescriptorHeap[PassDataCB.minMaxHeightMapIndex];
 
 	float2 wsPositionXZ = GetNodeWSPositionXZ(nodeLoc, lod);
-	float2 minMaxHeight = minMaxHeightMap.mips[lod + 3][nodeLoc].xy;
+	float2 minMaxHeight = minMaxHeightMap.mips[lod + 3][nodeLoc].xy;	// LOD0的Node为64m * 64m，而Mip0的MinMaxHeightMap则是8m * 8m一个像素，所以要+3，而Patch则不需要
     float y = (minMaxHeight.x + minMaxHeight.y) * 0.5f * PassDataCB.heightScale;
 	return float3(wsPositionXZ.x, y, wsPositionXZ.y);
 }

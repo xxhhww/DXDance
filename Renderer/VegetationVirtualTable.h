@@ -18,7 +18,7 @@ namespace Renderer {
 		VegetationVirtualTable(VegetationDataCache* dataCacher, uint32_t tableCellCountPerAxis, float grassClusterMeterSize, const Math::Vector4& worldMeterSize);
 		~VegetationVirtualTable();
 
-		void Update(const Math::Vector2& currCameraPosition, std::vector<VirtualTableCell&>& changedVirtualTableCell);
+		void Update(const Math::Vector2& currCameraPosition, std::vector<VirtualTableCell>& changedVirtualTableCell);
 
 		inline const auto& GetVirtualTable() const { return mGrassClusterVirtualTable; }
 

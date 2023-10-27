@@ -53,7 +53,8 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 
         float2 heightUV = float2(
             (position.x + (PassDataCB.terrainWorldMeterSize.x / 2.0f)) / PassDataCB.terrainWorldMeterSize.x, 
-            (position.z + (PassDataCB.terrainWorldMeterSize.x / 2.0f)) / PassDataCB.terrainWorldMeterSize.x);
+            (position.z + (PassDataCB.terrainWorldMeterSize.x / 2.0f)) / PassDataCB.terrainWorldMeterSize.x
+        );
         heightUV.y = 1.0f - heightUV.y;
 
         // TODOøÿ÷∆√‹∂»

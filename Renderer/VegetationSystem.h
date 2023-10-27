@@ -12,6 +12,14 @@ namespace Renderer {
 		Math::Vector2 uv0;	// 顶点UV
 		float t;			// 描述当前顶点沿着叶脉从草的根部移动的距离
 		float side;			// 描述叶片边长(使用时需要恢复到 [-1, 1]的区域)
+
+	public:
+		inline GrassVertexAttribute(const Math::Vector2& _uv0, float _t, float _side)
+		: uv0(_uv0)
+		, t(_t)
+		, side(_side) {}
+
+		inline ~GrassVertexAttribute() = default;
 	};
 
 	struct GrassBlade {
@@ -85,6 +93,18 @@ namespace Renderer {
 			float  pad3;
 		};
 
+		struct CullGrassClusterPassData {
+		public:
+			uint32_t needCullGrassClusterListIndex;	// 需要执行剔除的草群列表
+			uint32_t visibleGrassClusterListIndex;	// 可见的GrassCluster列表索引
+			uint32_t minMaxHeightMapIndex;
+			uint32_t minmaxHeightMapWorldResolutionPerPixel{ 8u };
+
+			Math::Vector2 terrainWorldMeterSize;
+			float terrainHeightScale;
+			float pad2;
+		};
+
 		struct CullGrassBladePassData {
 		public:
 			uint32_t visibleGrassClusterListIndex;			// 可见的GrassCluster列表索引
@@ -141,6 +161,7 @@ namespace Renderer {
 	private:
 		inline static uint32_t smGenerateClumpMapThreadSizeInGroup = 8u;
 		inline static uint32_t smBakeGrassBladeThreadSizeInGroup = 8u;
+		inline static uint32_t smCullGrassClusterThreadSizeInGroup = 8u;
 		inline static uint32_t smCullGrassBladeThreadSizeInGroup = 8u;
 		inline static float smClumpMapSize{ 512.0f };
 		inline static float smGrassClusterMeterSize{ 32.0f };			// 32 * 32 / m2 为一个GrassCluster
@@ -157,12 +178,13 @@ namespace Renderer {
 		std::unique_ptr<VegetationVirtualTable> mVegetationVirtualTable;
 
 		std::vector<GpuGrassCluster> mNeedBakedGpuGrassClusters;	// 需要执行烘焙操作的GrassCluster
-		std::vector<GpuGrassCluster> mVisibleGpuGrassClusters;		// 需要执行剔除操作的GrassCluster
+		std::vector<GpuGrassCluster> mNeedCulledGpuGrassClusters;	// 需要执行剔除操作的GrassCluster
 
 		std::vector<ClumpParameter> mClumpParameters;
 
 		GenerateClumpMapPassData mGenerateClumpMapPassData{};
 		BakeGrassBladePassData mBakeGrassBladePassData{};
+		CullGrassClusterPassData mCullGrassClusterPassData{};
 		CullGrassBladePassData mCullGrassBladePassData{};
 
 		RenderGrassBladePassData mRenderLOD0GrassBladePassData{};

@@ -20,7 +20,7 @@ namespace Renderer {
 
 	}
 
-	void VegetationVirtualTable::Update(const Math::Vector2& currCameraPos, std::vector<VirtualTableCell&>& changedVirtualTableCells) {
+	void VegetationVirtualTable::Update(const Math::Vector2& currCameraPos, std::vector<VirtualTableCell>& changedVirtualTableCells) {
 		const Math::Vector2 currFixedPosXZ = GetFixedPosition(currCameraPos);
 		if (mFirstFrame) {
 			for (int32_t i = 0; i < mGrassClusterVirtualTable.size(); i++) {
@@ -116,7 +116,7 @@ namespace Renderer {
 	}
 
 	bool VegetationVirtualTable::IsRectValid(const Math::Vector4& grassClusterRect, const Math::Vector4& terrainRect) {
-
+		return false;
 	}
 
 	const Math::Vector2& VegetationVirtualTable::GetFixedPosition(const Math::Vector2& currPosition) {

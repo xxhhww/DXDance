@@ -104,5 +104,6 @@
     <FxCompile Include="Shaders\Engine\ProceduralGrass\CullGrassBlade.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\ProceduralGrassHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\RenderGrassBlade.hlsl" />
+    <FxCompile Include="Shaders\Engine\ProceduralGrass\CullGrassCluster.hlsl" />
   </ItemGroup>
 </Project>
