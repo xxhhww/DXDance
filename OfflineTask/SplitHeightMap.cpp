@@ -75,9 +75,9 @@ namespace OfflineTask {
                 // 数据复制完成，存入磁盘(V轴命名需翻转)
                 std::string filename = "HeightMap_" + std::to_string(row) + "_" + std::to_string(col) + ".png";
                 HRASSERT(DirectX::SaveToWICFile(
-                    dstImage, 
-                    DirectX::WIC_FLAGS_NONE, 
-                    DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), 
+                    dstImage,
+                    DirectX::WIC_FLAGS_NONE,
+                    DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
                     Tool::StrUtil::UTF8ToWString(filename).c_str()
                 ));
             }

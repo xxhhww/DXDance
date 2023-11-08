@@ -1,10 +1,11 @@
 #pragma once
-#include "Renderer/RenderEngine.h"
 #include "Renderer/ResourceAllocator.h"
 #include "Math/Vector.h"
 #include "Tools/LRUCache.h"
 
 namespace Renderer {
+
+	class RenderEngine;
 
 	/*
 	* 植被系统的数据管理器，负责对显存数据和内存数据进行管理，其他地方则存放数据索引信息

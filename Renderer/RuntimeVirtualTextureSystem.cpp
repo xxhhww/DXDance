@@ -272,11 +272,11 @@ namespace Renderer {
 
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mRvtPhysicalTexture->GetTileSizeWithPadding();
-			const Math::Int4 tileRectInImageSpace = Math::Int4{
-				task.node->tilePos.x * (int32_t)tileSizeWithPadding,
-				task.node->tilePos.y * (int32_t)tileSizeWithPadding,
-				(int32_t)tileSizeWithPadding,
-				(int32_t)tileSizeWithPadding
+			const Math::Vector4 tileRectInImageSpace = Math::Vector4{
+				task.node->tilePos.x * (float)tileSizeWithPadding,
+				task.node->tilePos.y * (float)tileSizeWithPadding,
+				(float)tileSizeWithPadding,
+				(float)tileSizeWithPadding
 			};
 
 			// 网格规格化
@@ -334,10 +334,9 @@ namespace Renderer {
 				(tileRectInWorldSpaceOverlapped.y - terrainRectInWorldSpace.y) / terrainRectInWorldSpace.w
 			};
 
-			Math::Vector2 nowScale = Math::Vector2(terrainRectInWorldSpace.z / 25.0f,
-				terrainRectInWorldSpace.w / 25.0f);
+			Math::Vector2 nowScale = Math::Vector2(terrainRectInWorldSpace.z / 32.0f, terrainRectInWorldSpace.w / 32.0f);
 			Math::Vector4 tileOffset = Math::Vector4(nowScale.x * scaleOffset.x,
-				nowScale.y * scaleOffset.y, scaleOffset.z * nowScale.x, scaleOffset.w * nowScale.y);
+				nowScale.y * scaleOffset.y, nowScale.x * scaleOffset.z, nowScale.y * scaleOffset.w);
 
 			// 构建从局部空间到图像空间的MVP矩阵
 			float physicalTextureSize = (float)mRvtPhysicalTexture->GetPhysicalTextureSize();

@@ -159,6 +159,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AtmospherePass.h" />
+    <ClInclude Include="ClusterTree.h" />
+    <ClInclude Include="DetailObjectSystem.h" />
     <ClInclude Include="FinalBarrierPass.h" />
     <ClInclude Include="BuddyHeapAllocator.h" />
     <ClInclude Include="Buffer.h" />
@@ -172,6 +174,7 @@
     <ClInclude Include="FoliagePass.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="GBufferPass.h" />
+    <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainNodeManger.h" />
     <ClInclude Include="TerrainQuadTree.h" />
@@ -251,6 +254,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtmospherePass.cpp" />
+    <ClCompile Include="ClusterTree.cpp" />
+    <ClCompile Include="DetailObjectSystem.cpp" />
     <ClCompile Include="FinalBarrierPass.cpp" />
     <ClCompile Include="BuddyHeapAllocator.cpp" />
     <ClCompile Include="Buffer.cpp" />
@@ -266,6 +271,7 @@
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
+    <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TerrainQuadTree.cpp" />
     <ClCompile Include="TileNodeManger.cpp" />

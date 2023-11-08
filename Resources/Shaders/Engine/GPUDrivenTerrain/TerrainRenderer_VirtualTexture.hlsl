@@ -167,7 +167,7 @@ p2o PSMain(v2p input) {
 	float2 uvVT = (input.wsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
 
 	// Look up index info in pageTableMap
-	// uvVT以左下角为原点，而PageTableMap与PhysicalMap都以左上角为原点
+	// uvVT以左下角为原点，而采样PageTableMap与PhysicalMap时都以左上角为原点
 	float2 pageTableUV = float2(uvVT.x, 1.0f - uvVT.y);
 	uint2 pageTableIndex = floor(pageTableUV * PassDataCB.vtFeedbackParams.x);
 	pageTableIndex.x = clamp(pageTableIndex.x, 0, PassDataCB.vtFeedbackParams.x - 1);
@@ -230,7 +230,7 @@ p2o PSMain(v2p input) {
 
 	p2o output;
 	output.shadingResult   = totalLighting.evaluate(surface.albedo);
-	output.shadingResult = float4(lodDebugColor, 1.0f);
+	// output.shadingResult = float4(lodDebugColor, 1.0f);
 	// output.shadingResult   = float4(indexInfo.z * 0.1f, 0.0f, 0.0f, 1.0f);
 	output.normalRoughness = float4(normal, roughness);
 	output.screenVelocity  = float2(velocity.xy);

@@ -91,6 +91,12 @@
     <Filter Include="源文件\Renderer\Terrain\VegetationSystem">
       <UniqueIdentifier>{6740483a-1cce-40d7-a1db-ce8834fcb538}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\Terrain\DetailObjectSystem">
+      <UniqueIdentifier>{28ba506a-87f0-40e5-b696-7f17a853a035}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\Terrain\DetailObjectSystem">
+      <UniqueIdentifier>{ac031b58-573a-443a-b344-6031c5b3d4b4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -339,6 +345,15 @@
     <ClInclude Include="VegetationVirtualTable.h">
       <Filter>头文件\Renderer\Terrain\VegetationSystem</Filter>
     </ClInclude>
+    <ClInclude Include="DetailObjectSystem.h">
+      <Filter>头文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="HierarchyInstancedStaticMesh.h">
+      <Filter>头文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="ClusterTree.h">
+      <Filter>头文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -577,6 +592,15 @@
     </ClCompile>
     <ClCompile Include="VegetationVirtualTable.cpp">
       <Filter>源文件\Renderer\Terrain\VegetationSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="DetailObjectSystem.cpp">
+      <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="HierarchyInstancedStaticMesh.cpp">
+      <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="ClusterTree.cpp">
+      <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

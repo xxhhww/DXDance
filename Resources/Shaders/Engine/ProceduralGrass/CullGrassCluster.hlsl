@@ -57,31 +57,26 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	
 	// 当前线程组处理的GrassCluster
 	GrassCluster grassCluster = needCulledGrassCluster[dispatchThreadID.x];
+	float4 grassClusterRect = grassCluster.grassClusterRect;
 
 	// 计算左上角点的世界坐标和右上角点的世界坐标
-	uint2 lbGrassClusterLoc = grassCluster.grassClusterRect.xy;
-	uint2 ltGrassClusterLoc = uint2(lbGrassClusterLoc.x, lbGrassClusterLoc.y + grassCluster.w);
-	uint2 rtGrassClusterLoc = uint2(lbGrassClusterLoc.x + grassCluster.z, lbGrassClusterLoc.y + grassCluster.w);
+	float2 lbGrassClusterLoc = grassClusterRect.xy;
+	float2 ltGrassClusterLoc = float2(lbGrassClusterLoc.x, lbGrassClusterLoc.y + grassClusterRect.w);
+	float2 rtGrassClusterLoc = float2(lbGrassClusterLoc.x + grassClusterRect.z, lbGrassClusterLoc.y + grassClusterRect.w);
 
 	// 将世界坐标转换为minmaxHeightMap中的索引
 	uint2 minmaxHeightMapLoc = uint2(
-		(ltGrassClusterLoc.y + PassDataCB.terrainWorldMeterSize.y / 2.0f) / grassCluster.w, 
-		(ltGrassClusterLoc.x + PassDataCB.terrainWorldMeterSize.x / 2.0f) / grassCluster.z
+		(ltGrassClusterLoc.x + PassDataCB.terrainWorldMeterSize.x / 2.0f) / grassClusterRect.z,
+		(PassDataCB.terrainWorldMeterSize.y - (ltGrassClusterLoc.y + PassDataCB.terrainWorldMeterSize.y / 2.0f)) / grassClusterRect.w
 	);
-	minmaxHeightMapLoc.x = (PassDataCB.terrainWorldMeterSize.y / grassCluster.w) - (minmaxHeightMapLoc.x + 1);
 
-	uint grassClusterMeterSize = grassCluster.grassClusterRect.z;
-	uint mipmapIndex = log2(grassClusterMeterSize / minmaxHeightMapWorldResolutionPerPixel);
-	float2 minmaxHeight = minMaxHeightMap.mips[mipmapIndex][minmaxHeightMapLoc].xy * PassDataCB.heightScale + float2(-5.0f, 5.0f);;
+	uint grassClusterMeterSize = grassClusterRect.z;
+	uint mipmapIndex = log2(grassClusterMeterSize / PassDataCB.minmaxHeightMapWorldResolutionPerPixel);
+	float2 minmaxHeight = minmaxHeightMap.mips[mipmapIndex][minmaxHeightMapLoc].xy * PassDataCB.terrainHeightScale;
 
 	BoundingBox boundingBox;
-    float4 minPosition = float4(0.0f, 0.0f, 0.0f, 0.0f); 
-	float4 maxPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-	minPosition.xz = float2(lbGrassClusterLoc.x, lbGrassClusterLoc.y);
-    maxPosition.xz = float2(rtGrassClusterLoc.x, rtGrassClusterLoc.y);
-    minPosition.y = minMaxHeight.x;
-    maxPosition.y = minMaxHeight.y;
+    float4 minPosition = float4(lbGrassClusterLoc.x, minmaxHeight.x, lbGrassClusterLoc.y, 0.0f);
+	float4 maxPosition = float4(rtGrassClusterLoc.x, minmaxHeight.y, rtGrassClusterLoc.y, 0.0f);
 
     boundingBox.minPosition = minPosition;
     boundingBox.maxPosition = maxPosition;

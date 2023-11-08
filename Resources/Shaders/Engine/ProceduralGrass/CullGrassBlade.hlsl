@@ -48,7 +48,7 @@ bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
 }
 
 bool DistanceCull(GrassBlade blade, float3 cameraPos) {
-		//Distance culling
+	//Distance culling
 	float d = distance(blade.position, cameraPos);
 
 	float distanceSmoothStep = 1.0f - smoothstep(PassDataCB.distanceCullStartDist, PassDataCB.distanceCullEndDist, d);
@@ -91,6 +91,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 	// »®·ÖLOD
 	float bladeDistance = distance(blade.position, FrameDataCB.CurrentRenderCamera.Position.xyz);
 
+	// visibleLOD0GrassBladeIndexList.Append(readIndex);
 	if(bladeDistance <= PassDataCB.distanceCullStartDist) {
 		visibleLOD0GrassBladeIndexList.Append(readIndex);
 	}

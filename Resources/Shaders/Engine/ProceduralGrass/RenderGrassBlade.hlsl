@@ -75,7 +75,8 @@ v2p VSMain(uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
     float  mult          = 1.0f - bend;               
     float  hash          = grassBlade.hash;
     float  sideCurve     = grassBlade.sideCurve;    // ¿ØÖÆ²ÝÒ¶µÄ±ßµÄÍäÇú
-    float  windStrength  = grassBlade.windStrength;
+    // float  windStrength  = grassBlade.windStrength;
+    float  windStrength = 0.3f;
 
     // Calculate p0, p1, p2, p3 for the spline
     float3 p0 = float3(0.0f, 0.0f, 0.0f);

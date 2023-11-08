@@ -1,4 +1,5 @@
 #include "Renderer/VegetationPhysicalDataCache.h"
+#include "Renderer/RenderEngine.h"
 #include "Renderer/VegetationSystem.h"
 #include "Renderer/FixedTextureHelper.h"
 
@@ -31,6 +32,7 @@ namespace Renderer {
 		_GrassBladeBufferDesc.initialState = GHL::EResourceState::Common;
 		_GrassBladeBufferDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::NonPixelShaderAccess;
 		mGrassBladeBuffer = resourceAllocator->Allocate(device, _GrassBladeBufferDesc, descriptorAllocator, nullptr);
+		mGrassBladeBuffer->SetDebugName("BakedGrassBladeList");
 		renderGraph->ImportResource("BakedGrassBladeList", mGrassBladeBuffer);
 		resourceStateTracker->StartTracking(mGrassBladeBuffer);
 	}

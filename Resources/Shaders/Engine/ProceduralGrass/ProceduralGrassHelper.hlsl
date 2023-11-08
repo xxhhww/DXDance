@@ -24,11 +24,14 @@ GrassBlade CreateEmptyGrassBlade() {
 	GrassBlade grassBlade;
 	grassBlade.position = float3(0.0f, 0.0f, 0.0f);
 	grassBlade.facing = float2(0.0f, 0.0f);
+	grassBlade.hash = 0.0f;
 	grassBlade.height = 0.0f;
 	grassBlade.width = 0.0f;
 	grassBlade.tilt = 0.0f;
 	grassBlade.bend = 0.0f;
 	grassBlade.sideCurve = 0.0f;
+
+	return grassBlade;
 }
 
 // ¼ì²â¸ÃGrassBladeÊÇ·ñÎª¿Õ

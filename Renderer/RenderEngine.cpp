@@ -153,16 +153,18 @@ namespace Renderer {
 			mResourceStateTracker->StartTracking(mBlueNoise2DMap.Get());
 		}
 
-		// 初始化业务系统
+		// 初始化一些系统
 		{
 			mTerrainSystem = std::make_unique<TerrainSystem>(this);
+			mVegetationSystem = std::make_unique<VegetationSystem>(this);
 		}
 
 		// 初始化RenderPass
 		{
 			// mTerrainPass.InitializePass(this);
 			mTerrainSystem->Initialize(this);
-			mGrassPass.InitializePass(this);
+			mVegetationSystem->Initialize(this);
+			// mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
 			mAtmospherePass.InitializePass(this);
 			mOceanPass.InitializePass(this);
@@ -173,8 +175,9 @@ namespace Renderer {
 		{
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
 			mTerrainSystem->AddPass(this);
+			mVegetationSystem->AddPass(this);
 			// mTerrainPass.AddForwardPlusPass(*mRenderGraph);
-			mGrassPass.AddPass(*mRenderGraph);
+			// mGrassPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddPass(*mRenderGraph);
 			mOceanPass.AddPass(*mRenderGraph);
 			// mSkyPass.AddPass(*mRenderGraph);
@@ -282,6 +285,13 @@ namespace Renderer {
 
 		UpdateSky();
 		UpdateLights();
+
+		mVegetationSystem->Update(
+			Math::Vector2{
+				rootConstantsPerFrame.currentRenderCamera.position.x,
+				rootConstantsPerFrame.currentRenderCamera.position.z,
+			}
+		);
 	}
 
 	void RenderEngine::UpdateSky() {

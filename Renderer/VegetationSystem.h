@@ -4,6 +4,8 @@
 
 namespace Renderer {
 
+	class RenderEngine;
+	class TerrainSystem;
 	/*
 	* 草的顶点属性(用于在着色器重建草的顶点坐标)
 	*/
@@ -142,6 +144,9 @@ namespace Renderer {
 		};
 
 	public:
+		VegetationSystem(RenderEngine* renderEngine);
+		~VegetationSystem() = default;
+
 		void Initialize(RenderEngine* renderEngine);
 
 		/*
@@ -149,7 +154,7 @@ namespace Renderer {
 		*/
 		void Update(const Math::Vector2& cameraPosition);
 
-		void AddPass(RenderGraph& renderGraph);
+		void AddPass(RenderEngine* renderEngine);
 
 	private:
 

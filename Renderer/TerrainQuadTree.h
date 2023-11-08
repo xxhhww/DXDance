@@ -44,8 +44,4 @@ namespace Renderer {
 		std::vector<TerrainQuadNodeDescriptor> mTerrainQuadNodeDescriptors;	// 四叉树全节点内容描述列表
 	};
 
-
-
-
-
 }

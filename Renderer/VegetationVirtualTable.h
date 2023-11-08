@@ -18,7 +18,7 @@ namespace Renderer {
 		VegetationVirtualTable(VegetationDataCache* dataCacher, uint32_t tableCellCountPerAxis, float grassClusterMeterSize, const Math::Vector4& worldMeterSize);
 		~VegetationVirtualTable();
 
-		void Update(const Math::Vector2& currCameraPosition, std::vector<VirtualTableCell>& changedVirtualTableCell);
+		void Update(const Math::Vector2& currCameraPosition, std::vector<VirtualTableCell*>& changedVirtualTableCell);
 
 		inline const auto& GetVirtualTable() const { return mGrassClusterVirtualTable; }
 
@@ -27,7 +27,7 @@ namespace Renderer {
 		* 获得偏移过后的VirtualTableCell
 		* x,y : [0, mTableCellCountPerAxis - 1]
 		*/
-		VirtualTableCell& GetOffsetVirtualTableCell(int32_t x, int32_t y);
+		VirtualTableCell* GetOffsetVirtualTableCell(int32_t x, int32_t y);
 
 		/*
 		* 检测GrassClusterRect是否在TerrainRect中
@@ -44,12 +44,12 @@ namespace Renderer {
 		Math::Vector2 mPrevFixedPosXZ;
 
 		VegetationDataCache* mDataCacher{ nullptr };
-		uint32_t mTableCellCountPerAxis{ 0u };
+		int32_t mTableCellCountPerAxis{ 0u };
 		float mGrassClusterRectMeterSize{ 0u };
 		Math::Vector4 mWorldMeterSize;
 
 		Math::Vector2 mVirtualTableOffset;
-		std::vector<std::vector<VirtualTableCell>> mGrassClusterVirtualTable;
+		std::vector<std::vector<std::shared_ptr<VirtualTableCell>>> mGrassClusterVirtualTable;
 	};
 
 }
