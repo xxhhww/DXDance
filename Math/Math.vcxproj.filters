@@ -84,6 +84,9 @@
     <ClInclude Include="Scale.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Vector.cpp">
@@ -121,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="Rect.cpp">
       <Filter>源文件\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

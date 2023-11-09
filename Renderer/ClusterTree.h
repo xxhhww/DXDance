@@ -1,13 +1,15 @@
 #pragma once
 #include "Math/Vector.h"
+#include "Math/Matrix.h"
 #include <vector>
+#include <memory>
 
 namespace Renderer {
 
 	struct ClusterNode {
 	public:
-		Math::Vector4 minBoundingPosition;
-		Math::Vector4 maxBoundingPosition;
+		Math::Vector4 minBoundingBoxPosition;
+		Math::Vector4 maxBoundingBoxPosition;
 
 		int32_t firstChild;	// 首孩子
 		int32_t lastChild;	// 尾孩子
@@ -22,39 +24,72 @@ namespace Renderer {
 	struct ClusterTree {
 	public:
 		std::vector<ClusterNode> clusterNodes;
-
+		std::vector<int32_t>     sortedInstances;
+		std::vector<int32_t>     instanceReorderTable;
 	};
 
 	struct ClusterBuilder {
 	public:
-		int32_t transformNums;
+		std::unique_ptr<ClusterTree> result;
+
+	public:
+		Math::BoundingBox instanceBoundingBox;	// 实例化物体的局部空间包围盒
+
+		int32_t branchingFactor;				// 分支因子   
+		int32_t internalNodeBranchingFactor;	// 内部节点分支因子
+
+		int32_t instancingRandomSeed;			// 随机数
+		float   densityScaling;					// 密度缩放
+		bool    generateInstanceScalingRange;
+
+		std::vector<int32_t> sortIndex;
+		std::vector<Math::Vector3> sortPoints;
+		std::vector<Math::Matrix4> transforms;
+		std::vector<float> customDataFloats;
 
 
-		struct FRunPair {	// 相当于区域 
+		struct RunPair {	// 相当于区域 
 			int32_t start;
 			int32_t num;
 
-			FRunPair(int32_t InStart, int32_t InNum)
+			RunPair(int32_t InStart, int32_t InNum)
 				: start(InStart)
-				, num(InNum) 
-			{
-			}
+				, num(InNum) {}
 
-			bool operator< (const FRunPair& Other) const {
+			bool operator< (const RunPair& Other) const {
 				return start < Other.start;
 			}
 		};
-		std::vector<FRunPair> clusters;// Cluster是整个大群体
+		std::vector<RunPair> clusters;// clusters为临时的叶节点
 
-		struct FSortPair {	// 相当于point 
-			float d;//最大轴向上面的值
-			int32_t Index;
+		struct SortPair {	// 相当于point 
+			float d;		// 沿最长轴向上面的值
+			int32_t index;
 
-			bool operator< (const FSortPair& Other) const {
+			bool operator< (const SortPair& Other) const {
 				return d < Other.d;
 			}
 		};
-		std::vector<FSortPair> sortPairs;
+		std::vector<SortPair> sortPairs;
+
+	public:
+		ClusterBuilder(
+			const std::vector<Math::Matrix4>& _transform, 
+			const Math::BoundingBox& _boundingBox,
+			int32_t _branchingFactor = 512,
+			int32_t _internalNodeBranchingFactor = 16,
+			int32_t _instancingRandomSeed = 0, 
+			float _densityScaling = 1.0f,
+			bool  _generateInstanceScalingRange = false);
+
+		~ClusterBuilder() = default;
+
+		void BuildTree();
+
+	private:
+		void Split(int32_t num);
+
+		void Split(int32_t start, int32_t end);
 	};
 
 }

@@ -133,6 +133,7 @@
     <ClInclude Include="ArHosekSkyModelData_CIEXYZ.h" />
     <ClInclude Include="ArHosekSkyModelData_RGB.h" />
     <ClInclude Include="ArHosekSkyModelData_Spectral.h" />
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Frustum.h" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="ArHosekSkyModel.cc" />
     <ClCompile Include="ArHosekSkyModelData_RGB.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="Halton.cpp" />
     <ClCompile Include="hosek.cc" />
