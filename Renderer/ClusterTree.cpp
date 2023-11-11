@@ -10,8 +10,8 @@ namespace Renderer {
 		const Math::BoundingBox& _boundingBox,
 		int32_t _branchingFactor,
 		int32_t _internalNodeBranchingFactor,
-		int32_t _instancingRandomSeed = 0,
-		float _densityScaling = 1.0f,
+		int32_t _instancingRandomSeed,
+		float _densityScaling,
 		bool  _generateInstanceScalingRange) 
 		: transforms(_transform)
 		, instanceBoundingBox(_boundingBox)

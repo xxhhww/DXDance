@@ -1,6 +1,7 @@
 #pragma once
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
+#include "Math/BoundingBox.h"
 #include <vector>
 #include <memory>
 

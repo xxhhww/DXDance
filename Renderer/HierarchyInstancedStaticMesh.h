@@ -1,31 +1,54 @@
 #pragma once
-#include "Math/Matrix.h"
+#include "Renderer/ResourceAllocator.h"
+#include "Renderer/ClusterTree.h"
+#include "Renderer/Model.h"
 #include <vector>
+#include <string>
 
 namespace Renderer {
 
-	struct InstancedStaticMeshData {
+	class RenderEngine;
+
+	struct TempInstanceData {
 	public:
-		Math::Matrix4 worldTransform;	// 变换矩阵，将实例转换到世界空间
+		Math::Vector3 position;
+		Math::Vector4 quaternion;
+		Math::Vector3 scaling;
 	};
 
 	class HierarchyInstancedStaticMesh {
 	public:
-		HierarchyInstancedStaticMesh() = default;
+		HierarchyInstancedStaticMesh(RenderEngine* renderEngine, const std::string& instanceName, const std::string& instancePath);
 		~HierarchyInstancedStaticMesh() = default;
-
-		/*
-		* 压入静态网格的实例化数据
-		*/
-		void Emplace(const Math::Matrix4& worldTransform);
 
 		/*
 		* 构建
 		*/
-		void Build();
+		void BuildTree();
+
+		/*
+		* 剔除
+		*/
+		void Cull(const Math::Vector3& cameraPosition, std::vector<int32_t>& clusterNodeIndex);
 
 	private:
-		std::vector<InstancedStaticMeshData> mInstancedStaticMeshDatas;	// 实例化数据(全部上传至GPU)
+		void Initialize();
+
+	private:
+		inline static int32_t smLodGroupSize = 3u;
+
+		RenderEngine* mRenderEngine = nullptr;
+		std::string mInstanceName;
+		std::string mInstancePath;
+
+		std::unique_ptr<ClusterTree> mClusterTree;
+
+		std::vector<std::unique_ptr<Renderer::Model>> mLodGroups;
+		Math::BoundingBox mInstanceBoundingBox;	// 取自LOD0
+		std::vector<Math::Matrix4> mTransforms;
+		TextureWrap mAlbedoMap;
+		TextureWrap mNormalMap;
+		TextureWrap mRoughnessMap;
 	};
 
 }

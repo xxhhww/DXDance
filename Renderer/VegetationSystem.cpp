@@ -24,8 +24,7 @@ namespace Renderer {
 
 	VegetationSystem::VegetationSystem(RenderEngine* renderEngine)
 	: mRenderEngine(renderEngine)
-	, mTerrainSystem(renderEngine->mTerrainSystem.get()) {
-	}
+	, mTerrainSystem(renderEngine->mTerrainSystem.get()) {}
 
 	void VegetationSystem::Initialize(RenderEngine* renderEngine) {
 		FillMiscData();
