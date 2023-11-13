@@ -27,7 +27,25 @@ namespace Renderer {
 		*/
 		void BuildTree();
 
+		/*
+		* 集群节点个数
+		*/
 		inline int32_t GetClusterNodeSize() const { return mClusterTree->clusterNodes.size(); }
+
+		/*
+		* 集群节点内部的实例个数
+		*/
+		inline int32_t GetInstanceCountPerCluster() const { return mInstanceCountPerCluster; }
+
+		/*
+		* 获取Lod个数
+		*/
+		inline int32_t GetLodGroupSize() const { return smLodGroupSize; }
+
+		/*
+		* 获取LodGroups
+		*/
+		inline auto& GetLodGroups() { return mLodGroups; }
 
 	private:
 		void Initialize();
@@ -35,7 +53,9 @@ namespace Renderer {
 	private:
 		inline static int32_t smLodGroupSize = 3u;
 
-		RenderEngine* mRenderEngine = nullptr;
+		int32_t mInstanceCountPerCluster{ 512 };	// 集群节点内部的实例化个数
+
+		RenderEngine* mRenderEngine{ nullptr };
 		std::string mInstanceName;
 		std::string mInstancePath;
 
@@ -49,10 +69,12 @@ namespace Renderer {
 		TextureWrap mAlbedoMap;
 		TextureWrap mNormalMap;
 		TextureWrap mRoughnessMap;
+		TextureWrap mAoMap;
 
 		BufferWrap mGpuTransformsBuffer;
 		BufferWrap mGpuClusterNodesBuffer;
 		BufferWrap mGpuSortedInstancesBuffer;
+		BufferWrap mGpuTransformedBoundingBoxBuffer;
 
 		// BufferWrap mCpuCulledClusterNodesIndexBuffer;						// Cpu剔除后的可见的ClusterNodes索引(叶节点索引)
 		BufferWrap mGpuCulledVisibleClusterNodesIndexBuffer;				// Gpu剔除后的可见的ClusterNodes索引(叶节点索引)

@@ -308,7 +308,6 @@ namespace Renderer {
 						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
 						proxy.SetByteStride(sizeof(IndirectDispatch));
 					});
-
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;

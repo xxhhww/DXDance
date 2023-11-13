@@ -125,11 +125,24 @@ namespace Renderer {
 		renderGraph->ImportResource(resourceName, mGpuSortedInstancesBuffer);
 		resourceStateTracker->StartTracking(mGpuSortedInstancesBuffer);
 
+		resourceName = mInstanceName + "_TransformedBoundingBoxBuffer";
+		BufferDesc _GpuTransformedBoundingBoxBufferDesc{};
+		_GpuTransformedBoundingBoxBufferDesc.stride = sizeof(Math::BoundingBox);
+		_GpuTransformedBoundingBoxBufferDesc.size = _GpuTransformedBoundingBoxBufferDesc.stride * mTransformedBoundingBoxs.size();
+		_GpuTransformedBoundingBoxBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GpuTransformedBoundingBoxBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GpuTransformedBoundingBoxBufferDesc.initialState = GHL::EResourceState::Common;
+		_GpuTransformedBoundingBoxBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::CopyDestination;
+		mGpuTransformedBoundingBoxBuffer = resourceAllocator->Allocate(device, _GpuTransformedBoundingBoxBufferDesc, descriptorAllocator, nullptr);
+		mGpuTransformedBoundingBoxBuffer->SetDebugName(resourceName);
+		renderGraph->ImportResource(resourceName, mGpuTransformedBoundingBoxBuffer);
+		resourceStateTracker->StartTracking(mGpuTransformedBoundingBoxBuffer);
+
 		// 上传数据
 
 
 		// 创建GpuCulledClusterNodesIndexBuffer、GpuCulledInstanceIndexBuffers(Lod0 Lod1 Lod2)
-		resourceName = mInstanceName + "_GpuCulledClusterNodesIndexBuffer";
+		resourceName = mInstanceName + "_GpuCulledVisibleClusterNodesIndexBuffer";
 		BufferDesc _GpuCulledVisibleClusterNodesIndexBufferDesc{};	
 		_GpuCulledVisibleClusterNodesIndexBufferDesc.stride = sizeof(int32_t);
 		_GpuCulledVisibleClusterNodesIndexBufferDesc.size = _GpuCulledVisibleClusterNodesIndexBufferDesc.stride * mClusterTree->clusterNodes.size();
@@ -144,7 +157,7 @@ namespace Renderer {
 
 		mGpuCulledVisibleLodInstanceIndexBuffers.resize(smLodGroupSize);
 		for (int32_t index = 0; index < smLodGroupSize; index++) {
-			resourceName = mInstanceName + "_GpuCulledInstanceIndexBuffer" + "Lod" + std::to_string(index);
+			resourceName = mInstanceName + "_GpuCulledVisibleLod" + std::to_string(index) + "InstanceIndexBuffer";
 			BufferDesc _GpuCulledVisibleLodInstanceIndexBufferDesc{};
 			_GpuCulledVisibleLodInstanceIndexBufferDesc.stride = sizeof(int32_t);
 			_GpuCulledVisibleLodInstanceIndexBufferDesc.size = _GpuCulledVisibleLodInstanceIndexBufferDesc.stride * mClusterTree->sortedInstances.size() / 4;
