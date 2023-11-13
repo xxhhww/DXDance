@@ -105,5 +105,9 @@
     <FxCompile Include="Shaders\Engine\ProceduralGrass\ProceduralGrassHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\RenderGrassBlade.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\CullGrassCluster.hlsl" />
+    <FxCompile Include="Shaders\Engine\DetailObjectSystem\CullClusterNode.hlsl" />
+    <FxCompile Include="Shaders\Engine\DetailObjectSystem\CullStaticInstance.hlsl" />
+    <FxCompile Include="Shaders\Engine\DetailObjectSystem\RenderStaticInstance.hlsl" />
+    <FxCompile Include="Shaders\Engine\DetailObjectSystem\StaticInstanceHelper.hlsl" />
   </ItemGroup>
 </Project>

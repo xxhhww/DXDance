@@ -13,6 +13,11 @@ namespace GHL {
         virtual void SetDebugName(const std::string& name) = 0;
 
         /*
+        * 获取D3DObject的调试名称
+        */
+        virtual const std::string& GetDebugName() = 0;
+
+        /*
         * 默认构造函数
         */
         D3DObject() = default;

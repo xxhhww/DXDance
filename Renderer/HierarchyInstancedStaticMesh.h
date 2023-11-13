@@ -8,7 +8,7 @@
 namespace Renderer {
 
 	class RenderEngine;
-
+	class DetailObjectSystem;
 	struct TempInstanceData {
 	public:
 		Math::Vector3 position;
@@ -17,6 +17,7 @@ namespace Renderer {
 	};
 
 	class HierarchyInstancedStaticMesh {
+		friend class DetailObjectSystem;
 	public:
 		HierarchyInstancedStaticMesh(RenderEngine* renderEngine, const std::string& instanceName, const std::string& instancePath);
 		~HierarchyInstancedStaticMesh() = default;
@@ -26,10 +27,7 @@ namespace Renderer {
 		*/
 		void BuildTree();
 
-		/*
-		* 剔除
-		*/
-		void Cull(const Math::Vector3& cameraPosition, std::vector<int32_t>& clusterNodeIndex);
+		inline int32_t GetClusterNodeSize() const { return mClusterTree->clusterNodes.size(); }
 
 	private:
 		void Initialize();
@@ -46,9 +44,19 @@ namespace Renderer {
 		std::vector<std::unique_ptr<Renderer::Model>> mLodGroups;
 		Math::BoundingBox mInstanceBoundingBox;	// 取自LOD0
 		std::vector<Math::Matrix4> mTransforms;
+		std::vector<Math::BoundingBox> mTransformedBoundingBoxs;
+
 		TextureWrap mAlbedoMap;
 		TextureWrap mNormalMap;
 		TextureWrap mRoughnessMap;
+
+		BufferWrap mGpuTransformsBuffer;
+		BufferWrap mGpuClusterNodesBuffer;
+		BufferWrap mGpuSortedInstancesBuffer;
+
+		// BufferWrap mCpuCulledClusterNodesIndexBuffer;						// Cpu剔除后的可见的ClusterNodes索引(叶节点索引)
+		BufferWrap mGpuCulledVisibleClusterNodesIndexBuffer;				// Gpu剔除后的可见的ClusterNodes索引(叶节点索引)
+		std::vector<BufferWrap> mGpuCulledVisibleLodInstanceIndexBuffers;	// 可见的实例索引(分LOD)
 	};
 
 }

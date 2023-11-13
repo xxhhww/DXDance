@@ -27,11 +27,17 @@ namespace GHL {
 		void SetDebugName(const std::string& name) override;
 
 		/*
+		* 获取调试名称
+		*/
+		const std::string& GetDebugName() override;
+
+		/*
 		* 创建描述符
 		*/
 		virtual void CreateDescriptor() = 0;
 
 	protected:
+		std::string mName;
 		Microsoft::WRL::ComPtr<ID3D12Resource> mD3DResource;
 	};
 

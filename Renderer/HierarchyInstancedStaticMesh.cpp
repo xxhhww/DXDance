@@ -18,10 +18,6 @@ namespace Renderer {
 		mClusterTree = std::move(treeBuilder.result);
 	}
 
-	void HierarchyInstancedStaticMesh::Cull(const Math::Vector3& cameraPosition, std::vector<int32_t>& clusterNodeIndex) {
-
-	}
-
 	void HierarchyInstancedStaticMesh::Initialize() {
 		auto* device = mRenderEngine->mDevice.get();
 		auto* renderGraph = mRenderEngine->mRenderGraph.get();
@@ -86,6 +82,81 @@ namespace Renderer {
 
 		// 构建集群树
 		BuildTree();
+
+		// 创建并上传transforms、clusterTree.clusterNodes 和 clusterTree.sortedInstances至GPU
+
+		// 创建部分
+		std::string resourceName = mInstanceName + "_TransformsBuffer";
+		BufferDesc _GpuTransformsBufferDesc{};
+		_GpuTransformsBufferDesc.stride = sizeof(Math::Matrix4);
+		_GpuTransformsBufferDesc.size = _GpuTransformsBufferDesc.stride * mTransforms.size();
+		_GpuTransformsBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GpuTransformsBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GpuTransformsBufferDesc.initialState = GHL::EResourceState::Common;
+		_GpuTransformsBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::CopyDestination;
+		mGpuTransformsBuffer = resourceAllocator->Allocate(device, _GpuTransformsBufferDesc, descriptorAllocator, nullptr);
+		mGpuTransformsBuffer->SetDebugName(resourceName);
+		renderGraph->ImportResource(resourceName, mGpuTransformsBuffer);
+		resourceStateTracker->StartTracking(mGpuTransformsBuffer);
+
+		resourceName = mInstanceName + "_ClusterNodesBuffer";
+		BufferDesc _GpuClusterNodesBufferDesc{};
+		_GpuClusterNodesBufferDesc.stride = sizeof(Renderer::ClusterNode);
+		_GpuClusterNodesBufferDesc.size = _GpuClusterNodesBufferDesc.stride * mClusterTree->clusterNodes.size();
+		_GpuClusterNodesBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GpuClusterNodesBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GpuClusterNodesBufferDesc.initialState = GHL::EResourceState::Common;
+		_GpuClusterNodesBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::CopyDestination;
+		mGpuClusterNodesBuffer = resourceAllocator->Allocate(device, _GpuClusterNodesBufferDesc, descriptorAllocator, nullptr);
+		mGpuClusterNodesBuffer->SetDebugName(resourceName);
+		renderGraph->ImportResource(resourceName, mGpuClusterNodesBuffer);
+		resourceStateTracker->StartTracking(mGpuClusterNodesBuffer);
+
+		resourceName = mInstanceName + "_SortedInstancesBuffer";
+		BufferDesc _GpuSortedInstancesBufferDesc{};
+		_GpuSortedInstancesBufferDesc.stride = sizeof(int32_t);
+		_GpuSortedInstancesBufferDesc.size = _GpuSortedInstancesBufferDesc.stride * mClusterTree->sortedInstances.size();
+		_GpuSortedInstancesBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GpuSortedInstancesBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GpuSortedInstancesBufferDesc.initialState = GHL::EResourceState::Common;
+		_GpuSortedInstancesBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::CopyDestination;
+		mGpuSortedInstancesBuffer = resourceAllocator->Allocate(device, _GpuSortedInstancesBufferDesc, descriptorAllocator, nullptr);
+		mGpuSortedInstancesBuffer->SetDebugName(resourceName);
+		renderGraph->ImportResource(resourceName, mGpuSortedInstancesBuffer);
+		resourceStateTracker->StartTracking(mGpuSortedInstancesBuffer);
+
+		// 上传数据
+
+
+		// 创建GpuCulledClusterNodesIndexBuffer、GpuCulledInstanceIndexBuffers(Lod0 Lod1 Lod2)
+		resourceName = mInstanceName + "_GpuCulledClusterNodesIndexBuffer";
+		BufferDesc _GpuCulledVisibleClusterNodesIndexBufferDesc{};	
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.stride = sizeof(int32_t);
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.size = _GpuCulledVisibleClusterNodesIndexBufferDesc.stride * mClusterTree->clusterNodes.size();
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.usage = GHL::EResourceUsage::Default;
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.initialState = GHL::EResourceState::Common;
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::UnorderedAccess;
+		mGpuCulledVisibleClusterNodesIndexBuffer = resourceAllocator->Allocate(device, _GpuCulledVisibleClusterNodesIndexBufferDesc, descriptorAllocator, nullptr);
+		mGpuCulledVisibleClusterNodesIndexBuffer->SetDebugName(resourceName);
+		renderGraph->ImportResource(resourceName, mGpuCulledVisibleClusterNodesIndexBuffer);
+		resourceStateTracker->StartTracking(mGpuCulledVisibleClusterNodesIndexBuffer);
+
+		mGpuCulledVisibleLodInstanceIndexBuffers.resize(smLodGroupSize);
+		for (int32_t index = 0; index < smLodGroupSize; index++) {
+			resourceName = mInstanceName + "_GpuCulledInstanceIndexBuffer" + "Lod" + std::to_string(index);
+			BufferDesc _GpuCulledVisibleLodInstanceIndexBufferDesc{};
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.stride = sizeof(int32_t);
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.size = _GpuCulledVisibleLodInstanceIndexBufferDesc.stride * mClusterTree->sortedInstances.size() / 4;
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.usage = GHL::EResourceUsage::Default;
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.initialState = GHL::EResourceState::Common;
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::UnorderedAccess;
+			mGpuCulledVisibleLodInstanceIndexBuffers.at(index) = resourceAllocator->Allocate(device, _GpuCulledVisibleLodInstanceIndexBufferDesc, descriptorAllocator, nullptr);
+			mGpuCulledVisibleLodInstanceIndexBuffers.at(index)->SetDebugName(resourceName);
+			renderGraph->ImportResource(resourceName, mGpuCulledVisibleLodInstanceIndexBuffers.at(index));
+			resourceStateTracker->StartTracking(mGpuCulledVisibleLodInstanceIndexBuffers.at(index));
+		}
 	}
 
 }
