@@ -29,8 +29,14 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 
+		/*
+		* 获取D3DObject的调试名称
+		*/
+		const std::string& GetDebugName() override;
+
 	private:
 		const Device* mDevice{ nullptr };
+		std::string mName;
 		uint64_t mSize;
 		D3D12_QUERY_TYPE      mQueryType;
 		D3D12_QUERY_HEAP_TYPE mQueryHeapType;

@@ -32,6 +32,12 @@ namespace GHL {
 	}
 
 	void Fence::SetDebugName(const std::string& name) {
+		mName = name;
 		HRASSERT(mFence->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
 	}
+
+	const std::string& Fence::GetDebugName() {
+		return mName;
+	}
+
 }

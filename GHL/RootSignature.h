@@ -48,6 +48,11 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 
+		/*
+		* 获取D3DObject的调试名称
+		*/
+		const std::string& GetDebugName() override;
+
 	protected:
 		/*
 		* 验证根参数是否冲突
@@ -57,6 +62,7 @@ namespace GHL {
 	private:
 		bool mCompiled{ false };
 		const Device* mDevice{ nullptr };
+		std::string mName;
 		std::vector<D3D12_STATIC_SAMPLER_DESC> mStaticSamplers;
 		std::vector<D3D12_ROOT_PARAMETER1> mParameters;
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC mDesc{};

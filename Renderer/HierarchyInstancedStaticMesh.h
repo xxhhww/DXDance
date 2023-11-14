@@ -9,11 +9,23 @@ namespace Renderer {
 
 	class RenderEngine;
 	class DetailObjectSystem;
-	struct TempInstanceData {
+	
+	/*
+	* 将实例化数据从Houdini坐标系转到当前坐标系
+	*/
+	struct HoudiniInstanceData {
 	public:
 		Math::Vector3 position;
 		Math::Vector4 quaternion;
 		Math::Vector3 scaling;
+
+	public:
+		HoudiniInstanceData(
+			const Math::Vector3& _position, 
+			const Math::Vector4& _quaternion, 
+			const Math::Vector3& _scaling);
+
+		~HoudiniInstanceData() = default;
 	};
 
 	class HierarchyInstancedStaticMesh {
@@ -99,7 +111,6 @@ namespace Renderer {
 		BufferWrap mGpuSortedInstancesBuffer;
 		BufferWrap mGpuTransformedBoundingBoxBuffer;
 
-		// BufferWrap mCpuCulledClusterNodesIndexBuffer;						// Cpu剔除后的可见的ClusterNodes索引(叶节点索引)
 		BufferWrap mGpuCulledVisibleClusterNodesIndexBuffer;				// Gpu剔除后的可见的ClusterNodes索引(叶节点索引)
 		std::vector<BufferWrap> mGpuCulledVisibleInstanceIndexBuffers;		// 可见的实例索引(分LOD)
 	};

@@ -37,7 +37,12 @@ namespace GHL {
 	}
 
 	void CommandQueue::SetDebugName(const std::string& name) {
+		mName = name;
 		mQueue->SetName(Tool::StrUtil::UTF8ToWString(name).c_str());
+	}
+
+	const std::string& CommandQueue::GetDebugName() {
+		return mName;
 	}
 
 	GraphicsQueue::GraphicsQueue(const Device* device)

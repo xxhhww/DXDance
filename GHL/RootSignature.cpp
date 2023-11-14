@@ -110,8 +110,13 @@ namespace GHL {
 
 	void RootSignature::SetDebugName(const std::string& name) {
 		if (mSignature) {
+			mName = name;
 			mSignature->SetName(Tool::StrUtil::UTF8ToWString(name).c_str());
 		}
+	}
+
+	const std::string& RootSignature::GetDebugName() {
+		return mName;
 	}
 
 	bool RootSignature::VerifyParameterConflict(const RootParameter& parameter) {

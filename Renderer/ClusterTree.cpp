@@ -7,14 +7,14 @@ namespace Renderer {
 
 	ClusterBuilder::ClusterBuilder(
 		const std::vector<Math::Matrix4>& _transform,
-		const Math::BoundingBox& _boundingBox,
+		const Math::BoundingBox& _instanceBoundingBox,
 		int32_t _branchingFactor,
 		int32_t _internalNodeBranchingFactor,
 		int32_t _instancingRandomSeed,
 		float _densityScaling,
 		bool  _generateInstanceScalingRange) 
 		: transforms(_transform)
-		, instanceBoundingBox(_boundingBox)
+		, instanceBoundingBox(_instanceBoundingBox)
 		, branchingFactor(_branchingFactor)
 		, internalNodeBranchingFactor(_internalNodeBranchingFactor)
 		, instancingRandomSeed(_instancingRandomSeed)
@@ -26,21 +26,20 @@ namespace Renderer {
 		sortPoints.resize(transformNums);
 
 		for (int32_t index = 0; index < transformNums; index++) {
-			const auto& transform = transforms[index];
+			const auto& transform = transforms[index].Transpose();
 			DirectX::XMVECTOR positionDx;
 			DirectX::XMMatrixDecompose(nullptr, nullptr, &positionDx, transform);
 			sortPoints[index] = positionDx;
-
 			sortIndex[index] = index;
 		}
 
 		result = std::make_unique<ClusterTree>();
 	}
 
-	void ClusterBuilder::BuildTree() {
+	void ClusterBuilder::BuildTree(bool leafOnly) {
 
         int32_t transformNums = transforms.size();
-		// 计算子节点
+		// 计算叶子节点
 		Split(transformNums);
 
 		int32_t rootNums = clusters.size();
@@ -53,24 +52,28 @@ namespace Renderer {
 			clusterNode.firstInstance = clusters[index].start;
 			clusterNode.lastInstance = clusters[index].start + clusters[index].num - 1;
 			
-			Math::BoundingBox nodeBoundingBox;
+			Math::BoundingBox clusterBoundingBox;
 			for (int32_t instanceIndex = clusterNode.firstInstance; instanceIndex <= clusterNode.lastInstance; instanceIndex ++) {
-				const Math::Matrix4& currInstanceTransform = transforms[sortedInstances[instanceIndex]];
+				const Math::Matrix4& currInstanceTransform = transforms[sortedInstances[instanceIndex]].Transpose();
 				Math::BoundingBox currInstanceBox = instanceBoundingBox.transformBy(currInstanceTransform);
-				nodeBoundingBox += currInstanceBox;
+                clusterBoundingBox += currInstanceBox;
 
-				/*
-				if (GenerateInstanceScalingRange) {
-					FVector3f CurrentScale(ThisInstTrans.GetScaleVector());
+				if (generateInstanceScalingRange) {
+                    DirectX::XMVECTOR scalingDx;
+                    DirectX::XMMatrixDecompose(&scalingDx, nullptr, nullptr, currInstanceTransform);
+                    Math::Vector3 currInstanceScaling = scalingDx;
 
-					Node.MinInstanceScale = Node.MinInstanceScale.ComponentMin(CurrentScale);
-					Node.MaxInstanceScale = Node.MaxInstanceScale.ComponentMax(CurrentScale);
+                    clusterNode.minInstanceScale = Math::Min(clusterNode.minInstanceScale, Math::Vector4{ currInstanceScaling, 0.0f });
+                    clusterNode.maxInstanceScale = Math::Max(clusterNode.maxInstanceScale, Math::Vector4{ currInstanceScaling, 0.0f });
 				}
-				*/
 			}
-			clusterNode.minBoundingBoxPosition = nodeBoundingBox.minPosition;
-			clusterNode.maxBoundingBoxPosition = nodeBoundingBox.maxPosition;
+			clusterNode.minBoundingBoxPosition = clusterBoundingBox.minPosition;
+			clusterNode.maxBoundingBoxPosition = clusterBoundingBox.maxPosition;
 		}
+
+        if (leafOnly) {
+            return;
+        }
 
         std::vector<int32_t> NodesPerLevel;
         NodesPerLevel.emplace_back(rootNums);
@@ -214,14 +217,12 @@ namespace Renderer {
                         ClusterNode& childNode = result->clusterNodes[childIndex];
                         nodeBoundingBox += childNode.minBoundingBoxPosition;
                         nodeBoundingBox += childNode.maxBoundingBoxPosition;
-
                         /*
-                        if (GenerateInstanceScalingRange) {
+                        if (generateInstanceScalingRange) {
                             Node.MinInstanceScale = Node.MinInstanceScale.ComponentMin(childNode.MinInstanceScale);
                             Node.MaxInstanceScale = Node.MaxInstanceScale.ComponentMax(childNode.MaxInstanceScale);
                         }
                         */
-
                     }
                     clusterNode.minBoundingBoxPosition = nodeBoundingBox.minPosition;
                     clusterNode.maxBoundingBoxPosition = nodeBoundingBox.maxPosition;
@@ -274,8 +275,8 @@ namespace Renderer {
 			}
 
 			if (!axisIndex || thisAxisValue > bestAxisValue) {
-				bestAxis = axisIndex;			//确定最长轴向 通过循环确定到底是 X Y Z
-				bestAxisValue = thisAxisValue;	//确定最长轴向的 最长轴向的值
+				bestAxis = axisIndex;			// 确定最长轴向 通过循环确定到底是 X Y Z
+				bestAxisValue = thisAxisValue;	// 确定最长轴向的 最长轴向的值
 			}
 		}
 
@@ -295,6 +296,7 @@ namespace Renderer {
 			}
 			sortPairs.emplace_back(sortPair);
 		}
+
 		// 按照d值排序
 		std::sort(sortPairs.begin(), sortPairs.end(), [](const SortPair& a, const SortPair& b) {
 			return a.d < b.d;

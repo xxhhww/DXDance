@@ -21,6 +21,12 @@ namespace GHL {
 	}
 
 	void Heap::SetDebugName(const std::string& name) {
+		mName = name;
 		mHeap->SetName(Tool::StrUtil::UTF8ToWString(name).c_str());
 	}
+
+	const std::string& Heap::GetDebugName() {
+		return mName;
+	}
+
 }

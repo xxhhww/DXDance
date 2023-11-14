@@ -18,15 +18,15 @@ namespace Renderer {
 		int32_t firstInstance;	// 首instance
 		int32_t lastInstance;	// 尾instance
 
-		Math::Vector4 minInstanceScale;	// 最小缩放比例
-		Math::Vector4 maxInstanceScale;	// 最大缩放比例
+		Math::Vector4 minInstanceScale{ INT_MAX, INT_MAX, INT_MAX, 0.0f };	// 最小缩放比例
+		Math::Vector4 maxInstanceScale{ INT_MIN, INT_MIN, INT_MIN, 0.0f };	// 最大缩放比例
 	};
 
 	struct ClusterTree {
 	public:
 		std::vector<ClusterNode> clusterNodes;
 		std::vector<int32_t>     sortedInstances;
-		std::vector<int32_t>     instanceReorderTable;
+		// std::vector<int32_t>     instanceReorderTable;
 	};
 
 	struct ClusterBuilder {
@@ -36,7 +36,7 @@ namespace Renderer {
 	public:
 		Math::BoundingBox instanceBoundingBox;	// 实例化物体的局部空间包围盒
 
-		int32_t branchingFactor;				// 分支因子   
+		int32_t branchingFactor;				// 分支因子
 		int32_t internalNodeBranchingFactor;	// 内部节点分支因子
 
 		int32_t instancingRandomSeed;			// 随机数
@@ -46,8 +46,7 @@ namespace Renderer {
 		std::vector<int32_t> sortIndex;
 		std::vector<Math::Vector3> sortPoints;
 		std::vector<Math::Matrix4> transforms;
-		std::vector<float> customDataFloats;
-
+		// std::vector<float> customDataFloats;
 
 		struct RunPair {	// 相当于区域 
 			int32_t start;
@@ -75,17 +74,20 @@ namespace Renderer {
 
 	public:
 		ClusterBuilder(
-			const std::vector<Math::Matrix4>& _transform, 
-			const Math::BoundingBox& _boundingBox,
+			const std::vector<Math::Matrix4>& _transform, // 注意矩阵此时已被转置为GPU端，使用时需转置回CPU端
+			const Math::BoundingBox& _instanceBoundingBox,
 			int32_t _branchingFactor = 512,
 			int32_t _internalNodeBranchingFactor = 16,
 			int32_t _instancingRandomSeed = 0, 
 			float _densityScaling = 1.0f,
-			bool  _generateInstanceScalingRange = false);
+			bool  _generateInstanceScalingRange = true);
 
 		~ClusterBuilder() = default;
 
-		void BuildTree();
+		/*
+		* leafOnly: 只构建叶子节点
+		*/
+		void BuildTree(bool leafOnly = true);
 
 	private:
 		void Split(int32_t num);

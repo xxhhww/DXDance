@@ -16,6 +16,11 @@ namespace GHL {
 	}
 
 	void QueryHeap::SetDebugName(const std::string& name) {
+		mName = name;
 		HRASSERT(mHeap->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
+	}
+
+	const std::string& QueryHeap::GetDebugName() {
+		return mName;
 	}
 }

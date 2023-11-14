@@ -37,4 +37,8 @@ namespace GHL {
 		}
 	}
 
+	const std::string& CommandSignature::GetDebugName() {
+		return mName;
+	}
+
 }

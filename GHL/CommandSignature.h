@@ -21,7 +21,10 @@ namespace GHL {
 
 		void SetDebugName(const std::string& name) override;
 
+		const std::string& GetDebugName() override;
+
 	private:
+		std::string mName;
 		uint32_t mByteStride;
 		ID3D12RootSignature* mRootSignature{ nullptr };
 		std::vector<D3D12_INDIRECT_ARGUMENT_DESC> mArguments;

@@ -27,10 +27,11 @@ namespace Renderer {
 
 	void DetailObjectSystem::Initialize(RenderEngine* renderEngine) {
 		// Tree 0
-		mHierarchyInstancedStaticMeshs.emplace_back(std::make_unique<HierarchyInstancedStaticMesh>(mRenderEngine,
-			"Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0"));
+		mHierarchyInstancedStaticMeshs.emplace_back(std::make_unique<HierarchyInstancedStaticMesh>(
+			mRenderEngine, "Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0", 512, 4096));
 
-		// Stone ...
+		// Rock 0 ...
+
 
 		mHierarchyInstancedStaticMeshSize = mHierarchyInstancedStaticMeshs.size();
 		for (const auto& item : mHierarchyInstancedStaticMeshs) {

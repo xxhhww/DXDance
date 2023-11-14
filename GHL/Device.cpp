@@ -26,6 +26,11 @@ namespace GHL {
 	}
 
     void Device::SetDebugName(const std::string& name) {
+        mName = name;
         HRASSERT(mDevice->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
+    }
+
+    const std::string& Device::GetDebugName() {
+        return mName;
     }
 }

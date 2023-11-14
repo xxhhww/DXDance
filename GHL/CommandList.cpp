@@ -20,7 +20,12 @@ namespace GHL {
 	}
 
 	void CommandList::SetDebugName(const std::string& name) {
+		mName = name;
 		HRASSERT(mAllocator->SetName(Tool::StrUtil::UTF8ToWString(name).c_str()));
+	}
+
+	const std::string& CommandList::GetDebugName() {
+		return mName;
 	}
 
 }

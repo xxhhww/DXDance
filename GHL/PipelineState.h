@@ -13,6 +13,8 @@ namespace GHL {
 
 		void SetDebugName(const std::string& name) override;
 
+		const std::string& GetDebugName() override;
+
 		virtual void Compile() = 0;
 
 	protected:

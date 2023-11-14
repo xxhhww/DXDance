@@ -13,6 +13,10 @@ namespace GHL {
 		}
 	}
 
+	const std::string& PipelineState::GetDebugName() {
+		return mDebugName;
+	}
+
 	GraphicsPipelineState::GraphicsPipelineState(const Device* device)
 	: PipelineState(device) {}
 

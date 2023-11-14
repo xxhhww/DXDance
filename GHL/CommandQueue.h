@@ -42,12 +42,18 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 
+		/*
+		* 获取D3DObject的调试名称
+		*/
+		const std::string& GetDebugName() override;
+
 		inline const auto* GetDevice()       const { return mDevice; }
 		inline const auto& GetQueueType()    const { return mType; }
 		inline auto* D3DCommandQueue() const { return mQueue.Get(); }
 
 	private:
 		const Device* mDevice{ nullptr };
+		std::string mName;
 		D3D12_COMMAND_LIST_TYPE mType;
 		D3D12_COMMAND_QUEUE_DESC mDesc{};
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> mQueue;

@@ -41,8 +41,14 @@ namespace GHL {
 		*/
 		void SetDebugName(const std::string& name) override;
 	
+		/*
+		* 获取D3DObject的调试名称
+		*/
+		const std::string& GetDebugName() override;
+
 	private:
 		const Device* mDevice{ nullptr };
+		std::string mName;
 		Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
 		uint64_t mExpectedValue{ 0u };
 	};
