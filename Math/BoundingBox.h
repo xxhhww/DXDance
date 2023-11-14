@@ -6,8 +6,8 @@ namespace Math {
 
 	struct BoundingBox {
 	public:
-		Math::Vector3 minPosition{ INT_MAX, INT_MAX, INT_MAX };
-		Math::Vector3 maxPosition{ INT_MIN, INT_MIN, INT_MIN };
+		Math::Vector4 minPosition{ INT_MAX, INT_MAX, INT_MAX, 0.0f };
+		Math::Vector4 maxPosition{ INT_MIN, INT_MIN, INT_MIN, 0.0f };
 
 		BoundingBox& operator+=(const Math::Vector3& position) {
 			minPosition.x = (position.x < minPosition.x ? position.x : minPosition.x);

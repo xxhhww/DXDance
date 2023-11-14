@@ -19,7 +19,13 @@ namespace Renderer {
 	class HierarchyInstancedStaticMesh {
 		friend class DetailObjectSystem;
 	public:
-		HierarchyInstancedStaticMesh(RenderEngine* renderEngine, const std::string& instanceName, const std::string& instancePath);
+		HierarchyInstancedStaticMesh(
+			RenderEngine* renderEngine, 
+			const std::string& instanceName, 
+			const std::string& instancePath,
+			int32_t instanceCountPerCluster,
+			int32_t instanceVisibleDistance);
+
 		~HierarchyInstancedStaticMesh() = default;
 
 		/*
@@ -38,9 +44,24 @@ namespace Renderer {
 		inline int32_t GetInstanceCountPerCluster() const { return mInstanceCountPerCluster; }
 
 		/*
+		* 获取可视化距离
+		*/
+		inline float GetInstanceVisibleDistance() const { return mInstanceVisibleDistance; }
+
+		/*
+		* 获取总的实例个数
+		*/
+		inline int32_t GetTotalInstanceCount() const { return mTransforms.size(); }
+
+		/*
 		* 获取Lod个数
 		*/
 		inline int32_t GetLodGroupSize() const { return smLodGroupSize; }
+
+		/*
+		* 获取Lod距离数组
+		*/
+		inline const auto& GetLodDistances() const { return mLodDistances; }
 
 		/*
 		* 获取LodGroups
@@ -54,6 +75,8 @@ namespace Renderer {
 		inline static int32_t smLodGroupSize = 3u;
 
 		int32_t mInstanceCountPerCluster{ 512 };	// 集群节点内部的实例化个数
+		float mInstanceVisibleDistance{ 4096.0f };	// 实例的可视化距离
+		std::vector<float> mLodDistances;			// 各个Lod的终点距离
 
 		RenderEngine* mRenderEngine{ nullptr };
 		std::string mInstanceName;
@@ -78,7 +101,7 @@ namespace Renderer {
 
 		// BufferWrap mCpuCulledClusterNodesIndexBuffer;						// Cpu剔除后的可见的ClusterNodes索引(叶节点索引)
 		BufferWrap mGpuCulledVisibleClusterNodesIndexBuffer;				// Gpu剔除后的可见的ClusterNodes索引(叶节点索引)
-		std::vector<BufferWrap> mGpuCulledVisibleLodInstanceIndexBuffers;	// 可见的实例索引(分LOD)
+		std::vector<BufferWrap> mGpuCulledVisibleInstanceIndexBuffers;		// 可见的实例索引(分LOD)
 	};
 
 }

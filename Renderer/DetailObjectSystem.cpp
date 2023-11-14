@@ -79,6 +79,8 @@ namespace Renderer {
 
 					currPassData.clusterNodeBufferIndex = currHierarchyInstancedStaticMesh->mGpuClusterNodesBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.visibleClusterNodeIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetUADescriptor()->GetHeapIndex();
+					currPassData.clusterNodeBufferSize = currHierarchyInstancedStaticMesh->GetClusterNodeSize();
+					currPassData.instanceVisibleDistance = currHierarchyInstancedStaticMesh->GetInstanceVisibleDistance();
 
 					currPassDataAlloc = dynamicAllocator->Allocate(sizeof(DetailObjectSystem::CullClusterPassData), 256u);
 					memcpy(currPassDataAlloc.cpuAddress, &currPassData, sizeof(DetailObjectSystem::CullClusterPassData));
@@ -117,7 +119,7 @@ namespace Renderer {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				for (auto& currHierarchyInstancedStaticMesh : mHierarchyInstancedStaticMeshs) {
-					auto& visibleLodInstanceIndexBuffers = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers;
+					auto& visibleLodInstanceIndexBuffers = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers;
 					builder.ReadBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetDebugName(), ShaderAccessFlag::NonPixelShader);
 					for (auto& visibleLodInstanceIndexBuffer : visibleLodInstanceIndexBuffers) {
 						builder.WriteBuffer(visibleLodInstanceIndexBuffer->GetDebugName());
@@ -154,7 +156,9 @@ namespace Renderer {
 				auto* cullStaticInstanceIndirectArgs = resourceStorage->GetResourceByName("CullStaticInstanceIndirectArgs")->GetBuffer();
 
 				std::vector<LinearAllocation> passDataAllocs;
+				std::vector<IndirectDispatch> mutipleIndirectDispatches;
 				passDataAllocs.resize(mHierarchyInstancedStaticMeshSize);
+				mutipleIndirectDispatches.resize(mHierarchyInstancedStaticMeshSize);
 
 				// 将visibleLod0InstanceIndexBuffer的CounterBuffer转换为CopyDestination
 				auto barrierBatch0 = GHL::ResourceBarrierBatch{};
@@ -164,32 +168,51 @@ namespace Renderer {
 				auto barrierBatch2 = GHL::ResourceBarrierBatch{};
 
 				for (int32_t i = 0; i < mHierarchyInstancedStaticMeshSize; i++) {
+					// Allocate PassData
 					auto* currHierarchyInstancedStaticMesh = mHierarchyInstancedStaticMeshs.at(i).get();
 					auto& currPassData = mCullStaticInstancePassDatas.at(i);
 					auto& currPassDataAlloc = passDataAllocs.at(i);
+					const auto& lodDistances = currHierarchyInstancedStaticMesh->GetLodDistances();
 
 					currPassData.clusterNodeBufferIndex = currHierarchyInstancedStaticMesh->mGpuClusterNodesBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.transformedBoundingBoxBufferIndex = currHierarchyInstancedStaticMesh->mGpuTransformedBoundingBoxBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.visibleClusterNodeIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetSRDescriptor()->GetHeapIndex();
-					currPassData.visibleLod0InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(0)->GetUADescriptor()->GetHeapIndex();
-					currPassData.visibleLod1InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(1)->GetUADescriptor()->GetHeapIndex();
-					currPassData.visibleLod2InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(2)->GetUADescriptor()->GetHeapIndex();
-				
+					currPassData.visibleLod0InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(0)->GetUADescriptor()->GetHeapIndex();
+					currPassData.visibleLod1InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(1)->GetUADescriptor()->GetHeapIndex();
+					currPassData.visibleLod2InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(2)->GetUADescriptor()->GetHeapIndex();
+					currPassData.instanceCountPerCluster = currHierarchyInstancedStaticMesh->GetInstanceCountPerCluster();
+					currPassData.lod0InstanceVisibleDistance = lodDistances.at(0);
+					currPassData.lod1InstanceVisibleDistance = lodDistances.at(1);
+					currPassData.lod2InstanceVisibleDistance = lodDistances.at(2);
+					currPassData.instanceVisibleDistance = currHierarchyInstancedStaticMesh->GetInstanceVisibleDistance();
+					currPassData.totalInstanceCount = currHierarchyInstancedStaticMesh->GetTotalInstanceCount();
+
 					currPassDataAlloc = dynamicAllocator->Allocate(sizeof(DetailObjectSystem::CullStaticInstancePassData), 256u);
 					memcpy(currPassDataAlloc.cpuAddress, &currPassData, sizeof(DetailObjectSystem::CullStaticInstancePassData));
 
 					for (int32_t lodIndex = 0; lodIndex < currHierarchyInstancedStaticMesh->GetLodGroupSize(); lodIndex++) {
-						barrierBatch0 += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-						barrierBatch1 += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+						barrierBatch0 += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+						barrierBatch1 += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 					}
 					barrierBatch2 += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				
+					// Fill IndirectDispatch
+					auto& indirectDispatch = mutipleIndirectDispatches.at(i);
+					int32_t instanceCountPerCluster = currHierarchyInstancedStaticMesh->GetInstanceCountPerCluster();
+					uint32_t threadGroupCountY = (instanceCountPerCluster + smCullStaticInstanceThreadSizeInGroup - 1) / smCullStaticInstanceThreadSizeInGroup;
+					indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+					indirectDispatch.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
+					indirectDispatch.passDataAddress = passDataAllocs.at(i).gpuAddress;
+					indirectDispatch.dispatchArguments.ThreadGroupCountX = 0u;
+					indirectDispatch.dispatchArguments.ThreadGroupCountY = threadGroupCountY;
+					indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
 				}
 
 				commandBuffer.FlushResourceBarrier(barrierBatch0);
 				for (int32_t i = 0; i < mHierarchyInstancedStaticMeshSize; i++) {
 					auto* currHierarchyInstancedStaticMesh = mHierarchyInstancedStaticMeshs.at(i).get();
 					for (int32_t lodIndex = 0; lodIndex < currHierarchyInstancedStaticMesh->GetLodGroupSize(); lodIndex++) {
-						commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), 0u);
+						commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), 0u);
 					}
 				}
 				commandBuffer.FlushResourceBarrier(barrierBatch1);
@@ -202,23 +225,15 @@ namespace Renderer {
 					commandBuffer.FlushResourceBarrier(barrierBatch);
 				}
 
-				std::vector<IndirectDispatch> indirectDispatches;
-				indirectDispatches.resize(mHierarchyInstancedStaticMeshSize);
+				commandBuffer.UploadBufferRegion(cullStaticInstanceIndirectArgs, 0u, mutipleIndirectDispatches.data(), sizeof(IndirectDispatch)* mutipleIndirectDispatches.size());
 				for (int32_t i = 0; i < mHierarchyInstancedStaticMeshSize; i++) {
 					auto* currHierarchyInstancedStaticMesh = mHierarchyInstancedStaticMeshs.at(i).get();
-					int32_t instanceCountPerCluster = currHierarchyInstancedStaticMesh->GetInstanceCountPerCluster();
-					uint32_t threadGroupCountX = (instanceCountPerCluster + smCullStaticInstanceThreadSizeInGroup - 1) / smCullStaticInstanceThreadSizeInGroup;
-
-					auto& indirectDispatch = indirectDispatches.at(i);
-					indirectDispatch.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-					indirectDispatch.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
-					indirectDispatch.passDataAddress = passDataAllocs.at(i).gpuAddress;
-					indirectDispatch.dispatchArguments.ThreadGroupCountX = threadGroupCountX;
-					indirectDispatch.dispatchArguments.ThreadGroupCountY = 1u;
-					indirectDispatch.dispatchArguments.ThreadGroupCountZ = 1u;
+					auto& visibleClusterNodeIndexBuffer = currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer;
+					uint64_t globalByteOffset = sizeof(IndirectDispatch) * i;
+					uint64_t localByteOffset = sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u;
+					commandBuffer.CopyBufferRegion(cullStaticInstanceIndirectArgs, globalByteOffset + localByteOffset,
+						visibleClusterNodeIndexBuffer->GetCounterBuffer(), 0, sizeof(uint32_t));
 				}
-
-				commandBuffer.UploadBufferRegion(cullStaticInstanceIndirectArgs, 0u, indirectDispatches.data(), sizeof(IndirectDispatch)* indirectDispatches.size());
 				commandBuffer.ClearCounterBuffer(cullStaticInstanceIndirectArgs, mHierarchyInstancedStaticMeshSize);
 
 				{
@@ -247,7 +262,7 @@ namespace Renderer {
 				builder.WriteDepthStencil("DepthStencil");
 
 				for (auto& currHierarchyInstancedStaticMesh : mHierarchyInstancedStaticMeshs) {
-					auto& visibleLodInstanceIndexBuffers = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers;
+					auto& visibleLodInstanceIndexBuffers = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers;
 					for (auto& visibleLodInstanceIndexBuffer : visibleLodInstanceIndexBuffers) {
 						builder.ReadBuffer(visibleLodInstanceIndexBuffer->GetDebugName(), ShaderAccessFlag::NonPixelShader);
 					}
@@ -311,14 +326,12 @@ namespace Renderer {
 						auto& currPassData = mRenderStaticInstancePassDatas.at(currPassDataIndex);
 						auto& currPassDataAlloc = passDataAllocs.at(currPassDataIndex);
 
-						currPassData.currLodIndex = lodIndex;
-						currPassData.transformsBufferIndex = currHierarchyInstancedStaticMesh->mGpuTransformsBuffer->GetSRDescriptor()->GetHeapIndex();
-						currPassData.sortedInstancesBufferIndex = currHierarchyInstancedStaticMesh->mGpuSortedInstancesBuffer->GetSRDescriptor()->GetHeapIndex();
-						currPassData.visibleLodInstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex)->GetSRDescriptor()->GetHeapIndex();
 						currPassData.instanceAlbedoMapIndex = currHierarchyInstancedStaticMesh->mAlbedoMap->GetSRDescriptor()->GetHeapIndex();
 						currPassData.instanceNormalMapIndex = currHierarchyInstancedStaticMesh->mNormalMap->GetSRDescriptor()->GetHeapIndex();
 						currPassData.instanceRoughnessMapIndex = currHierarchyInstancedStaticMesh->mRoughnessMap->GetSRDescriptor()->GetHeapIndex();
 						currPassData.instanceAoMapIndex = currHierarchyInstancedStaticMesh->mAoMap->GetSRDescriptor()->GetHeapIndex();
+						currPassData.transformsBufferIndex = currHierarchyInstancedStaticMesh->mGpuTransformsBuffer->GetSRDescriptor()->GetHeapIndex();
+						currPassData.visibleInstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetSRDescriptor()->GetHeapIndex();
 
 						currPassDataAlloc = dynamicAllocator->Allocate(sizeof(DetailObjectSystem::RenderStaticInstancePassData), 256u);
 						memcpy(currPassDataAlloc.cpuAddress, &currPassData, sizeof(DetailObjectSystem::RenderStaticInstancePassData));
@@ -338,7 +351,7 @@ namespace Renderer {
 						currIndirectDrawIndexed.drawIndexedArguments.StartInstanceLocation = 0u;
 
 						// Fill BarrierBatch
-						barrierBatch += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::CopySource);
+						barrierBatch += commandBuffer.TransitionImmediately(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), GHL::EResourceState::CopySource);
 
 						currPassDataIndex++;
 					}
@@ -346,14 +359,13 @@ namespace Renderer {
 
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 				commandBuffer.UploadBufferRegion(staticInstanceRendererIndirectArgs, 0u, mutipleIndirectDrawIndexeds.data(), mutipleIndirectDrawIndexeds.size() * sizeof(IndirectDrawIndexed));
-				
 				// Copy Instance Count
 				currPassDataIndex = 0;
 				for (auto& currHierarchyInstancedStaticMesh : mHierarchyInstancedStaticMeshs) {
 					for (int32_t lodIndex = 0; lodIndex < currHierarchyInstancedStaticMesh->GetLodGroupSize(); lodIndex++) {
 						uint64_t globalByteOffset = currPassDataIndex * sizeof(IndirectDrawIndexed);
 						uint64_t localByteOffset = 3u * sizeof(D3D12_GPU_VIRTUAL_ADDRESS) + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT);
-						auto& visibleLodInstanceIndexBuffer = currHierarchyInstancedStaticMesh->mGpuCulledVisibleLodInstanceIndexBuffers.at(lodIndex);
+						auto& visibleLodInstanceIndexBuffer = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex);
 
 						commandBuffer.CopyBufferRegion(staticInstanceRendererIndirectArgs, globalByteOffset + localByteOffset,
 							visibleLodInstanceIndexBuffer->GetCounterBuffer(), 0, sizeof(uint32_t));

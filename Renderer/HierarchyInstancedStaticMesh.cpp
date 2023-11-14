@@ -6,10 +6,17 @@
 
 namespace Renderer {
 
-	HierarchyInstancedStaticMesh::HierarchyInstancedStaticMesh(RenderEngine* renderEngine, const std::string& instanceName, const std::string& instancePath)
-	: mRenderEngine(renderEngine)
-	, mInstanceName(instanceName)
-	, mInstancePath(instancePath) {}
+	HierarchyInstancedStaticMesh::HierarchyInstancedStaticMesh(
+		RenderEngine* renderEngine,
+		const std::string& instanceName,
+		const std::string& instancePath,
+		int32_t instanceCountPerCluster,
+		int32_t instanceVisibleDistance)
+		: mRenderEngine(renderEngine)
+		, mInstanceName(instanceName)
+		, mInstancePath(instancePath)
+		, mInstanceCountPerCluster(instanceCountPerCluster)
+		, mInstanceVisibleDistance(instanceVisibleDistance) {}
 
 	void HierarchyInstancedStaticMesh::BuildTree() {
 		Renderer::ClusterBuilder treeBuilder(mTransforms, mInstanceBoundingBox);
@@ -28,6 +35,12 @@ namespace Renderer {
 		auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
 		auto* copyDsQueue = mRenderEngine->mUploaderEngine->GetMemoryCopyQueue();
 		auto* copyFence = mRenderEngine->mUploaderEngine->GetCopyFence();
+
+		// LodDistances
+		mLodDistances.resize(smLodGroupSize);
+		mLodDistances.at(0) = mInstanceVisibleDistance * (1.0f / 8.0f);	// 前八分之一为Lod0
+		mLodDistances.at(1) = mInstanceVisibleDistance * (1.0f / 2.0f);	// 前二分之一为Lod1
+		mLodDistances.at(2) = mInstanceVisibleDistance * (1.0f / 1.0f);	// 前一分之一为Lod2
 
 		// LodGroups
 		for (int32_t index = 0; index < smLodGroupSize; index++) {
@@ -63,6 +76,12 @@ namespace Renderer {
 		resourceStateTracker->StartTracking(mRoughnessMap);
 		resourceStorage->ImportResource(mInstanceName + "_Roughness", mRoughnessMap);
 
+		mAoMap = FixedTextureHelper::LoadFromFile(
+			device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
+			mInstancePath + "/Ao.png");
+		resourceStateTracker->StartTracking(mAoMap);
+		resourceStorage->ImportResource(mInstanceName + "_Ao", mAoMap);
+
 		// 读取实例化数据
 		std::string instanceDataPath = mInstancePath + "/InstanceData.bin";
 		std::ifstream instanceDataStream(instanceDataPath);
@@ -70,6 +89,7 @@ namespace Renderer {
 
 		int32_t instanceCount = inputStream.Size() / sizeof(TempInstanceData);
 		mTransforms.resize(instanceCount);
+		mTransformedBoundingBoxs.resize(instanceCount);
 		for (int32_t i = 0; i < instanceCount; i++) {
 			TempInstanceData tempInstanceData;
 
@@ -78,6 +98,7 @@ namespace Renderer {
 			inputStream.Read(tempInstanceData.scaling);
 
 			mTransforms[i] = Math::Matrix4(tempInstanceData.position, tempInstanceData.quaternion, tempInstanceData.scaling);
+			mTransformedBoundingBoxs[i] = mInstanceBoundingBox.transformBy(mTransforms[i]);
 		}
 
 		// 构建集群树
@@ -114,7 +135,7 @@ namespace Renderer {
 
 		resourceName = mInstanceName + "_SortedInstancesBuffer";
 		BufferDesc _GpuSortedInstancesBufferDesc{};
-		_GpuSortedInstancesBufferDesc.stride = sizeof(int32_t);
+		_GpuSortedInstancesBufferDesc.stride = sizeof(uint32_t);
 		_GpuSortedInstancesBufferDesc.size = _GpuSortedInstancesBufferDesc.stride * mClusterTree->sortedInstances.size();
 		_GpuSortedInstancesBufferDesc.usage = GHL::EResourceUsage::Default;
 		_GpuSortedInstancesBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
@@ -138,13 +159,10 @@ namespace Renderer {
 		renderGraph->ImportResource(resourceName, mGpuTransformedBoundingBoxBuffer);
 		resourceStateTracker->StartTracking(mGpuTransformedBoundingBoxBuffer);
 
-		// 上传数据
-
-
 		// 创建GpuCulledClusterNodesIndexBuffer、GpuCulledInstanceIndexBuffers(Lod0 Lod1 Lod2)
 		resourceName = mInstanceName + "_GpuCulledVisibleClusterNodesIndexBuffer";
 		BufferDesc _GpuCulledVisibleClusterNodesIndexBufferDesc{};	
-		_GpuCulledVisibleClusterNodesIndexBufferDesc.stride = sizeof(int32_t);
+		_GpuCulledVisibleClusterNodesIndexBufferDesc.stride = sizeof(uint32_t);
 		_GpuCulledVisibleClusterNodesIndexBufferDesc.size = _GpuCulledVisibleClusterNodesIndexBufferDesc.stride * mClusterTree->clusterNodes.size();
 		_GpuCulledVisibleClusterNodesIndexBufferDesc.usage = GHL::EResourceUsage::Default;
 		_GpuCulledVisibleClusterNodesIndexBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
@@ -159,7 +177,7 @@ namespace Renderer {
 		for (int32_t index = 0; index < smLodGroupSize; index++) {
 			resourceName = mInstanceName + "_GpuCulledVisibleLod" + std::to_string(index) + "InstanceIndexBuffer";
 			BufferDesc _GpuCulledVisibleLodInstanceIndexBufferDesc{};
-			_GpuCulledVisibleLodInstanceIndexBufferDesc.stride = sizeof(int32_t);
+			_GpuCulledVisibleLodInstanceIndexBufferDesc.stride = sizeof(uint32_t);
 			_GpuCulledVisibleLodInstanceIndexBufferDesc.size = _GpuCulledVisibleLodInstanceIndexBufferDesc.stride * mClusterTree->sortedInstances.size() / 4;
 			_GpuCulledVisibleLodInstanceIndexBufferDesc.usage = GHL::EResourceUsage::Default;
 			_GpuCulledVisibleLodInstanceIndexBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
