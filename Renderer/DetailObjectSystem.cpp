@@ -28,7 +28,8 @@ namespace Renderer {
 	void DetailObjectSystem::Initialize(RenderEngine* renderEngine) {
 		// Tree 0
 		mHierarchyInstancedStaticMeshs.emplace_back(std::make_unique<HierarchyInstancedStaticMesh>(
-			mRenderEngine, "Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0", 512, 4096));
+			mRenderEngine, "Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0", 512, 2048, 3u,
+			{}));
 
 		// Rock 0 ...
 
@@ -93,7 +94,7 @@ namespace Renderer {
 
 				for (int32_t i = 0; i < mHierarchyInstancedStaticMeshSize; i++) {
 					auto* currHierarchyInstancedStaticMesh = mHierarchyInstancedStaticMeshs.at(i).get();
-					commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetCounterBuffer(), 0u);
+					commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer, 0u);
 				}
 				commandBuffer.FlushResourceBarrier(barrierBatch1);
 
@@ -177,6 +178,7 @@ namespace Renderer {
 
 					currPassData.clusterNodeBufferIndex = currHierarchyInstancedStaticMesh->mGpuClusterNodesBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.transformedBoundingBoxBufferIndex = currHierarchyInstancedStaticMesh->mGpuTransformedBoundingBoxBuffer->GetSRDescriptor()->GetHeapIndex();
+					currPassData.sortedInstancesBufferIndex = currHierarchyInstancedStaticMesh->mGpuSortedInstancesBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.visibleClusterNodeIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleClusterNodesIndexBuffer->GetSRDescriptor()->GetHeapIndex();
 					currPassData.visibleLod0InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(0)->GetUADescriptor()->GetHeapIndex();
 					currPassData.visibleLod1InstanceIndexBufferIndex = currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(1)->GetUADescriptor()->GetHeapIndex();
@@ -213,7 +215,7 @@ namespace Renderer {
 				for (int32_t i = 0; i < mHierarchyInstancedStaticMeshSize; i++) {
 					auto* currHierarchyInstancedStaticMesh = mHierarchyInstancedStaticMeshs.at(i).get();
 					for (int32_t lodIndex = 0; lodIndex < currHierarchyInstancedStaticMesh->GetLodGroupSize(); lodIndex++) {
-						commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex)->GetCounterBuffer(), 0u);
+						commandBuffer.ClearCounterBuffer(currHierarchyInstancedStaticMesh->mGpuCulledVisibleInstanceIndexBuffers.at(lodIndex), 0u);
 					}
 				}
 				commandBuffer.FlushResourceBarrier(barrierBatch1);

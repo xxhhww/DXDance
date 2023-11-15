@@ -55,7 +55,7 @@ v2p VSMain(a2v input, uint vertexID : SV_VERTEXID, uint instanceID : SV_Instance
 	// ¾²Ì¬ÊµÀý»¯Íø¸ñ
 	v2p output;
 	float3 currWsPos = mul(float4(input.lsPos, 1.0f), instanceTransform).xyz;
-	float3 prevWsPos = currCsPos;
+	float3 prevWsPos = currWsPos;
 
 	float4 currCsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);
 	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
@@ -90,7 +90,7 @@ p2o PSMain(v2p input) {
 
 	p2o output;
 	output.shadingResult   = float4(input.debugColor, 1.0f);
-	output.normalRoughness = float4(input.wsNormal, 1.0f);
+	output.normalRoughness = float4(0.0f, 1.0f, 0.0f, 1.0f);
 	output.screenVelocity  = float2(velocity.xy);
 
 	return output;

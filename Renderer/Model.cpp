@@ -10,11 +10,13 @@ namespace Renderer {
 		const GHL::Device* device,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
-		const std::string& path) 
+		const std::string& path,
+		Math::Vector3 scaling) 
 	: mDevice(device) 
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator)
-	, mPath(path) {}
+	, mPath(path) 
+	, mScaling(scaling) {}
 
 	void Model::LoadDataFromDisk(IDStorageQueue* copyDsQueue, GHL::Fence* copyFence) {
 		Assimp::Importer import;
@@ -25,6 +27,7 @@ namespace Renderer {
 		}
 
 		aiMatrix4x4 identity;
+		identity.Scaling(aiVector3D{ mScaling.x, mScaling.y, mScaling.z }, identity);
 
 		ProcessNode(&identity, scene->mRootNode, scene, mMeshs, copyDsQueue, copyFence);
 	}

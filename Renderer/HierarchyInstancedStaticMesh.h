@@ -36,7 +36,9 @@ namespace Renderer {
 			const std::string& instanceName, 
 			const std::string& instancePath,
 			int32_t instanceCountPerCluster,
-			int32_t instanceVisibleDistance);
+			int32_t instanceVisibleDistance,
+			int32_t instanceLodGroupSize,
+			const std::vector<float>& instanceLodDistancesScale);
 
 		~HierarchyInstancedStaticMesh() = default;
 
@@ -68,7 +70,7 @@ namespace Renderer {
 		/*
 		* 获取Lod个数
 		*/
-		inline int32_t GetLodGroupSize() const { return smLodGroupSize; }
+		inline int32_t GetLodGroupSize() const { return mLodGroupSize; }
 
 		/*
 		* 获取Lod距离数组
@@ -84,11 +86,11 @@ namespace Renderer {
 		void Initialize();
 
 	private:
-		inline static int32_t smLodGroupSize = 3u;
-
-		int32_t mInstanceCountPerCluster{ 512 };	// 集群节点内部的实例化个数
-		float mInstanceVisibleDistance{ 4096.0f };	// 实例的可视化距离
-		std::vector<float> mLodDistances;			// 各个Lod的终点距离
+		int32_t mInstanceCountPerCluster;	// 集群节点内部的实例化个数
+		float mInstanceVisibleDistance;		// 实例的可视化距离
+		int32_t mLodGroupSize;
+		std::vector<float> mLodDistancesScale;	// 各个Lod的终点距离的缩放
+		std::vector<float> mLodDistances;		// 各个Lod的终点距离
 
 		RenderEngine* mRenderEngine{ nullptr };
 		std::string mInstanceName;
@@ -98,7 +100,7 @@ namespace Renderer {
 
 		std::vector<std::unique_ptr<Renderer::Model>> mLodGroups;
 		Math::BoundingBox mInstanceBoundingBox;	// 取自LOD0
-		std::vector<Math::Matrix4> mTransforms;
+		std::vector<Math::Matrix4> mTransforms;	// Matrix已被转置
 		std::vector<Math::BoundingBox> mTransformedBoundingBoxs;
 
 		TextureWrap mAlbedoMap;

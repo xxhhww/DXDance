@@ -26,9 +26,9 @@ namespace Renderer {
 		sortPoints.resize(transformNums);
 
 		for (int32_t index = 0; index < transformNums; index++) {
-			const auto& transform = transforms[index].Transpose();
-			DirectX::XMVECTOR positionDx;
-			DirectX::XMMatrixDecompose(nullptr, nullptr, &positionDx, transform);
+			const auto& transform = transforms[index];
+			DirectX::XMVECTOR scalingDx, quaternionDx, positionDx;
+			DirectX::XMMatrixDecompose(&scalingDx, &quaternionDx, &positionDx, transform);
 			sortPoints[index] = positionDx;
 			sortIndex[index] = index;
 		}
@@ -54,13 +54,13 @@ namespace Renderer {
 			
 			Math::BoundingBox clusterBoundingBox;
 			for (int32_t instanceIndex = clusterNode.firstInstance; instanceIndex <= clusterNode.lastInstance; instanceIndex ++) {
-				const Math::Matrix4& currInstanceTransform = transforms[sortedInstances[instanceIndex]].Transpose();
+				const Math::Matrix4& currInstanceTransform = transforms[sortedInstances[instanceIndex]];
 				Math::BoundingBox currInstanceBox = instanceBoundingBox.transformBy(currInstanceTransform);
                 clusterBoundingBox += currInstanceBox;
 
 				if (generateInstanceScalingRange) {
-                    DirectX::XMVECTOR scalingDx;
-                    DirectX::XMMatrixDecompose(&scalingDx, nullptr, nullptr, currInstanceTransform);
+                    DirectX::XMVECTOR scalingDx, quaternionDx, positionDx;
+                    DirectX::XMMatrixDecompose(&scalingDx, &quaternionDx, &positionDx, currInstanceTransform);
                     Math::Vector3 currInstanceScaling = scalingDx;
 
                     clusterNode.minInstanceScale = Math::Min(clusterNode.minInstanceScale, Math::Vector4{ currInstanceScaling, 0.0f });

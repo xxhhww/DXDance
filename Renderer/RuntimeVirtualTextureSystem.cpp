@@ -61,7 +61,7 @@ namespace Renderer {
 		mLoadingTasks.resize(mMaxRvtFrameCount);
 
 		// 填充虚拟纹理参数
-		uint32_t pixelPerMeter = 128u;	// 每米的像素值
+		uint32_t pixelPerMeter = 64u;	// 每米的像素值
 		float tileCountPerMeter = (float)pixelPerMeter / (float)mTileSize;	// 每米的Tile的个数
 
 		mTileCountPerAxis = (uint32_t)mTerrainSystem->worldMeterSize.x * tileCountPerMeter;	// 虚拟纹理覆盖整个地形

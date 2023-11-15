@@ -15,4 +15,10 @@ struct ClusterNode {
 	float4 maxInstanceScale;	// 最大缩放比例
 };
 
+struct StaticInstanceData {
+	float3 minBoundingBoxPosition;	// TransformedBoundingBox
+	float3 maxBoundingBoxPosition;	// TransformedBoundingBox
+	float  hash;					// 根据距离剔除时使用
+};
+
 #endif

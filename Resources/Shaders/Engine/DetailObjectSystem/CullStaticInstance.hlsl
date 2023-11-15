@@ -80,7 +80,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 
 	// 计算SortedInstancesIndex，获得直接索引
 	uint sortedInstancesIndex = clusterNode.firstInstanceIndex + dispatchThreadID.y;
-	if(sortedInstancesIndex <= clusterNode.lastChildIndex) {
+	if(sortedInstancesIndex <= clusterNode.lastInstanceIndex) {
 		uint directIndex = sortedInstancesBuffer[sortedInstancesIndex];
 		if(directIndex < PassDataCB.totalInstanceCount) {
 			BoundingBox boundingBox = transformedBoundingBoxBuffer[directIndex];
@@ -93,7 +93,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 			// 距离剔除
 			float3 centerPosition = (boundingBox.minPosition.xyz + boundingBox.maxPosition.xyz) / 2.0f;
 			float closestDistance = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, centerPosition);
-			if(closestDistance > PassDataCB.instanceVisibleInstance) {
+			if(closestDistance > PassDataCB.instanceVisibleDistance) {
 				return;
 			}
 			

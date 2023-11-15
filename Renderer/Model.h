@@ -19,7 +19,8 @@ namespace Renderer {
 			const GHL::Device* device,
 			PoolDescriptorAllocator* descriptorAllocator,
 			BuddyHeapAllocator* heapAllocator,
-			const std::string& path);
+			const std::string& path,
+			Math::Vector3 scaling = Math::Vector3{ 1.0f, 1.0f, 1.0f });
 
 		~Model() = default;
 
@@ -38,6 +39,7 @@ namespace Renderer {
 		BuddyHeapAllocator* mHeapAllocator{ nullptr };
 
 		std::string mPath;
+		Math::Vector3 mScaling;
 
 		std::vector<std::unique_ptr<Mesh>> mMeshs;
 

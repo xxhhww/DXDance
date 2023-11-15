@@ -28,6 +28,7 @@
 #include "Renderer/RootConstantsPerFrame.h"
 
 #include "Renderer/VegetationSystem.h"
+#include "Renderer/DetailObjectSystem.h"
 #include "Renderer/GBufferPass.h"
 #include "Renderer/OpaquePass.h"
 #include "Renderer/FoliagePass.h"
@@ -145,8 +146,9 @@ namespace Renderer {
 		std::unique_ptr<RenderGraph> mRenderGraph;
 
 		// ==========================...RenderPasses...==========================
-		std::unique_ptr<TerrainSystem> mTerrainSystem;	// 地形系统
-		std::unique_ptr<VegetationSystem> mVegetationSystem;	// 草地系统
+		std::unique_ptr<TerrainSystem> mTerrainSystem;				// 地形系统
+		std::unique_ptr<VegetationSystem> mVegetationSystem;		// 草地系统
+		std::unique_ptr<DetailObjectSystem> mDetailObjectSystem;	// 细节物理系统
 
 		GBufferPass				  mGBufferPass;
 		OpaquePass				  mOpaquePass;

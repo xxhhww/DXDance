@@ -156,14 +156,16 @@ namespace Renderer {
 		// 初始化一些系统
 		{
 			mTerrainSystem = std::make_unique<TerrainSystem>(this);
-			mVegetationSystem = std::make_unique<VegetationSystem>(this);
+			// mVegetationSystem = std::make_unique<VegetationSystem>(this);
+			mDetailObjectSystem = std::make_unique<DetailObjectSystem>(this);
 		}
 
 		// 初始化RenderPass
 		{
 			// mTerrainPass.InitializePass(this);
 			mTerrainSystem->Initialize(this);
-			mVegetationSystem->Initialize(this);
+			// mVegetationSystem->Initialize(this);
+			mDetailObjectSystem->Initialize(this);
 			// mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
 			mAtmospherePass.InitializePass(this);
@@ -175,7 +177,8 @@ namespace Renderer {
 		{
 			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
 			mTerrainSystem->AddPass(this);
-			mVegetationSystem->AddPass(this);
+			// mVegetationSystem->AddPass(this);
+			mDetailObjectSystem->AddPass(this);
 			// mTerrainPass.AddForwardPlusPass(*mRenderGraph);
 			// mGrassPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddPass(*mRenderGraph);
@@ -201,7 +204,7 @@ namespace Renderer {
 		}
 
 		// Other
-		mStreamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
+		// mStreamTextureManger->Request("E:/MyProject/DXDance/Renderer/media/4ktiles.xet");
 	}
 
 	RenderEngine::~RenderEngine() {
@@ -286,12 +289,14 @@ namespace Renderer {
 		UpdateSky();
 		UpdateLights();
 
+		/*
 		mVegetationSystem->Update(
 			Math::Vector2{
 				rootConstantsPerFrame.currentRenderCamera.position.x,
 				rootConstantsPerFrame.currentRenderCamera.position.z,
 			}
 		);
+		*/
 	}
 
 	void RenderEngine::UpdateSky() {

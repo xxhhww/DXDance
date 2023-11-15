@@ -3,6 +3,7 @@
 #include "Renderer/RenderEngine.h"
 
 #include "Tools/MemoryStream.h"
+#include "Tools/Assert.h"
 
 namespace Renderer {
 
@@ -11,9 +12,15 @@ namespace Renderer {
 		const Math::Vector4& _quaternion,
 		const Math::Vector3& _scaling) {
 
+		/*
 		position = Math::Vector3{ _position.x, _position.y, _position.z };
 		quaternion = Math::Vector4{ _quaternion.x, _quaternion.y, _quaternion.z, _quaternion.w };
 		scaling = Math::Vector3{ _scaling.x, _scaling.y, _scaling.z };
+		*/
+
+		position = Math::Vector3{ _position.z, _position.y, _position.x };
+		quaternion = Math::Vector4{ _quaternion.z, _quaternion.y, _quaternion.x, _quaternion.w };
+		scaling = Math::Vector3{ _scaling.z, _scaling.y, _scaling.x };
 	}
 
 	HierarchyInstancedStaticMesh::HierarchyInstancedStaticMesh(
@@ -21,17 +28,30 @@ namespace Renderer {
 		const std::string& instanceName,
 		const std::string& instancePath,
 		int32_t instanceCountPerCluster,
-		int32_t instanceVisibleDistance)
+		int32_t instanceVisibleDistance,
+		int32_t instanceLodGroupSize,
+		const std::vector<float>& instanceLodDistancesScale)
 		: mRenderEngine(renderEngine)
 		, mInstanceName(instanceName)
 		, mInstancePath(instancePath)
 		, mInstanceCountPerCluster(instanceCountPerCluster)
-		, mInstanceVisibleDistance(instanceVisibleDistance) {
+		, mInstanceVisibleDistance(instanceVisibleDistance)
+		, mLodGroupSize(instanceLodGroupSize) 
+		, mLodDistancesScale(instanceLodDistancesScale) {
+
+		ASSERT_FORMAT(instanceLodGroupSize == instanceLodDistancesScale.size(), "Incorrect LodGroupSize");
+
 		Initialize();
 	}
 
 	void HierarchyInstancedStaticMesh::BuildTree() {
-		Renderer::ClusterBuilder treeBuilder(mTransforms, mInstanceBoundingBox, mInstanceCountPerCluster);
+		std::vector<Math::Matrix4> cpuTransforms;
+		cpuTransforms.resize(mTransforms.size());
+		for (int32_t i = 0; i < mTransforms.size(); i++) {
+			cpuTransforms[i] = mTransforms[i].Transpose();
+		}
+
+		Renderer::ClusterBuilder treeBuilder(cpuTransforms, mInstanceBoundingBox, mInstanceCountPerCluster);
 		treeBuilder.BuildTree(true);	// 只构建叶子节点
 
 		mClusterTree = std::move(treeBuilder.result);
@@ -47,16 +67,15 @@ namespace Renderer {
 		auto* copyDsQueue = mRenderEngine->mUploaderEngine->GetMemoryCopyQueue();
 		auto* copyFence = mRenderEngine->mUploaderEngine->GetCopyFence();
 
-		// LodDistances
-		mLodDistances.resize(smLodGroupSize);
-		mLodDistances.at(0) = mInstanceVisibleDistance * (1.0f / 8.0f);	// 前八分之一为Lod0
-		mLodDistances.at(1) = mInstanceVisibleDistance * (1.0f / 2.0f);	// 前二分之一为Lod1
-		mLodDistances.at(2) = mInstanceVisibleDistance * (1.0f / 1.0f);	// 前一分之一为Lod2
+		mLodDistances.resize(mLodGroupSize);
+		for (int32_t index = 0; index < mLodGroupSize; index++) {
+			mLodDistances.at(index) = mInstanceVisibleDistance * mLodDistancesScale.at(index);
+		}
 
 		// LodGroups
-		for (int32_t index = 0; index < smLodGroupSize; index++) {
+		for (int32_t index = 0; index < mLodGroupSize; index++) {
 			std::string lodPath = mInstancePath + "/Lod" + std::to_string(index) + ".fbx";
-			std::unique_ptr<Renderer::Model> lodModel = std::make_unique<Renderer::Model>(device, descriptorAllocator, nullptr, lodPath);
+			std::unique_ptr<Renderer::Model> lodModel = std::make_unique<Renderer::Model>(device, descriptorAllocator, nullptr, lodPath, Math::Vector3{ 0.015f, 0.015f, 0.015f });
 			lodModel->LoadDataFromDisk(copyDsQueue, copyFence);
 			
 			mLodGroups.emplace_back(std::move(lodModel));
@@ -95,7 +114,7 @@ namespace Renderer {
 
 		// 读取实例化数据
 		std::string instanceDataPath = mInstancePath + "/InstanceData.bin";
-		std::ifstream instanceDataStream(instanceDataPath);
+		std::ifstream instanceDataStream(instanceDataPath, std::ios::in | std::ios::binary);
 		Tool::InputMemoryStream inputStream(instanceDataStream);
 
 		int32_t instanceCount = inputStream.Size() / sizeof(HoudiniInstanceData);
@@ -111,7 +130,7 @@ namespace Renderer {
 
 			HoudiniInstanceData houdiniInstanceData(tempPosition, tempQuaternion, tempScaling);
 			mTransforms[i] = Math::Matrix4(houdiniInstanceData.position, houdiniInstanceData.quaternion, houdiniInstanceData.scaling).Transpose();	// 注意转置
-			mTransformedBoundingBoxs[i] = mInstanceBoundingBox.transformBy(mTransforms[i]);
+			mTransformedBoundingBoxs[i] = mInstanceBoundingBox.transformBy(mTransforms[i].Transpose());
 		}
 
 		// 构建集群树
@@ -241,11 +260,12 @@ namespace Renderer {
 			mGpuCulledVisibleClusterNodesIndexBuffer->SetDebugName(resourceName);
 			renderGraph->ImportResource(resourceName, mGpuCulledVisibleClusterNodesIndexBuffer);
 			resourceStateTracker->StartTracking(mGpuCulledVisibleClusterNodesIndexBuffer);
+			resourceStateTracker->StartTracking(mGpuCulledVisibleClusterNodesIndexBuffer->GetCounterBuffer());
 		}
 
 		{
-			mGpuCulledVisibleInstanceIndexBuffers.resize(smLodGroupSize);
-			for (int32_t index = 0; index < smLodGroupSize; index++) {
+			mGpuCulledVisibleInstanceIndexBuffers.resize(mLodGroupSize);
+			for (int32_t index = 0; index < mLodGroupSize; index++) {
 				resourceName = mInstanceName + "_GpuCulledVisibleLod" + std::to_string(index) + "InstanceIndexBuffer";
 				BufferDesc _GpuCulledVisibleLodInstanceIndexBufferDesc{};
 				_GpuCulledVisibleLodInstanceIndexBufferDesc.stride = sizeof(uint32_t);
@@ -258,6 +278,7 @@ namespace Renderer {
 				mGpuCulledVisibleInstanceIndexBuffers.at(index)->SetDebugName(resourceName);
 				renderGraph->ImportResource(resourceName, mGpuCulledVisibleInstanceIndexBuffers.at(index));
 				resourceStateTracker->StartTracking(mGpuCulledVisibleInstanceIndexBuffers.at(index));
+				resourceStateTracker->StartTracking(mGpuCulledVisibleInstanceIndexBuffers.at(index)->GetCounterBuffer());
 			}
 		}
 

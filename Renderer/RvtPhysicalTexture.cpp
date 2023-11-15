@@ -9,7 +9,7 @@ namespace Renderer {
 	, mRvtSystem(rvtSystem) 
 	, mTileSize(rvtSystem->GetTileSize()) 
 	, mPaddingSize(rvtSystem->GetPaddingSize())
-	, mTileCountPerAxis(30u) 
+	, mTileCountPerAxis(15u) 
 	, mTileCount(mTileCountPerAxis * mTileCountPerAxis)
 	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis) 
 	, mTileCache(mTileCount, mTileCountPerAxis) {
