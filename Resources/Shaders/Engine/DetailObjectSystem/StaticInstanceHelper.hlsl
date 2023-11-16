@@ -15,10 +15,9 @@ struct ClusterNode {
 	float4 maxInstanceScale;	// 最大缩放比例
 };
 
-struct StaticInstanceData {
-	float3 minBoundingBoxPosition;	// TransformedBoundingBox
-	float3 maxBoundingBoxPosition;	// TransformedBoundingBox
-	float  hash;					// 根据距离剔除时使用
-};
+// 返回一个0 - 1的随机浮点数
+float rand(float3 co) {
+	return frac(sin(dot(co.xyz, float3(12.9898, 78.233, 53.539))) * 43758.5453);
+}
 
 #endif

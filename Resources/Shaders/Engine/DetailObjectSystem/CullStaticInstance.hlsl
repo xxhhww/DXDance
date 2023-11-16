@@ -20,10 +20,10 @@ struct PassData {
 	float lod2InstanceVisibleDistance;
 	float instanceVisibleDistance;
 
+	float distanceCullStartDistance;
+	float distanceCullFactor;
 	uint  totalInstanceCount;
 	float pad1;
-	float pad2;
-	float pad3;
 };
 
 #define PassDataType PassData
@@ -61,6 +61,18 @@ bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
 }
 
 /*
+* 根据距离剔除
+*/
+bool DistanceCull(float3 originPos, float3 targetPos, float beginDistance, float endDistance, float factor, float hash) {
+	float d = distance(originPos, targetPos);
+
+	float distanceSmoothStep = 1.0f - smoothstep(beginDistance, endDistance, d);
+
+	distanceSmoothStep = (distanceSmoothStep * (1.0f - factor)) + factor;
+	distanceSmoothStep /= 5.0f;
+	return (hash > 1.0f - distanceSmoothStep) ? false : true;
+}
+/*
 *	X: Index For VisibleClusterNodeIndexBuffer
 *	Y: Index For InstanceCountPerCluster
 *	Z: 无意义
@@ -94,6 +106,19 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 			float3 centerPosition = (boundingBox.minPosition.xyz + boundingBox.maxPosition.xyz) / 2.0f;
 			float closestDistance = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, centerPosition);
 			if(closestDistance > PassDataCB.instanceVisibleDistance) {
+				return;
+			}
+
+			// 距离剔除
+			float hash = rand(float3(directIndex, directIndex, directIndex));
+			if(DistanceCull(
+				FrameDataCB.CurrentRenderCamera.Position.xyz, 
+				centerPosition, 
+				PassDataCB.distanceCullStartDistance, 
+				PassDataCB.instanceVisibleDistance, 
+				PassDataCB.distanceCullFactor, 
+				hash)) {
+
 				return;
 			}
 			

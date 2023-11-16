@@ -31,10 +31,10 @@ namespace Renderer {
 			float lod2InstanceVisibleDistance;
 			float instanceVisibleDistance;
 
+			float distanceCullStartDistance;
+			float distanceCullFactor;
 			uint32_t totalInstanceCount;
 			float pad1;
-			float pad2;
-			float pad3;
 		};
 
 		// Per Lod Per HierarchyInstancedStaticMesh

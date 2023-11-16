@@ -28,8 +28,8 @@ namespace Renderer {
 	void DetailObjectSystem::Initialize(RenderEngine* renderEngine) {
 		// Tree 0
 		mHierarchyInstancedStaticMeshs.emplace_back(std::make_unique<HierarchyInstancedStaticMesh>(
-			mRenderEngine, "Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0", 512, 2048, 3u,
-			{}));
+			mRenderEngine, "Tree0", "E:/MyProject/DXDance/Resources/Instances/Tree0", 512, 2048.0f, 256.0f, 0.0f, 3u,
+			std::vector<float>{ 1.0f / 16.0f, 1.0f / 8.0f, 1.0f}));
 
 		// Rock 0 ...
 
@@ -188,6 +188,8 @@ namespace Renderer {
 					currPassData.lod1InstanceVisibleDistance = lodDistances.at(1);
 					currPassData.lod2InstanceVisibleDistance = lodDistances.at(2);
 					currPassData.instanceVisibleDistance = currHierarchyInstancedStaticMesh->GetInstanceVisibleDistance();
+					currPassData.distanceCullStartDistance = currHierarchyInstancedStaticMesh->GetDistanceCullStartDistance();
+					currPassData.distanceCullFactor = currHierarchyInstancedStaticMesh->GetDistanceCullFactor();
 					currPassData.totalInstanceCount = currHierarchyInstancedStaticMesh->GetTotalInstanceCount();
 
 					currPassDataAlloc = dynamicAllocator->Allocate(sizeof(DetailObjectSystem::CullStaticInstancePassData), 256u);

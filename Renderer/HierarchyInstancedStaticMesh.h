@@ -36,7 +36,9 @@ namespace Renderer {
 			const std::string& instanceName, 
 			const std::string& instancePath,
 			int32_t instanceCountPerCluster,
-			int32_t instanceVisibleDistance,
+			float instanceVisibleDistance,
+			float distanceCullStartDistance,	// 启用DistanceCull的开始距离
+			float distanceCullFactor,			// 控制DistanceCull的剔除幅度(取值为 0.0f - 1.0f)，值越大剔除越多
 			int32_t instanceLodGroupSize,
 			const std::vector<float>& instanceLodDistancesScale);
 
@@ -61,6 +63,17 @@ namespace Renderer {
 		* 获取可视化距离
 		*/
 		inline float GetInstanceVisibleDistance() const { return mInstanceVisibleDistance; }
+
+		/*
+		* 获取DistanceCull的开始距离
+		*/
+		inline float GetDistanceCullStartDistance() const { return mDistanceCullStartDistance; }
+
+		/*
+		* 获取DistanceCull的剔除参数
+		*/
+		inline float GetDistanceCullFactor() const { return mDistanceCullFactor; }
+
 
 		/*
 		* 获取总的实例个数
@@ -88,6 +101,9 @@ namespace Renderer {
 	private:
 		int32_t mInstanceCountPerCluster;	// 集群节点内部的实例化个数
 		float mInstanceVisibleDistance;		// 实例的可视化距离
+		float mDistanceCullStartDistance;	// DistanceCull的开始距离
+		float mDistanceCullFactor;			// DistanceCull的剔除幅度(取值为 0.0f - 1.0f)，值越大剔除越多
+
 		int32_t mLodGroupSize;
 		std::vector<float> mLodDistancesScale;	// 各个Lod的终点距离的缩放
 		std::vector<float> mLodDistances;		// 各个Lod的终点距离

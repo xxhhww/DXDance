@@ -28,7 +28,9 @@ namespace Renderer {
 		const std::string& instanceName,
 		const std::string& instancePath,
 		int32_t instanceCountPerCluster,
-		int32_t instanceVisibleDistance,
+		float instanceVisibleDistance,
+		float distanceCullStartDistance,	// 启用DistanceCull的开始距离
+		float distanceCullFactor,			// 控制DistanceCull的剔除幅度(取值为 0.0f - 1.0f)，值越大剔除越多
 		int32_t instanceLodGroupSize,
 		const std::vector<float>& instanceLodDistancesScale)
 		: mRenderEngine(renderEngine)
@@ -36,6 +38,8 @@ namespace Renderer {
 		, mInstancePath(instancePath)
 		, mInstanceCountPerCluster(instanceCountPerCluster)
 		, mInstanceVisibleDistance(instanceVisibleDistance)
+		, mDistanceCullStartDistance(distanceCullStartDistance)
+		, mDistanceCullFactor(distanceCullFactor)
 		, mLodGroupSize(instanceLodGroupSize) 
 		, mLodDistancesScale(instanceLodDistancesScale) {
 
@@ -74,7 +78,7 @@ namespace Renderer {
 
 		// LodGroups
 		for (int32_t index = 0; index < mLodGroupSize; index++) {
-			std::string lodPath = mInstancePath + "/Lod" + std::to_string(index) + ".fbx";
+			std::string lodPath = mInstancePath + "/Lod" + std::to_string(2) + ".fbx";
 			std::unique_ptr<Renderer::Model> lodModel = std::make_unique<Renderer::Model>(device, descriptorAllocator, nullptr, lodPath, Math::Vector3{ 0.015f, 0.015f, 0.015f });
 			lodModel->LoadDataFromDisk(copyDsQueue, copyFence);
 			
