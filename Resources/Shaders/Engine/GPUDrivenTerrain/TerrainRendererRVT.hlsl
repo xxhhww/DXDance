@@ -78,10 +78,12 @@ struct v2p {
 };
 
 struct p2o {
-	float4 shadingResult	: SV_TARGET0;
-	float4 normalRoughness	: SV_TARGET1;
-	float2 screenVelocity	: SV_TARGET2;
-	uint4  terrainFeedback	: SV_TARGET3;
+	float4 albedoMetalness  : SV_TARGET0;
+    float4 positionEmission : SV_TARGET1;	// world space position
+    float4 normalRoughness  : SV_TARGET2;	// world space normal
+	float4 motionVector     : SV_TARGET3; 
+	float  viewDepth        : SV_TARGET4;
+	uint4  terrainFeedback	: SV_TARGET5;
 };
 
 float3 SampleTerrainNormalMap(float2 uv) {
@@ -197,26 +199,6 @@ p2o PSMain(v2p input) {
 	}
 	normal = wsNormal;
 
-	Surface surface;
-	surface.albedo = albedo;
-	surface.normal = normal;
-	surface.roughness = roughness;
-	surface.metallic = 0.0f;
-	surface.emission = 0.0f;
-
-	surface.position = input.wsPos;
-	float3 camToP = surface.position - FrameDataCB.CurrentEditorCamera.Position.xyz;
-	surface.viewDir = -normalize(camToP);
-
-	surface.InferRemainingProperties();
-
-	LightContribution totalLighting = { float3(0.f, 0.f, 0.f), float3(0.f, 0.f, 0.f) };
-
-	Light sunLight = LightDataSB[0];
-
-	totalLighting.addSunLight(surface, sunLight/*, screenUV, pixelDepth,
-		shadowMap, shadowSampler, lighting.shadowMapTexelSize, sssTexture, clampSampler*/);
-
 	// Calcute Feedback
 	uint2 page = floor(input.uvVT * PassDataCB.vtFeedbackParams.x);
 	
@@ -229,12 +211,12 @@ p2o PSMain(v2p input) {
 	uint overBound = (input.uvVT.x > 1.0f || input.uvVT.y > 1.0f) ? 0u : 1u;
 
 	p2o output;
-	output.shadingResult   = totalLighting.evaluate(surface.albedo);
-	// output.shadingResult = float4(lodDebugColor, 1.0f);
-	// output.shadingResult   = float4(indexInfo.z * 0.1f, 0.0f, 0.0f, 1.0f);
-	output.normalRoughness = float4(normal, roughness);
-	output.screenVelocity  = float2(velocity.xy);
-	output.terrainFeedback = uint4(page, mip , overBound);
+	output.albedoMetalness  = float4(albedo.xyz, 0.0f);
+	output.positionEmission = float4(input.wsPos, 0.0f);
+	output.normalRoughness  = float4(normal, 1.0f);
+	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);
+	output.viewDepth        = input.vsPos.z;
+	output.terrainFeedback  = uint4(page, mip , overBound);
 
 	return output;
 }

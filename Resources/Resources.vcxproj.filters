@@ -36,21 +36,18 @@
   <ItemGroup>
     <FxCompile Include="Shaders\Editor\AxisRender.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainBuilder.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\OutputBackBuffer\OutputBackBuffer.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainOfflineTask.hlsl" />
     <FxCompile Include="Shaders\Engine\StandardGBufferPass.hlsl" />
-    <FxCompile Include="Shaders\Engine\DeferredLightPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\DeferredLight\DeferredLightPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Light.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\BRDFHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\Trig.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\Matrix.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\ShadingCommon.hlsl" />
     <FxCompile Include="Shaders\Engine\RngSeedGenerationPass.hlsl" />
-    <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\MathCommon.hlsl" />
-    <FxCompile Include="Shaders\Engine\SkyGenerationPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\Utils.hlsl" />
     <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ToneMapping\ToneMappingPass.hlsl" />
@@ -64,25 +61,18 @@
     <FxCompile Include="Shaders\Engine\VolumetricClouds\ShapeNoiseGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\DetailNoiseGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\VolumetricClouds\NoiseGeneratorHelper.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainPlacement.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliagePlacer.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\OpaquePass.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer_ForwardPlus.hlsl" />
-    <FxCompile Include="Shaders\Engine\TAA\TAA_ForwardPlus.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRendererNoRVT.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\ThreadGroupTilingX.hlsl" />
     <FxCompile Include="Shaders\Engine\Foliage\FoliageRenderer_ForwardPlus.hlsl" />
-    <FxCompile Include="Shaders\Engine\ObjectOnTerrain\PlaceObjectOnTerrain.hlsl" />
-    <FxCompile Include="Shaders\Engine\ObjectOnTerrain\GrassRenderer.hlsl" />
-    <FxCompile Include="Shaders\Engine\ObjectOnTerrain\ObjectOnTerrainHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassBladeGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\ClumpMapGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\Random.hlsl" />
-    <FxCompile Include="Shaders\Engine\ProceduralSky\SkyRenderer.hlsl" />
-    <FxCompile Include="Shaders\Engine\ProceduralSky\SkyHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Atmosphere\Raymarching.hlsl" />
     <FxCompile Include="Shaders\Engine\Atmosphere\Scattering.hlsl" />
     <FxCompile Include="Shaders\Engine\Atmosphere\AtmosphereHelper.hlsl" />
@@ -94,7 +84,7 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtLookUpMap.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\RvtHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\UpdateRvtTiledMap.hlsl" />
-    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRenderer_VirtualTexture.hlsl" />
+    <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRendererRVT.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainFeedback.hlsl" />
     <FxCompile Include="Shaders\Engine\UAVClear\TextureUAVClear.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\GpuCullingPass.hlsl" />
@@ -109,5 +99,6 @@
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\CullStaticInstance.hlsl" />
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\RenderStaticInstance.hlsl" />
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\StaticInstanceHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
   </ItemGroup>
 </Project>

@@ -117,8 +117,8 @@ namespace Renderer {
 				builder.ReadTexture("TransmittanceLut", ShaderAccessFlag::PixelShader);
 				builder.ReadTexture("SkyViewLut", ShaderAccessFlag::PixelShader);
 
-				builder.WriteRenderTarget("ShadingResult");
-				builder.WriteDepthStencil("DepthStencil");
+				builder.WriteRenderTarget("DeferredLightShadingOut");
+				builder.WriteDepthStencil("GBufferDepthStencil");
 
 				shaderManger.CreateGraphicsShader("SkyboxRenderer",
 					[](GraphicsStateProxy& proxy) {
@@ -137,10 +137,11 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				auto* shadingResult = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
-				auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
-				auto* transmittanceLut = resourceStorage->GetResourceByName("TransmittanceLut")->GetTexture();
-				auto* skyViewLut = resourceStorage->GetResourceByName("SkyViewLut")->GetTexture();
+				auto* deferredLightShadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
+				// auto* shadingResult = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
+				auto* gBufferdepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+				auto* transmittanceLut        = resourceStorage->GetResourceByName("TransmittanceLut")->GetTexture();
+				auto* skyViewLut              = resourceStorage->GetResourceByName("SkyViewLut")->GetTexture();
 
 				atmosphereRendererData.transmittanceLutIndex = transmittanceLut->GetSRDescriptor()->GetHeapIndex();
 				atmosphereRendererData.skyViewLutIndex = skyViewLut->GetSRDescriptor()->GetHeapIndex();
@@ -152,9 +153,9 @@ namespace Renderer {
 				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
 				commandBuffer.SetRenderTargets(
 					{
-						shadingResult,
+						deferredLightShadingOut,
 					},
-					depthStencil);
+					gBufferdepthStencil);
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 				commandBuffer.SetGraphicsRootSignature();

@@ -3,50 +3,38 @@
 
 struct PassData {
 	float4 halton;
-	uint rngSeedMapIndex;
-	uint blueNoise3DMapIndex;
-	uint skyLuminanceMapIndex;
+
 	uint gBufferAlbedoMetalnessMapIndex;
 	uint gBufferPositionEmissionMapIndex;
 	uint gBufferNormalRoughnessMapIndex;
 	uint gBufferViewDepthMapIndex;
+
+	uint rngSeedMapIndex;
+	uint blueNoise3DMapIndex;
 	uint finalOutputMapIndex;
-	uint2 finalOutputMapSize;
 	float pad1;
+
+	uint2 finalOutputMapSize;
 	float pad2;
+	float pad3;
 };
 
 #define PassDataType PassData
 
-#include "Base/MainEntryPoint.hlsl"
-#include "Base/ShadingCommon.hlsl"
-#include "Base/Utils.hlsl"
-#include "Math/Matrix.hlsl"
-
-ShadingResult GetSkyShadingResult(float2 pixelUV) {
-	Texture2D<float4> skyLuminanceMap = ResourceDescriptorHeap[PassDataCB.skyLuminanceMapIndex];
-
-    float3 pointInfronOfCamera = NDCDepthToWorldPosition(1.0f, pixelUV, FrameDataCB.CurrentEditorCamera);
-    float3 worldViewDirection = normalize(pointInfronOfCamera - FrameDataCB.CurrentEditorCamera.Position.xyz);
-    float2 skyUV = (OctEncode(worldViewDirection) + 1.0) * 0.5;
-    float3 luminance = skyLuminanceMap.SampleLevel(SamplerLinearClamp, skyUV, 0).rgb;
-
-    ShadingResult result = ZeroShadingResult();
-    result.analyticUnshadowedOutgoingLuminance = luminance;
-    return result;
-}
+#include "../Base/MainEntryPoint.hlsl"
+#include "../Base/ShadingCommon.hlsl"
+#include "../Base/Utils.hlsl"
+#include "../Math/Matrix.hlsl"
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
-	Texture2D<uint4>  rngSeedMap                 = ResourceDescriptorHeap[PassDataCB.rngSeedMapIndex];
-	Texture3D<float4> blueNoise3DMap             = ResourceDescriptorHeap[PassDataCB.blueNoise3DMapIndex];
-	Texture2D<float4> gBufferAlbedoMetalnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferAlbedoMetalnessMapIndex];
-	Texture2D<float4> gBufferPositionEmissionMap = ResourceDescriptorHeap[PassDataCB.gBufferPositionEmissionMapIndex];
-	Texture2D<float4> gBufferNormalRoughnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferNormalRoughnessMapIndex];
-	Texture2D<float4> gBufferViewDepthMap        = ResourceDescriptorHeap[PassDataCB.gBufferViewDepthMapIndex];
-	RWTexture2D<float4> finalOutputMap           = ResourceDescriptorHeap[PassDataCB.finalOutputMapIndex];
-	Texture2D<float4> skyLuminanceMap = ResourceDescriptorHeap[PassDataCB.skyLuminanceMapIndex];
-
+	Texture2D<uint4>    rngSeedMap                 = ResourceDescriptorHeap[PassDataCB.rngSeedMapIndex];
+	Texture3D<float4>   blueNoise3DMap             = ResourceDescriptorHeap[PassDataCB.blueNoise3DMapIndex];
+	Texture2D<float4>   gBufferAlbedoMetalnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferAlbedoMetalnessMapIndex];
+	Texture2D<float4>   gBufferPositionEmissionMap = ResourceDescriptorHeap[PassDataCB.gBufferPositionEmissionMapIndex];
+	Texture2D<float4>   gBufferNormalRoughnessMap  = ResourceDescriptorHeap[PassDataCB.gBufferNormalRoughnessMapIndex];
+	Texture2D<float4>   gBufferViewDepthMap        = ResourceDescriptorHeap[PassDataCB.gBufferViewDepthMapIndex];
+	RWTexture2D<float4> finalOutputMap             = ResourceDescriptorHeap[PassDataCB.finalOutputMapIndex];
 
 	uint2 pixelIndex = dispatchThreadID.xy;
 	float2 pixelUV = TexelIndexToUV(pixelIndex, PassDataCB.finalOutputMapSize);
@@ -65,8 +53,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 
 	// Sky Detection
 	if (viewDepth >= FrameDataCB.CurrentEditorCamera.FarPlane) {
-        shadingResult = GetSkyShadingResult(pixelUV);
-		finalOutputMap[pixelIndex] = float4(shadingResult.analyticUnshadowedOutgoingLuminance, 1.0f);
+		finalOutputMap[pixelIndex] = float4(0.0f, 0.0f, 0.0f, 1.0f);
         return;
     }
 

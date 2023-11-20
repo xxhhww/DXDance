@@ -20,7 +20,7 @@ namespace Renderer {
 
 				builder.ReadTexture("RngSeedMap", ShaderAccessFlag::NonPixelShader);
 				// builder.ReadTexture("BlueNoise3DMap", ShaderAccessFlag::NonPixelShader);
-				builder.ReadTexture("SkyLuminance", ShaderAccessFlag::NonPixelShader);
+				// builder.ReadTexture("SkyLuminance", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferAlbedoMetalness", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferPositionEmission", ShaderAccessFlag::NonPixelShader);
 				builder.ReadTexture("GBufferNormalRoughness", ShaderAccessFlag::NonPixelShader);
@@ -51,7 +51,7 @@ namespace Renderer {
 
 				shaderManger.CreateComputeShader("DeferredLightPass",
 					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/DeferredLightPass.hlsl";
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/DeferredLight/DeferredLightPass.hlsl";
 					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
@@ -61,31 +61,31 @@ namespace Renderer {
 
 				auto* rngSeedMap              = resourceStorage->GetResourceByName("RngSeedMap")->GetTexture();
 				auto* blueNoise3DMap          = resourceStorage->GetResourceByName("BlueNoise3DMap")->GetTexture();
-				auto* skyLuminance            = resourceStorage->GetResourceByName("SkyLuminance")->GetTexture();
+				// auto* skyLuminance            = resourceStorage->GetResourceByName("SkyLuminance")->GetTexture();
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
-				auto* deferredLightshadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
-				auto& deferredLightshadingOutDesc = deferredLightshadingOut->GetResourceFormat().GetTextureDesc();
+				auto* deferredLightShadingOut = resourceStorage->GetResourceByName("DeferredLightShadingOut")->GetTexture();
+				auto& deferredLightShadingOutDesc = deferredLightShadingOut->GetResourceFormat().GetTextureDesc();
 
 				deferredLightPassData.halton                           = Math::Halton::Sequence(0, 3).data();
 				deferredLightPassData.rngSeedMapIndex                  = rngSeedMap->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.blueNoise3DMapIndex              = blueNoise3DMap->GetSRDescriptor()->GetHeapIndex();
-				deferredLightPassData.skyLuminanceMapIndex             = skyLuminance->GetSRDescriptor()->GetHeapIndex();
+				// deferredLightPassData.skyLuminanceMapIndex             = skyLuminance->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferAlbedoMetalnessMapIndex   = gBufferAlbedoMetalness->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferPositionEmissionMapIndex  = gBufferPositionEmission->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferNormalRoughnessMapIndex   = gBufferNormalRoughness->GetSRDescriptor()->GetHeapIndex();
 				deferredLightPassData.gBufferViewDepthMapIndex         = gBufferViewDepth->GetSRDescriptor()->GetHeapIndex();
-				deferredLightPassData.deferredLightshadingOutMapIndex  = deferredLightshadingOut->GetUADescriptor()->GetHeapIndex();
-				deferredLightPassData.deferredLightshadingOutMapSizeX  = deferredLightshadingOutDesc.width;
-				deferredLightPassData.deferredLightshadingOutMapSizeY  = deferredLightshadingOutDesc.height;
+				deferredLightPassData.deferredLightshadingOutMapIndex  = deferredLightShadingOut->GetUADescriptor()->GetHeapIndex();
+				deferredLightPassData.deferredLightshadingOutMapSizeX  = deferredLightShadingOutDesc.width;
+				deferredLightPassData.deferredLightshadingOutMapSizeY  = deferredLightShadingOutDesc.height;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(DeferredLightPassData));
 				memcpy(passDataAlloc.cpuAddress, &deferredLightPassData, sizeof(DeferredLightPassData));
 
-				uint32_t threadGroupCountX = (deferredLightshadingOutDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
-				uint32_t threadGroupCountY = (deferredLightshadingOutDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountX = (deferredLightShadingOutDesc.width + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountY = (deferredLightShadingOutDesc.height + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 
 				commandBuffer.SetComputeRootSignature();
 				commandBuffer.SetComputePipelineState("DeferredLightPass");

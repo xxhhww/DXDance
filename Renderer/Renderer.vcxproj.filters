@@ -168,9 +168,6 @@
     <ClInclude Include="RenderGraphResourceProperties.h">
       <Filter>头文件\Renderer\RenderGraph</Filter>
     </ClInclude>
-    <ClInclude Include="GBufferPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="DeferredLightPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
@@ -222,9 +219,6 @@
     <ClInclude Include="UploaderEngine.h">
       <Filter>头文件\Uploader</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="CommandSignatureManger.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
@@ -238,9 +232,6 @@
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
     <ClInclude Include="RngSeedGenerationPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyGenerationPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="ToneMappingPass.h">
@@ -258,22 +249,7 @@
     <ClInclude Include="GenerateCloudNoiseTask.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
-    <ClInclude Include="FoliagePass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
     <ClInclude Include="OpaquePass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="PlaceObjectOnTerrainPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderObjectOnTerrainPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="GrassPass.h">
-      <Filter>头文件\Renderer\RenderPass</Filter>
-    </ClInclude>
-    <ClInclude Include="SkyPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
     <ClInclude Include="AtmospherePass.h">
@@ -425,9 +401,6 @@
     <ClCompile Include="RenderGraphResourceID.cpp">
       <Filter>源文件\Renderer\RenderGraph</Filter>
     </ClCompile>
-    <ClCompile Include="GBufferPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="DeferredLightPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
@@ -476,9 +449,6 @@
     <ClCompile Include="UploaderEngine.cpp">
       <Filter>源文件\Uploader</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="CommandSignatureManger.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
@@ -494,13 +464,7 @@
     <ClCompile Include="RngSeedGenerationPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
-    <ClCompile Include="SkyGenerationPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="ToneMappingPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="TAAPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="VolumetricCloudsPass.cpp">
@@ -512,22 +476,7 @@
     <ClCompile Include="GenerateCloudNoiseTask.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
-    <ClCompile Include="FoliagePass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
     <ClCompile Include="OpaquePass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="PlaceObjectOnTerrainPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderObjectOnTerrainPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="GrassPass.cpp">
-      <Filter>源文件\Renderer\RenderPass</Filter>
-    </ClCompile>
-    <ClCompile Include="SkyPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="AtmospherePass.cpp">
@@ -601,6 +550,9 @@
     </ClCompile>
     <ClCompile Include="ClusterTree.cpp">
       <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="TAAPass.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

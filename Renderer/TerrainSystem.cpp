@@ -277,6 +277,9 @@ namespace Renderer {
 
 		UpdateNodeAndLodDescriptorArray();
 
+		auto& finalOutputDesc =
+			renderGraph->GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
 		renderGraph->AddPass(
 			"TraverseQuadTree",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
@@ -575,11 +578,14 @@ namespace Renderer {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
-				builder.WriteRenderTarget("ShadingResult");
-				builder.WriteRenderTarget("NormalRoughness");
-				builder.WriteRenderTarget("ScreenVelocity");
+
+				builder.WriteRenderTarget("GBufferAlbedoMetalness");
+				builder.WriteRenderTarget("GBufferPositionEmission");
+				builder.WriteRenderTarget("GBufferNormalRoughness");
+				builder.WriteRenderTarget("GBufferMotionVector");
+				builder.WriteRenderTarget("GBufferViewDepth");
 				builder.WriteRenderTarget("TerrainFeedback");
-				builder.WriteDepthStencil("DepthStencil");
+				builder.WriteDepthStencil("GBufferDepthStencil");
 
 				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
 				_TerrainRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
@@ -592,14 +598,16 @@ namespace Renderer {
 				if (!useVT) {
 					shaderManger.CreateGraphicsShader("TerrainRenderer",
 						[](GraphicsStateProxy& proxy) {
-							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_ForwardPlus.hlsl";
+							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRendererNoRVT.hlsl";
 							proxy.psFilepath = proxy.vsFilepath;
 							proxy.depthStencilDesc.DepthEnable = true;
 							proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 							proxy.renderTargetFormatArray = {
+								DXGI_FORMAT_R8G8B8A8_UNORM,
 								DXGI_FORMAT_R16G16B16A16_FLOAT,
 								DXGI_FORMAT_R16G16B16A16_FLOAT,
-								DXGI_FORMAT_R16G16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R32_FLOAT,
 								DXGI_FORMAT_R16G16B16A16_UINT	// TerrainFeedback
 							};
 						});
@@ -607,14 +615,16 @@ namespace Renderer {
 				else {
 					shaderManger.CreateGraphicsShader("TerrainRenderer",
 						[](GraphicsStateProxy& proxy) {
-							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRenderer_VirtualTexture.hlsl";
+							proxy.vsFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/GPUDrivenTerrain/TerrainRendererRVT.hlsl";
 							proxy.psFilepath = proxy.vsFilepath;
 							proxy.depthStencilDesc.DepthEnable = true;
 							proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 							proxy.renderTargetFormatArray = {
+								DXGI_FORMAT_R8G8B8A8_UNORM,
 								DXGI_FORMAT_R16G16B16A16_FLOAT,
 								DXGI_FORMAT_R16G16B16A16_FLOAT,
-								DXGI_FORMAT_R16G16_FLOAT,
+								DXGI_FORMAT_R16G16B16A16_FLOAT,
+								DXGI_FORMAT_R32_FLOAT,
 								DXGI_FORMAT_R16G16B16A16_UINT	// TerrainFeedback
 							};
 						});
@@ -637,17 +647,18 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* commandSignatureManger = renderContext.commandSignatureManger;
 
-				auto* shadingResult = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
-				auto* normalRoughness = resourceStorage->GetResourceByName("NormalRoughness")->GetTexture();
-				auto* screenVelocity = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
-				auto* depthStencil = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
-				auto* terrainFeedback = resourceStorage->GetResourceByName("TerrainFeedback")->GetTexture();
-				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
-				auto* indirectArgs = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
-
-				auto* pageTableTexture = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
-				auto* physicalTextureAlbedo = resourceStorage->GetResourceByName("PhysicalTextureAlbedo")->GetTexture();
-				auto* physicalTextureNormal = resourceStorage->GetResourceByName("PhysicalTextureNormal")->GetTexture();
+				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
+				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+				auto* terrainFeedback         = resourceStorage->GetResourceByName("TerrainFeedback")->GetTexture();
+				auto* culledPatchList         = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* indirectArgs            = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
+				auto* pageTableTexture        = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
+				auto* physicalTextureAlbedo   = resourceStorage->GetResourceByName("PhysicalTextureAlbedo")->GetTexture();
+				auto* physicalTextureNormal   = resourceStorage->GetResourceByName("PhysicalTextureNormal")->GetTexture();
 
 				auto* cmdSig = commandSignatureManger->GetD3DCommandSignature("TerrainRenderer");
 
@@ -731,19 +742,20 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
-				auto& shadingResultDesc = shadingResult->GetResourceFormat().GetTextureDesc();
-				uint16_t width = static_cast<uint16_t>(shadingResultDesc.width);
-				uint16_t height = static_cast<uint16_t>(shadingResultDesc.height);
+				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
+				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
 				commandBuffer.ClearRenderTarget(terrainFeedback);
 
 				commandBuffer.SetRenderTargets(
 					{
-						shadingResult,
-						normalRoughness,
-						screenVelocity,
+						gBufferAlbedoMetalness,
+						gBufferPositionEmission,
+						gBufferNormalRoughness,
+						gBufferMotionVector,
+						gBufferViewDepth,
 						terrainFeedback,
 					},
-					depthStencil);
+					gBufferDepthStencil);
 
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });

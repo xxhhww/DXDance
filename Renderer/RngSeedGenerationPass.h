@@ -12,12 +12,13 @@ namespace Renderer {
 			uint32_t currFrameNumber;
 		};
 
-		RngSeedGenerationPassData rngSeedGenerationPassData;
-
-		inline static uint32_t smThreadSizeInGroup = 8u;
-
 	public:
 		void AddPass(RenderGraph& renderGraph);
+
+	private:
+		inline static uint32_t smThreadSizeInGroup = 8u;
+
+		RngSeedGenerationPassData rngSeedGenerationPassData;
 	};
 
 }

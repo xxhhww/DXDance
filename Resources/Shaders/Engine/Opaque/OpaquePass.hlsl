@@ -21,7 +21,6 @@ cbuffer ItemData : register(b0, space0)
     float4 extend;
 };
 
-
 struct a2v {
 	float3 lsPos     : POSITION;
 	float2 uv        : TEXCOORD;
@@ -42,9 +41,11 @@ struct v2p {
 };
 
 struct p2o {
-	float4 shadingResult   : SV_TARGET0;
-	float4 normalRoughness : SV_TARGET1;
-	float2 screenVelocity  : SV_TARGET2;
+	float4 albedoMetalness  : SV_TARGET0;
+    float4 positionEmission : SV_TARGET1;	// world space position
+    float4 normalRoughness  : SV_TARGET2;	// world space normal
+	float4 motionVector     : SV_TARGET3; 
+	float  viewDepth        : SV_TARGET4;
 };
 
 v2p VSMain(a2v input, uint vertexID : SV_VERTEXID) {
@@ -86,16 +87,16 @@ p2o PSMain(v2p input) {
     float2 prevScreenUV = NDCToUV(prevNDCPos);
     prevScreenUV += uvJitter; // Get rid of the jitter caused by perspective interpolation with W from jittered matrix
     float3 prevUVSpacePos = float3(prevScreenUV, prevNDCPos.z);
-
     float2 currScreenUV = (floor(input.currCsPos.xy) + 0.5f) * FrameDataCB.FinalRTResolutionInv;
     float3 currUVSpacePos = float3(currScreenUV, input.currCsPos.z);
-
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
 	p2o output;
-	output.shadingResult   = float4(input.debugColor, 1.0f);
-	output.normalRoughness = float4(input.wsNormal, 1.0f);
-	output.screenVelocity  = float2(velocity.xy);
+	output.albedoMetalness  = float4(input.debugColor, 0.0f);
+	output.positionEmission = float4(input.wsPos, 0.0f);
+	output.normalRoughness  = float4(input.wsNormal, 1.0f);
+	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);
+	output.viewDepth        = input.vsPos.z;
 
 	return output;
 }

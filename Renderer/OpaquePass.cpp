@@ -32,13 +32,7 @@ namespace Renderer {
 		Math::Vector4 extend;
 	};
 
-	void OpaquePass::AddPreDepthPass(RenderGraph& renderGraph) {
-	}
-
-	void OpaquePass::AddShadowPass(RenderGraph& renderGraph) {
-	}
-
-	void OpaquePass::AddForwardPlusPass(RenderGraph& renderGraph) {
+	void OpaquePass::AddPass(RenderGraph& renderGraph) {
 		auto& finalOutputDesc =
 			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
@@ -124,41 +118,53 @@ namespace Renderer {
 				builder.ReadBuffer("OpaqueItemIndirectArgs", Renderer::ShaderAccessFlag::NonPixelShader);
 				builder.ReadBuffer("OpaqueItemDataArray", Renderer::ShaderAccessFlag::NonPixelShader);
 
-				NewTextureProperties _ShadingResultProperties{};
-				_ShadingResultProperties.width = finalOutputDesc.width;
-				_ShadingResultProperties.height = finalOutputDesc.height;
-				_ShadingResultProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				_ShadingResultProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-				_ShadingResultProperties.aliased = false;
-				builder.DeclareTexture("ShadingResult", _ShadingResultProperties);
-				builder.WriteRenderTarget("ShadingResult");
+				NewTextureProperties _GBufferAlbedoMetalnessProperties{};
+				_GBufferAlbedoMetalnessProperties.width = finalOutputDesc.width;
+				_GBufferAlbedoMetalnessProperties.height = finalOutputDesc.height;
+				_GBufferAlbedoMetalnessProperties.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				_GBufferAlbedoMetalnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferAlbedoMetalness", _GBufferAlbedoMetalnessProperties);
+				builder.WriteRenderTarget("GBufferAlbedoMetalness");
 
-				NewTextureProperties _NormalRoughnessProperties{};
-				_NormalRoughnessProperties.width = finalOutputDesc.width;
-				_NormalRoughnessProperties.height = finalOutputDesc.height;
-				_NormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				_NormalRoughnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-				_NormalRoughnessProperties.aliased = false;
-				builder.DeclareTexture("NormalRoughness", _NormalRoughnessProperties);
-				builder.WriteRenderTarget("NormalRoughness");
+				NewTextureProperties _GBufferPositionEmissionProperties{};
+				_GBufferPositionEmissionProperties.width = finalOutputDesc.width;
+				_GBufferPositionEmissionProperties.height = finalOutputDesc.height;
+				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				_GBufferPositionEmissionProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferPositionEmission", _GBufferPositionEmissionProperties);
+				builder.WriteRenderTarget("GBufferPositionEmission");
 
-				NewTextureProperties _ScreenVelocityProperties{};
-				_ScreenVelocityProperties.width = finalOutputDesc.width;
-				_ScreenVelocityProperties.height = finalOutputDesc.height;
-				_ScreenVelocityProperties.format = DXGI_FORMAT_R16G16_FLOAT;
-				_ScreenVelocityProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-				_ScreenVelocityProperties.aliased = false;
-				builder.DeclareTexture("ScreenVelocity", _ScreenVelocityProperties);
-				builder.WriteRenderTarget("ScreenVelocity");
+				NewTextureProperties _GBufferNormalRoughnessProperties{};
+				_GBufferNormalRoughnessProperties.width = finalOutputDesc.width;
+				_GBufferNormalRoughnessProperties.height = finalOutputDesc.height;
+				_GBufferNormalRoughnessProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				_GBufferNormalRoughnessProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferNormalRoughness", _GBufferNormalRoughnessProperties);
+				builder.WriteRenderTarget("GBufferNormalRoughness");
 
-				NewTextureProperties _DepthStencilProperties{};
-				_DepthStencilProperties.width = finalOutputDesc.width;
-				_DepthStencilProperties.height = finalOutputDesc.height;
-				_DepthStencilProperties.format = DXGI_FORMAT_D32_FLOAT;
-				_DepthStencilProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
-				// _DepthStencilProperties.aliased = false;
-				builder.DeclareTexture("DepthStencil", _DepthStencilProperties);
-				builder.WriteDepthStencil("DepthStencil");
+				NewTextureProperties _GBufferMotionVectorProperties{};
+				_GBufferMotionVectorProperties.width = finalOutputDesc.width;
+				_GBufferMotionVectorProperties.height = finalOutputDesc.height;
+				_GBufferMotionVectorProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				_GBufferMotionVectorProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("GBufferMotionVector", _GBufferMotionVectorProperties);
+				builder.WriteRenderTarget("GBufferMotionVector");
+
+				NewTextureProperties _GBufferViewDepthProperties{};
+				_GBufferViewDepthProperties.width = finalOutputDesc.width;
+				_GBufferViewDepthProperties.height = finalOutputDesc.height;
+				_GBufferViewDepthProperties.format = DXGI_FORMAT_R32_FLOAT;
+				_GBufferViewDepthProperties.clearValue = GHL::ColorClearValue{ std::numeric_limits<float>::max() };
+				builder.DeclareTexture("GBufferViewDepth", _GBufferViewDepthProperties);
+				builder.WriteRenderTarget("GBufferViewDepth");
+
+				NewTextureProperties _GBufferDepthStencilProperties{};
+				_GBufferDepthStencilProperties.width = finalOutputDesc.width;
+				_GBufferDepthStencilProperties.height = finalOutputDesc.height;
+				_GBufferDepthStencilProperties.format = DXGI_FORMAT_D32_FLOAT;
+				_GBufferDepthStencilProperties.clearValue = GHL::DepthStencilClearValue{ 1.0f, 0u };
+				builder.DeclareTexture("GBufferDepthStencil", _GBufferDepthStencilProperties);
+				builder.WriteDepthStencil("GBufferDepthStencil");
 
 				shaderManger.CreateGraphicsShader("OpaquePass",
 					[](GraphicsStateProxy& proxy) {
@@ -167,9 +173,11 @@ namespace Renderer {
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 						proxy.renderTargetFormatArray = {
+							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
-							DXGI_FORMAT_R16G16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R32_FLOAT
 						};
 					});
 
@@ -190,28 +198,33 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
-				auto* opaqueItemIndirectArgs = resourceStorage->GetResourceByName("OpaqueItemIndirectArgs")->GetBuffer();
-				auto* opaqueItemDataArray = resourceStorage->GetResourceByName("OpaqueItemDataArray")->GetBuffer();
-				auto* shadingResult   = resourceStorage->GetResourceByName("ShadingResult")->GetTexture();
-				auto* normalRoughness = resourceStorage->GetResourceByName("NormalRoughness")->GetTexture();
-				auto* screenVelocity  = resourceStorage->GetResourceByName("ScreenVelocity")->GetTexture();
-				auto* depthStencil    = resourceStorage->GetResourceByName("DepthStencil")->GetTexture();
+				auto* opaqueItemIndirectArgs  = resourceStorage->GetResourceByName("OpaqueItemIndirectArgs")->GetBuffer();
+				auto* opaqueItemDataArray     = resourceStorage->GetResourceByName("OpaqueItemDataArray")->GetBuffer();
+				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
+				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 
-				commandBuffer.ClearRenderTarget(shadingResult);
-				commandBuffer.ClearRenderTarget(normalRoughness);
-				commandBuffer.ClearRenderTarget(screenVelocity);
-				commandBuffer.ClearDepth(depthStencil, 1.0f);
+				commandBuffer.ClearRenderTarget(gBufferAlbedoMetalness);
+				commandBuffer.ClearRenderTarget(gBufferPositionEmission);
+				commandBuffer.ClearRenderTarget(gBufferNormalRoughness);
+				commandBuffer.ClearRenderTarget(gBufferMotionVector);
+				commandBuffer.ClearRenderTarget(gBufferViewDepth);
+				commandBuffer.ClearDepth(gBufferDepthStencil, 1.0f);
 				commandBuffer.SetRenderTargets(
 					{
-						shadingResult,
-						normalRoughness,
-						screenVelocity,
+						gBufferAlbedoMetalness,
+						gBufferPositionEmission,
+						gBufferNormalRoughness,
+						gBufferMotionVector,
+						gBufferViewDepth
 					},
-					depthStencil);
+					gBufferDepthStencil);
 
-				auto& shadingResultDesc = shadingResult->GetResourceFormat().GetTextureDesc();
-				uint16_t width = static_cast<uint16_t>(shadingResultDesc.width);
-				uint16_t height = static_cast<uint16_t>(shadingResultDesc.height);
+				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
+				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
 
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
@@ -220,10 +233,6 @@ namespace Renderer {
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandBuffer.ExecuteIndirect("OpaquePass", opaqueItemIndirectArgs, maxOpaqueItems);
 			});
-	}
-
-	void OpaquePass::AddGBufferPass(RenderGraph& renderGraph) {
-
 	}
 
 }

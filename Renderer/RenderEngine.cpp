@@ -165,27 +165,29 @@ namespace Renderer {
 			// mTerrainPass.InitializePass(this);
 			mTerrainSystem->Initialize(this);
 			// mVegetationSystem->Initialize(this);
-			mDetailObjectSystem->Initialize(this);
+			// mDetailObjectSystem->Initialize(this);
 			// mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
 			mAtmospherePass.InitializePass(this);
-			mOceanPass.InitializePass(this);
-			mVolumetricCloudsPass.InitializePass(this);
+			// mOceanPass.InitializePass(this);
+			// mVolumetricCloudsPass.InitializePass(this);
 		}
 
 		// 添加RenderPass并构建RenderGraph
 		{
-			mOpaquePass.AddForwardPlusPass(*mRenderGraph);
+			mOpaquePass.AddPass(*mRenderGraph);
+			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mTerrainSystem->AddPass(this);
 			// mVegetationSystem->AddPass(this);
-			mDetailObjectSystem->AddPass(this);
+			// mDetailObjectSystem->AddPass(this);
 			// mTerrainPass.AddForwardPlusPass(*mRenderGraph);
 			// mGrassPass.AddPass(*mRenderGraph);
+			mDeferredLightPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddPass(*mRenderGraph);
-			mOceanPass.AddPass(*mRenderGraph);
+			// mOceanPass.AddPass(*mRenderGraph);
 			// mSkyPass.AddPass(*mRenderGraph);
-			mTAAPass.AddForwardPlus(*mRenderGraph);
-			mToneMappingPass.AddForwardPlusPass(*mRenderGraph);
+			mTAAPass.AddPass(*mRenderGraph);
+			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 			
 			/*

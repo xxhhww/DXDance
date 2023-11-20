@@ -171,9 +171,7 @@
     </ClInclude>
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="FileHandle.h" />
-    <ClInclude Include="FoliagePass.h" />
     <ClInclude Include="FormatConverter.h" />
-    <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainNodeManger.h" />
@@ -184,7 +182,6 @@
     <ClInclude Include="XetTextureGenerator.h" />
     <ClInclude Include="GPUData.h" />
     <ClInclude Include="GPUProfiler.h" />
-    <ClInclude Include="GrassPass.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
     <ClInclude Include="LruCache.h" />
     <ClInclude Include="Material.h" />
@@ -194,8 +191,6 @@
     <ClInclude Include="OceanPass.h" />
     <ClInclude Include="OpaquePass.h" />
     <ClInclude Include="PageTable.h" />
-    <ClInclude Include="PlaceObjectOnTerrainPass.h" />
-    <ClInclude Include="RenderObjectOnTerrainPass.h" />
     <ClInclude Include="RngSeedGenerationPass.h" />
     <ClInclude Include="RuntimeVirtualTextureSystem.h" />
     <ClInclude Include="RvtPageLevelTable.h" />
@@ -203,8 +198,6 @@
     <ClInclude Include="RvtPageLevelTableCell.h" />
     <ClInclude Include="RvtPhysicalTexture.h" />
     <ClInclude Include="RvtTiledTexture.h" />
-    <ClInclude Include="SkyGenerationPass.h" />
-    <ClInclude Include="SkyPass.h" />
     <ClInclude Include="StreamVirtualTexture.h" />
     <ClInclude Include="StreamVirtualTextureSystem.h" />
     <ClInclude Include="TAAPass.h" />
@@ -237,7 +230,6 @@
     <ClInclude Include="StreamTextureManger.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="TerrainPass.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="FixedTextureHelper.h" />
     <ClInclude Include="TileCache.h" />
@@ -267,11 +259,10 @@
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="DirectStorageTest.cpp" />
     <ClCompile Include="FileHandle.cpp" />
-    <ClCompile Include="FoliagePass.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
-    <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
+    <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TerrainQuadTree.cpp" />
     <ClCompile Include="TileNodeManger.cpp" />
@@ -280,7 +271,6 @@
     <ClCompile Include="VegetationVirtualTable.cpp" />
     <ClCompile Include="XetTextureGenerator.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
-    <ClCompile Include="GrassPass.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MemoryAliasingHelper.cpp" />
@@ -288,19 +278,14 @@
     <ClCompile Include="OceanPass.cpp" />
     <ClCompile Include="OpaquePass.cpp" />
     <ClCompile Include="PageTable.cpp" />
-    <ClCompile Include="PlaceObjectOnTerrainPass.cpp" />
-    <ClCompile Include="RenderObjectOnTerrainPass.cpp" />
     <ClCompile Include="RngSeedGenerationPass.cpp" />
     <ClCompile Include="RuntimeVirtualTextureSystem.cpp" />
     <ClCompile Include="RvtPageLevelTable.cpp" />
     <ClCompile Include="RvtPageTable.cpp" />
     <ClCompile Include="RvtPhysicalTexture.cpp" />
     <ClCompile Include="RvtTiledTexture.cpp" />
-    <ClCompile Include="SkyGenerationPass.cpp" />
-    <ClCompile Include="SkyPass.cpp" />
     <ClCompile Include="StreamVirtualTexture.cpp" />
     <ClCompile Include="StreamVirtualTextureSystem.cpp" />
-    <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="TerrainSystem.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -331,7 +316,6 @@
     <ClCompile Include="StreamTextureManger.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="TerrainPass.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="FixedTextureHelper.cpp" />
     <ClCompile Include="TileCache.cpp" />

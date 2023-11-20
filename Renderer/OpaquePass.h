@@ -17,13 +17,7 @@ namespace Renderer {
 		};
 
 	public:
-		void AddPreDepthPass(RenderGraph& renderGraph);
-		
-		void AddShadowPass(RenderGraph& renderGraph);
-
-		void AddForwardPlusPass(RenderGraph& renderGraph);
-
-		void AddGBufferPass(RenderGraph& renderGraph);
+		void AddPass(RenderGraph& renderGraph);
 
 	private:
 		GpuCullingPassData gpuCullingPassData;

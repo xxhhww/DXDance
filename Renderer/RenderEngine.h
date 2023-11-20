@@ -29,15 +29,10 @@
 
 #include "Renderer/VegetationSystem.h"
 #include "Renderer/DetailObjectSystem.h"
-#include "Renderer/GBufferPass.h"
 #include "Renderer/OpaquePass.h"
-#include "Renderer/FoliagePass.h"
-#include "Renderer/GrassPass.h"
 #include "Renderer/AtmospherePass.h"
 #include "Renderer/OceanPass.h"
-#include "Renderer/SkyPass.h"
 #include "Renderer/RngSeedGenerationPass.h"
-#include "Renderer/SkyGenerationPass.h"
 #include "Renderer/DeferredLightPass.h"
 #include "Renderer/VolumetricCloudsPass.h"
 #include "Renderer/TAAPass.h"
@@ -150,16 +145,10 @@ namespace Renderer {
 		std::unique_ptr<VegetationSystem> mVegetationSystem;		// 草地系统
 		std::unique_ptr<DetailObjectSystem> mDetailObjectSystem;	// 细节物理系统
 
-		GBufferPass				  mGBufferPass;
 		OpaquePass				  mOpaquePass;
-		// TerrainPass				  mTerrainPass;
-		GrassPass                 mGrassPass;
-		SkyPass                   mSkyPass;
 		AtmospherePass            mAtmospherePass;
 		OceanPass                 mOceanPass;
-		FoliagePass				  mFoliagePass;
 		RngSeedGenerationPass	  mRngSeedGenerationPass;
-		SkyGenerationPass		  mSkyGenerationPass;
 		DeferredLightPass		  mDeferredLightPass;
 		VolumetricCloudsPass      mVolumetricCloudsPass;
 		TAAPass					  mTAAPass;
