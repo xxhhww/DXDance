@@ -1,7 +1,6 @@
 #pragma once
 #include "Renderer/HierarchyInstancedStaticMesh.h"
 
-
 namespace Renderer {
 
 	class RenderEngine;
