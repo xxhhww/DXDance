@@ -15,7 +15,7 @@ namespace ECS {
 		Math::Quaternion	worldRotation;	// 相对于世界原点的旋转(弧度制)
 		Math::Vector3		worldScaling;	// 相对于世界原点的缩放
 
-		Math::Matrix4	prevworldMatrix;	// 相对于世界原点的变换
+		Math::Matrix4	prevWorldMatrix;	// 前一帧的矩阵变换(已转置，在RenderEngine的UpdateItems函数中被使用)
 		Math::Matrix4	currWorldMatrix;
 
 	public:

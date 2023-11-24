@@ -4,6 +4,7 @@
 #include "PoolDescriptorAllocator.h"
 
 #include "Math/Vector.h"
+#include "Math/BoundingBox.h"
 
 #include <DirectStorage/dstorage.h>
 
@@ -89,6 +90,7 @@ namespace Renderer {
 		inline auto* GetVertexBuffer() const { return mVertexBuffer.get(); }
 		inline auto* GetIndexBuffer()  const { return mIndexBuffer.get();  }
 
+		inline auto& GetBoundingBox() { return mBoundingBox; }
 		inline const auto& GetBoundingBox() const { return mBoundingBox; }
 
 	private:
@@ -104,7 +106,7 @@ namespace Renderer {
 		std::unique_ptr<Buffer> mVertexBuffer;
 		std::unique_ptr<Buffer> mIndexBuffer;
 
-		DirectX::BoundingBox mBoundingBox; // АќЮЇКа
+		Math::BoundingBox mBoundingBox;
 	};
 
 }

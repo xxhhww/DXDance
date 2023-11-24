@@ -1,4 +1,4 @@
-#include "Renderer/ShadowSystem.h"
+#include "Renderer/CascadeShadowPass.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/ShaderManger.h"
 #include "Renderer/CommandBuffer.h"
@@ -9,15 +9,15 @@
 
 namespace Renderer {
 
-	void ShadowSystem::Initialize(RenderEngine* renderEngine) {
+	void CascadeShadowPass::Initialize(RenderEngine* renderEngine) {
 		auto* device = renderEngine->mDevice.get();
 		auto* renderGraph = renderEngine->mRenderGraph.get();
 		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
 
-		mCascadeShadowLightCameraViewMatrixs.resize(smNumShadowCascades);
-		mCascadeShadowLightCameraProjectMatrixs.resize(smNumShadowCascades);
+		mCascadedFrustumPlanesInWorldSpace.resize(smNumShadowCascades);
+		mCascadedLightCameraGpuVpMatrixs.resize(smNumShadowCascades);
 		mCascadeShadowDepthTextures.resize(smNumShadowCascades);
 
 		// 创建CascadeShadowDepthTexture
@@ -34,14 +34,27 @@ namespace Renderer {
 		}
 	}
 
-	void ShadowSystem::AddPass(RenderEngine* renderEngine) {
+	void CascadeShadowPass::AddPass(RenderEngine* renderEngine) {
 		auto* renderGraph = renderEngine->mRenderGraph.get();
 
 		auto& finalOutputDesc =
 			renderGraph->GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
 		renderGraph->AddPass(
-			"GBufferShadowPass",
+			"CascadeShadowCullingPass",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				// 根据级联阴影的层级数创建对应个数的
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage = renderContext.resourceStorage;
+
+
+			}
+			);
+
+		renderGraph->AddPass(
+			"CascadeShadowRenderPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				
 			},
@@ -51,24 +64,24 @@ namespace Renderer {
 
 
 			}
-			);
+		);
 	}
 
-	void ShadowSystem::Update(RenderEngine* renderEngine) {
+	void CascadeShadowPass::Update(RenderEngine* renderEngine) {
 		ASSERT_FORMAT(renderEngine->mPipelineResourceStorage->rootLightDataPerFrame.size() > 0, "SunLight Missing");
 		UpdateCascadeShadowLightCameraMatrix(renderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera, renderEngine->mPipelineResourceStorage->rootLightDataPerFrame[0]);
 	}
 
-	void ShadowSystem::UpdateCascadeShadowLightCameraMatrix(const GPUCamera& gpuCamera, const GPULight& sunLight) {
+	void CascadeShadowPass::UpdateCascadeShadowLightCameraMatrix(const GPUCamera& gpuCamera, const GPULight& sunLight) {
 		// 太阳光方向及其ViewMatrix
-		Math::Vector3 sunDirection{ sunLight.position.x, sunLight.position.y, sunLight.position.z };
-		Math::Matrix4 sunViewMatrix = DirectX::XMMatrixLookToLH(Math::Vector3{ 0.0f, 0.0f, 0.0f }, sunDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
-		Math::Matrix4 invSunViewMatrix = sunViewMatrix.Inverse();
+		Math::Vector3 lightDirection{ sunLight.position.x, sunLight.position.y, sunLight.position.z };
+		Math::Matrix4 lightViewMatrix = DirectX::XMMatrixLookToLH(Math::Vector3{ 0.0f, 0.0f, 0.0f }, lightDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
+		Math::Matrix4 invLightViewMatrix = lightViewMatrix.Inverse();
 
 		for (int32_t i = 0; i < smNumShadowCascades; i++) {
 			// 获取当前渲染相机下，当前级联层级的平截头体的八个顶点
 			FrustumCorners currFrustumCornersInWorldSpace;
-			SpawnWorldSpaceFrustumCornersByIndex(i, gpuCamera, currFrustumCornersInWorldSpace);
+			GetWorldSpaceFrustumCornersByIndex(i, gpuCamera, currFrustumCornersInWorldSpace);
 
 			auto getFrustumBoundingBox = [](const FrustumCorners& currFrustumCorners) {
 				Math::BoundingBox currBoundingBox;
@@ -99,14 +112,11 @@ namespace Renderer {
 				return currBoundingBox;
 			};
 
-			// 在世界空间下计算八个顶点的包围盒
-			mCascadeBoundingBoxsInWorldSpace[i] = getFrustumBoundingBox(currFrustumCornersInWorldSpace);
-
 			// 将平截头体的八个顶点转换到光源空间下，后续均在光源空间下计算结果
 			FrustumCorners currFrustumCornersInLightSpace;
 			for (int32_t j = 0; j < 4; j++) {
-				currFrustumCornersInLightSpace.nearCorners[j] = currFrustumCornersInWorldSpace.nearCorners[j].TransformAsPoint(sunViewMatrix);
-				currFrustumCornersInLightSpace.farCorners[j] = currFrustumCornersInWorldSpace.farCorners[j].TransformAsPoint(sunViewMatrix);
+				currFrustumCornersInLightSpace.nearCorners[j] = currFrustumCornersInWorldSpace.nearCorners[j].TransformAsPoint(lightViewMatrix);
+				currFrustumCornersInLightSpace.farCorners[j] = currFrustumCornersInWorldSpace.farCorners[j].TransformAsPoint(lightViewMatrix);
 			}
 
 			// 远平面的对角线
@@ -117,13 +127,13 @@ namespace Renderer {
 			float maxLength = farPlaneDiagonalLength > frustumDiagonalLength ? farPlaneDiagonalLength : frustumDiagonalLength;
 
 			// 光源空间下的包围盒的两个顶点
-			Math::BoundingBox boundingBoxFromSunLight = getFrustumBoundingBox(currFrustumCornersInLightSpace);
-			float minX = boundingBoxFromSunLight.minPosition.x;
-			float maxX = boundingBoxFromSunLight.maxPosition.x;
-			float minY = boundingBoxFromSunLight.minPosition.y;
-			float maxY = boundingBoxFromSunLight.maxPosition.y;
-			float minZ = boundingBoxFromSunLight.minPosition.z;
-			float maxZ = boundingBoxFromSunLight.maxPosition.z;
+			Math::BoundingBox boundingBoxInLightSpace = getFrustumBoundingBox(currFrustumCornersInLightSpace);
+			float minX = boundingBoxInLightSpace.minPosition.x;
+			float maxX = boundingBoxInLightSpace.maxPosition.x;
+			float minY = boundingBoxInLightSpace.minPosition.y;
+			float maxY = boundingBoxInLightSpace.maxPosition.y;
+			float minZ = boundingBoxInLightSpace.minPosition.z;
+			float maxZ = boundingBoxInLightSpace.maxPosition.z;
 
 			float fWorldUnitsPerTexel = maxLength / (float)smCascadeShadowDepthTextureResolution;
 			float posX = (minX + maxX) * 0.5f;
@@ -141,15 +151,17 @@ namespace Renderer {
 			posZ = std::floor(posZ);
 			posZ *= fWorldUnitsPerTexel;
 
-			Math::Vector3 centerPos{ posX, posY, posZ };
-
-			// 计算光源相机的矩阵
-			mCascadeShadowLightCameraViewMatrixs[i] = sunViewMatrix;
-			mCascadeShadowLightCameraProjectMatrixs[i] = DirectX::XMMatrixOrthographicLH(maxLength, maxLength, 0.0f, maxZ - minZ);
+			Math::Vector3 centerPosInLightSpace{ posX, posY, posZ };
+			Math::Vector3 centerPosInWorldSpace = centerPosInLightSpace.TransformAsPoint(invLightViewMatrix);
+			// 计算光源相机的矩阵与平截头体平面
+			Math::Matrix4 viewMatrix = DirectX::XMMatrixLookToLH(centerPosInWorldSpace, lightDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
+			Math::Matrix4 projMatrix = DirectX::XMMatrixOrthographicLH(maxLength, maxLength, 0.0f, maxZ - minZ);
+			mCascadedLightCameraGpuVpMatrixs[i] = (viewMatrix * projMatrix).Transpose();
+			Math::Frustum::BuildFrustumPlanes(mCascadedLightCameraGpuVpMatrixs[i], mCascadedFrustumPlanesInWorldSpace[i].data());
 		}
 	}
 
-	void ShadowSystem::SpawnWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners) {
+	void CascadeShadowPass::GetWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners) {
 		// 计算近平面与远平面
 		float nearPlaneRatio = 0.0f;
 		float farPlaneRatio = 0.0f;

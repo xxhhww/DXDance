@@ -336,7 +336,7 @@
     <ClInclude Include="ClusterTree.h">
       <Filter>头文件\Renderer\Terrain\DetailObjectSystem</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowSystem.h">
+    <ClInclude Include="CascadeShadowPass.h">
       <Filter>头文件\Renderer\ShadowSystem</Filter>
     </ClInclude>
   </ItemGroup>
@@ -560,7 +560,7 @@
     <ClCompile Include="ClusterTree.cpp">
       <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowSystem.cpp">
+    <ClCompile Include="CascadeShadowPass.cpp">
       <Filter>源文件\Renderer\ShadowSystem</Filter>
     </ClCompile>
     <ClCompile Include="TAAPass.cpp">

@@ -3,6 +3,7 @@
 
 #include "Camera.hlsl"
 #include "Light.hlsl"
+#include "GpuData.hlsl"
 
 struct FrameData {
     Camera CurrentEditorCamera;
@@ -24,6 +25,9 @@ struct FrameData {
 
 #define FrameDataType FrameData
 #define LightDataType Light
+#define ItemDataType Dummy
+#define ItemGroupDataType Dummy
+#define ItemGroupIndirectDrawIndexedDataType Dummy
 
 #include "BaseEngineLayout.hlsl"
 

@@ -68,9 +68,7 @@ namespace Renderer {
 		/*
 		* 更新RootConstantsPerFrame
 		*/
-		void Update(
-			float deltaTime, float totalTime,
-			const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform);
+		void Update(float deltaTime, float totalTime);
 
 		void Render();
 
@@ -80,21 +78,29 @@ namespace Renderer {
 
 	private:
 		/*
-		* 更新Sky(包括Sun Light)
+		* 更新摄像机数据
+		*/
+		void UpdateCameras();
+
+		/*
+		* 更新ItemData
+		*/
+		void UpdateItems();
+
+		/*
+		* 更新SunLight
 		*/
 		void UpdateSky();
 
 		/*
-		* 更新Lights(不包括Sun Light)
+		* 更新其他Lights
 		*/
 		void UpdateLights();
 
-		/*
-		* 更新部分子系统
-		*/
-		void UpdateSubSystem();
-
 	public:
+		// ==========================...静态变量...==========================
+		inline static uint32_t smMaxItemNums = 1024u;
+
 		// ==========================...杂项...==========================
 		HWND mWindowHandle{ nullptr };
 		uint32_t mOutputWidth{ 0u };

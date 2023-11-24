@@ -1,7 +1,7 @@
 #pragma once
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
-#include "Math/BoundingBox.h"
+#include "Math/Frustum.h"
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/RootConstantsPerFrame.h"
 #include "Renderer/GPUData.h"
@@ -10,7 +10,7 @@ namespace Renderer {
 
 	class RenderEngine;
 
-	class ShadowSystem {
+	class CascadeShadowPass {
 	public:
 		/*
 		* 描述平截头的八个顶点
@@ -22,8 +22,8 @@ namespace Renderer {
 		};
 
 	public:
-		ShadowSystem() = default;
-		~ShadowSystem() = default;
+		CascadeShadowPass() = default;
+		~CascadeShadowPass() = default;
 
 		/*
 		* 初始化
@@ -50,7 +50,7 @@ namespace Renderer {
 		/*
 		* 计算第i个级联层级的平截头体的八个顶点
 		*/
-		void SpawnWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners);
+		void GetWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners);
 
 	private:
 		// 级联阴影个数
@@ -73,10 +73,9 @@ namespace Renderer {
 			0.07f, 0.13f, 0.25f, 0.55f
 		};
 
-		// 级联阴影的包围盒与光源空间变换矩阵
-		std::vector<Math::BoundingBox> mCascadeBoundingBoxsInWorldSpace;
-		std::vector<Math::Matrix4> mCascadeShadowLightCameraViewMatrixs;
-		std::vector<Math::Matrix4> mCascadeShadowLightCameraProjectMatrixs;
+		// 级联阴影各个层级的平截头体平面与光源相机矩阵
+		std::vector<Math::Matrix4> mCascadedLightCameraGpuVpMatrixs;					// 已转置
+		std::vector<std::array<Math::Vector4, 6>> mCascadedFrustumPlanesInWorldSpace;
 
 		// 级联阴影的DepthTexture
 		std::vector<Renderer::TextureWrap> mCascadeShadowDepthTextures;

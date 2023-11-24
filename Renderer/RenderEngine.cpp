@@ -6,6 +6,8 @@
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
 #include "ECS/CSky.h"
+#include "ECS/CTransform.h"
+#include "ECS/CMeshRenderer.h"
 
 #include "GHL/Box.h"
 
@@ -216,12 +218,13 @@ namespace Renderer {
 
 	}
 
-	void RenderEngine::Update(
-		float deltaTime, float totalTime, 
-		const ECS::Camera& editorCamera, const ECS::Transform& cameraTransform) {
+	void RenderEngine::Update(float deltaTime, float totalTime) {
 		// 清理工作
 		mPipelineResourceStorage->rootLightDataPerFrame.clear();
-		
+		mPipelineResourceStorage->rootItemDataPerFrame.clear();
+		mPipelineResourceStorage->rootItemGroupPassDataPerFrame.resize(smMaxItemNums, GpuItemGroupPassData{});
+		mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.resize(smMaxItemNums, GpuIndirectDrawIndexedData{});
+
 		// 更新工作
 		auto& rootConstantsPerFrame = mPipelineResourceStorage->rootConstantsPerFrame;
 
@@ -231,54 +234,65 @@ namespace Renderer {
 		rootConstantsPerFrame.finalRTResolution    = Math::Vector2{ static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight) };
 		rootConstantsPerFrame.finalRTResolutionInv = 1.0f / rootConstantsPerFrame.finalRTResolution;
 
+		UpdateCameras();
+		UpdateItems();
+		UpdateSky();
+		UpdateLights();
+	}
+
+	void RenderEngine::UpdateCameras() {
+		auto& rootConstantsPerFrame = mPipelineResourceStorage->rootConstantsPerFrame;
+
 		static uint32_t cameraJitterFrameIndex = 0u;
 		static uint32_t taaSampleCount = 16u;
-		auto jitter = Math::Jitter::GetJitter(cameraJitterFrameIndex, taaSampleCount, Math::Vector2{ 
+		auto jitter = Math::Jitter::GetJitter(cameraJitterFrameIndex, taaSampleCount, Math::Vector2{
 			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
-		});
-
-		auto& gpuPreviousEditorCamera = rootConstantsPerFrame.previousEditorCamera;
-		auto& gpuCurrentEditorCamera  = rootConstantsPerFrame.currentEditorCamera;
-		if (!mFrameTracker->IsFirstFrame()) {
-			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
-		}
-		gpuCurrentEditorCamera.position				= cameraTransform.worldPosition;
-		gpuCurrentEditorCamera.lookUp				= Math::Vector4{ editorCamera.lookUp, 1.0f };
-		gpuCurrentEditorCamera.view					= editorCamera.viewMatrix.Transpose();
-		gpuCurrentEditorCamera.projection			= editorCamera.projMatrix.Transpose();
-		gpuCurrentEditorCamera.viewProjection		= editorCamera.viewProjMatrix.Transpose();
-		gpuCurrentEditorCamera.inverseView			= editorCamera.viewMatrix.Inverse().Transpose();
-		gpuCurrentEditorCamera.inverseProjection	= editorCamera.projMatrix.Inverse().Transpose();
-		gpuCurrentEditorCamera.nearPlane			= editorCamera.frustum.nearZ;
-		gpuCurrentEditorCamera.farPlane				= editorCamera.frustum.farZ;
-		gpuCurrentEditorCamera.aspectRatio          = editorCamera.frustum.aspect;
-		gpuCurrentEditorCamera.jitter				= jitter.jitterMatrix;
-		gpuCurrentEditorCamera.uvJitter				= jitter.uvJitter;
-		gpuCurrentEditorCamera.viewProjectionJitter	= (editorCamera.viewProjMatrix * jitter.jitterMatrix).Transpose();
-		if (mFrameTracker->IsFirstFrame()) {
-			gpuPreviousEditorCamera = gpuCurrentEditorCamera;
-		}
+			});
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
+			if (camera.cameraType == ECS::CameraType::EditorCamera) {
+				auto& gpuPreviousEditorCamera = rootConstantsPerFrame.previousEditorCamera;
+				auto& gpuCurrentEditorCamera = rootConstantsPerFrame.currentEditorCamera;
+				if (!mFrameTracker->IsFirstFrame()) {
+					gpuPreviousEditorCamera = gpuCurrentEditorCamera;
+				}
+				gpuCurrentEditorCamera.position = transform.worldPosition;
+				gpuCurrentEditorCamera.lookUp = Math::Vector4{ camera.lookUp, 1.0f };
+				gpuCurrentEditorCamera.view = camera.viewMatrix.Transpose();
+				gpuCurrentEditorCamera.projection = camera.projMatrix.Transpose();
+				gpuCurrentEditorCamera.viewProjection = camera.viewProjMatrix.Transpose();
+				gpuCurrentEditorCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
+				gpuCurrentEditorCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
+				gpuCurrentEditorCamera.nearPlane = camera.frustum.nearZ;
+				gpuCurrentEditorCamera.farPlane = camera.frustum.farZ;
+				gpuCurrentEditorCamera.aspectRatio = camera.frustum.aspect;
+				gpuCurrentEditorCamera.jitter = jitter.jitterMatrix;
+				gpuCurrentEditorCamera.uvJitter = jitter.uvJitter;
+				gpuCurrentEditorCamera.viewProjectionJitter = (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
+				if (mFrameTracker->IsFirstFrame()) {
+					gpuPreviousEditorCamera = gpuCurrentEditorCamera;
+				}
+			}
+
 			if (camera.mainCamera == true && camera.cameraType == ECS::CameraType::RenderCamera) {
 				auto& gpuPreviousRenderCamera = rootConstantsPerFrame.previousRenderCamera;
-				auto& gpuCurrentRenderCamera  = rootConstantsPerFrame.currentRenderCamera;
+				auto& gpuCurrentRenderCamera = rootConstantsPerFrame.currentRenderCamera;
 				if (!mFrameTracker->IsFirstFrame()) {
 					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
 				}
-				gpuCurrentRenderCamera.position				= transform.worldPosition;
-				gpuCurrentRenderCamera.lookUp				= Math::Vector4{ camera.lookUp, 1.0f };
-				gpuCurrentRenderCamera.view					= camera.viewMatrix.Transpose();
-				gpuCurrentRenderCamera.projection			= camera.projMatrix.Transpose();
-				gpuCurrentRenderCamera.viewProjection		= camera.viewProjMatrix.Transpose();
-				gpuCurrentRenderCamera.inverseView			= camera.viewMatrix.Inverse().Transpose();
-				gpuCurrentRenderCamera.inverseProjection	= camera.projMatrix.Inverse().Transpose();
-				gpuCurrentRenderCamera.nearPlane			= camera.frustum.nearZ;
-				gpuCurrentRenderCamera.farPlane				= camera.frustum.farZ;
-				gpuCurrentRenderCamera.aspectRatio          = camera.frustum.aspect;
-				gpuCurrentRenderCamera.jitter				= jitter.jitterMatrix;
-				gpuCurrentRenderCamera.uvJitter				= jitter.uvJitter;
-				gpuCurrentRenderCamera.viewProjectionJitter	= (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
+				gpuCurrentRenderCamera.position = transform.worldPosition;
+				gpuCurrentRenderCamera.lookUp = Math::Vector4{ camera.lookUp, 1.0f };
+				gpuCurrentRenderCamera.view = camera.viewMatrix.Transpose();
+				gpuCurrentRenderCamera.projection = camera.projMatrix.Transpose();
+				gpuCurrentRenderCamera.viewProjection = camera.viewProjMatrix.Transpose();
+				gpuCurrentRenderCamera.inverseView = camera.viewMatrix.Inverse().Transpose();
+				gpuCurrentRenderCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
+				gpuCurrentRenderCamera.nearPlane = camera.frustum.nearZ;
+				gpuCurrentRenderCamera.farPlane = camera.frustum.farZ;
+				gpuCurrentRenderCamera.aspectRatio = camera.frustum.aspect;
+				gpuCurrentRenderCamera.jitter = jitter.jitterMatrix;
+				gpuCurrentRenderCamera.uvJitter = jitter.uvJitter;
+				gpuCurrentRenderCamera.viewProjectionJitter = (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
 				Math::Frustum::BuildFrustumPlanes(camera.viewMatrix * camera.projMatrix, gpuCurrentRenderCamera.planes);
 				if (mFrameTracker->IsFirstFrame()) {
 					gpuPreviousRenderCamera = gpuCurrentRenderCamera;
@@ -287,18 +301,43 @@ namespace Renderer {
 		});
 
 		cameraJitterFrameIndex++;
+	}
 
-		UpdateSky();
-		UpdateLights();
+	void RenderEngine::UpdateItems() {
+		// TODO...需要先对Item进行归类，
+		// 首先考虑是否使用相同GraphicsShader
+		// 其次考虑所处的渲染阶段
+		// 最后考虑是否为同一网格
 
-		/*
-		mVegetationSystem->Update(
-			Math::Vector2{
-				rootConstantsPerFrame.currentRenderCamera.position.x,
-				rootConstantsPerFrame.currentRenderCamera.position.z,
-			}
-		);
-		*/
+		std::atomic<int32_t> atomicIndex = -1;
+		ECS::Entity::Foreach([&](ECS::Transform& transform, ECS::MeshRenderer& meshRenderer) {
+			int32_t index = ++atomicIndex;
+
+			GpuItemData itemData{};
+			Math::Matrix4 cpuWorldMatrix = transform.GetWorldMatrix();
+			Math::Matrix4 gpuWorldMatrix = cpuWorldMatrix.Transpose();
+			itemData.prevModelTrans = mFrameTracker->IsFirstFrame() ? gpuWorldMatrix : transform.prevWorldMatrix;
+			itemData.currModelTrans = gpuWorldMatrix;
+			itemData.boundingBoxInWorldSpace = meshRenderer.mesh->GetBoundingBox().transformBy(cpuWorldMatrix);
+			transform.prevWorldMatrix = gpuWorldMatrix;
+
+			GpuItemGroupPassData itemGroupPassData{};
+			itemGroupPassData.itemVertexBufferIndex = meshRenderer.mesh->GetVertexBuffer()->GetSRDescriptor()->GetHeapIndex();
+			itemGroupPassData.itemIndexBufferIndex = meshRenderer.mesh->GetIndexBuffer()->GetSRDescriptor()->GetHeapIndex();
+			itemGroupPassData.itemDataBeginIndex = atomicIndex;
+
+			GpuIndirectDrawIndexedData indirectDrawIndexedData{};
+			indirectDrawIndexedData.drawIndexedArguments.BaseVertexLocation = 0u;
+			indirectDrawIndexedData.drawIndexedArguments.StartInstanceLocation = 0u;
+			indirectDrawIndexedData.drawIndexedArguments.InstanceCount = 1u;
+			indirectDrawIndexedData.drawIndexedArguments.StartIndexLocation = 0u;
+			indirectDrawIndexedData.drawIndexedArguments.IndexCountPerInstance = meshRenderer.mesh->GetIndexCount();
+
+			mPipelineResourceStorage->rootItemDataPerFrame.at(index) = std::move(itemData);
+			mPipelineResourceStorage->rootItemGroupPassDataPerFrame.at(index) = std::move(itemGroupPassData);
+			mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.at(index) = std::move(indirectDrawIndexedData);
+		});
+		mPipelineResourceStorage->rootItemNumsPerFrame = atomicIndex + 1;
 	}
 
 	void RenderEngine::UpdateSky() {
@@ -369,10 +408,6 @@ namespace Renderer {
 			mPipelineResourceStorage->rootLightDataPerFrame.size();
 	}
 
-	void RenderEngine::UpdateSubSystem() {
-
-	}
-
 	void RenderEngine::Render() {
 		// 压入新的渲染帧
 		mRenderFrameFence->IncrementExpectedValue();
@@ -380,15 +415,40 @@ namespace Renderer {
 
 		auto rootDataAllocation = LinearAllocation{};
 		// RootConstantsDataPerFrame
-		rootDataAllocation = mSharedMemAllocator->Allocate(sizeof(RootConstantsPerFrame));
-		memcpy(rootDataAllocation.cpuAddress, &mPipelineResourceStorage->rootConstantsPerFrame, sizeof(RootConstantsPerFrame));
+		size_t rootConstantsPerFrameByteSize = sizeof(RootConstantsPerFrame);
+		rootDataAllocation = mSharedMemAllocator->Allocate(rootConstantsPerFrameByteSize);
+		memcpy(rootDataAllocation.cpuAddress, &mPipelineResourceStorage->rootConstantsPerFrame, rootConstantsPerFrameByteSize);
 		mPipelineResourceStorage->rootConstantsPerFrameAddress = rootDataAllocation.gpuAddress;
 
-		// RootGPULightDataPerFrame
-		size_t lightDataByteSize = sizeof(GPULight) * mPipelineResourceStorage->rootLightDataPerFrame.size();
+		// RootGpuLightDataPerFrame
+		size_t lightDataByteSize = sizeof(GpuLightData) * mPipelineResourceStorage->rootLightDataPerFrame.size();
 		rootDataAllocation = mSharedMemAllocator->Allocate(lightDataByteSize);
 		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootLightDataPerFrame.data(), lightDataByteSize);
 		mPipelineResourceStorage->rootLightDataPerFrameAddress = rootDataAllocation.gpuAddress;
+
+		// RootGpuItemDataPerFrame
+		size_t itemDataByteSize = sizeof(GpuItemData) * mPipelineResourceStorage->rootItemDataPerFrame.size();
+		rootDataAllocation = mSharedMemAllocator->Allocate(itemDataByteSize);
+		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemDataPerFrame.data(), itemDataByteSize);
+		mPipelineResourceStorage->rootItemDataPerFrameAddress = rootDataAllocation.gpuAddress;
+
+		// RootGpuItemGroupDataPerFrame
+		size_t itemGroupPassDataByteSize = sizeof(GpuItemGroupPassData) * mPipelineResourceStorage->rootItemGroupPassDataPerFrame.size();
+		rootDataAllocation = mSharedMemAllocator->Allocate(itemGroupPassDataByteSize);
+		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemGroupPassDataPerFrame.data(), itemGroupPassDataByteSize);
+		mPipelineResourceStorage->rootItemGroupPassDataPerFrameAddress = rootDataAllocation.gpuAddress;
+
+		// RootItemGroupIndirectDrawIndexedPerFrame
+		for (uint32_t i = 0; i < mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.size(); i++) {
+			auto& indirectDrawIndexedData = mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame[i];
+			indirectDrawIndexedData.frameDataAddress = mPipelineResourceStorage->rootConstantsPerFrameAddress;
+			indirectDrawIndexedData.lightDataAddress = mPipelineResourceStorage->rootLightDataPerFrameAddress;
+			indirectDrawIndexedData.passDataAddress = mPipelineResourceStorage->rootItemGroupPassDataPerFrameAddress + i * sizeof(GpuItemGroupPassData);
+		}
+		size_t itemGroupIndirectDrawIndexedDataByteSize = sizeof(GpuIndirectDrawIndexedData) * mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.size();
+		rootDataAllocation = mSharedMemAllocator->Allocate(itemGroupIndirectDrawIndexedDataByteSize);
+		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.data(), itemGroupIndirectDrawIndexedDataByteSize);
+		mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrameAddress = rootDataAllocation.gpuAddress;
 
 		mRenderGraph->Execute();
 

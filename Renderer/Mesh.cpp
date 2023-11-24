@@ -97,13 +97,9 @@ namespace Renderer {
 	}
 
 	void Mesh::BuildBoundingBox(const std::vector<Vertex>& vertices) {
-		std::vector<XMFLOAT3> PositionArray;
-		for (const auto& v : vertices) {
-			PositionArray.emplace_back(v.position);
+		for (const auto& vertex : vertices) {
+			mBoundingBox += vertex.position;
 		}
-		DirectX::BoundingBox::CreateFromPoints(mBoundingBox,
-			PositionArray.size(), PositionArray.data(), sizeof(XMFLOAT3)
-		);
 	}
 
 }

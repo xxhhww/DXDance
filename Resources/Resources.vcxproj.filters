@@ -100,5 +100,6 @@
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\RenderStaticInstance.hlsl" />
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\StaticInstanceHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
+    <FxCompile Include="Shaders\Engine\Base\GpuData.hlsl" />
   </ItemGroup>
 </Project>

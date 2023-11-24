@@ -173,7 +173,7 @@
     <ClInclude Include="FileHandle.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
-    <ClInclude Include="ShadowSystem.h" />
+    <ClInclude Include="CascadeShadowPass.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainNodeManger.h" />
     <ClInclude Include="TerrainQuadTree.h" />
@@ -263,7 +263,7 @@
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
-    <ClCompile Include="ShadowSystem.cpp" />
+    <ClCompile Include="CascadeShadowPass.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TerrainQuadTree.cpp" />
