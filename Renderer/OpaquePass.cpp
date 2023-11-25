@@ -23,13 +23,13 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				NewBufferProperties _DeferredItemIndirectArgsProperties{};
-				_DeferredItemIndirectArgsProperties.stride = sizeof(GpuItemIndirectDrawIndexedData);
-				_DeferredItemIndirectArgsProperties.size = maxOpaqueItems * _DeferredItemIndirectArgsProperties.stride;
-				_DeferredItemIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_DeferredItemIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("DeferredItemIndirectArgs", _DeferredItemIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("DeferredItemIndirectArgs");
+				NewBufferProperties _CulledDeferredItemIndirectArgsProperties{};
+				_CulledDeferredItemIndirectArgsProperties.stride = sizeof(GpuItemIndirectDrawIndexedData);
+				_CulledDeferredItemIndirectArgsProperties.size = maxOpaqueItems * _CulledDeferredItemIndirectArgsProperties.stride;
+				_CulledDeferredItemIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer | GHL::EBufferMiscFlag::IndirectArgs;
+				_CulledDeferredItemIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("CulledDeferredItemIndirectArgs", _CulledDeferredItemIndirectArgsProperties);
+				builder.WriteBuffer("CulledDeferredItemIndirectArgs");
 
 				shaderManger.CreateComputeShader("GpuCullingPass",
 					[](ComputeStateProxy& proxy) {
@@ -43,18 +43,37 @@ namespace Renderer {
 
 				auto* deferredItemDataBuffer					= resourceStorage->GetResourceByName("DeferredItemDataBuffer")->GetBuffer();
 				auto* deferredItemIndirectDrawIndexedDataBuffer = resourceStorage->GetResourceByName("DeferredItemIndirectDrawIndexedDataBuffer")->GetBuffer();
-				auto* deferredItemIndirectArgs					= resourceStorage->GetResourceByName("DeferredItemIndirectArgs")->GetBuffer();
+				auto* culledDeferredItemIndirectArgs			= resourceStorage->GetResourceByName("CulledDeferredItemIndirectArgs")->GetBuffer();
+
+				mGpuCullingPassData.deferredItemDataBufferIndex = deferredItemDataBuffer->GetSRDescriptor()->GetHeapIndex();
+				mGpuCullingPassData.deferredItemIndirectDrawIndexedDataBufferIndex = deferredItemIndirectDrawIndexedDataBuffer->GetSRDescriptor()->GetHeapIndex();
+				mGpuCullingPassData.culledDeferredItemIndirectArgsIndex = culledDeferredItemIndirectArgs->GetUADescriptor()->GetHeapIndex();
+				mGpuCullingPassData.itemNumsPerFrame = resourceStorage->rootItemNumsPerFrame;
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(GpuCullingPassData));
+				memcpy(passDataAlloc.cpuAddress, &mGpuCullingPassData, sizeof(GpuCullingPassData));
 
 				{
 					auto barrierBatch = GHL::ResourceBarrierBatch{};
-					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectDrawIndexedDataBuffer, GHL::EResourceState::CopySource);
-					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
-					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs, GHL::EResourceState::CopyDestination);
-					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemDataBuffer, GHL::EResourceState::NonPixelShaderAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectDrawIndexedDataBuffer, GHL::EResourceState::NonPixelShaderAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(culledDeferredItemIndirectArgs, GHL::EResourceState::UnorderedAccess);
+					barrierBatch += commandBuffer.TransitionImmediately(culledDeferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 					commandBuffer.FlushResourceBarrier(barrierBatch);
 				}
-				commandBuffer.CopyBufferRegion(deferredItemIndirectArgs, 0u, deferredItemIndirectDrawIndexedDataBuffer, 0u, maxOpaqueItems * sizeof(GpuItemIndirectDrawIndexedData));
-				commandBuffer.CopyCounterBuffer(deferredItemIndirectArgs, deferredItemIndirectDrawIndexedDataBuffer);
+				commandBuffer.ClearCounterBuffer(culledDeferredItemIndirectArgs, 0u);
+				{
+					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(culledDeferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
+
+				uint32_t threadGroupCountX = (resourceStorage->rootItemNumsPerFrame + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("GpuCullingPass");
+				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
+				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+				commandBuffer.Dispatch(threadGroupCountX, 1u, 1u);
 			}
 		);
 
@@ -63,7 +82,7 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				builder.ReadBuffer("DeferredItemIndirectArgs", Renderer::ShaderAccessFlag::NonPixelShader);
+				builder.ReadBuffer("CulledDeferredItemIndirectArgs", Renderer::ShaderAccessFlag::NonPixelShader);
 
 				NewTextureProperties _GBufferAlbedoMetalnessProperties{};
 				_GBufferAlbedoMetalnessProperties.width = finalOutputDesc.width;
@@ -145,7 +164,7 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
-				auto* deferredItemIndirectArgs = resourceStorage->GetResourceByName("DeferredItemIndirectArgs")->GetBuffer();
+				auto* deferredItemIndirectArgs = resourceStorage->GetResourceByName("CulledDeferredItemIndirectArgs")->GetBuffer();
 				auto* gBufferAlbedoMetalness   = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission  = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness   = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
@@ -171,6 +190,13 @@ namespace Renderer {
 
 				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
 				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
+
+				{
+					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs, GHL::EResourceState::IndirectArgument);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
 
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });

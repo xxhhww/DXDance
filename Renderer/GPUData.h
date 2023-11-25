@@ -74,6 +74,9 @@ namespace Renderer {
         D3D12_VERTEX_BUFFER_VIEW     vertexBufferView;      // 顶点
         D3D12_INDEX_BUFFER_VIEW      indexBufferView;       // 索引
         D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;  // 绘制参数
+        float pad1;
+        float pad2;
+        float pad3;
 
     public:
         GpuItemIndirectDrawIndexedData() = default;

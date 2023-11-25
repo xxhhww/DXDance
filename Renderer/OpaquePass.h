@@ -10,17 +10,19 @@ namespace Renderer {
 	public:
 		struct GpuCullingPassData {
 		public:
-			uint32_t opaqueItemIndirectArgsIndex;
-			uint32_t opaqueItemDataArrayIndex;
-			float pad1;
-			float pad2;
+			uint32_t deferredItemDataBufferIndex;
+			uint32_t deferredItemIndirectDrawIndexedDataBufferIndex;
+			uint32_t culledDeferredItemIndirectArgsIndex;
+			uint32_t itemNumsPerFrame;
 		};
 
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
 	private:
-		GpuCullingPassData gpuCullingPassData;
+		inline static uint32_t smThreadSizeInGroup = 8u;
+
+		GpuCullingPassData mGpuCullingPassData;
 	};
 
 }
