@@ -171,6 +171,12 @@ namespace Renderer {
 		TextureWrap mBlueNoise3DMap;
 		RenderGraphResourceID mBlueNoise3DMapID;
 
+		BufferWrap mDeferredItemDataBuffer;
+		RenderGraphResourceID mDeferredItemDataBufferID;
+
+		BufferWrap mDeferredItemIndirectDrawIndexedDataBuffer;
+		RenderGraphResourceID mDeferredItemIndirectDrawIndexedDataBufferID;
+
 		RenderGraphResourceStorage* mPipelineResourceStorage{ nullptr };
 
 		// ==========================...Editor Render Pass...==========================

@@ -45,12 +45,12 @@ namespace Renderer {
 		/*
 		* 计算级联阴影各个层级的光源相机的矩阵值
 		*/
-		void UpdateCascadeShadowLightCameraMatrix(const GPUCamera& gpuCamera, const GPULight& sunLight);
+		void UpdateCascadeShadowLightCameraMatrix(const GpuCameraData& gpuCamera, const GpuLightData& sunLight);
 
 		/*
 		* 计算第i个级联层级的平截头体的八个顶点
 		*/
-		void GetWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners);
+		void GetWorldSpaceFrustumCornersByIndex(int32_t index, const GpuCameraData& gpuCamera, FrustumCorners& currFrustumCorners);
 
 	private:
 		// 级联阴影个数

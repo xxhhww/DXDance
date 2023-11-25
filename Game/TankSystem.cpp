@@ -58,11 +58,12 @@ namespace Game {
 
 		tankMeshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
 		auto& boundingBox = tankMeshRenderer.mesh->GetBoundingBox();
+		auto  boundingBoxExtents = boundingBox.GetExtent();
 		tankTransform.worldPosition = sStartPosition;
 		tankTransform.worldScaling = Math::Vector3{ 
-			sHalfVehicleWidth  / boundingBox.Extents.x,
-			sHalfVehicleHeight / boundingBox.Extents.y,
-			sHalfVehicleLength / boundingBox.Extents.z
+			sHalfVehicleWidth  / boundingBoxExtents.x,
+			sHalfVehicleHeight / boundingBoxExtents.y,
+			sHalfVehicleLength / boundingBoxExtents.z
 		};
 
 		// create physical tank body
@@ -102,11 +103,12 @@ namespace Game {
 
 				tankWheelMeshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cylinder");
 				auto& boundingBox = tankWheelMeshRenderer.mesh->GetBoundingBox();
+				auto  boundingBoxExtents = boundingBox.GetExtent();
 				tankWheelTransform.worldPosition = Math::Vector3{ 0.0f, 1650.0f, 0.0f };
 				tankWheelTransform.worldScaling = Math::Vector3{ 
-					sWheelRadius       / boundingBox.Extents.x, 
-					0.5f * sWheelWidth / boundingBox.Extents.y, 
-					sWheelRadius       / boundingBox.Extents.z 
+					sWheelRadius       / boundingBoxExtents.x,
+					0.5f * sWheelWidth / boundingBoxExtents.y,
+					sWheelRadius       / boundingBoxExtents.z
 				};
 
 				// attach tank entity id & wheel index

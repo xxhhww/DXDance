@@ -51,11 +51,7 @@ namespace Game {
 				editorTransform = &transform;
 			}
 		});
-		CORESERVICE(Renderer::RenderEngine).Update(
-			CORESERVICE(Tool::Clock).GetDeltaTime(), 
-			CORESERVICE(Tool::Clock).GetTimeSinceStart(),
-			*editorCamera, 
-			*editorTransform);
+		CORESERVICE(Renderer::RenderEngine).Update(CORESERVICE(Tool::Clock).GetDeltaTime(), CORESERVICE(Tool::Clock).GetTimeSinceStart());
 		CORESERVICE(Renderer::RenderEngine).Render();
 	}
 

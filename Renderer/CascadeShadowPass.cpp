@@ -72,7 +72,7 @@ namespace Renderer {
 		UpdateCascadeShadowLightCameraMatrix(renderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera, renderEngine->mPipelineResourceStorage->rootLightDataPerFrame[0]);
 	}
 
-	void CascadeShadowPass::UpdateCascadeShadowLightCameraMatrix(const GPUCamera& gpuCamera, const GPULight& sunLight) {
+	void CascadeShadowPass::UpdateCascadeShadowLightCameraMatrix(const GpuCameraData& gpuCamera, const GpuLightData& sunLight) {
 		// 太阳光方向及其ViewMatrix
 		Math::Vector3 lightDirection{ sunLight.position.x, sunLight.position.y, sunLight.position.z };
 		Math::Matrix4 lightViewMatrix = DirectX::XMMatrixLookToLH(Math::Vector3{ 0.0f, 0.0f, 0.0f }, lightDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
@@ -161,7 +161,7 @@ namespace Renderer {
 		}
 	}
 
-	void CascadeShadowPass::GetWorldSpaceFrustumCornersByIndex(int32_t index, const GPUCamera& gpuCamera, FrustumCorners& currFrustumCorners) {
+	void CascadeShadowPass::GetWorldSpaceFrustumCornersByIndex(int32_t index, const GpuCameraData& gpuCamera, FrustumCorners& currFrustumCorners) {
 		// 计算近平面与远平面
 		float nearPlaneRatio = 0.0f;
 		float farPlaneRatio = 0.0f;

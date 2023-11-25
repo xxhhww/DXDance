@@ -10,7 +10,7 @@ namespace Renderer {
 			uint32_t  outputMapIndex;
 			bool      isHDREnabled;
 			float     displayMaxLuminance;
-			GPUGTTonemappingParameters tonemappingParams;
+			GpuGTTonemappingParameters tonemappingParams;
 		};
 
 		ToneMappingPassData toneMappingPassData;

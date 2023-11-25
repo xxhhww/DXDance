@@ -8,11 +8,11 @@ namespace Renderer {
 	*/
 	struct RootConstantsPerFrame {
 	public:
-		GPUCamera currentEditorCamera;
-		GPUCamera previousEditorCamera;
+		GpuCameraData currentEditorCamera;
+		GpuCameraData previousEditorCamera;
 
-		GPUCamera currentRenderCamera;
-		GPUCamera previousRenderCamera;
+		GpuCameraData currentRenderCamera;
+		GpuCameraData previousRenderCamera;
 
 		Math::Vector2 finalRTResolution;
 		Math::Vector2 finalRTResolutionInv;

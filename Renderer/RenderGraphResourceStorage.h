@@ -53,14 +53,7 @@ namespace Renderer {
 		// 频繁变换的Item
 		uint32_t rootItemNumsPerFrame;
 		std::vector<GpuItemData> rootItemDataPerFrame;
-		D3D12_GPU_VIRTUAL_ADDRESS rootItemDataPerFrameAddress;
-
-		std::vector<GpuItemGroupPassData> rootItemGroupPassDataPerFrame;
-		D3D12_GPU_VIRTUAL_ADDRESS rootItemGroupPassDataPerFrameAddress;
-
-		// 与ItemGroupPassData对应的IndirectDrawIndexed
-		std::vector<GpuIndirectDrawIndexedData> rootItemGroupIndirectDrawIndexedDataPerFrame;
-		D3D12_GPU_VIRTUAL_ADDRESS rootItemGroupIndirectDrawIndexedDataPerFrameAddress;
+		std::vector<GpuItemIndirectDrawIndexedData> rootItemIndirectDrawIndexedDataPerFrame;
 
 	private:
 		const GHL::Device* mDevice{ nullptr };

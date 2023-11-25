@@ -6,8 +6,8 @@ namespace Math {
 
 	struct BoundingBox {
 	public:
-		Math::Vector4 minPosition{ INT_MAX, INT_MAX, INT_MAX, 0.0f };
-		Math::Vector4 maxPosition{ INT_MIN, INT_MIN, INT_MIN, 0.0f };
+		Math::Vector4 minPosition{ (float)INT_MAX, (float)INT_MAX, (float)INT_MAX, 0.0f };
+		Math::Vector4 maxPosition{ (float)INT_MIN, (float)INT_MIN, (float)INT_MIN, 0.0f };
 
 		BoundingBox& operator+=(const Math::Vector3& position) {
 			minPosition.x = (position.x < minPosition.x ? position.x : minPosition.x);
@@ -64,6 +64,22 @@ namespace Math {
 			newBoundingBox.maxPosition = NewVecMax;
 
 			return newBoundingBox;
+		}
+
+		Math::Vector3 GetExtent() const {
+			return Math::Vector3{
+				(maxPosition.x - minPosition.x) / 2.0f,
+				(maxPosition.y - minPosition.y) / 2.0f,
+				(maxPosition.z - minPosition.z) / 2.0f,
+			};
+		}
+
+		Math::Vector3 GetCenter() const {
+			return Math::Vector3{
+				(minPosition.x + maxPosition.x) / 2.0f,
+				(minPosition.y + maxPosition.y) / 2.0f,
+				(minPosition.z + maxPosition.z) / 2.0f,
+			};
 		}
 	};
 

@@ -13,8 +13,8 @@ namespace Renderer {
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 1u, 10u });
 		// rootParamIndex 2 : t0,s10
 		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootShaderResourceParameter{ 0u, 10u });
-		// rootParamIndex 3 : b0,s0
-		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 0u, 0u });
+		// rootParamIndex 3 : b2,s10
+		mBaseRootSignature->AddRootDescriptorParameter(GHL::RootConstantBufferParameter{ 2u, 10u });
 		mBaseRootSignature->Compile();
 	}
 

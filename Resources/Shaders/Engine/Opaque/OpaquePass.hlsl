@@ -13,14 +13,6 @@ struct PassData {
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Base/Utils.hlsl"
 
-cbuffer ItemData : register(b0, space0) 
-{
-	float4x4 prevModelTrans;	// 前一帧的世界变换矩阵
-	float4x4 currModelTrans;    // 当前帧的世界变换矩阵
-    float4 center;				// boundingBox
-    float4 extend;
-};
-
 struct a2v {
 	float3 lsPos     : POSITION;
 	float2 uv        : TEXCOORD;
@@ -48,13 +40,13 @@ struct p2o {
 	float  viewDepth        : SV_TARGET4;
 };
 
-v2p VSMain(a2v input, uint vertexID : SV_VERTEXID) {
+v2p VSMain(a2v input, uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID) {
 	v2p output;
 
-	float3 currWsPos = mul(float4(input.lsPos, 1.0f), currModelTrans).xyz;
-	float3 prevWsPos = mul(float4(input.lsPos, 1.0f), prevModelTrans).xyz;
+	float3 currWsPos = mul(float4(input.lsPos, 1.0f), ItemDataCB.currModelTrans).xyz;
+	float3 prevWsPos = mul(float4(input.lsPos, 1.0f), ItemDataCB.prevModelTrans).xyz;
 
-	float3 wsNormal = mul(float4(input.lsNormal, 0.0f), currModelTrans).xyz;
+	float3 wsNormal = mul(float4(input.lsNormal, 0.0f), ItemDataCB.currModelTrans).xyz;
 
 	float3 currVsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.View).xyz;
 	float4 currCsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);

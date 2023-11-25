@@ -272,7 +272,7 @@ void RunRenderer() {
             updateCameraMatrix(camera, transform);
             });
 
-        renderEngine.Update(clock.GetDeltaTime(), clock.GetTimeSinceStart(), editorCamera, editorTransform);
+        renderEngine.Update(clock.GetDeltaTime(), clock.GetTimeSinceStart());
         renderEngine.Render();
 
         inputManger.PostUpdate();

@@ -85,11 +85,7 @@ namespace Renderer {
 			mLodGroups.emplace_back(std::move(lodModel));
 		}
 
-		auto boundingBoxDx = mLodGroups.at(0)->GetFirstMesh()->GetBoundingBox();
-		Math::Vector3 center(boundingBoxDx.Center.x, boundingBoxDx.Center.y, boundingBoxDx.Center.z);
-		Math::Vector3 extends(boundingBoxDx.Extents.x, boundingBoxDx.Extents.y, boundingBoxDx.Extents.z);
-		mInstanceBoundingBox.minPosition = (center - extends);
-		mInstanceBoundingBox.maxPosition = (center + extends);
+		mInstanceBoundingBox = mLodGroups.at(0)->GetFirstMesh()->GetBoundingBox();
 
 		// Material Texture
 		mAlbedoMap = FixedTextureHelper::LoadFromFile(

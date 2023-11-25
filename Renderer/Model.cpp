@@ -50,11 +50,15 @@ namespace Renderer {
 			vbDesc.stride = sizeof(Vertex);
 			vbDesc.size = sizeof(Vertex) * vertices.size();
 			vbDesc.usage = GHL::EResourceUsage::Default;
+			vbDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			vbDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
 
 			BufferDesc ibDesc{};
 			ibDesc.stride = sizeof(uint32_t);
 			ibDesc.size = sizeof(uint32_t) * indices.size();
 			ibDesc.usage = GHL::EResourceUsage::Default;
+			ibDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			ibDesc.expectedState = GHL::EResourceState::NonPixelShaderAccess;
 
 			p_meshes.emplace_back(std::make_unique<Mesh>(
 				mDevice,

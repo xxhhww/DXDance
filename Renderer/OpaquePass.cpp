@@ -13,50 +13,23 @@
 
 namespace Renderer {
 
-	#pragma pack (1)
-	struct IndirectDraw {
-	public:
-		D3D12_GPU_VIRTUAL_ADDRESS frameDataAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS lightDataAddress;
-		D3D12_GPU_VIRTUAL_ADDRESS perItemDataAddress;
-		D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-		D3D12_INDEX_BUFFER_VIEW indexBufferView;
-		D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;
-	};
-
-	struct ItemData {
-	public:
-		Math::Matrix4 prevModelTrans;		// 前一帧的世界变换矩阵
-		Math::Matrix4 currModelTrans;		// 当前帧的世界变换矩阵
-		Math::Vector4 center;				// boundingBox
-		Math::Vector4 extend;
-	};
-
 	void OpaquePass::AddPass(RenderGraph& renderGraph) {
 		auto& finalOutputDesc =
 			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
-		uint32_t maxOpaqueItems = 300.0f;
+		uint32_t maxOpaqueItems = 1024u;
 		renderGraph.AddPass(
 			"GpuCullingPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
-				NewBufferProperties _OpaqueItemIndirectArgsProperties{};
-				_OpaqueItemIndirectArgsProperties.stride = sizeof(IndirectDraw);
-				_OpaqueItemIndirectArgsProperties.size = maxOpaqueItems * _OpaqueItemIndirectArgsProperties.stride;
-				_OpaqueItemIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_OpaqueItemIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("OpaqueItemIndirectArgs", _OpaqueItemIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("OpaqueItemIndirectArgs");
-
-				NewBufferProperties _OpaqueItemDataArrayProperties{};
-				_OpaqueItemDataArrayProperties.stride = sizeof(ItemData);
-				_OpaqueItemDataArrayProperties.size = maxOpaqueItems * _OpaqueItemDataArrayProperties.stride;
-				_OpaqueItemDataArrayProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-				_OpaqueItemDataArrayProperties.aliased = false;
-				builder.DeclareBuffer("OpaqueItemDataArray", _OpaqueItemDataArrayProperties);
-				builder.WriteCopyDstBuffer("OpaqueItemDataArray");
+				NewBufferProperties _DeferredItemIndirectArgsProperties{};
+				_DeferredItemIndirectArgsProperties.stride = sizeof(GpuItemIndirectDrawIndexedData);
+				_DeferredItemIndirectArgsProperties.size = maxOpaqueItems * _DeferredItemIndirectArgsProperties.stride;
+				_DeferredItemIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_DeferredItemIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("DeferredItemIndirectArgs", _DeferredItemIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("DeferredItemIndirectArgs");
 
 				shaderManger.CreateComputeShader("GpuCullingPass",
 					[](ComputeStateProxy& proxy) {
@@ -68,45 +41,20 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* frameTracker = renderContext.frameTracker;
 
-				auto* opaqueItemIndirectArgs = resourceStorage->GetResourceByName("OpaqueItemIndirectArgs")->GetBuffer();
-				auto* opaqueItemDataArray = resourceStorage->GetResourceByName("OpaqueItemDataArray")->GetBuffer();
+				auto* deferredItemDataBuffer					= resourceStorage->GetResourceByName("DeferredItemDataBuffer")->GetBuffer();
+				auto* deferredItemIndirectDrawIndexedDataBuffer = resourceStorage->GetResourceByName("DeferredItemIndirectDrawIndexedDataBuffer")->GetBuffer();
+				auto* deferredItemIndirectArgs					= resourceStorage->GetResourceByName("DeferredItemIndirectArgs")->GetBuffer();
 
-				std::vector<IndirectDraw> indirectCommandArgs(maxOpaqueItems, IndirectDraw{});
-				std::vector<ItemData> itemDataArrays(maxOpaqueItems, ItemData{});
-				std::atomic<int32_t> atomicIndex = -1;
-				ECS::Entity::Foreach([&](ECS::Transform& transform, ECS::MeshRenderer& meshRenderer) {
-					int32_t index = ++atomicIndex;
-
-					IndirectDraw indirectDraw{};
-					indirectDraw.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-					indirectDraw.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
-					indirectDraw.perItemDataAddress = opaqueItemDataArray->GetGpuAddress() + index * sizeof(ItemData);
-					indirectDraw.vertexBufferView = meshRenderer.mesh->GetVertexBuffer()->GetVBDescriptor();
-					indirectDraw.indexBufferView = meshRenderer.mesh->GetIndexBuffer()->GetIBDescriptor();
-					indirectDraw.drawIndexedArguments.BaseVertexLocation = 0u;
-					indirectDraw.drawIndexedArguments.StartInstanceLocation = 0u;
-					indirectDraw.drawIndexedArguments.InstanceCount = 1u;
-					indirectDraw.drawIndexedArguments.StartIndexLocation = 0u;
-					indirectDraw.drawIndexedArguments.IndexCountPerInstance = meshRenderer.mesh->GetIndexCount();
-
-					ItemData itemData{};
-					Math::Matrix4 worldMatrix = transform.GetWorldMatrix().Transpose();
-					itemData.prevModelTrans = frameTracker->IsFirstFrame() ? worldMatrix : itemData.currModelTrans;
-					itemData.currModelTrans = worldMatrix;
-
-					indirectCommandArgs.at(index) = std::move(indirectDraw);
-					itemDataArrays.at(index) = std::move(itemData);
-				});
-				uint32_t validItemSize = atomicIndex + 1u;
-
-				auto barrierBatch = GHL::ResourceBarrierBatch{};
-				barrierBatch += commandBuffer.TransitionImmediately(opaqueItemIndirectArgs, GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(opaqueItemDataArray, GHL::EResourceState::CopyDestination);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
-				commandBuffer.UploadBufferRegion(opaqueItemIndirectArgs, 0u, indirectCommandArgs.data(), validItemSize * sizeof(IndirectDraw));
-				commandBuffer.ClearCounterBuffer(opaqueItemIndirectArgs, validItemSize);
-				commandBuffer.UploadBufferRegion(opaqueItemDataArray, 0u, itemDataArrays.data(), validItemSize * sizeof(ItemData));
-				commandBuffer.ClearCounterBuffer(opaqueItemDataArray, validItemSize);
+				{
+					auto barrierBatch = GHL::ResourceBarrierBatch{};
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectDrawIndexedDataBuffer, GHL::EResourceState::CopySource);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer(), GHL::EResourceState::CopySource);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs, GHL::EResourceState::CopyDestination);
+					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
+				commandBuffer.CopyBufferRegion(deferredItemIndirectArgs, 0u, deferredItemIndirectDrawIndexedDataBuffer, 0u, maxOpaqueItems * sizeof(GpuItemIndirectDrawIndexedData));
+				commandBuffer.CopyCounterBuffer(deferredItemIndirectArgs, deferredItemIndirectDrawIndexedDataBuffer);
 			}
 		);
 
@@ -115,8 +63,7 @@ namespace Renderer {
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
-				builder.ReadBuffer("OpaqueItemIndirectArgs", Renderer::ShaderAccessFlag::NonPixelShader);
-				builder.ReadBuffer("OpaqueItemDataArray", Renderer::ShaderAccessFlag::NonPixelShader);
+				builder.ReadBuffer("DeferredItemIndirectArgs", Renderer::ShaderAccessFlag::NonPixelShader);
 
 				NewTextureProperties _GBufferAlbedoMetalnessProperties{};
 				_GBufferAlbedoMetalnessProperties.width = finalOutputDesc.width;
@@ -183,29 +130,28 @@ namespace Renderer {
 
 				commandSignatureManger.CreateCommandSignature("OpaquePass",
 					[&](GHL::CommandSignature& proxy) {
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });		// FrameDataCB
-						// proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });	// passDataAlloc不使用
-						proxy.AddIndirectArgument(GHL::IndirectShaderResourceViewArgument{ 2u });		// LightDataSB
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 3u });		// PerItemCB
-						proxy.AddIndirectArgument(GHL::IndirectVertexBufferViewArgument{});
-						proxy.AddIndirectArgument(GHL::IndirectIndexBufferViewArgument{});
-						proxy.AddIndirectArgument(GHL::IndirectDrawIndexedArgument{});					// DrawIndexedArgument
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });	// FrameDataCB
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });	// passDataCB
+						proxy.AddIndirectArgument(GHL::IndirectShaderResourceViewArgument{ 2u });	// LightDataSB
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 3u });	// ItemDataCB
+						proxy.AddIndirectArgument(GHL::IndirectVertexBufferViewArgument{});			// VertexBuffer
+						proxy.AddIndirectArgument(GHL::IndirectIndexBufferViewArgument{});			// IndexBuffer
+						proxy.AddIndirectArgument(GHL::IndirectDrawIndexedArgument{});				// DrawIndexedArgument
 						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
-						proxy.SetByteStride(sizeof(IndirectDraw));
+						proxy.SetByteStride(sizeof(GpuItemIndirectDrawIndexedData));
 					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
-				auto* opaqueItemIndirectArgs  = resourceStorage->GetResourceByName("OpaqueItemIndirectArgs")->GetBuffer();
-				auto* opaqueItemDataArray     = resourceStorage->GetResourceByName("OpaqueItemDataArray")->GetBuffer();
-				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
-				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
-				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
-				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
-				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
-				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+				auto* deferredItemIndirectArgs = resourceStorage->GetResourceByName("DeferredItemIndirectArgs")->GetBuffer();
+				auto* gBufferAlbedoMetalness   = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
+				auto* gBufferPositionEmission  = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
+				auto* gBufferNormalRoughness   = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
+				auto* gBufferMotionVector      = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
+				auto* gBufferViewDepth         = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
+				auto* gBufferDepthStencil      = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 
 				commandBuffer.ClearRenderTarget(gBufferAlbedoMetalness);
 				commandBuffer.ClearRenderTarget(gBufferPositionEmission);
@@ -231,7 +177,7 @@ namespace Renderer {
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("OpaquePass");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				commandBuffer.ExecuteIndirect("OpaquePass", opaqueItemIndirectArgs, maxOpaqueItems);
+				commandBuffer.ExecuteIndirect("OpaquePass", deferredItemIndirectArgs, maxOpaqueItems);
 			});
 	}
 

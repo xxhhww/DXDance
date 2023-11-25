@@ -25,9 +25,7 @@ struct FrameData {
 
 #define FrameDataType FrameData
 #define LightDataType Light
-#define ItemDataType Dummy
-#define ItemGroupDataType Dummy
-#define ItemGroupIndirectDrawIndexedDataType Dummy
+#define ItemDataType  ItemData
 
 #include "BaseEngineLayout.hlsl"
 

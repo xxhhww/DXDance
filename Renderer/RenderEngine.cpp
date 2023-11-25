@@ -123,21 +123,6 @@ namespace Renderer {
 				mUploaderEngine->GetCopyFence(), vertices, indices);
 		}
 
-		// 创建FinalOutput纹理
-		{
-			TextureDesc _FinalOutputDesc{};
-			_FinalOutputDesc.width = width;
-			_FinalOutputDesc.height = height;
-			_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget | GHL::EResourceState::UnorderedAccess);
-			_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-			mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
-			mFinalOutput->SetDebugName("FinalOutput");
-			mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
-
-			mResourceStateTracker->StartTracking(mFinalOutput.get());
-		}
-
 		// 创建BlueNoise3D纹理
 		{
 			mBlueNoise3DMap = FixedTextureHelper::LoadFromFile(
@@ -155,6 +140,50 @@ namespace Renderer {
 			mResourceStateTracker->StartTracking(mBlueNoise2DMap.Get());
 		}
 
+		// 创建FinalOutput纹理
+		{
+			TextureDesc _FinalOutputDesc{};
+			_FinalOutputDesc.width = width;
+			_FinalOutputDesc.height = height;
+			_FinalOutputDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			_FinalOutputDesc.expectedState |= (GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::RenderTarget | GHL::EResourceState::UnorderedAccess);
+			_FinalOutputDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			mFinalOutput = std::make_unique<Texture>(mDevice.get(), ResourceFormat{ mDevice.get(), _FinalOutputDesc }, mDescriptorAllocator.get(), nullptr);
+			mFinalOutput->SetDebugName("FinalOutput");
+			mFinalOutputID = mRenderGraph->ImportResource("FinalOutput", mFinalOutput.get());
+
+			mResourceStateTracker->StartTracking(mFinalOutput.get());
+		}
+
+		// 创建ItemDataBuffer ItemIndirectDrawIndexedBuffer
+		{
+			BufferDesc _DeferredItemDataBufferDesc{};
+			_DeferredItemDataBufferDesc.stride = sizeof(GpuItemData);
+			_DeferredItemDataBufferDesc.size = _DeferredItemDataBufferDesc.stride * smMaxItemNums;
+			_DeferredItemDataBufferDesc.usage = GHL::EResourceUsage::Default;
+			_DeferredItemDataBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			_DeferredItemDataBufferDesc.initialState = GHL::EResourceState::Common;
+			_DeferredItemDataBufferDesc.expectedState = GHL::EResourceState::CopySource | GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
+			mDeferredItemDataBuffer = mResourceAllocator->Allocate(mDevice.get(), _DeferredItemDataBufferDesc, mDescriptorAllocator.get(), nullptr);
+			mDeferredItemDataBuffer->SetDebugName("DeferredItemDataBuffer");
+			mDeferredItemDataBufferID = mRenderGraph->ImportResource("DeferredItemDataBuffer", mDeferredItemDataBuffer);
+			mResourceStateTracker->StartTracking(mDeferredItemDataBuffer);
+			mResourceStateTracker->StartTracking(mDeferredItemDataBuffer->GetCounterBuffer());
+
+			BufferDesc _DeferredItemIndirectDrawIndexedDataBufferDesc{};
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.stride = sizeof(GpuItemIndirectDrawIndexedData);
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.size = _DeferredItemIndirectDrawIndexedDataBufferDesc.stride * smMaxItemNums;
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.usage = GHL::EResourceUsage::Default;
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.initialState = GHL::EResourceState::Common;
+			_DeferredItemIndirectDrawIndexedDataBufferDesc.expectedState = GHL::EResourceState::CopySource | GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
+			mDeferredItemIndirectDrawIndexedDataBuffer = mResourceAllocator->Allocate(mDevice.get(), _DeferredItemIndirectDrawIndexedDataBufferDesc, mDescriptorAllocator.get(), nullptr);
+			mDeferredItemIndirectDrawIndexedDataBuffer->SetDebugName("DeferredItemIndirectDrawIndexedDataBuffer");
+			mDeferredItemIndirectDrawIndexedDataBufferID = mRenderGraph->ImportResource("DeferredItemIndirectDrawIndexedDataBuffer", mDeferredItemIndirectDrawIndexedDataBuffer);
+			mResourceStateTracker->StartTracking(mDeferredItemIndirectDrawIndexedDataBuffer);
+			mResourceStateTracker->StartTracking(mDeferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer());
+		}
+
 		// 初始化一些系统
 		{
 			mTerrainSystem = std::make_unique<TerrainSystem>(this);
@@ -164,7 +193,6 @@ namespace Renderer {
 
 		// 初始化RenderPass
 		{
-			// mTerrainPass.InitializePass(this);
 			mTerrainSystem->Initialize(this);
 			// mVegetationSystem->Initialize(this);
 			// mDetailObjectSystem->Initialize(this);
@@ -221,13 +249,11 @@ namespace Renderer {
 	void RenderEngine::Update(float deltaTime, float totalTime) {
 		// 清理工作
 		mPipelineResourceStorage->rootLightDataPerFrame.clear();
-		mPipelineResourceStorage->rootItemDataPerFrame.clear();
-		mPipelineResourceStorage->rootItemGroupPassDataPerFrame.resize(smMaxItemNums, GpuItemGroupPassData{});
-		mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.resize(smMaxItemNums, GpuIndirectDrawIndexedData{});
+		mPipelineResourceStorage->rootItemDataPerFrame.resize(smMaxItemNums, GpuItemData{});
+		mPipelineResourceStorage->rootItemIndirectDrawIndexedDataPerFrame.resize(smMaxItemNums, GpuItemIndirectDrawIndexedData{});
 
 		// 更新工作
 		auto& rootConstantsPerFrame = mPipelineResourceStorage->rootConstantsPerFrame;
-
 		rootConstantsPerFrame.deltaTime = deltaTime;
 		rootConstantsPerFrame.totalTime = totalTime;
 		rootConstantsPerFrame.windParameters = Math::Vector4{ 1.0f, 0.0f, 0.0f, 10.0f };
@@ -247,7 +273,7 @@ namespace Renderer {
 		static uint32_t taaSampleCount = 16u;
 		auto jitter = Math::Jitter::GetJitter(cameraJitterFrameIndex, taaSampleCount, Math::Vector2{
 			static_cast<float>(mOutputWidth), static_cast<float>(mOutputHeight)
-			});
+		});
 
 		ECS::Entity::Foreach([&](ECS::Camera& camera, ECS::Transform& transform) {
 			if (camera.cameraType == ECS::CameraType::EditorCamera) {
@@ -304,11 +330,6 @@ namespace Renderer {
 	}
 
 	void RenderEngine::UpdateItems() {
-		// TODO...需要先对Item进行归类，
-		// 首先考虑是否使用相同GraphicsShader
-		// 其次考虑所处的渲染阶段
-		// 最后考虑是否为同一网格
-
 		std::atomic<int32_t> atomicIndex = -1;
 		ECS::Entity::Foreach([&](ECS::Transform& transform, ECS::MeshRenderer& meshRenderer) {
 			int32_t index = ++atomicIndex;
@@ -319,14 +340,11 @@ namespace Renderer {
 			itemData.prevModelTrans = mFrameTracker->IsFirstFrame() ? gpuWorldMatrix : transform.prevWorldMatrix;
 			itemData.currModelTrans = gpuWorldMatrix;
 			itemData.boundingBoxInWorldSpace = meshRenderer.mesh->GetBoundingBox().transformBy(cpuWorldMatrix);
-			transform.prevWorldMatrix = gpuWorldMatrix;
+			// transform.prevWorldMatrix = gpuWorldMatrix;
 
-			GpuItemGroupPassData itemGroupPassData{};
-			itemGroupPassData.itemVertexBufferIndex = meshRenderer.mesh->GetVertexBuffer()->GetSRDescriptor()->GetHeapIndex();
-			itemGroupPassData.itemIndexBufferIndex = meshRenderer.mesh->GetIndexBuffer()->GetSRDescriptor()->GetHeapIndex();
-			itemGroupPassData.itemDataBeginIndex = atomicIndex;
-
-			GpuIndirectDrawIndexedData indirectDrawIndexedData{};
+			GpuItemIndirectDrawIndexedData indirectDrawIndexedData{};
+			indirectDrawIndexedData.vertexBufferView = meshRenderer.mesh->GetVertexBuffer()->GetVBDescriptor();
+			indirectDrawIndexedData.indexBufferView = meshRenderer.mesh->GetIndexBuffer()->GetIBDescriptor();
 			indirectDrawIndexedData.drawIndexedArguments.BaseVertexLocation = 0u;
 			indirectDrawIndexedData.drawIndexedArguments.StartInstanceLocation = 0u;
 			indirectDrawIndexedData.drawIndexedArguments.InstanceCount = 1u;
@@ -334,8 +352,7 @@ namespace Renderer {
 			indirectDrawIndexedData.drawIndexedArguments.IndexCountPerInstance = meshRenderer.mesh->GetIndexCount();
 
 			mPipelineResourceStorage->rootItemDataPerFrame.at(index) = std::move(itemData);
-			mPipelineResourceStorage->rootItemGroupPassDataPerFrame.at(index) = std::move(itemGroupPassData);
-			mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.at(index) = std::move(indirectDrawIndexedData);
+			mPipelineResourceStorage->rootItemIndirectDrawIndexedDataPerFrame.at(index) = std::move(indirectDrawIndexedData);
 		});
 		mPipelineResourceStorage->rootItemNumsPerFrame = atomicIndex + 1;
 	}
@@ -412,6 +429,17 @@ namespace Renderer {
 		// 压入新的渲染帧
 		mRenderFrameFence->IncrementExpectedValue();
 		mFrameTracker->PushCurrentFrame(mRenderFrameFence->ExpectedValue());
+		RenderContext renderContext{
+			mSelectedDisplay,
+			mDevice.get(),
+			mShaderManger.get(),
+			mCommandSignatureManger.get(),
+			mSharedMemAllocator.get(),
+			mRenderGraph->GetPipelineResourceStorage(),
+			mResourceStateTracker.get(),
+			mStreamTextureManger.get(),
+			mFrameTracker.get()
+		};
 
 		auto rootDataAllocation = LinearAllocation{};
 		// RootConstantsDataPerFrame
@@ -426,43 +454,46 @@ namespace Renderer {
 		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootLightDataPerFrame.data(), lightDataByteSize);
 		mPipelineResourceStorage->rootLightDataPerFrameAddress = rootDataAllocation.gpuAddress;
 
-		// RootGpuItemDataPerFrame
-		size_t itemDataByteSize = sizeof(GpuItemData) * mPipelineResourceStorage->rootItemDataPerFrame.size();
-		rootDataAllocation = mSharedMemAllocator->Allocate(itemDataByteSize);
-		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemDataPerFrame.data(), itemDataByteSize);
-		mPipelineResourceStorage->rootItemDataPerFrameAddress = rootDataAllocation.gpuAddress;
+		{
+			// Update ItemIndirectDrawIndexedPerFrame
+			for (uint32_t i = 0; i < mPipelineResourceStorage->rootItemNumsPerFrame; i++) {
+				auto& indirectDrawIndexedData = mPipelineResourceStorage->rootItemIndirectDrawIndexedDataPerFrame[i];
+				indirectDrawIndexedData.frameDataAddress = mPipelineResourceStorage->rootConstantsPerFrameAddress;
+				indirectDrawIndexedData.lightDataAddress = mPipelineResourceStorage->rootLightDataPerFrameAddress;
+				indirectDrawIndexedData.passDataAddress;	// 这里的passDataAddress应该由Material的提供
+				indirectDrawIndexedData.itemDataAddress = mDeferredItemDataBuffer->GetGpuAddress() + i * sizeof(GpuItemData);
+			}
 
-		// RootGpuItemGroupDataPerFrame
-		size_t itemGroupPassDataByteSize = sizeof(GpuItemGroupPassData) * mPipelineResourceStorage->rootItemGroupPassDataPerFrame.size();
-		rootDataAllocation = mSharedMemAllocator->Allocate(itemGroupPassDataByteSize);
-		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemGroupPassDataPerFrame.data(), itemGroupPassDataByteSize);
-		mPipelineResourceStorage->rootItemGroupPassDataPerFrameAddress = rootDataAllocation.gpuAddress;
+			// Upload ItemDataPerFrame & ItemIndirectDrawIndexedDataPerFrame
+			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
+			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
+			{
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemDataBuffer, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemDataBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemIndirectDrawIndexedDataBuffer, GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+			}
+			commandBuffer.UploadBufferRegion(mDeferredItemDataBuffer, 0u, mPipelineResourceStorage->rootItemDataPerFrame.data(), mPipelineResourceStorage->rootItemNumsPerFrame * sizeof(GpuItemData));
+			commandBuffer.UploadBufferRegion(mDeferredItemIndirectDrawIndexedDataBuffer, 0u, mPipelineResourceStorage->rootItemIndirectDrawIndexedDataPerFrame.data(), mPipelineResourceStorage->rootItemNumsPerFrame * sizeof(GpuItemIndirectDrawIndexedData));
+			commandBuffer.ClearCounterBuffer(mDeferredItemDataBuffer, mPipelineResourceStorage->rootItemNumsPerFrame);
+			commandBuffer.ClearCounterBuffer(mDeferredItemIndirectDrawIndexedDataBuffer, mPipelineResourceStorage->rootItemNumsPerFrame);
+			{
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemDataBuffer, GHL::EResourceState::NonPixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemDataBuffer->GetCounterBuffer(), GHL::EResourceState::NonPixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemIndirectDrawIndexedDataBuffer, GHL::EResourceState::NonPixelShaderAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(mDeferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer(), GHL::EResourceState::NonPixelShaderAccess);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+			}
 
-		// RootItemGroupIndirectDrawIndexedPerFrame
-		for (uint32_t i = 0; i < mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.size(); i++) {
-			auto& indirectDrawIndexedData = mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame[i];
-			indirectDrawIndexedData.frameDataAddress = mPipelineResourceStorage->rootConstantsPerFrameAddress;
-			indirectDrawIndexedData.lightDataAddress = mPipelineResourceStorage->rootLightDataPerFrameAddress;
-			indirectDrawIndexedData.passDataAddress = mPipelineResourceStorage->rootItemGroupPassDataPerFrameAddress + i * sizeof(GpuItemGroupPassData);
+			commandList->Close();
+			mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 		}
-		size_t itemGroupIndirectDrawIndexedDataByteSize = sizeof(GpuIndirectDrawIndexedData) * mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.size();
-		rootDataAllocation = mSharedMemAllocator->Allocate(itemGroupIndirectDrawIndexedDataByteSize);
-		memcpy(rootDataAllocation.cpuAddress, mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrame.data(), itemGroupIndirectDrawIndexedDataByteSize);
-		mPipelineResourceStorage->rootItemGroupIndirectDrawIndexedDataPerFrameAddress = rootDataAllocation.gpuAddress;
 
 		mRenderGraph->Execute();
 
-		RenderContext renderContext{
-			mSelectedDisplay,
-			mDevice.get(),
-			mShaderManger.get(),
-			mCommandSignatureManger.get(),
-			mSharedMemAllocator.get(),
-			mRenderGraph->GetPipelineResourceStorage(),
-			mResourceStateTracker.get(),
-			mStreamTextureManger.get(),
-			mFrameTracker.get()
-		};
 		{
 			auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
 			CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
@@ -497,23 +528,24 @@ namespace Renderer {
 
 				auto  currentBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 				auto* currentBackBuffer = mBackBuffers.at(currentBackBufferIndex).get();
-				auto barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::RenderTarget);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
+				{
+					auto barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::RenderTarget);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
 				commandBuffer.ClearRenderTarget(currentBackBuffer);
 				commandBuffer.SetRenderTarget(currentBackBuffer);
-				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, 
-					static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
-				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, 
-					static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u,  static_cast<uint16_t>(mOutputWidth), static_cast<uint16_t>(mOutputHeight) });
 				commandBuffer.SetGraphicsRootSignature();
 				commandBuffer.SetGraphicsPipelineState("OutputBackBuffer");
 				commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandBuffer.SetVertexBuffer(0u, mOutputQuadMesh->GetVertexBuffer());
 				commandBuffer.DrawInstanced(mOutputQuadMesh->GetVertexCount(), 1u, 0u, 0u);
-				barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
-				commandBuffer.FlushResourceBarrier(barrierBatch);
-
+				{
+					auto barrierBatch = commandBuffer.TransitionImmediately(currentBackBuffer, GHL::EResourceState::Present);
+					commandBuffer.FlushResourceBarrier(barrierBatch);
+				}
 				commandBuffer.PIXEndEvent();
 				commandList->Close();
 				mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());

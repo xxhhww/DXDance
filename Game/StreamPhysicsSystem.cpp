@@ -110,11 +110,12 @@ namespace Game {
 			if (distance < 1024.0f && collisionBody.state == ECS::BodyState::UnLoad) {
 				collisionBody.state = ECS::BodyState::Loading;
 				auto& boundingBox = meshRenderer.mesh->GetBoundingBox();
+				auto  boundingBoxExtents = boundingBox.GetExtent();
 				jobSystem->CreateJob("", JPH::ColorArg::sGreen, [&]() {
 					JPH::Vec3 inHalfExtents{ 
-						boundingBox.Extents.x * transform.worldScaling.x, 
-						boundingBox.Extents.y * transform.worldScaling.y,
-						boundingBox.Extents.z * transform.worldScaling.z };
+						boundingBoxExtents.x * transform.worldScaling.x,
+						boundingBoxExtents.y * transform.worldScaling.y,
+						boundingBoxExtents.z * transform.worldScaling.z };
 
 ;					JPH::Body& body = *bodyInterface.CreateBody(
 						JPH::BodyCreationSettings(new JPH::BoxShape(inHalfExtents),

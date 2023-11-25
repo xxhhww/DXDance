@@ -59,36 +59,25 @@ namespace Renderer {
         Math::Matrix4 currModelTrans;		        // 当前帧的世界变换矩阵
         Math::BoundingBox boundingBoxInWorldSpace;  // 包围盒
         // ... 其他数据
-    };
 
-    /*
-    * ItemGroup定义为多个形状相同的可渲染的实例的组合，其中itemDataBeginIndex标明了该组合中第一个实例的数据的其实位置
-    * 所有的实例数据都存放在一个显存堆的ItemDataBuffer中(64KB对齐)
-    */
-    struct GpuItemGroupPassData {
     public:
-        uint32_t itemVertexBufferIndex;   // 顶点缓存索引
-        uint32_t itemIndexBufferIndex;    // 索引缓存索引
-        uint32_t itemDataBeginIndex;      // Group中第一个实例的数据在ItemDataBuffer中起始位置
-        float pad1;
+        GpuItemData() = default;
+        ~GpuItemData() = default;
     };
 
-#pragma pack(1)
-    struct GpuIndirectDrawData {
-    public:
-        D3D12_GPU_VIRTUAL_ADDRESS frameDataAddress;     // 当前帧数据
-        D3D12_GPU_VIRTUAL_ADDRESS passDataAddress;      // 当前阶段数据
-        D3D12_GPU_VIRTUAL_ADDRESS lightDataAddress;     // 当前帧中的光照数据
-        D3D12_DRAW_ARGUMENTS      drawArguments;        // 绘制参数
-    };
-
-#pragma pack (1)
-    struct GpuIndirectDrawIndexedData {
+    struct GpuItemIndirectDrawIndexedData {
     public:
         D3D12_GPU_VIRTUAL_ADDRESS    frameDataAddress;      // 当前帧数据
         D3D12_GPU_VIRTUAL_ADDRESS    passDataAddress;       // 当前阶段数据
         D3D12_GPU_VIRTUAL_ADDRESS    lightDataAddress;      // 当前帧中的光照数据
+        D3D12_GPU_VIRTUAL_ADDRESS    itemDataAddress;       // 当前Item数据
+        D3D12_VERTEX_BUFFER_VIEW     vertexBufferView;      // 顶点
+        D3D12_INDEX_BUFFER_VIEW      indexBufferView;       // 索引
         D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;  // 绘制参数
+
+    public:
+        GpuItemIndirectDrawIndexedData() = default;
+        ~GpuItemIndirectDrawIndexedData() = default;
     };
 
     struct GpuGTTonemappingParameters {
