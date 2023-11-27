@@ -1,9 +1,9 @@
-#ifndef _GpuCullingPass__
-#define _GpuCullingPass__
+#ifndef _OpaqueCullingPass__
+#define _OpaqueCullingPass__
 
 struct PassData {
-	uint deferredItemDataBufferIndex;
-	uint deferredItemIndirectDrawIndexedDataBufferIndex;
+	uint opaqueItemDataBufferIndex;
+	uint opaqueItemIndirectDrawIndexedDataBufferIndex;
 	uint culledDeferredItemIndirectArgsIndex;
 	uint itemNumsPerFrame;
 };
@@ -42,20 +42,20 @@ bool FrustumCull(float4 plane[6], BoundingBox boundingBox) {
 
 [numthreads(8, 1, 1)]
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID) {
-	StructuredBuffer<ItemData> deferredItemDataBuffer = ResourceDescriptorHeap[PassDataCB.deferredItemDataBufferIndex];
-	StructuredBuffer<ItemIndirectDrawIndexedData> deferredItemIndirectDrawIndexedDataBuffer = ResourceDescriptorHeap[PassDataCB.deferredItemIndirectDrawIndexedDataBufferIndex];
+	StructuredBuffer<ItemData> opaqueItemDataBuffer = ResourceDescriptorHeap[PassDataCB.opaqueItemDataBufferIndex];
+	StructuredBuffer<ItemIndirectDrawIndexedData> opaqueItemIndirectDrawIndexedDataBuffer = ResourceDescriptorHeap[PassDataCB.opaqueItemIndirectDrawIndexedDataBufferIndex];
 	AppendStructuredBuffer<ItemIndirectDrawIndexedData> culledDeferredItemIndirectArgs = ResourceDescriptorHeap[PassDataCB.culledDeferredItemIndirectArgsIndex];
 
 	uint threadIndex = dispatchThreadID.x;
 	if(threadIndex < PassDataCB.itemNumsPerFrame) {
-		ItemData currItemData = deferredItemDataBuffer[threadIndex];
-		ItemIndirectDrawIndexedData currIndirectDrawData = deferredItemIndirectDrawIndexedDataBuffer[threadIndex];
+		ItemData currItemData = opaqueItemDataBuffer[threadIndex];
+		ItemIndirectDrawIndexedData currIndirectDrawData = opaqueItemIndirectDrawIndexedDataBuffer[threadIndex];
 
 		// FrustumCull
 		BoundingBox boundingBox;
 		boundingBox.minPosition = currItemData.minBoundingBoxPosition;
 		boundingBox.maxPosition = currItemData.maxBoundingBoxPosition;
-	
+
 		if(FrustumCull(FrameDataCB.CurrentEditorCamera.Planes, boundingBox)) {
 			return;
 		}

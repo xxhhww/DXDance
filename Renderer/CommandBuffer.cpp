@@ -110,9 +110,15 @@ namespace Renderer {
 	}
 
 	void CommandBuffer::SetRenderTarget(Texture* rtTexture, Texture* dsTexture) {
-		auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
-		auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
-		mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, &dsHandle);
+		if (rtTexture != nullptr) {
+			auto& rtHandle = rtTexture->GetRTDescriptor()->GetCpuHandle();
+			auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+			mCommandList->D3DCommandList()->OMSetRenderTargets(1u, &rtHandle, false, &dsHandle);
+		}
+		else {
+			auto& dsHandle = dsTexture->GetDSDescriptor()->GetCpuHandle();
+			mCommandList->D3DCommandList()->OMSetRenderTargets(0u, nullptr, false, &dsHandle);
+		}
 	}
 
 	void CommandBuffer::SetRenderTargets(std::vector<Texture*>&& rtTextures) {

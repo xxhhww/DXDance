@@ -18,8 +18,9 @@ namespace Renderer {
 			renderGraph.GetPipelineResourceStorage()->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
 		uint32_t maxOpaqueItems = 1024u;
+
 		renderGraph.AddPass(
-			"GpuCullingPass",
+			"OpaqueCullingPass",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
@@ -31,9 +32,9 @@ namespace Renderer {
 				builder.DeclareBuffer("CulledDeferredItemIndirectArgs", _CulledDeferredItemIndirectArgsProperties);
 				builder.WriteBuffer("CulledDeferredItemIndirectArgs");
 
-				shaderManger.CreateComputeShader("GpuCullingPass",
+				shaderManger.CreateComputeShader("OpaqueCullingPass",
 					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Opaque/GpuCullingPass.hlsl";
+						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/Opaque/OpaqueCullingPass.hlsl";
 					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
@@ -70,7 +71,7 @@ namespace Renderer {
 
 				uint32_t threadGroupCountX = (resourceStorage->rootItemNumsPerFrame + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 				commandBuffer.SetComputeRootSignature();
-				commandBuffer.SetComputePipelineState("GpuCullingPass");
+				commandBuffer.SetComputePipelineState("OpaqueCullingPass");
 				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
 				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
 				commandBuffer.Dispatch(threadGroupCountX, 1u, 1u);
@@ -188,15 +189,15 @@ namespace Renderer {
 					},
 					gBufferDepthStencil);
 
-				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
-				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
-
 				{
 					auto barrierBatch = GHL::ResourceBarrierBatch{};
 					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs, GHL::EResourceState::IndirectArgument);
 					barrierBatch += commandBuffer.TransitionImmediately(deferredItemIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
 					commandBuffer.FlushResourceBarrier(barrierBatch);
 				}
+
+				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
+				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
 
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });

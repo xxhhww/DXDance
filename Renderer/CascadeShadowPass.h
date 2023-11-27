@@ -21,6 +21,37 @@ namespace Renderer {
 			Math::Vector3 farCorners[4];	// 远处四个顶点
 		};
 
+		struct CascadeShadowCullingPassData {
+		public:
+			uint32_t  opaqueItemDataBufferIndex;
+			uint32_t  opaqueItemIndirectDrawIndexedDataBufferIndex;
+			uint32_t  opaqueItemNumsPerFrame;
+			float     pad1;
+
+			uint32_t  cascadeShadow0IndirectArgsIndex;					// 级联层级0的可视Item的间接绘制参数
+			uint32_t  cascadeShadow1IndirectArgsIndex;
+			uint32_t  cascadeShadow2IndirectArgsIndex;
+			uint32_t  cascadeShadow3IndirectArgsIndex;
+
+			std::array<Math::Vector4, 6> cascadeShadow0FrustumPlanes;	// 级联层级0的光源可视平截头体
+			std::array<Math::Vector4, 6> cascadeShadow1FrustumPlanes;
+			std::array<Math::Vector4, 6> cascadeShadow2FrustumPlanes;
+			std::array<Math::Vector4, 6> cascadeShadow3FrustumPlanes;
+		};
+
+		struct CascadeShadowRedirectPassData {
+		public:
+			uint32_t redirectedIndirectArgsIndex;	// 需要重定向的IndirectArgs索引
+			uint32_t passDataAddressUp;				// GPU存储数据是每4位一存储，因此8位的GPU地址数据需要拆分成上下两份
+			uint32_t passDataAddressDown;
+			float pad1;
+		};
+
+		struct CascadeShadowPassData {
+		public:
+			Math::Matrix4 vpMatrix;
+		};
+
 	public:
 		CascadeShadowPass() = default;
 		~CascadeShadowPass() = default;
@@ -53,6 +84,7 @@ namespace Renderer {
 		void GetWorldSpaceFrustumCornersByIndex(int32_t index, const GpuCameraData& gpuCamera, FrustumCorners& currFrustumCorners);
 
 	private:
+		inline static uint32_t smThreadSizeInGroup = 8u;
 		// 级联阴影个数
 		inline static int32_t smNumShadowCascades = 4;
 		
@@ -79,6 +111,10 @@ namespace Renderer {
 
 		// 级联阴影的DepthTexture
 		std::vector<Renderer::TextureWrap> mCascadeShadowDepthTextures;
+
+		CascadeShadowCullingPassData mCascadeShadowCullingPassData;
+		CascadeShadowRedirectPassData mCascadeShadowRedirectPassData;
+		CascadeShadowPassData mCascadeShadowPassData;
 	};
 
 }

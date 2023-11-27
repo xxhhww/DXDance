@@ -87,7 +87,7 @@
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainRendererRVT.hlsl" />
     <FxCompile Include="Shaders\Engine\GPUDrivenTerrain\TerrainFeedback.hlsl" />
     <FxCompile Include="Shaders\Engine\UAVClear\TextureUAVClear.hlsl" />
-    <FxCompile Include="Shaders\Engine\Opaque\GpuCullingPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\Opaque\OpaqueCullingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\Opaque\OpaqueHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\GrassBladeBaking.hlsl" />
     <FxCompile Include="Shaders\Engine\ProceduralGrass\BakeGrassBlade.hlsl" />
@@ -101,5 +101,8 @@
     <FxCompile Include="Shaders\Engine\DetailObjectSystem\StaticInstanceHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\GBufferHelper.hlsl" />
     <FxCompile Include="Shaders\Engine\Base\GpuData.hlsl" />
+    <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowCullingPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowRedirectPass.hlsl" />
   </ItemGroup>
 </Project>
