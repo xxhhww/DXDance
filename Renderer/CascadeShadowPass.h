@@ -37,14 +37,11 @@ namespace Renderer {
 			std::array<Math::Vector4, 6> cascadeShadow1FrustumPlanes;
 			std::array<Math::Vector4, 6> cascadeShadow2FrustumPlanes;
 			std::array<Math::Vector4, 6> cascadeShadow3FrustumPlanes;
-		};
 
-		struct CascadeShadowRedirectPassData {
-		public:
-			uint32_t redirectedIndirectArgsIndex;	// 需要重定向的IndirectArgs索引
-			uint32_t passDataAddressUp;				// GPU存储数据是每4位一存储，因此8位的GPU地址数据需要拆分成上下两份
-			uint32_t passDataAddressDown;
-			float pad1;
+			uint64_t  cascadeShadow0TargetPassDataAddress;
+			uint64_t  cascadeShadow1TargetPassDataAddress;
+			uint64_t  cascadeShadow2TargetPassDataAddress;
+			uint64_t  cascadeShadow3TargetPassDataAddress;
 		};
 
 		struct CascadeShadowPassData {
@@ -97,7 +94,7 @@ namespace Renderer {
 		/*
 		* 级联阴影的距离分配
 		* cascade 0 [0.0f, 0.07f]
-		* cascade 1 [0.7f, 0.2f]
+		* cascade 1 [0.07f, 0.2f]
 		* cascade 2 [0.2f, 0.45f]
 		* cascade 3 [0.45f, 1.0f]
 		*/
@@ -113,8 +110,6 @@ namespace Renderer {
 		std::vector<Renderer::TextureWrap> mCascadeShadowDepthTextures;
 
 		CascadeShadowCullingPassData mCascadeShadowCullingPassData;
-		CascadeShadowRedirectPassData mCascadeShadowRedirectPassData;
-		CascadeShadowPassData mCascadeShadowPassData;
 	};
 
 }

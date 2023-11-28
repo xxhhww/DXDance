@@ -165,8 +165,8 @@ namespace Renderer {
 			_DeferredItemDataBufferDesc.initialState = GHL::EResourceState::Common;
 			_DeferredItemDataBufferDesc.expectedState = GHL::EResourceState::CopySource | GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
 			mDeferredItemDataBuffer = mResourceAllocator->Allocate(mDevice.get(), _DeferredItemDataBufferDesc, mDescriptorAllocator.get(), nullptr);
-			mDeferredItemDataBuffer->SetDebugName("DeferredItemDataBuffer");
-			mDeferredItemDataBufferID = mRenderGraph->ImportResource("DeferredItemDataBuffer", mDeferredItemDataBuffer);
+			mDeferredItemDataBuffer->SetDebugName("OpaqueItemDataBuffer");
+			mDeferredItemDataBufferID = mRenderGraph->ImportResource("OpaqueItemDataBuffer", mDeferredItemDataBuffer);
 			mResourceStateTracker->StartTracking(mDeferredItemDataBuffer);
 			mResourceStateTracker->StartTracking(mDeferredItemDataBuffer->GetCounterBuffer());
 
@@ -178,8 +178,8 @@ namespace Renderer {
 			_DeferredItemIndirectDrawIndexedDataBufferDesc.initialState = GHL::EResourceState::Common;
 			_DeferredItemIndirectDrawIndexedDataBufferDesc.expectedState = GHL::EResourceState::CopySource | GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
 			mDeferredItemIndirectDrawIndexedDataBuffer = mResourceAllocator->Allocate(mDevice.get(), _DeferredItemIndirectDrawIndexedDataBufferDesc, mDescriptorAllocator.get(), nullptr);
-			mDeferredItemIndirectDrawIndexedDataBuffer->SetDebugName("DeferredItemIndirectDrawIndexedDataBuffer");
-			mDeferredItemIndirectDrawIndexedDataBufferID = mRenderGraph->ImportResource("DeferredItemIndirectDrawIndexedDataBuffer", mDeferredItemIndirectDrawIndexedDataBuffer);
+			mDeferredItemIndirectDrawIndexedDataBuffer->SetDebugName("OpaqueItemIndirectDrawIndexedDataBuffer");
+			mDeferredItemIndirectDrawIndexedDataBufferID = mRenderGraph->ImportResource("OpaqueItemIndirectDrawIndexedDataBuffer", mDeferredItemIndirectDrawIndexedDataBuffer);
 			mResourceStateTracker->StartTracking(mDeferredItemIndirectDrawIndexedDataBuffer);
 			mResourceStateTracker->StartTracking(mDeferredItemIndirectDrawIndexedDataBuffer->GetCounterBuffer());
 		}
@@ -198,13 +198,15 @@ namespace Renderer {
 			// mDetailObjectSystem->Initialize(this);
 			// mGrassPass.InitializePass(this);
 			// mFoliagePass.InitializePass(this);
-			mAtmospherePass.InitializePass(this);
+			mAtmospherePass.Initialize(this);
 			// mOceanPass.InitializePass(this);
 			// mVolumetricCloudsPass.InitializePass(this);
+			mCascadeShadowPass.Initialize(this);
 		}
 
 		// 添加RenderPass并构建RenderGraph
 		{
+			mCascadeShadowPass.AddPass(this);
 			mOpaquePass.AddPass(*mRenderGraph);
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mTerrainSystem->AddPass(this);
@@ -264,6 +266,7 @@ namespace Renderer {
 		UpdateItems();
 		UpdateSky();
 		UpdateLights();
+		UpdateShadow();
 	}
 
 	void RenderEngine::UpdateCameras() {
@@ -291,10 +294,12 @@ namespace Renderer {
 				gpuCurrentEditorCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
 				gpuCurrentEditorCamera.nearPlane = camera.frustum.nearZ;
 				gpuCurrentEditorCamera.farPlane = camera.frustum.farZ;
+				gpuCurrentEditorCamera.foVV = camera.frustum.fovY;
 				gpuCurrentEditorCamera.aspectRatio = camera.frustum.aspect;
 				gpuCurrentEditorCamera.jitter = jitter.jitterMatrix;
 				gpuCurrentEditorCamera.uvJitter = jitter.uvJitter;
 				gpuCurrentEditorCamera.viewProjectionJitter = (camera.viewProjMatrix * jitter.jitterMatrix).Transpose();
+				Math::Frustum::BuildFrustumPlanes(camera.viewMatrix * camera.projMatrix, gpuCurrentEditorCamera.planes);
 				if (mFrameTracker->IsFirstFrame()) {
 					gpuPreviousEditorCamera = gpuCurrentEditorCamera;
 				}
@@ -315,6 +320,7 @@ namespace Renderer {
 				gpuCurrentRenderCamera.inverseProjection = camera.projMatrix.Inverse().Transpose();
 				gpuCurrentRenderCamera.nearPlane = camera.frustum.nearZ;
 				gpuCurrentRenderCamera.farPlane = camera.frustum.farZ;
+				gpuCurrentRenderCamera.foVV = camera.frustum.fovY;
 				gpuCurrentRenderCamera.aspectRatio = camera.frustum.aspect;
 				gpuCurrentRenderCamera.jitter = jitter.jitterMatrix;
 				gpuCurrentRenderCamera.uvJitter = jitter.uvJitter;
@@ -355,6 +361,10 @@ namespace Renderer {
 			mPipelineResourceStorage->rootItemIndirectDrawIndexedDataPerFrame.at(index) = std::move(indirectDrawIndexedData);
 		});
 		mPipelineResourceStorage->rootItemNumsPerFrame = atomicIndex + 1;
+	}
+
+	void RenderEngine::UpdateShadow() {
+		mCascadeShadowPass.Update(this);
 	}
 
 	void RenderEngine::UpdateSky() {

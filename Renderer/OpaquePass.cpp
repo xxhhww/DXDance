@@ -42,8 +42,8 @@ namespace Renderer {
 				auto* resourceStorage = renderContext.resourceStorage;
 				auto* frameTracker = renderContext.frameTracker;
 
-				auto* deferredItemDataBuffer					= resourceStorage->GetResourceByName("DeferredItemDataBuffer")->GetBuffer();
-				auto* deferredItemIndirectDrawIndexedDataBuffer = resourceStorage->GetResourceByName("DeferredItemIndirectDrawIndexedDataBuffer")->GetBuffer();
+				auto* deferredItemDataBuffer					= resourceStorage->GetResourceByName("OpaqueItemDataBuffer")->GetBuffer();
+				auto* deferredItemIndirectDrawIndexedDataBuffer = resourceStorage->GetResourceByName("OpaqueItemIndirectDrawIndexedDataBuffer")->GetBuffer();
 				auto* culledDeferredItemIndirectArgs			= resourceStorage->GetResourceByName("CulledDeferredItemIndirectArgs")->GetBuffer();
 
 				mGpuCullingPassData.deferredItemDataBufferIndex = deferredItemDataBuffer->GetSRDescriptor()->GetHeapIndex();

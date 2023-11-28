@@ -2,20 +2,25 @@
 #define _CascadeShadowCullingPass__
 
 struct PassData {
-	uint  opaqueItemDataBufferIndex;
-	uint  opaqueItemIndirectDrawIndexedDataBufferIndex;
-	uint  opaqueItemNumsPerFrame;
-	float pad1;
+	uint   opaqueItemDataBufferIndex;
+	uint   opaqueItemIndirectDrawIndexedDataBufferIndex;
+	uint   opaqueItemNumsPerFrame;
+	float  pad1;
 	
-	uint  cascadeShadow0CulledIndirectArgsIndex;	// 级联层级0的可视Item的间接绘制参数
-	uint  cascadeShadow1CulledIndirectArgsIndex;
-	uint  cascadeShadow2CulledIndirectArgsIndex;
-	uint  cascadeShadow3CulledIndirectArgsIndex;
+	uint   cascadeShadow0CulledIndirectArgsIndex;	// 级联层级0的可视Item的间接绘制参数
+	uint   cascadeShadow1CulledIndirectArgsIndex;
+	uint   cascadeShadow2CulledIndirectArgsIndex;
+	uint   cascadeShadow3CulledIndirectArgsIndex;
 
 	float4 cascadeShadow0FrustumPlanes[6];			// 级联层级0的光源可视平截头体
 	float4 cascadeShadow1FrustumPlanes[6];
 	float4 cascadeShadow2FrustumPlanes[6];
 	float4 cascadeShadow3FrustumPlanes[6];
+
+	uint2  cascadeShadow0TargetPassDataAddress;
+	uint2  cascadeShadow1TargetPassDataAddress;
+	uint2  cascadeShadow2TargetPassDataAddress;
+	uint2  cascadeShadow3TargetPassDataAddress;
 };
 
 #define PassDataType PassData
@@ -69,26 +74,43 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 		boundingBox.minPosition = currItemData.minBoundingBoxPosition;
 		boundingBox.maxPosition = currItemData.maxBoundingBoxPosition;
 
+		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow0TargetPassDataAddress;
+		cascadeShadow0IndirectArgs.Append(currIndirectDrawData);
+
+		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow1TargetPassDataAddress;
+		cascadeShadow1IndirectArgs.Append(currIndirectDrawData);
+
+		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow2TargetPassDataAddress;
+		cascadeShadow2IndirectArgs.Append(currIndirectDrawData);
+
+		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow3TargetPassDataAddress;
+		cascadeShadow3IndirectArgs.Append(currIndirectDrawData);
+		/*
 		// Cascade 0
 		if(!FrustumCull(PassDataCB.cascadeShadow0FrustumPlanes, boundingBox)) {
+			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow0TargetPassDataAddress;
 			cascadeShadow0IndirectArgs.Append(currIndirectDrawData);
 			return;
 		}
 		// Cascade 1
 		if(!FrustumCull(PassDataCB.cascadeShadow1FrustumPlanes, boundingBox)) {
+			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow1TargetPassDataAddress;
 			cascadeShadow1IndirectArgs.Append(currIndirectDrawData);
 			return;
 		}
 		// Cascade 2
 		if(!FrustumCull(PassDataCB.cascadeShadow2FrustumPlanes, boundingBox)) {
+			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow2TargetPassDataAddress;
 			cascadeShadow2IndirectArgs.Append(currIndirectDrawData);
 			return;
 		}
 		// Cascade 3
 		if(!FrustumCull(PassDataCB.cascadeShadow3FrustumPlanes, boundingBox)) {
+			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow3TargetPassDataAddress;
 			cascadeShadow3IndirectArgs.Append(currIndirectDrawData);
 			return;
 		}
+		*/
 	}
 }
 

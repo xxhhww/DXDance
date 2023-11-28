@@ -170,7 +170,7 @@ namespace Renderer {
 			});
 	}
 
-	void AtmospherePass::InitializePass(RenderEngine* renderEngine) {
+	void AtmospherePass::Initialize(RenderEngine* renderEngine) {
 		auto* device = renderEngine->mDevice.get();
 		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
 		auto* copyDsQueue = renderEngine->mUploaderEngine->GetMemoryCopyQueue();

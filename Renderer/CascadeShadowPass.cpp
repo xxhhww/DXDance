@@ -34,6 +34,7 @@ namespace Renderer {
 		_CascadeShadowTextureDesc.width = smCascadeShadowDepthTextureResolution;
 		_CascadeShadowTextureDesc.height = smCascadeShadowDepthTextureResolution;
 		_CascadeShadowTextureDesc.format = DXGI_FORMAT_D32_FLOAT;
+		_CascadeShadowTextureDesc.clearVaule = GHL::DepthStencilClearValue{ 1.0f, 0u };
 		_CascadeShadowTextureDesc.initialState = GHL::EResourceState::Common;
 		_CascadeShadowTextureDesc.expectedState = GHL::EResourceState::DepthWrite | GHL::EResourceState::NonPixelShaderAccess;
 		for (uint32_t i = 0; i < smNumShadowCascades; i++) {
@@ -75,24 +76,35 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
-				auto* opaqueItemDataBuffer = resourceStorage->GetResourceByName("OpaqueItemDataBuffer")->GetBuffer();
+				auto* opaqueItemDataBuffer                    = resourceStorage->GetResourceByName("OpaqueItemDataBuffer")->GetBuffer();
 				auto* opaqueItemIndirectDrawIndexedDataBuffer = resourceStorage->GetResourceByName("OpaqueItemIndirectDrawIndexedDataBuffer")->GetBuffer();
+				
 				std::vector<Renderer::Buffer*> indirectArgsArray(smNumShadowCascades, nullptr);
+				std::vector<Renderer::LinearAllocation> dstPassDataArray(smNumShadowCascades, Renderer::LinearAllocation{});
 				for (uint32_t i = 0; i < smNumShadowCascades; i++) {
 					indirectArgsArray[i] = resourceStorage->GetResourceByName("CascadeShadowIndirectArgs:" + std::to_string(i))->GetBuffer();
+					dstPassDataArray[i] = dynamicAllocator->Allocate(sizeof(CascadeShadowPassData));
+					memcpy(dstPassDataArray[i].cpuAddress, &mCascadedLightCameraGpuVpMatrixs[i], sizeof(CascadeShadowPassData));
 				}
 
 				mCascadeShadowCullingPassData.opaqueItemDataBufferIndex = opaqueItemDataBuffer->GetSRDescriptor()->GetHeapIndex();
 				mCascadeShadowCullingPassData.opaqueItemIndirectDrawIndexedDataBufferIndex = opaqueItemIndirectDrawIndexedDataBuffer->GetSRDescriptor()->GetHeapIndex();
-				mCascadeShadowCullingPassData.opaqueItemNumsPerFrame = maxOpaqueItems;
+				mCascadeShadowCullingPassData.opaqueItemNumsPerFrame = resourceStorage->rootItemNumsPerFrame;
+
 				mCascadeShadowCullingPassData.cascadeShadow0IndirectArgsIndex = indirectArgsArray[0]->GetUADescriptor()->GetHeapIndex();
 				mCascadeShadowCullingPassData.cascadeShadow1IndirectArgsIndex = indirectArgsArray[1]->GetUADescriptor()->GetHeapIndex();
 				mCascadeShadowCullingPassData.cascadeShadow2IndirectArgsIndex = indirectArgsArray[2]->GetUADescriptor()->GetHeapIndex();
 				mCascadeShadowCullingPassData.cascadeShadow3IndirectArgsIndex = indirectArgsArray[3]->GetUADescriptor()->GetHeapIndex();
+
 				mCascadeShadowCullingPassData.cascadeShadow0FrustumPlanes = mCascadedFrustumPlanesInWorldSpace[0];
 				mCascadeShadowCullingPassData.cascadeShadow1FrustumPlanes = mCascadedFrustumPlanesInWorldSpace[1];
 				mCascadeShadowCullingPassData.cascadeShadow2FrustumPlanes = mCascadedFrustumPlanesInWorldSpace[2];
 				mCascadeShadowCullingPassData.cascadeShadow3FrustumPlanes = mCascadedFrustumPlanesInWorldSpace[3];
+				
+				mCascadeShadowCullingPassData.cascadeShadow0TargetPassDataAddress = dstPassDataArray[0].gpuAddress;
+				mCascadeShadowCullingPassData.cascadeShadow1TargetPassDataAddress = dstPassDataArray[1].gpuAddress;
+				mCascadeShadowCullingPassData.cascadeShadow2TargetPassDataAddress = dstPassDataArray[2].gpuAddress;
+				mCascadeShadowCullingPassData.cascadeShadow3TargetPassDataAddress = dstPassDataArray[3].gpuAddress;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(CascadeShadowCullingPassData));
 				memcpy(passDataAlloc.cpuAddress, &mCascadeShadowCullingPassData, sizeof(CascadeShadowCullingPassData));
@@ -118,97 +130,12 @@ namespace Renderer {
 					commandBuffer.FlushResourceBarrier(barrierBatch);
 				}
 
-				uint32_t threadGroupCountX = (maxOpaqueItems + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
+				uint32_t threadGroupCountX = (resourceStorage->rootItemNumsPerFrame + smThreadSizeInGroup - 1u) / smThreadSizeInGroup;
 				commandBuffer.SetComputeRootSignature();
 				commandBuffer.SetComputePipelineState("CascadeShadowCullingPass");
 				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
 				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
 				commandBuffer.Dispatch(threadGroupCountX, 1u, 1u);
-			}
-			);
-
-		renderGraph->AddPass(
-			"CascadeShadowRedirectPass",
-			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
-				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
-
-				for (uint32_t i = 0; i < smNumShadowCascades; i++) {
-					builder.WriteBuffer("CascadeShadowIndirectArgs:" + std::to_string(i));
-				}
-
-				NewBufferProperties _CascadeShadowRedirectIndirectArgsProperties{};
-				_CascadeShadowRedirectIndirectArgsProperties.stride = sizeof(IndirectDispatch);
-				_CascadeShadowRedirectIndirectArgsProperties.size = sizeof(IndirectDispatch);
-				_CascadeShadowRedirectIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_CascadeShadowRedirectIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("CascadeShadowRedirectIndirectArgs", _CascadeShadowRedirectIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("CascadeShadowRedirectIndirectArgs");
-
-				shaderManger.CreateComputeShader("CascadeShadowRedirectPass",
-					[](ComputeStateProxy& proxy) {
-						proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/CascadeShadow/CascadeShadowRedirectPass.hlsl";
-					});
-
-				commandSignatureManger.CreateCommandSignature("CascadeShadowRedirectPass",
-					[&](GHL::CommandSignature& proxy) {
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });	// FrameDataCB
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });	// PassDataCB
-						proxy.AddIndirectArgument(GHL::IndirectShaderResourceViewArgument{ 2u });	// LightDataSB
-						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 3u });	// ItemDataCB
-						proxy.AddIndirectArgument(GHL::IndirectDispatchArgument{});
-						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
-						proxy.SetByteStride(sizeof(IndirectDispatch));
-					});
-			},
-			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
-				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage = renderContext.resourceStorage;
-
-				auto* cascadeShadowRedirectIndirectArgs = resourceStorage->GetResourceByName("CascadeShadowRedirectIndirectArgs")->GetBuffer();
-
-				for (uint32_t i = 0; i < smNumShadowCascades; i++) {
-					auto* cascadeShadowIndirectArgs = resourceStorage->GetResourceByName("CascadeShadowIndirectArgs:" + std::to_string(i))->GetBuffer();
-
-					// 为CascadeShadowPassData进行共享内存的分配
-					auto cascadeShadowPassDataAlloc = dynamicAllocator->Allocate(sizeof(CascadeShadowPassData));
-					memcpy(cascadeShadowPassDataAlloc.cpuAddress, &mCascadedLightCameraGpuVpMatrixs[i], sizeof(CascadeShadowPassData));
-
-					// TODO填充
-					mCascadeShadowRedirectPassData.redirectedIndirectArgsIndex = cascadeShadowIndirectArgs->GetUADescriptor()->GetHeapIndex();
-					mCascadeShadowRedirectPassData.passDataAddressUp;
-					mCascadeShadowRedirectPassData.passDataAddressDown;
-
-					// 为RedirectPassData进行共享内存的分配
-					auto redirectPassDataAlloc = dynamicAllocator->Allocate(sizeof(CascadeShadowRedirectPassData));
-					memcpy(redirectPassDataAlloc.cpuAddress, &mCascadeShadowRedirectPassData, sizeof(CascadeShadowRedirectPassData));
-
-					IndirectDispatch indirectDispath{};
-					indirectDispath.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
-					indirectDispath.passDataAddress = redirectPassDataAlloc.gpuAddress;
-					indirectDispath.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
-					indirectDispath.dispatchArguments.ThreadGroupCountX = 1u;
-					indirectDispath.dispatchArguments.ThreadGroupCountY = 1u;
-					indirectDispath.dispatchArguments.ThreadGroupCountZ = 1u;
-
-					{
-						auto barrierBatch = GHL::ResourceBarrierBatch{};
-						barrierBatch += commandBuffer.TransitionImmediately(cascadeShadowIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopySource);
-						commandBuffer.FlushResourceBarrier(barrierBatch);
-					}
-					commandBuffer.UploadBufferRegion(cascadeShadowRedirectIndirectArgs, 0u, &indirectDispath, sizeof(IndirectDispatch));
-					commandBuffer.CopyBufferRegion(cascadeShadowRedirectIndirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 4u, 
-						cascadeShadowIndirectArgs->GetCounterBuffer(), 0u, sizeof(uint32_t));
-
-					{
-						auto barrierBatch = GHL::ResourceBarrierBatch{};
-						barrierBatch += commandBuffer.TransitionImmediately(cascadeShadowIndirectArgs, GHL::EResourceState::IndirectArgument);
-						barrierBatch += commandBuffer.TransitionImmediately(cascadeShadowIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
-						commandBuffer.FlushResourceBarrier(barrierBatch);
-					}
-					commandBuffer.SetComputeRootSignature();
-					commandBuffer.SetComputePipelineState("CascadeShadowRedirectPass");
-					commandBuffer.ExecuteIndirect("CascadeShadowRedirectPass", cascadeShadowRedirectIndirectArgs, 1u);
-				}
 			}
 			);
 
@@ -285,7 +212,7 @@ namespace Renderer {
 
 	void CascadeShadowPass::UpdateCascadeShadowLightCameraMatrix(const GpuCameraData& gpuCamera, const GpuLightData& sunLight) {
 		// 太阳光方向及其ViewMatrix
-		Math::Vector3 lightDirection{ sunLight.position.x, sunLight.position.y, sunLight.position.z };
+		Math::Vector3 lightDirection{ -sunLight.position.x, -sunLight.position.y, -sunLight.position.z };
 		Math::Matrix4 lightViewMatrix = DirectX::XMMatrixLookToLH(Math::Vector3{ 0.0f, 0.0f, 0.0f }, lightDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
 		Math::Matrix4 invLightViewMatrix = lightViewMatrix.Inverse();
 
@@ -377,7 +304,7 @@ namespace Renderer {
 		float nearPlaneRatio = 0.0f;
 		float farPlaneRatio = 0.0f;
 
-		for (int32_t i = 0; i < index; i++) {
+		for (int32_t i = 0; i <= index; i++) {
 			if (i > 0) {
 				nearPlaneRatio += smShadowCascadesSplitRatio[i - 1];
 			}
@@ -388,7 +315,13 @@ namespace Renderer {
 		float farPlane = farPlaneRatio * smCascadeShadowDistance;
 
 		// 获取摄像机反转后的VP矩阵
-		const Math::Matrix4 invVpMatrix = gpuCamera.viewProjection.Transpose().Inverse();
+		const Math::Matrix4 invViewMatrix = gpuCamera.inverseView.Transpose();
+		const Math::Matrix4 currProjMatrix = XMMatrixPerspectiveFovLH(
+			gpuCamera.foVV,
+			gpuCamera.aspectRatio,
+			nearPlane,
+			farPlane);
+		const Math::Matrix4 invProjMatrix = currProjMatrix.Inverse();
 
 		// 从裁剪空间反转回世界空间
 		Math::Vector3 vecFrustum[8];
@@ -402,7 +335,10 @@ namespace Renderer {
 		vecFrustum[7] = Math::Vector3(1.0f, 1.0f, 1.0f);		// XYZ
 
 		for (int i = 0; i < 8; i++) {
-			vecFrustum[i] = vecFrustum[i].TransformAsPoint(invVpMatrix);
+			vecFrustum[i] = DirectX::XMVector3TransformCoord(vecFrustum[i], invProjMatrix);
+			vecFrustum[i] = DirectX::XMVector3TransformCoord(vecFrustum[i], invViewMatrix);
+			// vecFrustum[i] = vecFrustum[i].TransformAsPoint(invProjMatrix);
+			// vecFrustum[i] = vecFrustum[i].TransformAsPoint(invViewMatrix);
 		}
 
 		currFrustumCorners.nearCorners[0] = vecFrustum[0];

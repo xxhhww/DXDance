@@ -97,12 +97,6 @@
     <Filter Include="源文件\Renderer\Terrain\DetailObjectSystem">
       <UniqueIdentifier>{ac031b58-573a-443a-b344-6031c5b3d4b4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\Renderer\ShadowSystem">
-      <UniqueIdentifier>{c5c7ba96-c6fd-4d08-a4ae-ef976cb0165c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\Renderer\ShadowSystem">
-      <UniqueIdentifier>{790fc044-4f68-4001-a8fa-9941d6b3fad5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -337,7 +331,7 @@
       <Filter>头文件\Renderer\Terrain\DetailObjectSystem</Filter>
     </ClInclude>
     <ClInclude Include="CascadeShadowPass.h">
-      <Filter>头文件\Renderer\ShadowSystem</Filter>
+      <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -560,10 +554,10 @@
     <ClCompile Include="ClusterTree.cpp">
       <Filter>源文件\Renderer\Terrain\DetailObjectSystem</Filter>
     </ClCompile>
-    <ClCompile Include="CascadeShadowPass.cpp">
-      <Filter>源文件\Renderer\ShadowSystem</Filter>
-    </ClCompile>
     <ClCompile Include="TAAPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="CascadeShadowPass.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

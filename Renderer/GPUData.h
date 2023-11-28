@@ -27,7 +27,7 @@ namespace Renderer {
         float exposureValue100 = 0.0f;
         float foVH = 0.0f;
         // 16 byte boundary
-        float foVV = 0.0f;
+        float foVV = 0.0f;      // 规定fovH与fovY含义相同
         float foVHTan = 0.0f;
         float foVVTan = 0.0f;
         float aspectRatio = 0;

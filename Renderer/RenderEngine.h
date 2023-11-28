@@ -27,6 +27,7 @@
 #include "Renderer/CommandBuffer.h"
 #include "Renderer/RootConstantsPerFrame.h"
 
+#include "Renderer/CascadeShadowPass.h"
 #include "Renderer/VegetationSystem.h"
 #include "Renderer/DetailObjectSystem.h"
 #include "Renderer/OpaquePass.h"
@@ -97,6 +98,11 @@ namespace Renderer {
 		*/
 		void UpdateLights();
 
+		/*
+		* 更新Shadow
+		*/
+		void UpdateShadow();
+
 	public:
 		// ==========================...静态变量...==========================
 		inline static uint32_t smMaxItemNums = 1024u;
@@ -151,6 +157,7 @@ namespace Renderer {
 		std::unique_ptr<VegetationSystem> mVegetationSystem;		// 草地系统
 		std::unique_ptr<DetailObjectSystem> mDetailObjectSystem;	// 细节物理系统
 
+		CascadeShadowPass         mCascadeShadowPass;
 		OpaquePass				  mOpaquePass;
 		AtmospherePass            mAtmospherePass;
 		OceanPass                 mOceanPass;

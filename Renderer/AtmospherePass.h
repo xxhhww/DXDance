@@ -70,7 +70,7 @@ namespace Renderer {
 	public:
 		void AddPass(RenderGraph& renderGraph);
 
-		void InitializePass(RenderEngine* renderEngine);
+		void Initialize(RenderEngine* renderEngine);
 	};
 
 }

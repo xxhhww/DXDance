@@ -28,7 +28,7 @@ v2p VSMain(a2v input, uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCE
 	float3 currWsPos = mul(float4(input.lsPos, 1.0f), ItemDataCB.currModelTrans).xyz;
 	float4 currCsPos = mul(float4(currWsPos, 1.0f), PassDataCB.vpMatrix);
 
-	output.currCsPos = currCsPos
+	output.currCsPos = currCsPos;
 
 	return output;
 }
