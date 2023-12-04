@@ -103,5 +103,6 @@
     <FxCompile Include="Shaders\Engine\Base\GpuData.hlsl" />
     <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowCullingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowPass.hlsl" />
+    <FxCompile Include="Shaders\Engine\RaytracedTerrainShadow\RaytracedTerrainShadowPass.hlsl" />
   </ItemGroup>
 </Project>

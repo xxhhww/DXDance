@@ -74,6 +74,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 		boundingBox.minPosition = currItemData.minBoundingBoxPosition;
 		boundingBox.maxPosition = currItemData.maxBoundingBoxPosition;
 
+		/*
 		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow0TargetPassDataAddress;
 		cascadeShadow0IndirectArgs.Append(currIndirectDrawData);
 
@@ -85,32 +86,28 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupId : SV_Gro
 
 		currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow3TargetPassDataAddress;
 		cascadeShadow3IndirectArgs.Append(currIndirectDrawData);
-		/*
+		*/
+		
 		// Cascade 0
 		if(!FrustumCull(PassDataCB.cascadeShadow0FrustumPlanes, boundingBox)) {
 			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow0TargetPassDataAddress;
 			cascadeShadow0IndirectArgs.Append(currIndirectDrawData);
-			return;
 		}
 		// Cascade 1
 		if(!FrustumCull(PassDataCB.cascadeShadow1FrustumPlanes, boundingBox)) {
 			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow1TargetPassDataAddress;
 			cascadeShadow1IndirectArgs.Append(currIndirectDrawData);
-			return;
 		}
 		// Cascade 2
 		if(!FrustumCull(PassDataCB.cascadeShadow2FrustumPlanes, boundingBox)) {
 			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow2TargetPassDataAddress;
 			cascadeShadow2IndirectArgs.Append(currIndirectDrawData);
-			return;
 		}
 		// Cascade 3
 		if(!FrustumCull(PassDataCB.cascadeShadow3FrustumPlanes, boundingBox)) {
 			currIndirectDrawData.passDataAddress = PassDataCB.cascadeShadow3TargetPassDataAddress;
 			cascadeShadow3IndirectArgs.Append(currIndirectDrawData);
-			return;
 		}
-		*/
 	}
 }
 

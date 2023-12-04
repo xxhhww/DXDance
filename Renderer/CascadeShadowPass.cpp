@@ -295,7 +295,7 @@ namespace Renderer {
 			Math::Matrix4 viewMatrix = DirectX::XMMatrixLookToLH(centerPosInWorldSpace, lightDirection, Math::Vector3{ 0.0f, 1.0f, 0.0f });
 			Math::Matrix4 projMatrix = DirectX::XMMatrixOrthographicLH(maxLength, maxLength, 0.0f, maxZ - minZ);
 			mCascadedLightCameraGpuVpMatrixs[i] = (viewMatrix * projMatrix).Transpose();
-			Math::Frustum::BuildFrustumPlanes(mCascadedLightCameraGpuVpMatrixs[i], mCascadedFrustumPlanesInWorldSpace[i].data());
+			Math::Frustum::BuildFrustumPlanes(mCascadedLightCameraGpuVpMatrixs[i].Transpose(), mCascadedFrustumPlanesInWorldSpace[i].data());
 		}
 	}
 

@@ -30,6 +30,9 @@ namespace GHL {
 	}
 
 	void RootSignature::InitStaticSampler() {
+		float white[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		float black[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 		const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
 			0, // shaderRegister
 			D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
@@ -81,6 +84,19 @@ namespace GHL {
 			0.0f,                              // mipLODBias
 			4);                                // maxAnisotropy
 		AddStaticSampler(anisotropicClamp);
+
+		const CD3DX12_STATIC_SAMPLER_DESC shadowSamplerStateDesc(
+			6,
+			D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+			D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+			D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+			D3D12_TEXTURE_ADDRESS_MODE_BORDER,
+			0.0f,
+			1,
+			D3D12_COMPARISON_FUNC_LESS_EQUAL,
+			D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE
+		);
+		AddStaticSampler(shadowSamplerStateDesc);
 	}
 
 	void RootSignature::Compile() {

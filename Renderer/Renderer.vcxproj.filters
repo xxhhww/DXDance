@@ -333,6 +333,9 @@
     <ClInclude Include="CascadeShadowPass.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="RaytracedTerrainShadow.h">
+      <Filter>头文件\Renderer\RenderPass</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -558,6 +561,9 @@
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
     <ClCompile Include="CascadeShadowPass.cpp">
+      <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="RaytracedTerrainShadow.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
     </ClCompile>
   </ItemGroup>

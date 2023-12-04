@@ -75,4 +75,35 @@ void ShadeWithSunLight(
     */
 }
 
+/*
+* 延迟管线中获取CSM Shadow
+*/
+float CalculateCSMInDeferredPipeline(float3 wsPosition, float4x4 mvp, float shadowTextureSize, uint cascadedShadowTextureIndex, in SamplerComparisonState samplerCascadedPcfShadowMap) {
+    Texture2D<float> cascadedShadowTexture = ResourceDescriptorHeap[cascadedShadowTextureIndex];
+
+    // 转换到光源空间(太阳光)
+    float4 lightSpacePos = mul(float4(wsPosition, 1.0f), mvp);
+    float4 shadowCoord = lightSpacePos / lightSpacePos.w;
+    shadowCoord.rg = shadowCoord.rg * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
+    
+    const float dilation = 2.0;
+    float d1 = dilation * shadowTextureSize * 0.125;
+    float d2 = dilation * shadowTextureSize * 0.875;
+    float d3 = dilation * shadowTextureSize * 0.625;
+    float d4 = dilation * shadowTextureSize * 0.375;
+    float result = (
+        2.0 * cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy, shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(-d2, d1),  shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(-d1, -d2), shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(d2, -d1),  shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(d1, d2),   shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(-d4, d3),  shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(-d3, -d4), shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(d4, -d3),  shadowCoord.z) +
+        cascadedShadowTexture.SampleCmpLevelZero(samplerCascadedPcfShadowMap, shadowCoord.xy + float2(d3, d4),   shadowCoord.z)
+        ) / 10.0;
+
+    return result * result;
+}
+
 #endif

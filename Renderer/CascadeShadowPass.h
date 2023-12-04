@@ -60,7 +60,6 @@ namespace Renderer {
 
 		/*
 		* 添加Pass
-		* 对GBuffer的阴影分量做处理，而非从光源渲染阴影贴图
 		*/
 		void AddPass(RenderEngine* renderEngine);
 
