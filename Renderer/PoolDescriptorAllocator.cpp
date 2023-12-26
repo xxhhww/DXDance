@@ -132,4 +132,76 @@ namespace Renderer {
 		mPendingDeallocations[frameIndex].clear();
 	}
 
+	PoolDescriptorAllocator::Allocation* PoolDescriptorAllocator::AllocateEx(D3D12_DESCRIPTOR_HEAP_TYPE type) {
+		switch (type) {
+		case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: {
+			auto* slot = mCBSRUADescriptorPool.Allocate();
+			if (!slot->userData.indexInHeap) {
+				auto handle = mCBSRUADescriptorHeap.Allocate(mCBSRUADescriptors.size());
+				mCBSRUADescriptors.emplace_back(new GHL::DescriptorHandle(handle));
+				slot->userData.indexInHeap = mCBSRUADescriptors.size() - 1u;
+			}
+			auto* descriptorHandle = mCBSRUADescriptors.at(*slot->userData.indexInHeap).get();
+			return new Allocation(this, slot, descriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		}
+		case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER: {
+			auto* slot = mSamplerDescriptorPool.Allocate();
+			if (!slot->userData.indexInHeap) {
+				auto handle = mSamplerDescriptorHeap.Allocate(mSamplerDescriptors.size());
+				mSamplerDescriptors.emplace_back(new GHL::DescriptorHandle(handle));
+				slot->userData.indexInHeap = mSamplerDescriptors.size() - 1u;
+			}
+			auto* descriptorHandle = mSamplerDescriptors.at(*slot->userData.indexInHeap).get();
+			return new Allocation(this, slot, descriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+		}
+		case D3D12_DESCRIPTOR_HEAP_TYPE_RTV: {
+			auto* slot = mRTDescriptorPool.Allocate();
+			if (!slot->userData.indexInHeap) {
+				auto handle = mRTDescriptorHeap.Allocate(mRTDescriptors.size());
+				mRTDescriptors.emplace_back(new GHL::DescriptorHandle(handle));
+				slot->userData.indexInHeap = mRTDescriptors.size() - 1u;
+			}
+			auto* descriptorHandle = mRTDescriptors.at(*slot->userData.indexInHeap).get();
+			return new Allocation(this, slot, descriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		}
+		case D3D12_DESCRIPTOR_HEAP_TYPE_DSV: {
+			auto* slot = mDSDescriptorPool.Allocate();
+			if (!slot->userData.indexInHeap) {
+				auto handle = mDSDescriptorHeap.Allocate(mDSDescriptors.size());
+				mDSDescriptors.emplace_back(new GHL::DescriptorHandle(handle));
+				slot->userData.indexInHeap = mDSDescriptors.size() - 1u;
+			}
+			auto* descriptorHandle = mDSDescriptors.at(*slot->userData.indexInHeap).get();
+			return new Allocation(this, slot, descriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+		}
+		default:
+			ASSERT_FORMAT(false, "Unsupport Descriptor Heap Type");
+			return nullptr;
+		}
+	}
+
+	void PoolDescriptorAllocator::DeallocateEx(Allocation* allocation) {
+		switch (allocation->heapType) {
+		case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+			mCBSRUADescriptorPool.Deallocate(allocation->poolAllocation);
+			delete allocation;
+			break;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
+			mSamplerDescriptorPool.Deallocate(allocation->poolAllocation);
+			delete allocation;
+			break;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
+			mRTDescriptorPool.Deallocate(allocation->poolAllocation);
+			delete allocation;
+			break;
+		case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
+			mDSDescriptorPool.Deallocate(allocation->poolAllocation);
+			delete allocation;
+			break;
+		default:
+			ASSERT_FORMAT(false, "Unsupport Descriptor Heap Type");
+			break;
+		}
+	}
+
 }

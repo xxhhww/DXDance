@@ -379,7 +379,8 @@ namespace Renderer {
             }
 
             DirectX::TexMetadata metadata = GetTexMetadata(mMinMaxHeightMap->GetResourceFormat().GetTextureDesc());
-            DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_FORCE_DX10_EXT, L"MinMaxHeightMap_1.dds");
+            DirectX::SaveToWICFile(images[0], WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), L"Test_1.png");
+            // DirectX::SaveToDDSFile(images.data(), images.size(), metadata, DirectX::DDS_FLAGS_FORCE_DX10_EXT, L"MinMaxHeightMap_1.dds");
         }
 
         // 2. NormalMap

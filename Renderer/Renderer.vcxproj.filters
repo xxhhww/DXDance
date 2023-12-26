@@ -336,6 +336,9 @@
     <ClInclude Include="RaytracedTerrainShadow.h">
       <Filter>头文件\Renderer\RenderPass</Filter>
     </ClInclude>
+    <ClInclude Include="TextureAtlas.h">
+      <Filter>头文件\Resource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -565,6 +568,9 @@
     </ClCompile>
     <ClCompile Include="RaytracedTerrainShadow.cpp">
       <Filter>源文件\Renderer\RenderPass</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureAtlas.cpp">
+      <Filter>源文件\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

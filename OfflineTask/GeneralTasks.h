@@ -3,9 +3,6 @@
 
 namespace OfflineTask {
 
-	/*
-	* 对高度图进行倒置
-	*/
 	class GeneralTasks {
 	public:
 
@@ -35,6 +32,11 @@ namespace OfflineTask {
 			const std::string& bChannelFile,
 			const std::string& aChannelFile,
 			const std::string& outputFile);
+
+		static void GenerateMipmaps(
+			const std::string& sourceFile,
+			bool splitMip = true
+		);
 
 	};
 

@@ -369,4 +369,43 @@ namespace OfflineTask {
         delete outputDstImage.pixels;
     }
 
+    void GeneralTasks::GenerateMipmaps(
+        const std::string& sourceFile,
+        bool splitMip
+    ) {
+        static bool coInitialized = false;
+        if (!coInitialized) {
+            CoInitialize(nullptr);
+        }
+
+        DirectX::ScratchImage sourceImage;
+        HRASSERT(DirectX::LoadFromWICFile(
+            Tool::StrUtil::UTF8ToWString(sourceFile).c_str(),
+            DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+            nullptr,
+            sourceImage
+        ));
+
+        DirectX::ScratchImage mipChain;
+        HRASSERT(DirectX::GenerateMipMaps(
+            sourceImage.GetImages()[0], DirectX::TEX_FILTER_DEFAULT, 0, mipChain, false
+        ));
+
+        if (!splitMip) {
+        }
+        else {
+            // ½«MipChain²ð·Ö±£´æ
+            uint32_t mipLevels = mipChain.GetMetadata().mipLevels;
+            for (uint32_t i = 0; i < mipLevels; i++) {
+                std::string name = "MipChain" + std::to_string(i) + ".png";
+                HRASSERT(DirectX::SaveToWICFile(
+                    mipChain.GetImages()[i], 
+                    DirectX::WIC_FLAGS_NONE, 
+                    DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG), 
+                    Tool::StrUtil::UTF8ToWString(name).c_str()
+                ));
+            }
+        }
+    }
+
 }

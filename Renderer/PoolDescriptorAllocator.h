@@ -25,6 +25,27 @@ namespace Renderer {
 			D3D12_DESCRIPTOR_HEAP_TYPE heapType;
 		};
 
+		struct Allocation {
+		public:
+			PoolDescriptorAllocator* allocator{ nullptr };			// 所属分配器
+			typename Pool::Slot*     poolAllocation{ nullptr };		// 资源对应分配器上的分配槽位
+
+			GHL::DescriptorHandle*     descriptorHandle{ nullptr };	// 资源
+			D3D12_DESCRIPTOR_HEAP_TYPE heapType;
+
+		public:
+			Allocation(PoolDescriptorAllocator* allocator, typename Pool::Slot* poolAllocation, 
+				GHL::DescriptorHandle* descriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+			: allocator(allocator)
+			, poolAllocation(poolAllocation)
+			, descriptorHandle(descriptorHandle) 
+			, heapType(heapType) {}
+
+			~Allocation() = default;
+
+			void Release() { allocator->DeallocateEx(this); }
+		};
+
 	public:
 		PoolDescriptorAllocator(const GHL::Device* device, RingFrameTracker* ringFrameTracker, std::vector<uint64_t> capacity);
 		PoolDescriptorAllocator(const PoolDescriptorAllocator& other) = delete;
@@ -34,6 +55,10 @@ namespace Renderer {
 		~PoolDescriptorAllocator() = default;
 
 		DescriptorHandleWrap Allocate(D3D12_DESCRIPTOR_HEAP_TYPE type);
+
+		Allocation* AllocateEx(D3D12_DESCRIPTOR_HEAP_TYPE type);
+
+		void DeallocateEx(Allocation* allocation);
 
 		/*
 		* Get方法

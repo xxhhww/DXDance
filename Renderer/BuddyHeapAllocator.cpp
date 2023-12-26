@@ -30,7 +30,7 @@ namespace Renderer {
 		auto size = poolAllocation->block->size;
 		auto* heap = mHeaps.at(heapIndex).get();
 
-		return new Allocation(poolAllocation, heap, heapIndex, heapOffset, tileOffset, size);
+		return new Allocation(this, poolAllocation, heap, heapIndex, heapOffset, tileOffset, size);
 	}
 
 	void BuddyHeapAllocator::Deallocate(BuddyHeapAllocator::Allocation* allocation) {
@@ -44,6 +44,28 @@ namespace Renderer {
 			delete deallocation;
 		}
 		mPendingDeallocations[frameIndex].clear();
+	}
+
+	BuddyHeapAllocator::Allocation* BuddyHeapAllocator::AllocateEx(size_t memorySize) {
+		auto* poolAllocation = mBuddyHeapPool.Allocate(memorySize);
+		if (!poolAllocation->bucket->userData.heapIndex) {
+			mHeaps.emplace_back(new GHL::Heap(mDevice, mMaxBlockSize, GHL::EResourceUsage::Default));
+
+			poolAllocation->bucket->userData.heapIndex = mHeaps.size() - 1;
+		}
+
+		auto heapIndex = *poolAllocation->bucket->userData.heapIndex;
+		auto heapOffset = poolAllocation->block->offset;
+		auto tileOffset = heapOffset / mMinBlockSize;
+		auto size = poolAllocation->block->size;
+		auto* heap = mHeaps.at(heapIndex).get();
+
+		return new Allocation(this, poolAllocation, heap, heapIndex, heapOffset, tileOffset, size);
+	}
+
+	void BuddyHeapAllocator::DeallocateEx(Allocation* allocation) {
+		mBuddyHeapPool.Deallocate(allocation->poolAllocation);
+		delete allocation;	// ”Î new Allocation∂‘”¶
 	}
 
 }

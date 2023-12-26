@@ -88,6 +88,10 @@ namespace Tool {
         return path;
     }
 
+    std::string StrUtil::GetFilename(const std::string& path) {
+        return RemoveBasePath(RemoveExtension(path));
+    }
+
     bool StrUtil::StartWith(const std::string& path, const std::string& prefix) {
         return path.size() >= prefix.size() && path.compare(0, prefix.size(), prefix) == 0;
     }

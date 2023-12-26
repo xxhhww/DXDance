@@ -50,6 +50,11 @@ namespace Tool {
 		static std::string	GetBasePath(const std::string& path);
 
 		/*
+		* 获得文件名(去掉目录层级)
+		*/
+		static std::string GetFilename(const std::string& path);
+
+		/*
 		* 字符串前缀匹配
 		*/
 		static bool			StartWith(const std::string& path, const std::string& prefix);

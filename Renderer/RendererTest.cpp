@@ -393,7 +393,7 @@ int WINAPI main(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
         "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.dds",
         "E:/MyProject/DXDance/Resources/Textures/XetFileTest/TextureArray1.xet");
         */
-    RunRenderer();
-    // DoTerrainOfflineTask();
+    // RunRenderer();
+    DoTerrainOfflineTask();
     // DoGenerateCloudNoiseTask();
 }

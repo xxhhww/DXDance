@@ -1,7 +1,7 @@
 #include "OfflineTask/ResolveHDAFile.h"
-#include "OfflineTask/SplitHeightMap.h"
 #include "OfflineTask/GeneralTasks.h"
 #include "OfflineTask/GenerateGrassBlade.h"
+#include "OfflineTask/TextureProcessor.h"
 #include "HoudiniApi/HoudiniApi.h"
 #include "GHL/DebugLayer.h"
 #include "Windows/Window.h"
@@ -78,7 +78,42 @@ int main() {
 
 	// 执行离线任务
 	{
-        DoGenerateGrassBladeTask();
+        static std::string keyFilename = "HeightMap";
+        /*
+        TextureProcessor::Padding(
+            "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.png",
+            "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Padding/", 1);
+        */
+
+        uint32_t maxLOD = 4;
+        float	 minLODNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
+        float    worldMeterSize{ 8192.0f };
+        uint32_t nodeStartOffset{ 0u };
+        for (int32_t i = maxLOD; i >= 0; i--) {
+            float currLODNodeMeterSize = pow(2, i) * minLODNodeMeterSize;
+            /*
+            TextureProcessor::Split(
+                "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Padding/HeightMap.png", 
+                "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Split/", 
+                currLODNodeMeterSize + 1, currLODNodeMeterSize, nodeStartOffset);
+            */
+            uint32_t nodeCountPerAxis = worldMeterSize / currLODNodeMeterSize;
+            nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
+        }
+
+        for (uint32_t i = 0; i < nodeStartOffset; i++) {
+            /*
+            TextureProcessor::Resize(
+                "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Split/HeightMap" + std::to_string(i) + ".png", 
+                "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Resize/", 
+                65, 65);
+            */
+        }
+        
+        TextureProcessor::MergeTextureAtlasFile(
+            "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/Resize/",  "HeightMap", 
+            0, nodeStartOffset - 1,
+            "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.ta");
 	}
 
 	// 释放DLL

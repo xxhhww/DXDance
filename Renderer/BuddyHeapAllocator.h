@@ -19,15 +19,8 @@ namespace Renderer {
 		using BuddyPool = Tool::BuddyAllocatorPool<BucketUserData, void>;
 
 		struct Allocation {
-			Allocation(typename BuddyPool::Allocation* poolAllocation, GHL::Heap* heap, uint64_t heapIndex, size_t heapOffset, size_t tileOffset, size_t size)
-			: poolAllocation(poolAllocation)
-			, heap(heap)
-			, heapOffset(heapOffset)
-			, tileOffset(tileOffset)
-			, size(size) {}
-
-			~Allocation() = default;
-
+		public:
+			BuddyHeapAllocator*             allocator{ nullptr };
 			typename BuddyPool::Allocation* poolAllocation{ nullptr };
 
 			GHL::Heap* heap{ nullptr };
@@ -35,6 +28,20 @@ namespace Renderer {
 			size_t     heapOffset{ 0u };
 			uint32_t   tileOffset{ 0u };
 			size_t     size{ 0u };
+
+		public:
+			Allocation(BuddyHeapAllocator* allocator, typename BuddyPool::Allocation* poolAllocation, 
+				GHL::Heap* heap, uint64_t heapIndex, size_t heapOffset, size_t tileOffset, size_t size)
+			: allocator(allocator)
+			, poolAllocation(poolAllocation)
+			, heap(heap)
+			, heapOffset(heapOffset)
+			, tileOffset(tileOffset)
+			, size(size) {}
+
+			~Allocation() = default;
+
+			void Release() { allocator->DeallocateEx(this); }
 		};
 
 	public:
@@ -51,6 +58,10 @@ namespace Renderer {
 		* 延迟更新堆的使用状态(不会析构堆)
 		*/
 		void Deallocate(Allocation* allocation);
+
+		Allocation* AllocateEx(size_t memorySize);
+
+		void DeallocateEx(Allocation* allocation);
 
 	private:
 		void CleanUpPendingDeallocation(uint8_t frameIndex);
