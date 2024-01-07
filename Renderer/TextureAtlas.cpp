@@ -1,14 +1,15 @@
 #include "Renderer/TextureAtlas.h"
+#include <fstream>
 
 namespace Renderer {
 
 	TextureAtlasTile::TextureAtlasTile(
 		const GHL::Device* device,
-		const ResourceFormat& subResourceFormat,
+		TextureAtlas* atlas,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator)
 	: mDevice(device)
-	, mResourceFormat(subResourceFormat)
+	, mAtlas(atlas)
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator) {}
 
@@ -28,18 +29,20 @@ namespace Renderer {
 			return;
 		}
 
-		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		const auto& resourceFormat = mAtlas->GetSubresourceFormat();
+
+		const auto& textureDesc = resourceFormat.GetTextureDesc();
 		D3D12_CLEAR_VALUE d3dClearValue = GHL::GetD3DClearValue(textureDesc.clearVaule, textureDesc.format);
-		bool canUseClearValue = mResourceFormat.CanUseClearValue();
+		bool canUseClearValue = resourceFormat.CanUseClearValue();
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Resource Usage Must Be Default");
 		ASSERT_FORMAT(textureDesc.createdMethod == GHL::ECreatedMethod::Placed, "Create Method Must Be Placed");
 
-		mHeapAllocation = mHeapAllocator->AllocateEx(mResourceFormat.GetSizeInBytes());
+		mHeapAllocation = mHeapAllocator->AllocateEx(resourceFormat.GetSizeInBytes());
 		HRASSERT(mDevice->D3DDevice()->CreatePlacedResource(
 			mHeapAllocation->heap->D3DHeap(),
 			mHeapAllocation->heapOffset,
-			&mResourceFormat.D3DResourceDesc(),
+			&resourceFormat.D3DResourceDesc(),
 			GHL::GetD3DResourceStates(textureDesc.initialState),
 			canUseClearValue ? &d3dClearValue : nullptr,
 			IID_PPV_ARGS(&mD3DResource)
@@ -61,7 +64,7 @@ namespace Renderer {
 	}
 
 	void TextureAtlasTile::CreateSRDescriptor(const TextureSubResourceDesc& subDesc) {
-		const auto& textureDesc = mResourceFormat.GetTextureDesc();
+		const auto& textureDesc = mAtlas->GetSubresourceFormat().GetTextureDesc();
 
 		ASSERT_FORMAT(HasAllFlags(textureDesc.expectedState, GHL::EResourceState::PixelShaderAccess) ||
 			HasAllFlags(textureDesc.expectedState, GHL::EResourceState::NonPixelShaderAccess), "Unsupport SRDescriptor");
@@ -141,36 +144,51 @@ namespace Renderer {
 		mDevice->D3DDevice()->CreateShaderResourceView(mD3DResource.Get(), &srvDesc, *mDescriptorAllocation->descriptorHandle);
 	}
 
-	TextureAtlasFileDescriptor::TextureAtlasFileDescriptor(const std::string& filepath)
-	: filepath(filepath) {}
+	TextureAtlasFileDescriptor::TextureAtlasFileDescriptor(const std::string& filepath) {
+		std::ifstream inFile(filepath.c_str(), std::ios::binary);
+		ASSERT_FORMAT(!inFile.fail(), "File Not Exists");
 
-	uint32_t TextureAtlasFileDescriptor::GetCompressionFormat() const {
-		return 0;
+		inFile.read((char*)&mFileHeader, sizeof(FileHeader));
+		ASSERT_FORMAT(inFile.good(), "Unexpected Error reading header");
+
+		mTileDataDescriptors.resize(mFileHeader.tileCount);
+		inFile.read((char*)mTileDataDescriptors.data(), mTileDataDescriptors.size() * sizeof(TileDataDescriptorInFile));
+		if (!inFile.good()) { ASSERT_FORMAT(false, "Unexpected Error reading tileDataDescriptors"); }
 	}
-
-	const TextureAtlasFileDescriptor::SubresourceOffset& TextureAtlasFileDescriptor::GetSubresourceOffset(uint32_t index) const {
-		return SubresourceOffset{};
+	
+	TextureAtlasFileDescriptor::~TextureAtlasFileDescriptor() {
 	}
 
 	TextureAtlas::TextureAtlas(
 		const GHL::Device* device,
-		const ResourceFormat& resourceFormat,
 		PoolDescriptorAllocator* descriptorAllocator,
 		BuddyHeapAllocator* heapAllocator,
 		IDStorageFactory* dstorageFactory,
 		const std::string& filepath)
 	: mDevice(device)
-	, mSubResourceFormat(resourceFormat)
+	, mTextureAtlasFileDescriptor(filepath)
 	, mDescriptorAllocator(descriptorAllocator)
 	, mHeapAllocator(heapAllocator) {
-		mTextureAtlasFileDescriptor = std::make_unique<TextureAtlasFileDescriptor>(filepath);
-		for (uint32_t i = 0; i < mTextureAtlasFileDescriptor->subresourceNums; i++) {
-			mTextureAtlasTiles.emplace_back(new TextureAtlasTile(device, resourceFormat, descriptorAllocator, heapAllocator));
+		for (uint32_t i = 0; i < mTextureAtlasFileDescriptor.GetTileCount(); i++) {
+			mTextureAtlasTiles.emplace_back(new TextureAtlasTile(device, this, descriptorAllocator, heapAllocator));
 		}
+
+		const auto& fileHeader = mTextureAtlasFileDescriptor.GetFileHeader();
+		// ´´½¨SubResourceFormat
+		TextureDesc tileDesc{};
+		tileDesc.width = fileHeader.tileWidth;
+		tileDesc.height = fileHeader.tileHeight;
+		tileDesc.format = fileHeader.dxgiFormat;
+		tileDesc.initialState = GHL::EResourceState::AnyShaderAccess;
+		tileDesc.expectedState = GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::CopyDestination;
+		tileDesc.createdMethod = GHL::ECreatedMethod::Reserved;
+		mSubResourceFormat = ResourceFormat{ mDevice, tileDesc };
 
 		HRASSERT(dstorageFactory->OpenFile(Tool::StrUtil::UTF8ToWString(filepath).c_str(), IID_PPV_ARGS(&mDStorageFile)));
 	}
 
-	TextureAtlas::~TextureAtlas() {}
+	TextureAtlas::~TextureAtlas() {
+
+	}
 
 }

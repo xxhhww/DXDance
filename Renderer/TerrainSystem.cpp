@@ -146,11 +146,13 @@ namespace Renderer {
 			patchMesh->LoadDataFromMemory(copyDsQueue, copyFence, vertices, indices);
 		}
 
+		std::string dirname = "E:/TerrainOfflineTask/001/PreRuntime/";
+
 		// Load MinMaxHeightMap From Memory(目前读取的DDS文件，后续将DDS转换为XET)
 		{
 			minmaxHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/MinMaxHeightMap_8192W_4096H.dds");
+				dirname + "MinMaxHeightMap_8192W_4096H.dds");
 			resourceStateTracker->StartTracking(minmaxHeightMap);
 			resourceStorage->ImportResource("MinMaxHeightMap", minmaxHeightMap);
 		}
@@ -159,7 +161,7 @@ namespace Renderer {
 		{
 			terrainHeightMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.png"
+				dirname + "HeightMap.png"
 			);
 			resourceStateTracker->StartTracking(terrainHeightMap);
 			resourceStorage->ImportResource("TerrainHeightMap", terrainHeightMap);
@@ -169,7 +171,7 @@ namespace Renderer {
 		{
 			terrainNormalMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/NormalMap_8192W_4096H.png");
+				dirname + "NormalMap_8192W_4096H.png");
 			resourceStateTracker->StartTracking(terrainNormalMap);
 			resourceStorage->ImportResource("TerrainNormalMap", terrainNormalMap);
 		}
@@ -178,7 +180,7 @@ namespace Renderer {
 		{
 			terrainSplatMap = FixedTextureHelper::LoadFromFile(
 				device, descriptorAllocator, resourceAllocator, copyDsQueue, copyFence,
-				"E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/SplatMap.dds");
+				dirname + "SplatMap.dds");
 			resourceStateTracker->StartTracking(terrainSplatMap);
 			resourceStorage->ImportResource("SplatMap", terrainSplatMap);
 		}

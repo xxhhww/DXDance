@@ -59,7 +59,7 @@ namespace Renderer {
 		return isTexture;
 	}
 
-	bool ResourceFormat::CanUseClearValue() {
+	bool ResourceFormat::CanUseClearValue() const {
 		if (IsBuffer()) {
 			return false;
 		}

@@ -10,13 +10,11 @@
 #include <mutex>
 
 namespace Renderer {
-
+	/*
 	class RenderEngine;
+	class TerrainRenderer;
 	class TerrainQuadTree;
 
-	/*
-	* Location与LOD组成四叉树节点的唯一标记(该唯一标记可用来获取节点对应的描述对象)
-	*/
 	struct TerrainQuadNodeID {
 	public:
 		uint8_t nodeLocationX;
@@ -35,10 +33,8 @@ namespace Renderer {
 		Resident    = 1,
 		Loading     = 2,
 	};
+	
 
-	/*
-	* 四叉树节点描述
-	*/
 	struct TerrainQuadNodeDescriptor {
 	public:
 		// 16Bytes
@@ -56,9 +52,6 @@ namespace Renderer {
 		// 16Bytes
 	};
 
-	/*
-	* 四叉树LOD描述
-	*/
 	struct TerrainQuadLODDescriptor {
 	public:
 		uint32_t nodeMeterSize;		// 该LOD中每一个Node的边长(米)(Node是正方形)
@@ -68,9 +61,7 @@ namespace Renderer {
 		float pad1;
 	};
 
-	/*
-	* 四叉树节点
-	*/
+
 	class TerrainQuadNode {
 	public:
 		TerrainQuadNode() = default;
@@ -94,21 +85,19 @@ namespace Renderer {
 		TerrainQuadNodeID mNodeID;
 	};
 
-	/*
-	* 地形四叉树
-	*/
+
 	class TerrainQuadTree {
 		friend class TerrainQuadNode;
 		friend class TerrainQuadTreeBackend;
 	public:
-		// 初始化
-		void Initialize(RenderEngine* renderEngine);
+		TerrainQuadTree(TerrainRenderer* renderer);
+		~TerrainQuadTree();
 
-		// 添加地形渲染Pass
-		void AddPass(RenderEngine* renderEngine);
+		// 初始化
+		void Initialize();
 
 		// 每帧更新
-		void Update(RenderEngine* renderEngine);
+		void Update();
 
 	private:
 		// 后台线程
@@ -130,6 +119,8 @@ namespace Renderer {
 		inline const auto& GetTerrainQuadNodeDescriptors() const { return mTerrainQuadNodeDescriptors; }
 
 	private:
+		TerrainRenderer* mRenderer{ nullptr };
+
 		float		mNodeEvaluationC{ 1.2f };
 		float		mWorldMeterSize{ 8192.0f };
 		float		mWorldHeightScale{ 1325.0f };
@@ -175,13 +166,9 @@ namespace Renderer {
 		};
 		EvictionDelay mEvictionDelay;
 
-		// 纹理图集(Texture Atlas)
-		// 纹理图集中子资源的排列顺序安装 LOD4 LOD3 ... LOD0来
-		std::vector<std::unique_ptr<TextureAtlas>> mTextureAtlasArray;
-
 		// CopyQueue/CopyFence
-		IDStorageQueue* mDStorageFileCopyQueue = nullptr;
-		GHL::Fence* mDStorageCopyFence = nullptr;
+		IDStorageQueue* mDStorageFileQueue = nullptr;
+		GHL::Fence* mCopyFence = nullptr;
 
 		struct UploadedTerrainQuadNodeQueue {
 		public:
@@ -190,5 +177,5 @@ namespace Renderer {
 		};
 		std::queue<UploadedTerrainQuadNodeQueue> mUploadedTerrainQuadNodeQueues;
 	};
-
+	*/
 }

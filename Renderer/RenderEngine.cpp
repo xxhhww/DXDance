@@ -64,12 +64,43 @@ namespace Renderer {
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
 			mStreamTextureManger.get()))
-		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage()) 
+		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage())
 		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
 
 		mGraphicsQueue->SetDebugName("GraphicsQueue");
 		mComputeQueue->SetDebugName("ComputeQueue");
 		mCopyQueue->SetDebugName("CopyQueue");
+
+		{
+			/*
+			uint32_t subresourceCount = 2048;
+
+			D3D12_RESOURCE_DESC d3dDesc{};
+
+			d3dDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+			d3dDesc.Format = DXGI_FORMAT_R16_UINT;
+			d3dDesc.MipLevels = 1u;
+			d3dDesc.DepthOrArraySize = 2048;
+			d3dDesc.Width = 256;
+			d3dDesc.Height = 128;
+			d3dDesc.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
+			d3dDesc.SampleDesc.Count = 1;
+			D3D12_TILED_RESOURCES_TIER_2;
+			Microsoft::WRL::ComPtr<ID3D12Resource> d3dResource;
+			mDevice->D3DDevice()->CreateReservedResource(&d3dDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&d3dResource));
+
+			D3D12_PACKED_MIP_INFO mPackedMipInfo; // last n mips may be packed into a single tile
+			D3D12_TILE_SHAPE mTileShape;          // e.g. a 64K tile may contain 128x128 texels @ 4B/pixel
+			UINT mNumTilesTotal;
+			std::vector<D3D12_SUBRESOURCE_TILING> mTiling;
+			uint8_t mNumStandardMips{ 0u }; // Start From 1u
+			mTiling.resize(subresourceCount);
+
+			mDevice->D3DDevice()->GetResourceTiling(d3dResource.Get(), &mNumTilesTotal, &mPackedMipInfo, &mTileShape, &subresourceCount, 0, &mTiling[0]);
+		
+			int32_t i = 32;
+			*/
+		}
 
 		if (mWindowHandle != nullptr) {
 			mSwapChain = std::make_unique<GHL::SwapChain>(&mSelectedAdapter->GetDisplay(), mGraphicsQueue->D3DCommandQueue(), mWindowHandle, mBackBufferStrategy, width, height);
@@ -186,6 +217,7 @@ namespace Renderer {
 
 		// 初始化一些系统
 		{
+			mTerrainRenderer = std::make_unique<TerrainRenderer>(this);
 			mTerrainSystem = std::make_unique<TerrainSystem>(this);
 			// mVegetationSystem = std::make_unique<VegetationSystem>(this);
 			mDetailObjectSystem = std::make_unique<DetailObjectSystem>(this);
@@ -193,6 +225,7 @@ namespace Renderer {
 
 		// 初始化RenderPass
 		{
+			mTerrainRenderer->Initialize();
 			mTerrainSystem->Initialize(this);
 			// mVegetationSystem->Initialize(this);
 			// mDetailObjectSystem->Initialize(this);
@@ -267,6 +300,8 @@ namespace Renderer {
 		UpdateSky();
 		UpdateLights();
 		UpdateShadow();
+		
+		mTerrainRenderer->Update();
 	}
 
 	void RenderEngine::UpdateCameras() {

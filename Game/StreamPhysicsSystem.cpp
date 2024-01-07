@@ -68,7 +68,7 @@ namespace Game {
 					const int n = 1024;
 
 					// Get height samples
-					std::string binFile = "E:/MyProject/DXDance/Resources/Textures/Terrain/HeightMap/" + heightField.GetHeightMapBinFilename();
+					std::string binFile = "E:/TerrainOfflineTask/001/PreRuntime/HeightMap/" + heightField.GetHeightMapBinFilename();
 					JPH::Array<uint8> data = ReadData(binFile.c_str());
 					if (data.size() != sizeof(float) * n * n) {
 						ASSERT_FORMAT(false, "Invalid file size");

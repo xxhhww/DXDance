@@ -97,6 +97,12 @@
     <Filter Include="源文件\Renderer\Terrain\DetailObjectSystem">
       <UniqueIdentifier>{ac031b58-573a-443a-b344-6031c5b3d4b4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Renderer\TerrainRenderer">
+      <UniqueIdentifier>{99a3491f-365e-4b85-89cc-9cf18387988e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\TerrainRenderer">
+      <UniqueIdentifier>{d6255b0f-901c-47d3-b7b0-7d8f7affa958}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -303,14 +309,8 @@
     <ClInclude Include="XetTextureGenerator.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainNodeManger.h">
-      <Filter>头文件\Renderer\Terrain</Filter>
-    </ClInclude>
     <ClInclude Include="Task_SplitHeightMap.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainQuadTree.h">
-      <Filter>头文件\Renderer\Terrain</Filter>
     </ClInclude>
     <ClInclude Include="VegetationSystem.h">
       <Filter>头文件\Renderer\Terrain\VegetationSystem</Filter>
@@ -338,6 +338,36 @@
     </ClInclude>
     <ClInclude Include="TextureAtlas.h">
       <Filter>头文件\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainRenderer.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainQuadTree.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainTextureArray.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainSetting.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainTextureAtlas.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainPipelinePass.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainRuntimeVirtualTexture.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="ReTextureFileFormat.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainBackend.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainTiledTexture.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -533,14 +563,8 @@
     <ClCompile Include="XetTextureGenerator.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
-    <ClCompile Include="TileNodeManger.cpp">
-      <Filter>源文件\Renderer\Terrain</Filter>
-    </ClCompile>
     <ClCompile Include="Task_SplitHeightMap.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainQuadTree.cpp">
-      <Filter>源文件\Renderer\Terrain</Filter>
     </ClCompile>
     <ClCompile Include="VegetationSystem.cpp">
       <Filter>源文件\Renderer\Terrain\VegetationSystem</Filter>
@@ -571,6 +595,36 @@
     </ClCompile>
     <ClCompile Include="TextureAtlas.cpp">
       <Filter>源文件\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainRenderer.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainQuadTree.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTextureArray.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainSetting.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTextureAtlas.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainPipelinePass.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainRuntimeVirtualTexture.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="ReTextureFileFormat.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainBackend.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTiledTexture.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

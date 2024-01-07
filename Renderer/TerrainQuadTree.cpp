@@ -1,8 +1,10 @@
 #include "Renderer/TerrainQuadTree.h"
+#include "Renderer/TerrainRenderer.h"
 #include "Renderer/RenderEngine.h"
 
 namespace Renderer {
 
+	/*
 	TerrainQuadNodeID::TerrainQuadNodeID(uint8_t _nodeLocationX, uint8_t _nodeLocationY, uint8_t _nodeLOD) 
 	: nodeLocationX(_nodeLocationX)
 	, nodeLocationY(_nodeLocationY)
@@ -41,16 +43,22 @@ namespace Renderer {
 		return nodeWsPosition;
 	}
 
-	void TerrainQuadTree::Initialize(RenderEngine* renderEngine) {
-		mDStorageFileCopyQueue = renderEngine->mUploaderEngine->GetFileCopyQueue();
-		mDStorageCopyFence = renderEngine->mUploaderEngine->GetCopyFence();
-	}
-
-	void TerrainQuadTree::AddPass(RenderEngine* renderEngine) {
+	TerrainQuadTree::TerrainQuadTree(TerrainRenderer* renderer)
+	: mRenderer(renderer) {}
+	
+	TerrainQuadTree::~TerrainQuadTree() {
 
 	}
 
-	void TerrainQuadTree::Update(RenderEngine* renderEngine) {
+	void TerrainQuadTree::Initialize() {
+		auto* renderEngine = mRenderer->GetRenderEngine();
+
+		mDStorageFileQueue = mRenderer->GetDStorageFileQueue();
+		mCopyFence = mRenderer->GetCopyFence();
+	}
+
+	void TerrainQuadTree::Update() {
+		auto* renderEngine = mRenderer->GetRenderEngine();
 		const Math::Vector3 cameraPosition = renderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position;
 
 		// 做四叉树Stream操作
@@ -176,7 +184,7 @@ namespace Renderer {
 	}
 
 	void TerrainQuadTree::ProcessUploadedTerrainQuadNodeQueue() {
-		uint64_t completedCopyFenceValue = mDStorageCopyFence->CompletedValue();
+		uint64_t completedCopyFenceValue = mCopyFence->CompletedValue();
 		while (!mUploadedTerrainQuadNodeQueues.empty() && mUploadedTerrainQuadNodeQueues.front().copyFenceValue <= completedCopyFenceValue) {
 			const auto uploadedTerrainQuadNodeQueue = mUploadedTerrainQuadNodeQueues.front();
 			mUploadedTerrainQuadNodeQueues.pop();
@@ -240,34 +248,34 @@ namespace Renderer {
 
 			for (auto& textureAtlas : mTextureAtlasArray) {
 				const auto& textureAtlasFileDescriptor = textureAtlas->GetTextureAtlasFileDescriptor();
-				const auto& subresourceOffset = textureAtlasFileDescriptor->GetSubresourceOffset(quadNode.GetNodeDescriptorIndex());
+				const auto& subresourceOffset = textureAtlasFileDescriptor.GetTileDataDescriptorsByIndex(quadNode.GetNodeDescriptorIndex());
 				const auto& subresourceFormat = textureAtlas->GetSubresourceFormat();
 
 				// 首先在默认显存堆上使用Placed方式创建图集子资源
-				TextureAtlasTile* textureAtlasTile = textureAtlas->GetSubresource(quadNode.GetNodeDescriptorIndex());
+				TextureAtlasTile* textureAtlasTile = textureAtlas->GetAtlasTile(quadNode.GetNodeDescriptorIndex());
 				textureAtlasTile->Create();
 
 				// 填充DSTORAGE_REQUEST
 				DSTORAGE_REQUEST dsRequest{};
 				dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
 				dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-				dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)textureAtlasFileDescriptor->GetCompressionFormat();
+				dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)textureAtlasFileDescriptor.GetCompressForamt();
 				dsRequest.Destination.Texture.Resource = textureAtlasTile->D3DResource();
 				dsRequest.Destination.Texture.SubresourceIndex = 0u;
 				dsRequest.UncompressedSize = subresourceFormat.GetSizeInBytes();
 				dsRequest.Source.File.Source = textureAtlas->GetDSFileHandle();
 				dsRequest.Source.File.Offset = subresourceOffset.offset;
-				dsRequest.Source.File.Size = subresourceOffset.byteNums;
+				dsRequest.Source.File.Size = subresourceOffset.numBytes;
 
-				mDStorageFileCopyQueue->EnqueueRequest(&dsRequest);
+				mDStorageFileQueue->EnqueueRequest(&dsRequest);
 			}
 			currNodeDescriptor.resourceResidencyState = ResourceResidencyState::Loading;
 
 			uploadedTerrainQuadNodeQueue.terrainQuadNodes.emplace_back(std::move(quadNode));
 		}
-		uploadedTerrainQuadNodeQueue.copyFenceValue = mDStorageCopyFence->IncrementExpectedValue();
-		mDStorageFileCopyQueue->EnqueueSignal(mDStorageCopyFence->D3DFence(), mDStorageCopyFence->ExpectedValue());
-		mDStorageFileCopyQueue->Submit();
+		uploadedTerrainQuadNodeQueue.copyFenceValue = mCopyFence->IncrementExpectedValue();
+		mDStorageFileQueue->EnqueueSignal(mCopyFence->D3DFence(), mCopyFence->ExpectedValue());
+		mDStorageFileQueue->Submit();
 		// mDStorageCopyFence->Wait();
 		
 		mEvictionDelay.Append(streamOutTerrainQuadNodeQueue);
@@ -289,7 +297,7 @@ namespace Renderer {
 			if (currNodeDescriptor.resourceResidencyState == ResourceResidencyState::Resident) {
 				for (auto& textureAtlas : mTextureAtlasArray) {
 					// 获得节点对应的Tile(子资源)
-					TextureAtlasTile* textureAtlasTile = textureAtlas->GetSubresource(quadNode.GetNodeDescriptorIndex());
+					TextureAtlasTile* textureAtlasTile = textureAtlas->GetAtlasTile(quadNode.GetNodeDescriptorIndex());
 					// 释放该节点对资源的占据状态(并不是直接释放显存资源)
 					textureAtlasTile->Release();
 				}
@@ -354,5 +362,5 @@ namespace Renderer {
 			evictions.resize(numPending);
 		}
 	}
-
+	*/
 }

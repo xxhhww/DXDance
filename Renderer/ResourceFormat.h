@@ -108,7 +108,7 @@ namespace Renderer {
 		bool IsBuffer()  const;
 		bool IsTexture() const;
 
-		bool CanUseClearValue();
+		bool CanUseClearValue() const;
 
 		inline const auto& D3DResourceDesc()  const { return mResourceDesc; }
 		inline const auto& D3DResourceDesc1() const { return mResourceDesc1; }
