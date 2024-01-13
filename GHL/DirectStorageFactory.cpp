@@ -3,7 +3,7 @@
 
 namespace GHL {
 
-	DirectStorageFactory::DirectStorageFactory() {
+	DirectStorageFactory::DirectStorageFactory(size_t stagingBufferSizeMB) {
 		// Init DStorage
 		DSTORAGE_CONFIGURATION dsConfig{};
 		DStorageSetConfiguration(&dsConfig);
@@ -14,7 +14,7 @@ namespace GHL {
 		debugFlags = DSTORAGE_DEBUG_SHOW_ERRORS;
 #endif
 		mDStorageFactory->SetDebugFlags(debugFlags);
-		mDStorageFactory->SetStagingBufferSize(mStagingBufferSizeMB * 1024u * 1024u);
+		mDStorageFactory->SetStagingBufferSize(stagingBufferSizeMB * 1024u * 1024u);
 	}
 
 }

@@ -3,67 +3,44 @@
 #include "Renderer/ResourceFormat.h"
 #include "Renderer/BuddyHeapAllocator.h"
 #include "Renderer/PoolDescriptorAllocator.h"
+#include "Renderer/ResourceAllocator.h"
 
-#include <DirectStorage/dstorage.h>
+#include "GHL/DirectStorageFile.h"
 
 namespace Renderer {
 
 	class TerrainRenderer;
+	class TerrainPhysicalTexture;
 
 	class TerrainTextureAtlas {
 	public:
-		class Tile {
-		public:
-			Tile(
-				const GHL::Device* device,
-				TerrainTextureAtlas* atlas,
-				BuddyHeapAllocator* heapAllocator,
-				PoolDescriptorAllocator* descriptorAllocator
-			);
-			~Tile();
+		TerrainTextureAtlas(TerrainRenderer* renderer, const std::string& filepath, uint32_t tileCountPerAxis);
+		inline ~TerrainTextureAtlas() = default;
 
-			void Create();
-
-			void Release();
-
-		private:
-			void CreateSRDescriptor(const TextureSubResourceDesc& subDesc = TextureSubResourceDesc{});
-
-		private:
-			const GHL::Device* mDevice{ nullptr };
-			TerrainTextureAtlas* mTextureAtlas{ nullptr };
-			BuddyHeapAllocator* mHeapAllocator{ nullptr };
-			PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
-
-			Microsoft::WRL::ComPtr<ID3D12Resource> mD3DResource{ nullptr };
-
-			PoolDescriptorAllocator::Allocation* mDescriptorAllocation{ nullptr };
-			BuddyHeapAllocator::Allocation* mHeapAllocation{ nullptr };
-		};
-
-	public:
-		TerrainTextureAtlas(TerrainRenderer* renderer, const std::string& filepath);
-		~TerrainTextureAtlas();
+		inline auto* GetDStorageFile() const { return mDStorageFile.get(); }
+		inline auto& GetTextureAtlas() const { return mTextureAtlas; }
 
 		inline const auto& GetReTextureFileFormat() const { return mReTextureFileFormat; }
-		inline const auto& GetSubresourceFormat() const { return mSubResourceFormat; }
-		
-		inline auto* GetDStorageFile() const { return mDStorageFile.Get(); }
+		inline const auto& GetTileSize()            const { return mReTextureFileFormat.GetFileHeader().tileWidth; }
+		inline const auto& GetTileCountPerAxis()    const { return mTileCountPerAxis; }
+		inline const auto& GetTileCount()           const { return mTileCount; }
+		inline const auto& GetTextureAtlasSize()    const { return mTextureAtlasSize; }
 
-		Tile* GetTileData(uint8_t x, uint8_t y, uint8_t lod) const;
+		inline const size_t GetUncompressedSize()   const { return mReTextureFileFormat.GetTileByteSize(); }
 
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
-		const GHL::Device* mDevice{ nullptr };
-		BuddyHeapAllocator* mHeapAllocator{ nullptr };
-		PoolDescriptorAllocator* mDescriptorAllocator{ nullptr };
 
 		ReTextureFileFormat mReTextureFileFormat;
-		ResourceFormat mSubResourceFormat;
 
-		Microsoft::WRL::ComPtr<IDStorageFile> mDStorageFile;
+		std::unique_ptr<GHL::DirectStorageFile> mDStorageFile;
 
-		std::vector<Tile> mTileDatas;
+		uint32_t mTileCountPerAxis;				// 图集中每个轴的Tile的平铺个数
+		uint32_t mTileCount;					// 图集中Tile的总个数
+
+		uint32_t mTextureAtlasSize;			// 图集的总尺寸大小
+
+		TextureWrap mTextureAtlas;			// 图集D3D对象
 	};
 
 }

@@ -27,6 +27,7 @@ namespace Renderer {
 		, mSelectedDisplay(&mSelectedAdapter->GetDisplay())
 		, mDevice(std::make_unique<GHL::Device>(*mSelectedAdapter, false))
 		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get()))
+		, mDStorageFactory(std::make_unique<GHL::DirectStorageFactory>())
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
 		, mComputeQueue(std::make_unique<GHL::ComputeQueue>(mDevice.get()))
 		, mCopyQueue(std::make_unique<GHL::CopyQueue>(mDevice.get()))
@@ -41,15 +42,6 @@ namespace Renderer {
 		, mShaderManger(std::make_unique<ShaderManger>(mDevice.get()))
 		, mCommandSignatureManger(std::make_unique<CommandSignatureManger>(mDevice.get()))
 		, mResourceStateTracker(std::make_unique<ResourceStateTracker>())
-		, mStreamTextureManger(std::make_unique<StreamTextureManger>(
-			mDevice.get(),
-			mCopyQueue.get(),
-			mDescriptorAllocator.get(),
-			mHeapAllocator.get(),
-			mFrameTracker.get(),
-			mUploaderEngine->GetDSFactory(),
-			mUploaderEngine->GetFileCopyQueue(),
-			mUploaderEngine->GetMemoryCopyQueue()))
 		, mRenderGraph(std::make_unique<RenderGraph>(
 			mSelectedDisplay,
 			mDevice.get(),
@@ -63,7 +55,7 @@ namespace Renderer {
 			mShaderManger.get(),
 			mCommandSignatureManger.get(),
 			mSharedMemAllocator.get(),
-			mStreamTextureManger.get()))
+			nullptr))
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage())
 		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
 
@@ -482,7 +474,7 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			mStreamTextureManger.get(),
+			nullptr,
 			mFrameTracker.get()
 		};
 
@@ -631,7 +623,7 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			mStreamTextureManger.get(),
+			nullptr,
 			mFrameTracker.get()
 		};
 

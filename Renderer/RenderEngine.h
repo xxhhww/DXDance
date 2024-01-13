@@ -120,6 +120,7 @@ namespace Renderer {
 		const GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
 		const GHL::Display* mSelectedDisplay; // 显示器
 		std::unique_ptr<GHL::Device> mDevice;
+		std::unique_ptr<GHL::DirectStorageFactory> mDStorageFactory;
 
 		// ==========================...UploadEngine...==========================
 		std::unique_ptr<UploaderEngine> mUploaderEngine;

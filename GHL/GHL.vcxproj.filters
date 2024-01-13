@@ -126,6 +126,9 @@
     <ClInclude Include="DirectStorageQueue.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DirectStorageFile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Display.cpp">
@@ -222,6 +225,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DirectStorageQueue.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectStorageFile.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

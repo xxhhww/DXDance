@@ -1,4 +1,6 @@
 #pragma once
+#include "GHL/pbh.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -38,7 +40,7 @@ namespace Renderer {
 		struct TileDataInfo {
 		public:
 			uint32_t offset;          // file offset to tile data
-			uint32_t numBytes;        // # bytes for the tile
+			uint32_t numBytes;        // # bytes for the tile(compressed)
 		};
 
 	public:
@@ -51,6 +53,7 @@ namespace Renderer {
 		inline const auto& GetSubresourceNums() const { return mSubresourceInfos.size(); }
 		inline const auto& GetTileDataInfos() const { return mTileDataInfos; }
 		inline const auto& GetTileNums() const { return mTileDataInfos.size(); }
+		inline const auto& GetTileByteSize() const { return GHL::GetFormatStride((DXGI_FORMAT)mFileHeader.dxgiFormat) * mFileHeader.tileWidth * mFileHeader.tileHeight; }
 
 		const std::string GetFilename() const;
 

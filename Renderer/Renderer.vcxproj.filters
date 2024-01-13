@@ -366,7 +366,7 @@
     <ClInclude Include="TerrainBackend.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainTiledTexture.h">
+    <ClInclude Include="TerrainTextureAtlasTileCache.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
   </ItemGroup>
@@ -623,7 +623,7 @@
     <ClCompile Include="TerrainBackend.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainTiledTexture.cpp">
+    <ClCompile Include="TerrainTextureAtlasTileCache.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>

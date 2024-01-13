@@ -141,6 +141,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDS.h" />
     <ClInclude Include="DirectStorageFactory.h" />
+    <ClInclude Include="DirectStorageFile.h" />
     <ClInclude Include="DirectStorageQueue.h" />
     <ClInclude Include="IndirectArgument.h" />
     <ClInclude Include="PipelineState.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandSignature.cpp" />
     <ClCompile Include="DirectStorageFactory.cpp" />
+    <ClCompile Include="DirectStorageFile.cpp" />
     <ClCompile Include="DirectStorageQueue.cpp" />
     <ClCompile Include="GHLTest.cpp" />
     <ClCompile Include="IndirectArgument.cpp" />

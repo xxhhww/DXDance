@@ -172,9 +172,9 @@ void GenerateFarTerrainAtlas(bool needPrepare) {
 }
 
 void GenerateNearTerrainAtlas(bool needPrepare) {
-    // TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedoArray.dds", "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedo.ret");
-    // TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainNormalArray.dds", "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainNormal.ret");
-    TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/HeightMap/HeightMap.png", "E:/TerrainOfflineTask/001/TerrainNear/HeightMap/HeightMap.ret");
+    TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedoArray.dds", "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedo.ret");
+    TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainNormalArray.dds", "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainNormal.ret");
+    // TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/HeightMap/HeightMap.png", "E:/TerrainOfflineTask/001/TerrainNear/HeightMap/HeightMap.ret");
 }
 
 void GenerateTerrainNodeData() {
@@ -229,8 +229,8 @@ int main() {
 	// 执行离线任务
 	{
         // GenerateFarTerrainAtlas(true);
-        GenerateNearTerrainAtlas(true);
-        // GenerateTerrainNodeData();
+        // GenerateNearTerrainAtlas(true);
+        GenerateTerrainNodeData();
 	}
 
 	// 释放DLL

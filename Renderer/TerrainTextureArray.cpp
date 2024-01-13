@@ -8,54 +8,36 @@ namespace Renderer {
 
 	TerrainTextureArray::TerrainTextureArray(TerrainRenderer* renderer, const std::string& filepath)
 	: mRenderer(renderer)
-	, mHeapAllocator(renderer->GetHeapAllocator())
-	, mDescriptorAllocator(renderer->GetDescriptorAllocator()) 
 	, mReTextureFileFormat(filepath) {
-		mDevice = mRenderer->GetRenderEngine()->mDevice.get();
 
 		const auto& fileHeader = mReTextureFileFormat.GetFileHeader();
 
+		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* device = renderEngine->mDevice.get();
+		auto* dstorageFactory = renderEngine->mDStorageFactory.get();
+
+		auto* renderGraph = renderEngine->mRenderGraph.get();
+		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
+
 		// 创建ResourceFormat
-		TextureDesc textureDesc{};
-		textureDesc.width = fileHeader.imageWidth;
-		textureDesc.height = fileHeader.imageHeight;
-		textureDesc.arraySize = fileHeader.arraySize;
-		textureDesc.mipLevals = fileHeader.mipLevels;
-		textureDesc.usage = GHL::EResourceUsage::Default;
-		textureDesc.format = (DXGI_FORMAT)fileHeader.dxgiFormat;
-		textureDesc.initialState = GHL::EResourceState::AnyShaderAccess;
-		textureDesc.expectedState = GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::CopyDestination;
-		textureDesc.createdMethod = GHL::ECreatedMethod::Reserved;
-		mResourceFormat = ResourceFormat{ mDevice, textureDesc };
+		TextureDesc _TextureArrayDesc{};
+		_TextureArrayDesc.width = fileHeader.imageWidth;
+		_TextureArrayDesc.height = fileHeader.imageHeight;
+		_TextureArrayDesc.arraySize = fileHeader.arraySize;
+		_TextureArrayDesc.mipLevals = fileHeader.mipLevels;
+		_TextureArrayDesc.format = (DXGI_FORMAT)fileHeader.dxgiFormat;
+		_TextureArrayDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess;
+		_TextureArrayDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+		mTextureArray = resourceAllocator->Allocate(device, _TextureArrayDesc, descriptorAllocator, nullptr);
+		mTextureArray->SetDebugName(mReTextureFileFormat.GetFilename());
 
-		auto* dstorageFactory = mRenderer->GetRenderEngine()->mUploaderEngine->GetDSFactory();
-		HRASSERT(dstorageFactory->OpenFile(Tool::StrUtil::UTF8ToWString(filepath).c_str(), IID_PPV_ARGS(&mDStorageFile)));
+		renderGraph->ImportResource(mReTextureFileFormat.GetFilename(), mTextureArray);
+		resourceStateTracker->StartTracking(mTextureArray);
 
-		CreateD3DResource();
-	}
-	
-	TerrainTextureArray::~TerrainTextureArray() {
-
-	}
-
-	void TerrainTextureArray::CreateD3DResource() {
-		const auto& resourceName = mReTextureFileFormat.GetFilename();
-		const auto& textureDesc = mResourceFormat.GetTextureDesc();
-		const auto& d3dReservedResourceDesc = mResourceFormat.D3DResourceDesc();
-
-		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default);
-		ASSERT_FORMAT(textureDesc.createdMethod == GHL::ECreatedMethod::Reserved);
-
-		HRASSERT(mDevice->D3DDevice()->CreateReservedResource(
-			&d3dReservedResourceDesc, GHL::GetD3DResourceStates(textureDesc.initialState), nullptr, IID_PPV_ARGS(&mD3DReservedResource)
-		));
-		mD3DReservedResource->SetName(Tool::StrUtil::UTF8ToWString(resourceName).c_str());
-
-		uint32_t subresourceCount = mResourceFormat.SubresourceCount();
-		mTiling.resize(subresourceCount);
-		mDevice->D3DDevice()->GetResourceTiling(mD3DReservedResource.Get(), &mNumTilesTotal, &mPackedMipInfo, &mTileShape, &subresourceCount, 0, &mTiling[0]);
-		mNumStandardMips = mPackedMipInfo.NumStandardMips;
-		mNumStandardArrays = textureDesc.arraySize;
+		// 创建DStorageFile
+		mDStorageFile = std::make_unique<GHL::DirectStorageFile>(dstorageFactory, filepath);
 	}
 
 }

@@ -358,6 +358,8 @@ namespace OfflineTask {
 		retFileHeader.dxgiFormat = metadata.format;
 		retFileHeader.mipLevels = metadata.mipLevels;
 		retFileHeader.arraySize = metadata.arraySize;
+		retFileHeader.imageWidth = metadata.width;
+		retFileHeader.imageHeight = metadata.height;
 
 		// Create Reserved Resource
 		Microsoft::WRL::ComPtr<ID3D12Device8> device;
@@ -754,14 +756,11 @@ namespace OfflineTask {
 		*/
 		struct NodeDescriptor {
 		public:
-			uint16_t minHeight{ 0u };		// HeightMap为R16格式
-			uint16_t maxHeight{ 0u };		// HeightMap为R16格式
+			uint32_t minHeight{ 0u };		// HeightMap为R16格式
+			uint32_t maxHeight{ 0u };		// HeightMap为R16格式
 
-			uint16_t heightMapIndex{ 0u };
-			uint16_t pad;
-
-			uint16_t colorMapIndex{ 0u };
-			uint16_t normalMapIndex{ 0u };
+			uint32_t tilePosX{ 255u };
+			uint32_t tilePosY{ 255u };
 		};
 
 		/*

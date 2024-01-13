@@ -6,12 +6,11 @@ namespace GHL {
 
 	class DirectStorageFactory {
 	public:
-		DirectStorageFactory();
+		DirectStorageFactory(size_t stagingBufferSizeMB = 512u);
 
 		inline IDStorageFactory* GetDStorageFactory() const { return mDStorageFactory.Get(); }
-	private:
-		inline static const uint32_t mStagingBufferSizeMB = 512u;
 
+	private:
 		Microsoft::WRL::ComPtr<IDStorageFactory> mDStorageFactory;
 	};
 

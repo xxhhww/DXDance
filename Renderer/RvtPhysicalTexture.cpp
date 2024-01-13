@@ -11,7 +11,7 @@ namespace Renderer {
 	, mPaddingSize(rvtSystem->GetPaddingSize())
 	, mTileCountPerAxis(15u) 
 	, mTileCount(mTileCountPerAxis * mTileCountPerAxis)
-	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis) 
+	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis)
 	, mTileCache(mTileCount, mTileCountPerAxis) {
 
 		auto* device = mRenderEngine->mDevice.get();
