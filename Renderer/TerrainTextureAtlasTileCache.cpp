@@ -29,10 +29,16 @@ namespace Renderer {
 			return;
 		}
 
-		auto* lastTail = mTail;
-		lastTail->next = node;
-		mTail = node;
-		node->prev = lastTail;
+		if (mTail != nullptr) {
+			auto* lastTail = mTail;
+			lastTail->next = node;
+			mTail = node;
+			node->prev = lastTail;
+		}
+		else {
+			mTail = node;
+			mHead = node;
+		}
 	}
 
 	void TerrainTextureAtlasTileCache::AddHead(TerrainTextureAtlasTileCache::Node* node) {
@@ -40,20 +46,38 @@ namespace Renderer {
 			return;
 		}
 
-		auto* lastHead = mHead;
-		lastHead->prev = node;
-		mHead = node;
-		node->next = lastHead;
+		if (mHead != nullptr) {
+			auto* lastHead = mHead;
+			lastHead->prev = node;
+			mHead = node;
+			node->next = lastHead;
+		}
+		else {
+			mHead = node;
+			mTail = node;
+		}
 	}
 
 	void TerrainTextureAtlasTileCache::Remove(TerrainTextureAtlasTileCache::Node* node) {
 		if (mHead == node) {
 			mHead = node->next;
-			mHead->prev = nullptr;
+
+			if (mHead != nullptr) {
+				mHead->prev = nullptr;
+			}
+			else {
+				mTail = nullptr;
+			}
 		}
 		else if (mTail == node) {
 			mTail = node->prev;
-			mTail->next = nullptr;
+
+			if (mTail != nullptr) {
+				mTail->next = nullptr;
+			}
+			else {
+				mHead = nullptr;
+			}
 		}
 		else {
 			node->prev->next = node->next;

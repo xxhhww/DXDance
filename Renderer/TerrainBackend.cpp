@@ -47,7 +47,6 @@ namespace Renderer {
 
 			auto* dsFileHandle = terrainTextureAtlas->GetDStorageFile();
 			auto& textureAtlas = terrainTextureAtlas->GetTextureAtlas();
-			const auto& uncompressedSize = terrainTextureAtlas->GetUncompressedSize();
 
 			// 当前地形节点对应的TileInfo
 			const auto& tileDataInfo = reTileDataInfos.at(requestTask.nextTerrainNodeIndex);

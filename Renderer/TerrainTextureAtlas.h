@@ -30,8 +30,6 @@ namespace Renderer {
 		inline const auto& GetTileCount()           const { return mTileCount; }
 		inline const auto& GetTextureAtlasSize()    const { return mTextureAtlasSize; }
 
-		inline const size_t GetUncompressedSize()   const { return mReTextureFileFormat.GetTileByteSize(); }
-
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
 
