@@ -3,9 +3,10 @@
 
 namespace Renderer {
 
-	LinearBufferAllocator::LinearBufferAllocator(const GHL::Device* device, RingFrameTracker* frameTracker) 
+	LinearBufferAllocator::LinearBufferAllocator(const GHL::Device* device, RingFrameTracker* frameTracker, size_t standardBufferSize)
 	: mDevice(device)
-	, mFrameTracker(frameTracker) {
+	, mFrameTracker(frameTracker)
+	, mStandardBufferSize(standardBufferSize) {
 		mStandardBufferDesc.size = mStandardBufferSize;
 		mStandardBufferDesc.stride = 0u;
 		mStandardBufferDesc.usage = GHL::EResourceUsage::Upload;

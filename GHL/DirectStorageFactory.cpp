@@ -6,6 +6,7 @@ namespace GHL {
 	DirectStorageFactory::DirectStorageFactory(size_t stagingBufferSizeMB) {
 		// Init DStorage
 		DSTORAGE_CONFIGURATION dsConfig{};
+		dsConfig.NumSubmitThreads = 1;
 		DStorageSetConfiguration(&dsConfig);
 
 		HRASSERT(DStorageGetFactory(IID_PPV_ARGS(&mDStorageFactory)));

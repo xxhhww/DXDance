@@ -3,6 +3,8 @@
 
 #include "Renderer/TerrainSystem.h"
 
+#include "Renderer/TerrainTextureAtlas.h"
+
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
 #include "ECS/CSky.h"
@@ -218,7 +220,7 @@ namespace Renderer {
 		// 初始化RenderPass
 		{
 			mTerrainRenderer->Initialize();
-			mTerrainSystem->Initialize(this);
+			// mTerrainSystem->Initialize(this);
 			// mVegetationSystem->Initialize(this);
 			// mDetailObjectSystem->Initialize(this);
 			// mGrassPass.InitializePass(this);
@@ -231,6 +233,7 @@ namespace Renderer {
 
 		// 添加RenderPass并构建RenderGraph
 		{
+			/*
 			mCascadeShadowPass.AddPass(this);
 			mOpaquePass.AddPass(*mRenderGraph);
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
@@ -245,6 +248,7 @@ namespace Renderer {
 			// mSkyPass.AddPass(*mRenderGraph);
 			mTAAPass.AddPass(*mRenderGraph);
 			mToneMappingPass.AddPass(*mRenderGraph);
+			*/
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 			
 			/*
@@ -559,7 +563,10 @@ namespace Renderer {
 
 				commandBuffer.PIXBeginEvent("OutputBackBufferPass");
 
-				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				auto& heightMapAtlasWrap = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas();
+
+				// mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
 				auto passDataAlloc = mSharedMemAllocator->Allocate(sizeof(OutputBackBufferPassData));
 				memcpy(passDataAlloc.cpuAddress, &mOutputBackBufferPassData, sizeof(OutputBackBufferPassData));
 

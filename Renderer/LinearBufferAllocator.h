@@ -18,7 +18,7 @@ namespace Renderer {
 	*/
 	class LinearBufferAllocator {
 	public:
-		LinearBufferAllocator(const GHL::Device* device, RingFrameTracker* frameTracker);
+		LinearBufferAllocator(const GHL::Device* device, RingFrameTracker* frameTracker, size_t standardBufferSize = 0x200000);
 		~LinearBufferAllocator() = default;
 
 		LinearAllocation Allocate(size_t size, size_t alignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);

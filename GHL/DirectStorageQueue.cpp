@@ -17,7 +17,7 @@ namespace GHL {
 	}
 
 	void DirectStorageQueue::EnqueueRequest(const DSTORAGE_REQUEST* request) { 
-		mDStorageQueue->EnqueueRequest(request); 
+		mDStorageQueue->EnqueueRequest(request);
 	}
 
 	void DirectStorageQueue::EnqueueSignal(const Fence& fence, std::optional<uint64_t> expectedValue) {

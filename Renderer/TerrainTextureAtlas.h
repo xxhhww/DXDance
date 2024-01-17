@@ -7,6 +7,8 @@
 
 #include "GHL/DirectStorageFile.h"
 
+#include <fstream>
+
 namespace Renderer {
 
 	class TerrainRenderer;
@@ -17,8 +19,10 @@ namespace Renderer {
 		TerrainTextureAtlas(TerrainRenderer* renderer, const std::string& filepath, uint32_t tileCountPerAxis);
 		inline ~TerrainTextureAtlas() = default;
 
-		inline auto* GetDStorageFile() const { return mDStorageFile.get(); }
-		inline auto& GetTextureAtlas() const { return mTextureAtlas; }
+		inline auto* GetDStorageFile() { return mDStorageFile.get(); }
+		inline auto& GetFileStreamer() { return mFileStreamer; }
+		inline auto& GetFileHandle()   { return mFileHandle; }
+		inline auto& GetTextureAtlas() { return mTextureAtlas; }
 
 		inline const auto& GetReTextureFileFormat() const { return mReTextureFileFormat; }
 		inline const auto& GetTileSize()            const { return mReTextureFileFormat.GetFileHeader().tileWidth; }
@@ -33,7 +37,10 @@ namespace Renderer {
 
 		ReTextureFileFormat mReTextureFileFormat;
 
+
 		std::unique_ptr<GHL::DirectStorageFile> mDStorageFile;
+		std::ifstream mFileStreamer;
+		HANDLE mFileHandle;
 
 		uint32_t mTileCountPerAxis;				// 图集中每个轴的Tile的平铺个数
 		uint32_t mTileCount;					// 图集中Tile的总个数

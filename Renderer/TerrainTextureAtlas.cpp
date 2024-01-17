@@ -9,6 +9,7 @@ namespace Renderer {
 	TerrainTextureAtlas::TerrainTextureAtlas(TerrainRenderer* renderer, const std::string& filepath, uint32_t tileCountPerAxis)
 	: mRenderer(renderer) 
 	, mReTextureFileFormat(filepath) 
+	, mFileStreamer(filepath, std::ios::in | std::ios::binary)
 	, mTileCountPerAxis(tileCountPerAxis)
 	, mTileCount(mTileCountPerAxis* mTileCountPerAxis)
 	, mTextureAtlasSize(GetTileSize()* mTileCountPerAxis) {
@@ -38,6 +39,13 @@ namespace Renderer {
 
 		// ´´½¨DStorageFile
 		mDStorageFile = std::make_unique<GHL::DirectStorageFile>(dstorageFactory, filepath);
+
+		// open the file
+		mFileHandle = CreateFile(Tool::StrUtil::UTF8ToWString(filepath).c_str(), GENERIC_READ,
+			FILE_SHARE_READ,
+			nullptr, OPEN_EXISTING,
+			FILE_ATTRIBUTE_READONLY | FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING,
+			nullptr);
 	}
 
 }

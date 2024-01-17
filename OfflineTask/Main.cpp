@@ -228,9 +228,9 @@ int main() {
 
 	// 执行离线任务
 	{
-        // GenerateFarTerrainAtlas(true);
+        GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
-        GenerateTerrainNodeData();
+        // GenerateTerrainNodeData();
 	}
 
 	// 释放DLL

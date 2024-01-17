@@ -213,6 +213,8 @@ namespace OfflineTask {
 		std::vector<uint8_t> textureData;
 
 		auto compressTileData = [&](std::vector<uint8_t>& tileData, size_t uncompressedDataSize) -> uint32_t {
+			// return tileData.size();
+
 			auto bound = compressor->CompressBufferBound(uncompressedDataSize);
 			std::vector<uint8_t> scratch(bound);
 
@@ -247,8 +249,10 @@ namespace OfflineTask {
 			DXGI_FORMAT srcDxgiFormat = srcImage.GetImages()[0].format;
 			uint8_t* srcData = srcImage.GetImages()[0].pixels;
 
-			uint32_t tileRowPitch = Math::AlignUp(srcRowPitch, 256);
-			uint32_t tileSlicePitch = Math::AlignUp(tileRowPitch * (srcHeight - 1) + srcRowPitch, 256);
+			// uint32_t tileRowPitch = Math::AlignUp(srcRowPitch, 256);
+			// uint32_t tileSlicePitch = Math::AlignUp(tileRowPitch * (srcHeight - 1) + srcRowPitch, 256);
+			uint32_t tileRowPitch = srcRowPitch;
+			uint32_t tileSlicePitch = srcSlicePitch;
 			std::vector<uint8_t> tileData(tileSlicePitch);
 
 			if (!firstImage) {

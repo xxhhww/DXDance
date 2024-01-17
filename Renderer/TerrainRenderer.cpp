@@ -44,10 +44,10 @@ namespace Renderer {
 			mTerrainNodeRuntimeStates.resize(terrainNodeDescriptorSize);
 
 			// Far
-			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas.ret", 25u);
+			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas.ret", 8);
 
 			// FarCache
-			mFarTerrainTextureAtlasTileCache = std::make_unique<TerrainTextureAtlasTileCache>(625u, 25u);
+			mFarTerrainTextureAtlasTileCache = std::make_unique<TerrainTextureAtlasTileCache>(64, 8);
 
 			// TextureArray
 			mNearTerrainAlbedoArray = std::make_unique<TerrainTextureArray>(this, dirname + "NearTerrainAlbedoArray.ret");
@@ -80,7 +80,7 @@ namespace Renderer {
 			_TerrainNodeDescriptorBufferDesc.usage = GHL::EResourceUsage::Default;
 			_TerrainNodeDescriptorBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 			_TerrainNodeDescriptorBufferDesc.initialState = GHL::EResourceState::Common;
-			_TerrainNodeDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess;
+			_TerrainNodeDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::UnorderedAccess;
 			mTerrainNodeDescriptorBuffer = resourceAllocator->Allocate(device, _TerrainNodeDescriptorBufferDesc, descriptorAllocator, nullptr);
 
 			renderGraph->ImportResource("TerrainNodeDescriptor", mTerrainNodeDescriptorBuffer);
@@ -100,9 +100,10 @@ namespace Renderer {
 
 	void TerrainRenderer::Update() {
 		// 如果是第一帧，需要同步加载地形数据(当前摄像机位置附近 + 最高级LOD)
-		auto* frameTracker = mRenderEngine->mFrameTracker.get();
-		if (frameTracker->IsFirstFrame()) {
+		static bool smFirstFrame = true;
+		if (smFirstFrame) {
 			mTerrainBackend->Preload();
+			smFirstFrame = false;
 		}
 	}
 

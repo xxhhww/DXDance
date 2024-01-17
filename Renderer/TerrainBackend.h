@@ -63,6 +63,9 @@ namespace Renderer {
 		std::unique_ptr<GHL::DirectStorageQueue> mBackDStorageQueue;
 		std::unique_ptr<GHL::Fence>			     mBackDStorageFence;
 
+		std::unique_ptr<GHL::CommandQueue>       mBackCopyQueue;
+		std::unique_ptr<GHL::Fence>              mBackCopyFence;
+
 		std::unique_ptr<GHL::CommandQueue>       mBackGrahpicsQueue;
 		std::unique_ptr<GHL::Fence>		         mBackGraphicsFence;
 
@@ -71,8 +74,10 @@ namespace Renderer {
 
 		std::unique_ptr<Renderer::RingFrameTracker>         mBackFrameTracker;
 		std::unique_ptr<Renderer::ResourceStateTracker>     mBackResourceStateTracker;
-		std::unique_ptr<Renderer::LinearBufferAllocator>    mBackLinearBufferAllocator;
+		std::unique_ptr<Renderer::LinearBufferAllocator>    mBackLinearBufferAllocator;		// 分配普通的PassData
 		std::unique_ptr<Renderer::PoolCommandListAllocator> mBackPoolCommandListAllocator;
+
+		std::unique_ptr<Renderer::LinearBufferAllocator>    mBackTempLinearBufferAllocator;		// 纹理Tile在共享内存中的TempBuffer
 
 		// 线程同步变量
 		std::thread mThread;
