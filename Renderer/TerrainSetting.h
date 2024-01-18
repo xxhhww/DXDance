@@ -8,12 +8,15 @@ namespace Renderer {
 	*/
 	struct TerrainSetting {
 	public:
-		inline static float		nodeEvaluationC = 1.2f;
-		inline static float		terrainMeterSize = 8192.0f;
-		inline static float		terrainHeightScale = 1325.0f;
-		inline static float		minLODNodeMeterSize = 64.0f;		// LOD0对应的地块大小为64.0f
-		inline static float		maxLODNodeMeterSize = 1024.0f;		// LOD4对应的地块大小为1024.0f
-		inline static uint32_t	maxLOD = 4.0f;						// pow(2, 4) * 64 = 1024.0f，即 LOD0 1 2 3 4
+		static bool     smUseFrustumCull;
+		static bool     smUseLodDebug;
+		static float	smNodeEvaluationC;
+		static float	smTerrainMeterSize;
+		static float	smTerrainHeightScale;
+		static float	smMinLODNodeMeterSize;		// LOD0对应的地块大小为64.0f
+		static float	smMaxLODNodeMeterSize;		// LOD4对应的地块大小为1024.0f
+		static uint32_t	smMaxLOD;					// pow(2, 4) * 64 = 1024.0f，即 LOD0 1 2 3 4
+		static uint32_t smPatchCountPerNodePerAxis;	// patch count
 	};
 
 }

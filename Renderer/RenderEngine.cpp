@@ -30,6 +30,9 @@ namespace Renderer {
 		, mDevice(std::make_unique<GHL::Device>(*mSelectedAdapter, false))
 		, mUploaderEngine(std::make_unique<UploaderEngine>(mDevice.get()))
 		, mDStorageFactory(std::make_unique<GHL::DirectStorageFactory>())
+		, mDStorageFileQueue(std::make_unique<GHL::DirectStorageQueue>(mDevice.get(), mDStorageFactory.get(), DSTORAGE_REQUEST_SOURCE_FILE))
+		, mDStorageMemQueue(std::make_unique<GHL::DirectStorageQueue>(mDevice.get(), mDStorageFactory.get(), DSTORAGE_REQUEST_SOURCE_MEMORY))
+		, mDStorageFence(std::make_unique<GHL::Fence>(mDevice.get()))
 		, mGraphicsQueue(std::make_unique<GHL::GraphicsQueue>(mDevice.get()))
 		, mComputeQueue(std::make_unique<GHL::ComputeQueue>(mDevice.get()))
 		, mCopyQueue(std::make_unique<GHL::CopyQueue>(mDevice.get()))
@@ -249,6 +252,15 @@ namespace Renderer {
 			mTAAPass.AddPass(*mRenderGraph);
 			mToneMappingPass.AddPass(*mRenderGraph);
 			*/
+
+			mCascadeShadowPass.AddPass(this);
+			mOpaquePass.AddPass(*mRenderGraph);
+			mRngSeedGenerationPass.AddPass(*mRenderGraph);
+			mTerrainRenderer->AddPass();
+			mDeferredLightPass.AddPass(*mRenderGraph);
+			mAtmospherePass.AddPass(*mRenderGraph);
+			mTAAPass.AddPass(*mRenderGraph);
+			mToneMappingPass.AddPass(*mRenderGraph);
 			mFinalBarrierPass.AddPass(*mRenderGraph);
 			
 			/*
@@ -565,8 +577,8 @@ namespace Renderer {
 
 				auto& heightMapAtlasWrap = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas();
 
-				// mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
-				mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				// mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
 				auto passDataAlloc = mSharedMemAllocator->Allocate(sizeof(OutputBackBufferPassData));
 				memcpy(passDataAlloc.cpuAddress, &mOutputBackBufferPassData, sizeof(OutputBackBufferPassData));
 

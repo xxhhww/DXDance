@@ -126,7 +126,7 @@ namespace Renderer {
 		// 录制并提交DStorage命令
 		{
 			// auto copyCommandList = mBackPoolCommandListAllocator->AllocateCopyCommandList();
-			uint32_t maxLod = mTerrainSetting.maxLOD;
+			uint32_t maxLod = mTerrainSetting.smMaxLOD;
 			const auto& maxLodDescriptor = mTerrainLodDescriptors.at(maxLod);
 			uint32_t nodeStartOffset = maxLodDescriptor.nodeStartOffset;
 			uint32_t nodeCount = maxLodDescriptor.nodeCount;
@@ -164,7 +164,7 @@ namespace Renderer {
 			}
 
 			mBackDStorageFence->IncrementExpectedValue();
-			mBackDStorageQueue->EnqueueSignal(*mBackDStorageFence.get(), mBackDStorageFence->ExpectedValue());
+			mBackDStorageQueue->EnqueueSignal(*mBackDStorageFence.get());
 			mBackDStorageQueue->Submit();
 
 			/*
@@ -254,6 +254,7 @@ namespace Renderer {
 		auto* device = renderEngine->mDevice.get();
 		auto* dstorageFactory = renderEngine->mDStorageFactory.get();
 
+		auto  shaderPath = renderEngine->smEngineShaderPath;
 		auto* shaderManger = renderEngine->mShaderManger.get();
 		auto* resourceAllocator = renderEngine->mResourceAllocator.get();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
@@ -310,8 +311,8 @@ namespace Renderer {
 		// 创建着色器程序
 		{
 			shaderManger->CreateComputeShader(smUpdateTerrainNodeDescriptorSN,
-				[](ComputeStateProxy& proxy) {
-					proxy.csFilepath = "E:/MyProject/DXDance/Resources/Shaders/Engine/TerrainRenderer/UpdateTerrainNodeDescriptor.hlsl";
+				[&](ComputeStateProxy& proxy) {
+					proxy.csFilepath = shaderPath + "TerrainRenderer/TerrainNodeDescriptorUpdater.hlsl";
 				}
 			);
 		}

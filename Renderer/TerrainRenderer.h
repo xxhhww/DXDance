@@ -52,17 +52,19 @@ namespace Renderer {
 
 	struct TerrainNodeDescriptor {
 	public:
-		uint32_t minHeight{ 0u };
-		uint32_t maxHeight{ 0u };
+		float minHeight;
+		float maxHeight;
 
-		uint32_t tilePosX{ 0u };			// 255表示资源未加载
-		uint32_t tilePosY{ 0u };			// 255表示资源未加载
+		uint32_t tilePosX;	// 255表示资源未加载
+		uint32_t tilePosY;	// 255表示资源未加载
 	};
 
 	class TerrainRenderer {
 		friend class TerrainBackend;
 		friend class TerrainTextureAtlas;
 		friend class TerrainTextureArray;
+		friend class TerrainPipelinePass;
+
 	public:
 		TerrainRenderer(RenderEngine* renderEngine);
 		~TerrainRenderer();

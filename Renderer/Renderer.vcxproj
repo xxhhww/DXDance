@@ -174,6 +174,7 @@
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="CascadeShadowPass.h" />
+    <ClInclude Include="Misc.h" />
     <ClInclude Include="RaytracedTerrainShadow.h" />
     <ClInclude Include="ReTextureFileFormat.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
@@ -274,6 +275,7 @@
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
     <ClCompile Include="CascadeShadowPass.cpp" />
+    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="RaytracedTerrainShadow.cpp" />
     <ClCompile Include="ReTextureFileFormat.cpp" />
     <ClCompile Include="TAAPass.cpp" />

@@ -108,6 +108,7 @@ namespace Renderer {
 	public:
 		// ==========================...静态变量...==========================
 		inline static uint32_t smMaxItemNums = 1024u;
+		inline static std::string smEngineShaderPath = "E:/MyProject/DXDance/Resources/Shaders/Engine/";
 
 		// ==========================...杂项...==========================
 		HWND mWindowHandle{ nullptr };
@@ -120,7 +121,12 @@ namespace Renderer {
 		const GHL::Adapter* mSelectedAdapter; // 选择的高性能适配器
 		const GHL::Display* mSelectedDisplay; // 显示器
 		std::unique_ptr<GHL::Device> mDevice;
+
+		// ==========================...DStorageObject...==========================
 		std::unique_ptr<GHL::DirectStorageFactory> mDStorageFactory;
+		std::unique_ptr<GHL::DirectStorageQueue> mDStorageFileQueue;
+		std::unique_ptr<GHL::DirectStorageQueue> mDStorageMemQueue;
+		std::unique_ptr<GHL::Fence> mDStorageFence;
 
 		// ==========================...UploadEngine...==========================
 		std::unique_ptr<UploaderEngine> mUploaderEngine;

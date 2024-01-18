@@ -103,6 +103,12 @@
     <Filter Include="源文件\Renderer\TerrainRenderer">
       <UniqueIdentifier>{d6255b0f-901c-47d3-b7b0-7d8f7affa958}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\Misc">
+      <UniqueIdentifier>{5ca22361-0133-4c56-8a82-1871ec6d2359}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Misc">
+      <UniqueIdentifier>{26cf6b99-36f4-4230-8973-edad757b01f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuddyHeapAllocator.h">
@@ -369,6 +375,9 @@
     <ClInclude Include="TerrainTextureAtlasTileCache.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="Misc.h">
+      <Filter>头文件\Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -625,6 +634,9 @@
     </ClCompile>
     <ClCompile Include="TerrainTextureAtlasTileCache.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Misc.cpp">
+      <Filter>源文件\Misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

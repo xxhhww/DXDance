@@ -206,12 +206,12 @@ bool Cull(BoundingBox boundingBox) {
 
 
 [numthreads(8, 8, 1)]
-void BuildPatches(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupID, uint3 groupThreadId : SV_GroupThreadID) {
+void BuildPatches(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID) {
 	StructuredBuffer<uint3>             finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
 	AppendStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
 
-	uint3 nodeLoc = finalNodeList[groupId.x];
-    uint2 patchOffset = groupThreadId.xy;
+	uint3 nodeLoc = finalNodeList[groupID.x];
+    uint2 patchOffset = groupThreadID.xy;
     // Éú³ÉPatch
     RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
 

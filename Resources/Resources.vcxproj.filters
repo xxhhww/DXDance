@@ -104,7 +104,10 @@
     <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowCullingPass.hlsl" />
     <FxCompile Include="Shaders\Engine\CascadeShadow\CascadeShadowPass.hlsl" />
     <FxCompile Include="Shaders\Engine\RaytracedTerrainShadow\RaytracedTerrainShadowPass.hlsl" />
-    <FxCompile Include="Shaders\Engine\TerrainRenderer\UpdateTerrainNodeDescriptor.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainNodeDescriptorUpdater.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainHeader.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeBuilder.hlsl" />
+    <FxCompile Include="Shaders\Engine\Math\BoundingBox.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeRenderer.hlsl" />
   </ItemGroup>
 </Project>

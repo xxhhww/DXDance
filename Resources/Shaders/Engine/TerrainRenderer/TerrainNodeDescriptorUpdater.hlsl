@@ -1,5 +1,5 @@
-#ifndef _UpdateTerrainNodeDescriptor__
-#define _UpdateTerrainNodeDescriptor__
+#ifndef _TerrainNodeDescriptorUpdater__
+#define _TerrainNodeDescriptorUpdater__
 
 #include "TerrainHeader.hlsl"
 

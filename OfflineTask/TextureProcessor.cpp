@@ -760,8 +760,8 @@ namespace OfflineTask {
 		*/
 		struct NodeDescriptor {
 		public:
-			uint32_t minHeight{ 0u };		// HeightMap为R16格式
-			uint32_t maxHeight{ 0u };		// HeightMap为R16格式
+			float minHeight;		// HeightMap为R16格式
+			float maxHeight;		// HeightMap为R16格式
 
 			uint32_t tilePosX{ 255u };
 			uint32_t tilePosY{ 255u };
@@ -871,8 +871,8 @@ namespace OfflineTask {
 					}
 
 					auto& currNodeDescriptor = nodeDescriptors.at(globalOffset);
-					currNodeDescriptor.minHeight = minHeight;
-					currNodeDescriptor.maxHeight = maxHeight;
+					currNodeDescriptor.minHeight = (float)minHeight / (float)65535.0f;
+					currNodeDescriptor.maxHeight = (float)maxHeight / (float)65535.0f;
 				}
 			}
 		}

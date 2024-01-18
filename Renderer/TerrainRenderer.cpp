@@ -68,8 +68,9 @@ namespace Renderer {
 			_TerrainLodDescriptorBufferDesc.usage = GHL::EResourceUsage::Default;
 			_TerrainLodDescriptorBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 			_TerrainLodDescriptorBufferDesc.initialState = GHL::EResourceState::Common;
-			_TerrainLodDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess;
+			_TerrainLodDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
 			mTerrainLodDescriptorBuffer = resourceAllocator->Allocate(device, _TerrainLodDescriptorBufferDesc, descriptorAllocator, nullptr);
+			mTerrainLodDescriptorBuffer->SetDebugName("TerrainLodDescriptor");
 
 			renderGraph->ImportResource("TerrainLodDescriptor", mTerrainLodDescriptorBuffer);
 			resourceStateTracker->StartTracking(mTerrainLodDescriptorBuffer);
@@ -80,8 +81,9 @@ namespace Renderer {
 			_TerrainNodeDescriptorBufferDesc.usage = GHL::EResourceUsage::Default;
 			_TerrainNodeDescriptorBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 			_TerrainNodeDescriptorBufferDesc.initialState = GHL::EResourceState::Common;
-			_TerrainNodeDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess | GHL::EResourceState::UnorderedAccess;
+			_TerrainNodeDescriptorBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::UnorderedAccess;
 			mTerrainNodeDescriptorBuffer = resourceAllocator->Allocate(device, _TerrainNodeDescriptorBufferDesc, descriptorAllocator, nullptr);
+			mTerrainNodeDescriptorBuffer->SetDebugName("TerrainNodeDescriptor");
 
 			renderGraph->ImportResource("TerrainNodeDescriptor", mTerrainNodeDescriptorBuffer);
 			resourceStateTracker->StartTracking(mTerrainNodeDescriptorBuffer);
@@ -91,7 +93,6 @@ namespace Renderer {
 		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates);
 
 		mTerrainPipelinePass = std::make_unique<TerrainPipelinePass>(this);
-		mTerrainPipelinePass->Initialize();
 	}
 
 	void TerrainRenderer::AddPass() {
