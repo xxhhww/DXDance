@@ -11,5 +11,6 @@ namespace Renderer {
 	float	 TerrainSetting::smMaxLODNodeMeterSize = 1024.0f;	// LOD4对应的地块大小为1024.0f
 	uint32_t TerrainSetting::smMaxLOD = 4;						// pow(2, 4) * 64 = 1024.0f，即 LOD0 1 2 3 4
 	uint32_t TerrainSetting::smPatchCountPerNodePerAxis = 8;	// patch count
-
+	int32_t  TerrainSetting::smTerrainDataLoadedRange = 4;		// Terrain Data Range
+	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 64;		// 一次加载64个地形节点的数据
 }

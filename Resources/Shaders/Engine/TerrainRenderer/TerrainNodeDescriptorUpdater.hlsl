@@ -20,7 +20,14 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	uint threadIndex = dispatchThreadID.x;
 
 	GpuUpdateTerrainNodeDescriptorRequest request = updateTerrainNodeDescriptorRequestBuffer[threadIndex];
-	terrainNodeDescriptorBuffer[request.terrainNodeIndex] = request.terrainNodeDescriptor;
+	terrainNodeDescriptorBuffer[request.dstTerrainNodeIndex].tilePosX = request.tilePosX;
+	terrainNodeDescriptorBuffer[request.dstTerrainNodeIndex].tilePosY = request.tilePosY;
+
+	// 将srcTerrainNodeIndex对应的tilePos设为无效
+	if(request.srcTerrainNodeIndex != 65536) {
+		terrainNodeDescriptorBuffer[request.srcTerrainNodeIndex].tilePosX = 255;
+		terrainNodeDescriptorBuffer[request.srcTerrainNodeIndex].tilePosY = 255;		
+	}
 }
 
 #endif

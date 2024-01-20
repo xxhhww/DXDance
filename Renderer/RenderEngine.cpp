@@ -578,7 +578,7 @@ namespace Renderer {
 				auto& heightMapAtlasWrap = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas();
 
 				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
-				// mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
 				auto passDataAlloc = mSharedMemAllocator->Allocate(sizeof(OutputBackBufferPassData));
 				memcpy(passDataAlloc.cpuAddress, &mOutputBackBufferPassData, sizeof(OutputBackBufferPassData));
 

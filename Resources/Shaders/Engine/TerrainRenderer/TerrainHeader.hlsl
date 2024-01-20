@@ -27,8 +27,11 @@ struct TerrainNodeDescriptor {
 };
 
 struct GpuUpdateTerrainNodeDescriptorRequest {
-	uint terrainNodeIndex;						// 目标地形节点索引
-	TerrainNodeDescriptor terrainNodeDescriptor;	// 目标地形节点描述
+	uint srcTerrainNodeIndex;
+	uint dstTerrainNodeIndex;						// 目标地形节点索引
+	
+	uint tilePosX;
+	uint tilePosY;
 };
 
 #endif
