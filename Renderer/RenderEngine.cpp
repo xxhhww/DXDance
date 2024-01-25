@@ -575,10 +575,11 @@ namespace Renderer {
 
 				commandBuffer.PIXBeginEvent("OutputBackBufferPass");
 
-				auto& heightMapAtlasWrap = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas();
 
 				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
-				mOutputBackBufferPassData.finalOutputMapIndex = heightMapAtlasWrap.Get()->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainNormalMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				auto passDataAlloc = mSharedMemAllocator->Allocate(sizeof(OutputBackBufferPassData));
 				memcpy(passDataAlloc.cpuAddress, &mOutputBackBufferPassData, sizeof(OutputBackBufferPassData));
 

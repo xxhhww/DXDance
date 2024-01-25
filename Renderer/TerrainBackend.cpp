@@ -20,11 +20,20 @@ namespace Renderer {
 	, mTerrainLodDescriptors(terrainLodDescriptors)
 	, mTerrainNodeDescriptors(terrainNodeDescriptors) 
 	, mTerrainNodeRuntimeStates(terrainNodeRuntimeStates) {
+		mReservedTerrainNodeRequestTasks.resize(smMaxBackFrameCount);
+		mFrameCompletedFlags.resize(smMaxBackFrameCount);
 
 		mHasPreloaded = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		ASSERT_FORMAT(mHasPreloaded != nullptr, "CreateEvent Failed");
 
+		// 创建图形对象
 		CreateGraphicsObject();
+
+		// 启动线程
+		mThread = std::thread([this]() {
+				this->BackendThread();
+			}
+		);
 	}
 
 	TerrainBackend::~TerrainBackend() {
@@ -77,6 +86,7 @@ namespace Renderer {
 		};
 		*/
 
+		/*
 		auto preloadFarTerrainTextureAtlas = [&](TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, CommandListWrap& copyCommandList, LinearBufferAllocator* tempLinearBufferAllocator) {
 			const auto& reTextureFileFormat = terrainTextureAtlas->GetReTextureFileFormat();
 			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
@@ -113,6 +123,7 @@ namespace Renderer {
 			D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(textureAtlas.Get()->D3DResource(), 0u);
 			copyCommandList->D3DCommandList()->CopyTextureRegion(&dstLocation, region.left, region.top, 0, &srcLocation, nullptr);
 		};
+		*/
 
 		// 压入新的CopyFrame
 		{
@@ -154,7 +165,9 @@ namespace Renderer {
 				updateTerrainNodeDescriptorRequests.push_back(updateTerrainNodeDescriptorRequest);
 
 				// preloadFarTerrainTextureAtlas(mRenderer->mFarTerrainHeightMapAtlas.get(), requestTask, mBackDStorageQueue.get());
-				preloadFarTerrainTextureAtlas(mRenderer->mFarTerrainHeightMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainHeightMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainAlbedoMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainNormalMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
 
 				auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
 				currNodeRuntimeState.SetInLoading();
@@ -168,7 +181,6 @@ namespace Renderer {
 
 			copyCommandList->Close();
 			mBackCopyQueue->ExecuteCommandList(copyCommandList->D3DCommandList());
-			mBackCopyFence->IncrementExpectedValue();
 			mBackCopyQueue->SignalFence(*mBackCopyFence.get());
 		}
 
@@ -180,13 +192,13 @@ namespace Renderer {
 
 		{
 			// mBackComputeQueue->WaitFence(*mBackDStorageFence.get());
-			mBackComputeQueue->WaitFence(*mBackCopyFence.get());
+			// mBackComputeQueue->WaitFence(*mBackCopyFence.get());
 
 			auto commandList = mBackComputeCommandListAllocator->AllocateComputeCommandList();
 			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mBackResourceStateTracker.get(), mBackComputeLinearBufferAllocator.get(), nullptr };
-			commandBuffer.PIXBeginEvent("UpdatePageTableTexturePass");
+			commandBuffer.PIXBeginEvent("UpdateTerrainNodeDescriptorPass");
 
 			// Pass Data
 			mUpdateTerrainNodeDescriptorPassData.terrainNodeDescriptorBufferIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetUADescriptor()->GetHeapIndex();
@@ -240,6 +252,9 @@ namespace Renderer {
 			terrainTextureAtlasTileCache->AddTail(requestTask.atlasNode);
 		}
 
+		// 设置帧完成回调函数
+		SetupFrameCompletedCallBack();
+
 		// 加载完成后通知后台线程，启动资源调度线程
 		::SetEvent(mHasPreloaded);
 	}
@@ -262,31 +277,70 @@ namespace Renderer {
 			if (previousMainFrameFenceCompletedValue != currentMainFrameFenceCompletedValue) {
 				previousMainFrameFenceCompletedValue = previousMainFrameFenceCompletedValue;
 
-				// 压入新的CopyFrame与ComputeFrame
-				uint64_t currFrameCopyFenceExpectedValue = mBackCopyFence->IncrementExpectedValue();
-				uint64_t currFrameComputeFenceExpectedValue = mBackComputeFence->IncrementExpectedValue();
-
-				mBackCopyFrameTracker->PushCurrentFrame(currFrameCopyFenceExpectedValue);
-				mBackComputeFrameTracker->PushCurrentFrame(currFrameComputeFenceExpectedValue);
-
 				// 根据当前摄像机所处的位置计算需要更新的地形节点
 				auto cameraPosition = pipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
 				std::vector<TerrainNodeRequestTask> terrainNodeRequestTasks;
 				ProcessTerrainNodeRequest(terrainNodeRequestTasks, cameraPosition);
 
-				// 记录当前帧对应的Gpu命令
-				RecordedGpuCommand recordedGpuCommand{};
-				recordedGpuCommand.copyFence = mBackCopyFence.get();
-				recordedGpuCommand.copyQueue = mBackCopyQueue.get();
-				recordedGpuCommand.copyCommandList = nullptr;
-				recordedGpuCommand.copyFenceExpectedValue = currFrameCopyFenceExpectedValue;
-				recordedGpuCommand.computeQueue = mBackComputeQueue.get();
-				recordedGpuCommand.computeFence = mBackComputeFence.get();
-				recordedGpuCommand.computeCommandList = nullptr;
-				recordedGpuCommand.computeFenceExpectedValue = currFrameComputeFenceExpectedValue;
+				// 当前有节点更新请求
+				if (!terrainNodeRequestTasks.empty()) {
+					
+					// 压入新的CopyFrame与ComputeFrame
+					uint64_t currFrameCopyFenceExpectedValue = mBackCopyFence->IncrementExpectedValue();
+					uint64_t currFrameComputeFenceExpectedValue = mBackComputeFence->IncrementExpectedValue();
 
-				// 压入队列中
-				mRecordedGpuCommands.Push(std::move(recordedGpuCommand));
+					mBackCopyFrameTracker->PushCurrentFrame(currFrameCopyFenceExpectedValue);
+					mBackComputeFrameTracker->PushCurrentFrame(currFrameComputeFenceExpectedValue);
+
+					// 记录当前帧对应的Gpu命令
+					RecordedGpuCommand recordedGpuCommand{};
+					recordedGpuCommand.copyFence = mBackCopyFence.get();
+					recordedGpuCommand.copyQueue = mBackCopyQueue.get();
+					recordedGpuCommand.copyCommandList = nullptr;
+					recordedGpuCommand.copyFenceExpectedValue = currFrameCopyFenceExpectedValue;
+					recordedGpuCommand.computeQueue = mBackComputeQueue.get();
+					recordedGpuCommand.computeFence = mBackComputeFence.get();
+					recordedGpuCommand.computeCommandList = nullptr;
+					recordedGpuCommand.computeFenceExpectedValue = currFrameComputeFenceExpectedValue;
+
+					// 根据当前请求任务录制GPU命令
+					RecordGpuCommand(terrainNodeRequestTasks, recordedGpuCommand);
+					// 将命令压入队列中
+					mRecordedGpuCommands.Push(std::move(recordedGpuCommand));
+					// 预留请求任务，以便后续帧完成后的回调处理(mBackComputeFrameTracker->GetFrameIndex()理论上也可以)
+					mReservedTerrainNodeRequestTasks.at(mBackCopyFrameTracker->GetCurrFrameIndex()).insert(mReservedTerrainNodeRequestTasks.at(mBackCopyFrameTracker->GetCurrFrameIndex()).end(), terrainNodeRequestTasks.begin(), terrainNodeRequestTasks.end());
+					mFrameCompletedFlags.at(mBackCopyFrameTracker->GetCurrFrameIndex()) = 0u;				// 刷新帧完成标记
+				}
+			}
+
+			// 检测塞入的GPU命令是否过载
+			if (mBackCopyFrameTracker->GetUsedSize() == smMaxBackFrameCount) {
+				HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
+				UINT64 valueToWaitFor = mBackCopyFence->ExpectedValue() - (smMaxBackFrameCount - 1u);
+				mBackCopyFence->SetCompletionEvent(valueToWaitFor, eventHandle);
+
+				// Wait until the GPU hits current fence event is fired.
+				WaitForSingleObject(eventHandle, INFINITE);
+				CloseHandle(eventHandle);
+			}
+			if (mBackComputeFrameTracker->GetUsedSize() == smMaxBackFrameCount) {
+				HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
+				UINT64 valueToWaitFor = mBackComputeFence->ExpectedValue() - (smMaxBackFrameCount - 1u);
+				mBackComputeFence->SetCompletionEvent(valueToWaitFor, eventHandle);
+
+				// Wait until the GPU hits current fence event is fired.
+				WaitForSingleObject(eventHandle, INFINITE);
+				CloseHandle(eventHandle);
+			}
+
+			// 检测并处理渲染帧是否完成
+			mBackCopyFrameTracker->PopCompletedFrame(mBackCopyFence->CompletedValue());
+			mBackComputeFrameTracker->PopCompletedFrame(mBackComputeFence->CompletedValue());
+
+			if (!mThreadRunning) {
+				break;
 			}
 		}
 	}
@@ -294,15 +348,23 @@ namespace Renderer {
 	void TerrainBackend::ProcessTerrainNodeRequest(std::vector<TerrainNodeRequestTask>& requestTasks, Math::Vector3 cameraPosition) {
 		auto* tileCache = mRenderer->mFarTerrainTextureAtlasTileCache.get();
 
-		auto GetFixedPos = [](const Math::Vector3& pos, float nodeMeterSize) {
-			return Math::Int2{
-				(int)std::floor(pos.x / nodeMeterSize + 0.5f) * (int)nodeMeterSize,
-				(int)std::floor(pos.z / nodeMeterSize + 0.5f) * (int)nodeMeterSize
+		auto GetFixedPos = [](const Math::Vector3& pos, float nodeMeterSize, float terrainMeterSize) {
+			// 对pos做偏移
+			Math::Vector3 transformedPos = pos;
+			transformedPos.x = transformedPos.x + terrainMeterSize / 2.0f;
+			transformedPos.y = transformedPos.y;
+			transformedPos.z = -transformedPos.z + terrainMeterSize / 2.0f;
+
+			Math::Int2 fixedPos = Math::Int2{
+				(int32_t)std::floor(transformedPos.x / nodeMeterSize + 0.5f) * (int32_t)nodeMeterSize,
+				(int32_t)std::floor(transformedPos.z / nodeMeterSize + 0.5f) * (int32_t)nodeMeterSize
 			};
+
+			return Math::Int2{ fixedPos.x / (int32_t)nodeMeterSize, fixedPos.y / (int32_t)nodeMeterSize };
 		};
 
 		// 处理优先级: LOD0 LOD1 ... LOD4
-		for (int32_t currLod = 0; currLod <= mTerrainSetting.smMaxLOD; currLod++) {
+		for (int32_t currLod = 3; currLod <= mTerrainSetting.smMaxLOD; currLod++) {
 			// 最高级别的节点持久化驻留
 			if (currLod == mTerrainSetting.smMaxLOD) {
 				const auto& maxLodDescriptor = mTerrainLodDescriptors.at(currLod);
@@ -322,12 +384,20 @@ namespace Renderer {
 
 			// 其他节点做额外考虑
 			const auto& currLodDescriptor = mTerrainLodDescriptors.at(currLod);
-			Math::Int2 fixedPos = GetFixedPos(cameraPosition, (float)currLodDescriptor.nodeMeterSize);
+			Math::Int2 fixedPos = GetFixedPos(cameraPosition, (float)currLodDescriptor.nodeMeterSize, mTerrainSetting.smTerrainMeterSize);
 			// 考虑范围为： -smsmTerrainDataRange, smTerrainDataRange 内的地形节点
 			for (int32_t yIndex = -mTerrainSetting.smTerrainDataLoadedRange; yIndex <= mTerrainSetting.smTerrainDataLoadedRange; yIndex++) {
 				for (int32_t xIndex = -mTerrainSetting.smTerrainDataLoadedRange; xIndex <= mTerrainSetting.smTerrainDataLoadedRange; xIndex++) {
 					int32_t currNodeLocationX = fixedPos.x + xIndex;
 					int32_t currNodeLocationY = fixedPos.y + yIndex;
+
+					// 剔除非法边界
+					if (currNodeLocationX < 0 || currNodeLocationX > ((mTerrainSetting.smTerrainMeterSize / currLodDescriptor.nodeMeterSize) - 1)) {
+						continue;
+					}
+					if (currNodeLocationY < 0 || currNodeLocationY > ((mTerrainSetting.smTerrainMeterSize / currLodDescriptor.nodeMeterSize) - 1)) {
+						continue;
+					}
 
 					// 计算出当前节点的全局索引
 					uint32_t nodeCountPerRow = mTerrainSetting.smTerrainMeterSize/ currLodDescriptor.nodeMeterSize;
@@ -335,9 +405,18 @@ namespace Renderer {
 
 					// 获取该节点的实时状态
 					auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(currNodeIndex);
+					
+					// 创建对应的地形请求任务(但不分配图集元素)
+					TerrainNodeRequestTask requestTask{};
+					requestTask.nextTerrainNodeIndex = currNodeIndex;
+					requestTasks.push_back(requestTask);
+
+					/*
 					if (currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading) { 
-						continue; 
+						// 该节点对应的资源正在加载
+						continue;
 					}
+					// 该节点对应的资源已在图集上
 					else if (currNodeRuntimeState.inTexture) {
 						tileCache->Remove(currNodeRuntimeState.atlasNode);
 						tileCache->AddTail(currNodeRuntimeState.atlasNode);
@@ -348,6 +427,7 @@ namespace Renderer {
 						requestTask.nextTerrainNodeIndex = currNodeIndex;
 						requestTasks.push_back(requestTask);
 					}
+					*/
 				}
 			}
 		}
@@ -358,6 +438,156 @@ namespace Renderer {
 		// 保留一定数量的请求任务，一次只加载smTerrainDataLoadedLimit个地形节点的数据
 		if (requestTasks.size() > mTerrainSetting.smTerrainDataLoadedLimit) {
 			requestTasks.resize(mTerrainSetting.smTerrainDataLoadedLimit);
+		}
+
+		// 为剩余请求任务申请atlasNode，并更新节点的实时状态
+		for (auto& requestTask : requestTasks) {
+			auto* atlasNode = tileCache->GetHead();
+			tileCache->Remove(atlasNode);
+
+			// 如果该atlasNode已经负载了一个地形节点的资源，做记录
+			if (atlasNode->terrainNodeIndex != -1) {
+				requestTask.prevTerrainNodeIndex = atlasNode->terrainNodeIndex;
+			}
+			// 使用的atlasNode没有负载地形节点
+			else {
+				requestTask.prevTerrainNodeIndex = 65536u;
+			}
+			requestTask.atlasNode = atlasNode;
+
+			auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
+			currNodeRuntimeState.SetInQueue();
+		}
+	}
+
+	void TerrainBackend::RecordGpuCommand(std::vector<TerrainNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
+		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* shaderManger = renderEngine->mShaderManger.get();
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+
+		std::vector<GpuUpdateTerrainNodeDescriptorRequest> updateTerrainNodeDescriptorRequests;
+		// 录制CopyCommandList
+		{
+			auto copyCommandList = mBackCopyCommandListAllocator->AllocateCopyCommandList();
+			::PIXBeginEvent(copyCommandList->D3DCommandList(), 0, Tool::StrUtil::UTF8ToWString("UpdateTerrainAtlasTexturePass").c_str());
+			for (auto& requestTask : requestTasks) {
+				uint32_t currNodeIndex = requestTask.nextTerrainNodeIndex;
+
+				// 创建更新请求
+				GpuUpdateTerrainNodeDescriptorRequest updateTerrainNodeDescriptorRequest{};
+				updateTerrainNodeDescriptorRequest.srcTerrainNodeIndex = requestTask.prevTerrainNodeIndex;
+				updateTerrainNodeDescriptorRequest.dstTerrainNodeIndex = requestTask.nextTerrainNodeIndex;
+				updateTerrainNodeDescriptorRequest.tilePosX = requestTask.atlasNode->tilePos.x;
+				updateTerrainNodeDescriptorRequest.tilePosY = requestTask.atlasNode->tilePos.y;
+				updateTerrainNodeDescriptorRequests.push_back(updateTerrainNodeDescriptorRequest);
+
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainHeightMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainAlbedoMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+				RecordFarTerrainTextureAtlas(mRenderer->mFarTerrainNormalMapAtlas.get(), requestTask, copyCommandList, mBackCopyLinearBufferAllocator.get());
+
+				auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
+				currNodeRuntimeState.SetInLoading();
+			}
+			::PIXEndEvent(copyCommandList->D3DCommandList());
+			copyCommandList->Close();
+			recordedGpuCommand.copyCommandList = copyCommandList.Get();
+		}
+
+		// 录制ComputeCommandList
+		{
+			auto computeCommandList = mBackComputeCommandListAllocator->AllocateComputeCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			computeCommandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ computeCommandList.Get(), shaderManger, mBackResourceStateTracker.get(), mBackComputeLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("UpdateTerrainNodeDescriptorPass");
+
+			// Pass Data
+			mUpdateTerrainNodeDescriptorPassData.terrainNodeDescriptorBufferIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetUADescriptor()->GetHeapIndex();
+			mUpdateTerrainNodeDescriptorPassData.updateTerrainNodeDescriptorRequestBufferIndex = mUpdateTerrainNodeDescriptorRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			auto passDataAlloc = mBackComputeLinearBufferAllocator->Allocate(sizeof(UpdateTerrainNodeDescriptorPassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateTerrainNodeDescriptorPassData, sizeof(UpdateTerrainNodeDescriptorPassData));
+
+			// Upload Data
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch =  mBackResourceStateTracker->TransitionImmediately(mUpdateTerrainNodeDescriptorRequestBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mUpdateTerrainNodeDescriptorRequestBuffer, 0u, updateTerrainNodeDescriptorRequests.data(), updateTerrainNodeDescriptorRequests.size() * sizeof(GpuUpdateTerrainNodeDescriptorRequest));
+
+			barrierBatch =  GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{mRenderer->mTerrainNodeDescriptorBuffer, GHL::EResourceState::NonPixelShaderAccess, GHL::EResourceState::UnorderedAccess} };
+			barrierBatch += mBackResourceStateTracker->TransitionImmediately(mUpdateTerrainNodeDescriptorRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.SetComputeRootSignature();
+			commandBuffer.SetComputePipelineState(smUpdateTerrainNodeDescriptorSN);
+			commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+
+			uint32_t threadGroupCountX = (updateTerrainNodeDescriptorRequests.size() + smThreadSizeInGroup - 1) / smThreadSizeInGroup;
+			commandBuffer.Dispatch(threadGroupCountX, 1u, 1u);
+
+			commandBuffer.PIXEndEvent();
+			computeCommandList->Close();
+			recordedGpuCommand.computeCommandList = computeCommandList.Get();
+		}
+	}
+
+	void TerrainBackend::RecordFarTerrainTextureAtlas(TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, CommandListWrap& copyCommandList, LinearBufferAllocator* tempLinearBufferAllocator) {
+		const auto& reTextureFileFormat = terrainTextureAtlas->GetReTextureFileFormat();
+		const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
+		const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
+		size_t tileRowPitch = GHL::GetFormatStride(((DXGI_FORMAT)reTextureFileHeader.dxgiFormat)) * reTextureFileHeader.tileWidth;
+
+		auto& fileStreamer = terrainTextureAtlas->GetFileStreamer();
+		auto& textureAtlas = terrainTextureAtlas->GetTextureAtlas();
+		auto& fileHandle = terrainTextureAtlas->GetFileHandle();
+
+		// 当前地形节点对应的TileInfo
+		const auto& currTileDataInfo = reTileDataInfos.at(requestTask.nextTerrainNodeIndex);
+
+		// 计算TextureRegion
+		auto* atlasNode = requestTask.atlasNode;
+		D3D12_BOX region{};
+		region.front = 0u;
+		region.back = 1u;	// 描述深度为1
+		region.left = atlasNode->tilePos.x * reTextureFileHeader.tileWidth;
+		region.top = atlasNode->tilePos.y * reTextureFileHeader.tileHeight;
+		region.right = region.left + reTextureFileHeader.tileWidth;
+		region.bottom = region.top + reTextureFileHeader.tileHeight;
+
+		// 将文件数据读取到tempLinearBuffer中
+		auto dyAlloc = tempLinearBufferAllocator->Allocate(currTileDataInfo.numBytes);
+		fileStreamer.seekg(currTileDataInfo.offset, std::ios::beg);
+		fileStreamer.read((char*)dyAlloc.cpuAddress, currTileDataInfo.numBytes);
+
+		// CopyBufferRegion
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ dyAlloc.offset,
+			{ (DXGI_FORMAT)reTextureFileHeader.dxgiFormat, reTextureFileHeader.tileWidth, reTextureFileHeader.tileHeight, 1u, tileRowPitch} };
+
+		D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(dyAlloc.backResource, layout);
+		D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(textureAtlas.Get()->D3DResource(), 0u);
+		copyCommandList->D3DCommandList()->CopyTextureRegion(&dstLocation, region.left, region.top, 0, &srcLocation, nullptr);
+	}
+
+	void TerrainBackend::OnFrameCompleted(uint8_t frameIndex) {
+		auto* terrainTextureAtlasTileCache = mRenderer->mFarTerrainTextureAtlasTileCache.get();
+
+		auto& currFrameCompletedFlag = mFrameCompletedFlags.at(frameIndex);
+		currFrameCompletedFlag++;
+
+		// 表面CopyFrame与ComputeFrame都完成了
+		if (currFrameCompletedFlag == smFrameCompletedFlag) {
+			
+			auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
+			for (auto& requestTask : reservedRequestTasks) {
+				// 更新节点实时状态
+				auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
+				currNodeRuntimeState.SetInTexture();
+				currNodeRuntimeState.atlasNode = requestTask.atlasNode;
+
+				// 更新AtlasNode负载
+				requestTask.atlasNode->terrainNodeIndex = requestTask.nextTerrainNodeIndex;
+				terrainTextureAtlasTileCache->AddTail(requestTask.atlasNode);
+			}
+			reservedRequestTasks.clear();
 		}
 	}
 
@@ -422,9 +652,18 @@ namespace Renderer {
 			shaderManger->CreateComputeShader(smUpdateTerrainNodeDescriptorSN,
 				[&](ComputeStateProxy& proxy) {
 					proxy.csFilepath = shaderPath + "TerrainRenderer/TerrainNodeDescriptorUpdater.hlsl";
-				}
-			);
+				});
 		}
+	}
+
+	void TerrainBackend::SetupFrameCompletedCallBack() {
+		// 添加FrameCompletedCallback
+		mBackCopyFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			this->OnFrameCompleted(attribute.frameIndex);
+			});
+		mBackComputeFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			this->OnFrameCompleted(attribute.frameIndex);
+			});
 	}
 
 }

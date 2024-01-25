@@ -21,6 +21,8 @@ namespace Renderer {
 		TerrainTextureAtlasTileCache::Node* atlasNode{ nullptr };	// 一个图集元素
 		int32_t prevTerrainNodeIndex{ -1 };		// 前任地形节点索引
 		int32_t nextTerrainNodeIndex{ -1 };		// 下任地形节点索引
+
+	public:
 	};
 
 	/*
@@ -40,6 +42,20 @@ namespace Renderer {
 	*/
 	class TerrainBackend {
 	public:
+		struct RecordedGpuCommand {
+		public:
+			GHL::CommandQueue* copyQueue{ nullptr };
+			GHL::Fence*        copyFence{ nullptr };
+			GHL::CommandList*  copyCommandList{ nullptr };
+			uint64_t           copyFenceExpectedValue{ 0u };
+
+			GHL::CommandQueue* computeQueue{ nullptr };
+			GHL::Fence*        computeFence{ nullptr };
+			GHL::CommandList*  computeCommandList{ nullptr };
+			uint64_t           computeFenceExpectedValue{ 0u };
+		};
+
+	public:
 		TerrainBackend(
 			TerrainRenderer* renderer,
 			TerrainSetting& terrainSetting,
@@ -52,6 +68,8 @@ namespace Renderer {
 		// 预加载
 		void Preload();
 
+		auto& GetRecordedGpuCommands() { return mRecordedGpuCommands; }
+
 	private:
 		// 后台线程
 		void BackendThread();
@@ -60,6 +78,18 @@ namespace Renderer {
 
 		// 处理地形节点请求
 		void ProcessTerrainNodeRequest(std::vector<TerrainNodeRequestTask>& requestTasks, Math::Vector3 cameraPosition);
+
+		// 录制GPU命令
+		void RecordGpuCommand(std::vector<TerrainNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
+
+		// 加载纹理图集
+		void RecordFarTerrainTextureAtlas(TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, CommandListWrap& copyCommandList, LinearBufferAllocator* tempLinearBufferAllocator);
+
+		// 设置帧完成回调函数
+		void SetupFrameCompletedCallBack();
+
+		// 帧完成回调
+		void OnFrameCompleted(uint8_t frameIndex);
 
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
@@ -103,21 +133,13 @@ namespace Renderer {
 			uint32_t updateTerrainNodeDescriptorRequestBufferIndex;
 		};
 		UpdateTerrainNodeDescriptorPassData mUpdateTerrainNodeDescriptorPassData;
-		BufferWrap mUpdateTerrainNodeDescriptorRequestBuffer;	// 用于更新地形节点描述的缓冲
+		BufferWrap mUpdateTerrainNodeDescriptorRequestBuffer;						// 用于更新地形节点描述的缓冲
 
-		struct RecordedGpuCommand {
-		public:
-			GHL::CommandQueue* copyQueue{ nullptr };
-			GHL::Fence*        copyFence{ nullptr };
-			GHL::CommandList*  copyCommandList{ nullptr };
-			uint64_t           copyFenceExpectedValue{ 0u };
+		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;				// 该队列由BackThread和MainThread共同访问
 
-			GHL::CommandQueue* computeQueue{ nullptr };
-			GHL::Fence*        computeFence{ nullptr };
-			GHL::CommandList*  computeCommandList{ nullptr };
-			uint64_t           computeFenceExpectedValue{ 0u };
-		};
-		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;	// 该队列由BackThread和MainThread共同访问
+		std::vector<std::vector<TerrainNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
+		std::vector<uint32_t> mFrameCompletedFlags;											// 帧完成标记序列
+		inline static uint32_t smFrameCompletedFlag = 2u;									// 帧完成的标记大小
 	};
 
 }

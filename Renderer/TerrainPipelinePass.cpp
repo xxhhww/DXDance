@@ -1,4 +1,5 @@
 #include "Renderer/TerrainPipelinePass.h"
+#include "Renderer/TerrainBackend.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderGraphBuilder.h"
 #include "Renderer/TerrainTextureAtlas.h"
@@ -35,6 +36,7 @@ namespace Renderer {
 
 	void TerrainPipelinePass::AddPass() {
 		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* computeQueue = renderEngine->mComputeQueue.get();
 
 		auto  shaderPath = renderEngine->smEngineShaderPath;
 		auto* renderGraph = renderEngine->mRenderGraph.get();
@@ -99,6 +101,26 @@ namespace Renderer {
 					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				// 检测TerrainBackend是否存在资源更新任务
+				{
+					auto* terrainBackend = mRenderer->mTerrainBackend.get();
+					auto& recordedGpuCommands = terrainBackend->GetRecordedGpuCommands();
+					
+					TerrainBackend::RecordedGpuCommand recordedGpuCommand{};
+					if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
+						// 向GPU输送已被录制好的命令
+						recordedGpuCommand.copyQueue->ExecuteCommandList(recordedGpuCommand.copyCommandList->D3DCommandList());
+						recordedGpuCommand.copyQueue->SignalFence(*recordedGpuCommand.copyFence, recordedGpuCommand.copyFenceExpectedValue);
+						recordedGpuCommand.computeQueue->ExecuteCommandList(recordedGpuCommand.computeCommandList->D3DCommandList());
+						recordedGpuCommand.computeQueue->SignalFence(*recordedGpuCommand.computeFence, recordedGpuCommand.computeFenceExpectedValue);
+
+						// 让ComputeQueue等待命令的完成
+						computeQueue->WaitFence(*recordedGpuCommand.copyFence, recordedGpuCommand.copyFenceExpectedValue);
+						computeQueue->WaitFence(*recordedGpuCommand.computeFence, recordedGpuCommand.computeFenceExpectedValue);
+					}
+				}
+
+
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage  = renderContext.resourceStorage;
 				auto* commandSigManger = renderContext.commandSignatureManger;

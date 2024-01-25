@@ -119,11 +119,11 @@ void GenerateFarTerrainAtlas(bool needPrepare) {
                 // TextureProcessor::Resize("E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Split/HeightMap" + std::to_string(i) + ".png", "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Resize/", 65, 65);
             }
 
-            TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Resize/", "HeightMap", 0, nodeStartOffset - 1, "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/TerrainHeightMapAtlas.ret");
+            // TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Resize/", "HeightMap", 0, nodeStartOffset - 1, "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/TerrainHeightMapAtlas.ret");
         }
-        /*
+
         if (needPrepare) {
-            TextureProcessor::Padding("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/AlbedoMap.png", "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Padding/", 1);
+            // TextureProcessor::Padding("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/AlbedoMap.png", "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Padding/", 1);
 
             uint32_t maxLOD = 4;
             float	 minLODNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
@@ -131,23 +131,20 @@ void GenerateFarTerrainAtlas(bool needPrepare) {
             uint32_t nodeStartOffset{ 0u };
             for (int32_t i = maxLOD; i >= 0; i--) {
                 float currLODNodeMeterSize = pow(2, i) * minLODNodeMeterSize;
-                TextureProcessor::Split("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Padding/AlbedoMap.png", "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Split/", currLODNodeMeterSize + 1, currLODNodeMeterSize, nodeStartOffset);
+                // TextureProcessor::Split("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Padding/AlbedoMap.png", "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Split/", currLODNodeMeterSize + 1, currLODNodeMeterSize, nodeStartOffset);
                 uint32_t nodeCountPerAxis = worldMeterSize / currLODNodeMeterSize;
                 nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
             }
 
             for (uint32_t i = 0; i < nodeStartOffset; i++) {
-                TextureProcessor::Resize(
-                    "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Split/AlbedoMap" + std::to_string(i) + ".png",
-                    "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Resize/", 65, 65);
+                // TextureProcessor::Resize("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Split/AlbedoMap" + std::to_string(i) + ".png", "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Resize/", 65, 65);
             }
-        }
-        TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Resize/", "AlbedoMap", 0, 21823, "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/TerrainAlbedoMapAtlas.ret");
-        */
 
-        /*
+            // TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Resize/", "AlbedoMap", 0, nodeStartOffset - 1, "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/TerrainAlbedoMapAtlas.ret");
+        }
+
         if (needPrepare) {
-            TextureProcessor::Padding("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png", "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Padding/", 1);
+            // TextureProcessor::Padding("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png", "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Padding/", 1);
 
             uint32_t maxLOD = 4;
             float	 minLODNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
@@ -155,19 +152,17 @@ void GenerateFarTerrainAtlas(bool needPrepare) {
             uint32_t nodeStartOffset{ 0u };
             for (int32_t i = maxLOD; i >= 0; i--) {
                 float currLODNodeMeterSize = pow(2, i) * minLODNodeMeterSize;
-                TextureProcessor::Split("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Padding/NormalMap.png", "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Split/", currLODNodeMeterSize + 1, currLODNodeMeterSize, nodeStartOffset);
+                // TextureProcessor::Split("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Padding/NormalMap.png", "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Split/", currLODNodeMeterSize + 1, currLODNodeMeterSize, nodeStartOffset);
                 uint32_t nodeCountPerAxis = worldMeterSize / currLODNodeMeterSize;
                 nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
             }
 
             for (uint32_t i = 0; i < nodeStartOffset; i++) {
-                TextureProcessor::Resize(
-                    "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Split/NormalMap" + std::to_string(i) + ".png",
-                    "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Resize/", 65, 65);
+                TextureProcessor::Resize("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Split/NormalMap" + std::to_string(i) + ".png", "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Resize/", 65, 65);
             }
+
+            TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Resize/", "NormalMap", 0, nodeStartOffset - 1, "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/TerrainNormalMapAtlas.ret");
         }
-        TextureProcessor::GenerateTextureAtlasFile1("E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Resize/", "NormalMap", 0, 21823, "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/TerrainNormalMapAtlas.ret");
-        */
     }
 }
 
@@ -228,9 +223,9 @@ int main() {
 
 	// 执行离线任务
 	{
-        // GenerateFarTerrainAtlas(true);
+        GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
-        GenerateTerrainNodeData();
+        // GenerateTerrainNodeData();
 	}
 
 	// 释放DLL

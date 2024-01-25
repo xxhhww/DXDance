@@ -44,7 +44,9 @@ namespace Renderer {
 			mTerrainNodeRuntimeStates.resize(terrainNodeDescriptorSize);
 
 			// Far
-			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas3.ret", 25);
+			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas.ret", 25);
+			mFarTerrainAlbedoMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainAlbedoMapAtlas.ret", 25);
+			mFarTerrainNormalMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainNormalMapAtlas.ret", 25);
 
 			// FarCache
 			mFarTerrainTextureAtlasTileCache = std::make_unique<TerrainTextureAtlasTileCache>(625, 25);

@@ -180,18 +180,16 @@ namespace OfflineTask {
 			return;
 		}
 
-		// 转换为 OpenCV 的 Mat 格式
-		cv::Mat originalImage(srcHeight, srcWidth, CV_16UC4, pixel);
+		DirectX::ScratchImage dstImage;
+		HRASSERT(DirectX::Resize(srcImage.GetImages()[0], targetWidth, targetHeight, DirectX::TEX_FILTER_CUBIC, dstImage));
 
-		// 定义目标图像尺寸
-		cv::Size targetSize(targetWidth, targetHeight);
-
-		// 缩放图像
-		cv::Mat resizedImage;
-		cv::resize(originalImage, resizedImage, targetSize, 0, 0, cv::INTER_CUBIC);
-		
-		// 可选：保存缩放后的图像
-		cv::imwrite(dirname + Tool::StrUtil::GetFilename(filename) + ".png", resizedImage);
+		// 保存
+		HRASSERT(DirectX::SaveToWICFile(
+			dstImage.GetImages()[0],
+			DirectX::WIC_FLAGS_NONE,
+			DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
+			Tool::StrUtil::UTF8ToWString(dirname + Tool::StrUtil::GetFilename(filename) + ".png").c_str()
+		));
 	}
 
 	void TextureProcessor::GenerateTextureAtlasFile1(const std::string& srcDirname, const std::string& baseFilename, uint32_t startIndex, uint32_t endIndex, const std::string& dstFilename) {
@@ -213,7 +211,7 @@ namespace OfflineTask {
 		std::vector<uint8_t> textureData;
 
 		auto compressTileData = [&](std::vector<uint8_t>& tileData, size_t uncompressedDataSize) -> uint32_t {
-			// return tileData.size();
+			return tileData.size();
 
 			auto bound = compressor->CompressBufferBound(uncompressedDataSize);
 			std::vector<uint8_t> scratch(bound);
