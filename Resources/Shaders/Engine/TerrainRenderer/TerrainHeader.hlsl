@@ -1,13 +1,19 @@
 #ifndef _TerrainHeader__
 #define _TerrainHeader__
 
+//一个Node拆成8x8个Patch
+#define PATCH_COUNT_PER_NODE_PER_AXIS 8
+
 struct RenderPatch {
 	float2 position;
 	float2 minmaxHeight;
-	uint lod;
-	float pad1;
-	float pad2;
-	float pad3;
+	
+	uint3  nodeLoc;
+	float  pad1;
+	
+	uint2  patchOffset;
+	float  pad2;
+	float  pad3;
 };
 
 struct TerrainLodDescriptor {

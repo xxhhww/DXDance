@@ -19,6 +19,8 @@ namespace Renderer {
 		static uint32_t smPatchCountPerNodePerAxis;		// patch count
 		static int32_t  smTerrainDataLoadedRange;		// 地形数据加载的范围
 		static uint32_t smTerrainDataLoadedLimit;		// 一次加载多少个节点的数据
+
+		static uint32_t smTerrainFeedbackScale;
 	};
 
 }

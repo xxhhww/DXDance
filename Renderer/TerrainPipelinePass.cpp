@@ -293,6 +293,37 @@ namespace Renderer {
 			});
 
 		renderGraph->AddPass(
+			"TerrainFeedbackRenderer",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
+
+				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
+
+				NewTextureProperties _TerrainFeedbackProperties{};
+				_TerrainFeedbackProperties.width = finalOutputDesc.width / mTerrainSetting.smTerrainFeedbackScale;
+				_TerrainFeedbackProperties.height = finalOutputDesc.height / mTerrainSetting.smTerrainFeedbackScale;
+				_TerrainFeedbackProperties.format = DXGI_FORMAT_R16G16B16A16_UINT;
+				_TerrainFeedbackProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("TerrainFeedback", _TerrainFeedbackProperties);
+				builder.WriteRenderTarget("TerrainFeedback");
+
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+
+			});
+
+		renderGraph->AddPass(
+			"TerrainFeedbackCopyer",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
+
+				builder.WriteCopyDstBuffer
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+
+			});
+
+		renderGraph->AddPass(
 			"TerrainRenderer",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
@@ -320,6 +351,7 @@ namespace Renderer {
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+						// proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
@@ -377,10 +409,16 @@ namespace Renderer {
 				mTerrainRendererPassData.terrainMeterSize     = mTerrainSetting.smTerrainMeterSize;
 				mTerrainRendererPassData.terrainHeightScale   = mTerrainSetting.smTerrainHeightScale;
 				mTerrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.terrainTextureArrayIndex;
-				mTerrainRendererPassData.terrainHeightMapAtlasIndex = mRenderer->mFarTerrainHeightMapAtlas->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.terrainAlbedoMapAtlasIndex;
-				mTerrainRendererPassData.terrainNormalMapAtlasIndex;
+				mTerrainRendererPassData.nodeDescriptorListIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.lodDescriptorListIndex  = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.terrainAlbedoTextureArrayIndex;
+				mTerrainRendererPassData.terrainNormalTextureArrayIndex;
+				mTerrainRendererPassData.terrainHeightMapAtlasIndex     = mRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.terrainAlbedoMapAtlasIndex     = mRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.terrainNormalMapAtlasIndex     = mRenderer->GetFarTerrainNormalMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.terrainAtlasTileCountPerAxis   = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileCountPerAxis();
+				mTerrainRendererPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
+				mTerrainRendererPassData.terrainPatchVertexCountPerAxis = 9u;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
@@ -463,22 +501,28 @@ namespace Renderer {
 
 		// Load PatchMesh From Memory By DStorageQueue
 		{
-			uint32_t size = 16u;
-			float sizePerGrid = 0.5f;
+			// uint32_t size = 16u;
+			// float sizePerGrid = 0.5f;
+			uint32_t size = 8u;
+			float sizePerGrid = 1u;
 			float totalMeterSize = size * sizePerGrid;
 			float gridCount = size * size;
 			float triangleCount = gridCount * 2u;
 
-			float vOffset = -totalMeterSize * 0.5f;
+			float uOffset = -totalMeterSize * 0.5f;
+			float vOffset = totalMeterSize * 0.5f;
 
 			std::vector<Vertex> vertices;
 			float uvStrip = 1.0f / size;
 			for (uint32_t z = 0u; z <= size; z++) {
 				for (uint32_t x = 0u; x <= size; x++) {
 					vertices.emplace_back(
-						Math::Vector3{ vOffset + x * 0.5f, 0u, vOffset + z * 0.5f },
+						Math::Vector3{ uOffset + x * sizePerGrid, 0u, uOffset + z * sizePerGrid },
 						Math::Vector2{ x * uvStrip, z * uvStrip },
-						Math::Vector3{}, Math::Vector3{}, Math::Vector3{}, Math::Vector4{}
+						Math::Vector3{}, 
+						Math::Vector3{}, 
+						Math::Vector3{}, 
+						Math::Vector4{ (float)x, (float)(size - z), 0.0f, 0.0f }		// color
 					);
 					vertices.back().uv = Math::Vector2{ x * uvStrip, z * uvStrip };
 				}

@@ -364,7 +364,7 @@ namespace Renderer {
 		};
 
 		// 处理优先级: LOD0 LOD1 ... LOD4
-		for (int32_t currLod = 3; currLod <= mTerrainSetting.smMaxLOD; currLod++) {
+		for (int32_t currLod = 0; currLod <= mTerrainSetting.smMaxLOD; currLod++) {
 			// 最高级别的节点持久化驻留
 			if (currLod == mTerrainSetting.smMaxLOD) {
 				const auto& maxLodDescriptor = mTerrainLodDescriptors.at(currLod);
@@ -405,13 +405,7 @@ namespace Renderer {
 
 					// 获取该节点的实时状态
 					auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(currNodeIndex);
-					
-					// 创建对应的地形请求任务(但不分配图集元素)
-					TerrainNodeRequestTask requestTask{};
-					requestTask.nextTerrainNodeIndex = currNodeIndex;
-					requestTasks.push_back(requestTask);
 
-					/*
 					if (currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading) { 
 						// 该节点对应的资源正在加载
 						continue;
@@ -427,7 +421,6 @@ namespace Renderer {
 						requestTask.nextTerrainNodeIndex = currNodeIndex;
 						requestTasks.push_back(requestTask);
 					}
-					*/
 				}
 			}
 		}

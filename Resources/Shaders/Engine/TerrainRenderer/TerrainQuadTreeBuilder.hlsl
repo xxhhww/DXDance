@@ -23,9 +23,6 @@ struct PassData {
 
 #define PassDataType PassData
 
-//一个Node拆成8x8个Patch
-#define PATCH_COUNT_PER_NODE_PER_AXIS 8
-
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Math/BoundingBox.hlsl"
 
@@ -150,11 +147,10 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset) {
 	// 获取节点中心点XZ轴的世界坐标
 	float2 nodeWSPositionXZ = GetNodeWSPositionXZ(nodeLocXY, nodeLod);
 
-    uint2 patchLoc = nodeLocXY * PATCH_COUNT_PER_NODE_PER_AXIS + patchOffset;
-
 	// 计算Patch中心点XZ轴的世界坐标
     RenderPatch patch;
-    patch.lod = nodeLod;
+    patch.nodeLoc = nodeLoc;
+	patch.patchOffset = patchOffset;
 	patch.position.x = nodeWSPositionXZ.x + ((float)patchOffset.x - (float)((PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f)) * patchMeterSize;
     patch.position.y = nodeWSPositionXZ.y - ((float)patchOffset.y - (float)((PATCH_COUNT_PER_NODE_PER_AXIS - 1.0f) * 0.5f)) * patchMeterSize;
 	patch.minmaxHeight = float2(currNodeDescriptor.minHeight, currNodeDescriptor.maxHeight) * PassDataCB.terrainHeightScale + float2(-5.0f, 5.0f);
@@ -167,7 +163,7 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset) {
 // 计算Patch的包围盒
 BoundingBox GetPatchBoundingBox(RenderPatch patch) {
 	StructuredBuffer<TerrainLodDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
-	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[patch.lod];
+	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[patch.nodeLoc.z];
 
     float patchExtentSize = currLodDescriptor.nodeMeterSize / (PATCH_COUNT_PER_NODE_PER_AXIS * 2.0f);
 

@@ -33,10 +33,20 @@ namespace Renderer {
 			float         terrainHeightScale;
 			uint32_t      culledPatchListIndex;
 
-			uint32_t terrainTextureArrayIndex;
+			uint32_t nodeDescriptorListIndex;
+			uint32_t lodDescriptorListIndex;
+			uint32_t terrainAlbedoTextureArrayIndex;
+			uint32_t terrainNormalTextureArrayIndex;
+
 			uint32_t terrainHeightMapAtlasIndex;
 			uint32_t terrainAlbedoMapAtlasIndex;
 			uint32_t terrainNormalMapAtlasIndex;
+			uint32_t terrainAtlasTileCountPerAxis;
+
+			uint32_t terrainAtlasTileWidthInPixels;
+			uint32_t terrainPatchVertexCountPerAxis;
+			float pad2;
+			float pad3;
 
 			// x: page table size
 			// y: virtual texture size
@@ -53,12 +63,12 @@ namespace Renderer {
 			uint32_t pageTableMapIndex;
 			uint32_t physicalAlbedoMapIndex;
 			uint32_t physicalNormalMapIndex;
-			float    pad1;
+			float    pad4;
 
 			uint32_t lodDebug;
-			float    pad2;
-			float    pad3;
-			float    pad4;
+			float    pad5;
+			float    pad6;
+			float    pad7;
 		};
 
 	public:
@@ -78,8 +88,14 @@ namespace Renderer {
 		struct RenderPatch {
 			Math::Vector2 position;
 			Math::Vector2 minmaxHeight;
-			uint32_t lod;
+
+			uint32_t nodeLocationX;
+			uint32_t nodeLocationY;
+			uint32_t nodeLod;
 			float pad1;
+
+			uint32_t patchOffsetX;
+			uint32_t patchOffsetY;
 			float pad2;
 			float pad3;
 		};

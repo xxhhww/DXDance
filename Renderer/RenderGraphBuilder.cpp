@@ -147,6 +147,32 @@ namespace Renderer {
 		return resource->resourceID;
 	}
 
+	RenderGraphResourceID RenderGraphBuilder::ReadCopySrcBuffer(const std::string& name) {
+		auto* resource = mResourceStorage->GetResourceByName(name);
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0u, GHL::EResourceState::CopySource);
+
+		mPassNode->AddReadDependency(resource->resourceID, 0u, 1u, true);
+
+		return resource->resourceID;
+	}
+
+	RenderGraphResourceID RenderGraphBuilder::WriteCopyDstTexture(const std::string& name) {
+		auto* resource = mResourceStorage->GetResourceByName(name);
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0, GHL::EResourceState::CopyDestination);
+		mPassNode->AddWriteDependency(resource->resourceID, 0u, 1u, false);
+
+		return resource->resourceID;
+	}
+
+	RenderGraphResourceID RenderGraphBuilder::ReadCopySrcTexture(const std::string& name) {
+		auto* resource = mResourceStorage->GetResourceByName(name);
+		resource->SetSubresourceRequestedInfo(mPassNode->passNodeIndex, 0u, GHL::EResourceState::CopySource);
+
+		mPassNode->AddReadDependency(resource->resourceID, 0u, 1u, false);
+
+		return resource->resourceID;
+	}
+
 	void RenderGraphBuilder::SetPassExecutionQueue(GHL::EGPUQueue queueIndex) {
 		mPassNode->SetExecutionQueue(queueIndex);
 	}

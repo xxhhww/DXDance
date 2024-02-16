@@ -8,10 +8,20 @@ struct PassData {
 	float  terrainHeightScale;
 	uint   culledPatchListIndex;
 
-	uint terrainTextureArrayIndex;
-	uint terrainHeightMapAtlasIndex;
-	uint terrainAlbedoMapAtlasIndex;
-	uint terrainNormalMapAtlasIndex;
+	uint  nodeDescriptorListIndex;
+	uint  lodDescriptorListIndex;
+	uint  terrainAlbedoTextureArrayIndex;
+	uint  terrainNormalTextureArrayIndex;
+
+	uint  terrainHeightMapAtlasIndex;
+	uint  terrainAlbedoMapAtlasIndex;
+	uint  terrainNormalMapAtlasIndex;
+	uint  terrainAtlasTileCountPerAxis;
+
+	uint  terrainAtlasTileWidthInPixels;
+	uint  terrainPatchVertexCountPerAxis;
+	float pad2;
+	float pad3;
 
 	// x: page table size
 	// y: virtual texture size
@@ -28,12 +38,12 @@ struct PassData {
 	uint  pageTableMapIndex;
 	uint  physicalAlbedoMapIndex;
 	uint  physicalNormalMapIndex;
-	float pad1;
+	float pad4;
 
 	uint  lodDebug;
-	float pad2;
-	float pad3;
-	float pad4;
+	float pad5;
+	float pad6;
+	float pad7;
 };
 
 #define PassDataType PassData
@@ -55,10 +65,12 @@ struct v2p {
 	float4 prevCsPos : POSITION1;
 	float3 wsPos     : POSITION2;
 	float3 vsPos     : POSITION3;
-	// float2 uvHeight  : TEXCOORD0;
-	// float2 uvVT      : TEXCOORD1;
 	float2 uv        : TEXCOORD2;
-	uint   lod       : LOD;
+	uint   nodeLod   : NODELOD;
+
+	float  terrainHeight : TerrainHeight;
+	float3 terrainAlbedo : TerrainAlbedo;
+	float3 terrainNormal : TerrainNormal;
 };
 
 struct p2o {
@@ -69,17 +81,67 @@ struct p2o {
 	float  viewDepth        : SV_TARGET4;
 };
 
+// 根据Node的索引获得Node的全局ID
+uint GetGlobalNodeId(uint2 nodeLoc, uint lod) {
+	StructuredBuffer<TerrainLodDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[lod];
+	
+	uint nodeCountPerRow = PassDataCB.terrainMeterSize.x / currLodDescriptor.nodeMeterSize;
+
+    return currLodDescriptor.nodeStartOffset + nodeLoc.y * nodeCountPerRow + nodeLoc.x;
+}
+
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
-	StructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	StructuredBuffer<RenderPatch>           culledPatchList    = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	StructuredBuffer<TerrainNodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
+	StructuredBuffer<TerrainLodDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
 	Texture2D terrainHeightMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainHeightMapAtlasIndex];
+	Texture2D terrainAlbedoMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainAlbedoMapAtlasIndex];
+	Texture2D terrainNormalMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainNormalMapAtlasIndex];
+
+	RenderPatch renderPatch = culledPatchList[instanceID];
+	uint3 nodeLoc = renderPatch.nodeLoc;
+
+	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[nodeLoc.z];
+	uint nodeCountPerRow = PassDataCB.terrainMeterSize.x / currLodDescriptor.nodeMeterSize;
+    uint globalNodeID = currLodDescriptor.nodeStartOffset + nodeLoc.y * nodeCountPerRow + nodeLoc.x;
+	TerrainNodeDescriptor currNodeDescriptor = nodeDescriptorList[globalNodeID];
+
+	// 计算当前Patch的顶点在地形图集上的偏移量，并进行采样
+
+	// 第一步，计算Patch所属Node对应的地形纹理在图集中的索引
+	uint tilePosX = currNodeDescriptor.tilePosX;
+	uint tilePosY = currNodeDescriptor.tilePosY;
+	uint tileXIndexInAtlas = tilePosX * PassDataCB.terrainAtlasTileWidthInPixels;
+	uint tileYIndexInAtlas = tilePosY * PassDataCB.terrainAtlasTileWidthInPixels;
+
+	// 第二步，计算当前Patch在Node对应的地形纹理中的索引偏移
+	uint patchXIndexInTile = renderPatch.patchOffset.x * PassDataCB.terrainPatchVertexCountPerAxis - (renderPatch.patchOffset.x);
+	uint patchYIndexInTile = renderPatch.patchOffset.y * PassDataCB.terrainPatchVertexCountPerAxis - (renderPatch.patchOffset.y);
+
+	// 第三步，计算当前顶点在Patch中的索引偏移
+	uint vertexXIndexInPatch = (uint)input.color.x;
+	uint vertexYIndexInPatch = (uint)input.color.y;
+
+	uint2 currIndex;
+	currIndex.x = tileXIndexInAtlas + patchXIndexInTile + vertexXIndexInPatch;
+	currIndex.y = tileYIndexInAtlas + patchYIndexInTile + vertexYIndexInPatch;
 
 	v2p output;
 
-	RenderPatch patch = culledPatchList[instanceID];
-	uint  lod = patch.lod;
-	float scale = pow(2, lod);
+	// 对地形纹理图形(heightMap albedoMap normalMap)进行采样
+	output.terrainHeight = terrainHeightMapAtlas.mips[0][currIndex.xy].r;
+	output.terrainAlbedo = terrainAlbedoMapAtlas.mips[0][currIndex.xy].rgb;
+	output.terrainNormal = terrainNormalMapAtlas.mips[0][currIndex.xy].rgb;
+
+	output.terrainNormal.xz = output.terrainNormal.xy * 2.0f - 1.0f;
+    output.terrainNormal.y  = sqrt(max(0u, 1u - dot(output.terrainNormal.xz, output.terrainNormal.xz)));
+	output.terrainNormal = normalize(output.terrainNormal);
+
+	float scale = pow(2, nodeLoc.z);
 	input.lsPos.xz *= scale;
-	input.lsPos.xz += patch.position;
+	input.lsPos.xz += renderPatch.position;
+	input.lsPos.y = output.terrainHeight * PassDataCB.terrainHeightScale;
 
 	// 地形位置不会变化，因此currWsPos与prevWsPos是一样的
 	float3 currWsPos = input.lsPos;
@@ -90,6 +152,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	// 前一帧的CsPos，不需要加上上一帧的抖动，在PS中计算时再加上这一帧的uv抖动，从而保证计算motionVector时消除抖动
 	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
 
+
 	output.currCsPos = currCsPos;
 	output.prevCsPos = prevCsPos;
 	output.wsPos = currWsPos;
@@ -97,12 +160,12 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	// output.uvHeight = heightUV;
 	// output.uvVT = (currWsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
 	output.uv = input.uv;
-	output.lod = lod;
+	output.nodeLod = nodeLoc.z;
 	return output;	
 }
 
 p2o PSMain(v2p input) {
-	float3 currLodColor = GetLODColor(input.lod);
+	float3 currLodColor = GetLODColor(input.nodeLod);
 
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
@@ -118,9 +181,9 @@ p2o PSMain(v2p input) {
 	float3 normal = float3(0.0f, 1.0f, 0.0f);
 
 	p2o output;
-	output.albedoMetalness  = float4(albedo, 0.0f);
+	output.albedoMetalness  = float4(input.terrainAlbedo.rgb, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
-	output.normalRoughness  = float4(normal, 1.0f);
+	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);
 	output.viewDepth        = input.vsPos.z;
 

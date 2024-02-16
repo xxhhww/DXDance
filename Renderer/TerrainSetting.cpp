@@ -13,4 +13,5 @@ namespace Renderer {
 	uint32_t TerrainSetting::smPatchCountPerNodePerAxis = 8;	// patch count
 	int32_t  TerrainSetting::smTerrainDataLoadedRange = 4;		// 地形数据加载范围(离摄像机)
 	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 16;		// 一次加载64个地形节点的数据
+	uint32_t TerrainSetting::smTerrainFeedbackScale = 4;		// Feedback相对于FinalOutput的缩放大小
 }
