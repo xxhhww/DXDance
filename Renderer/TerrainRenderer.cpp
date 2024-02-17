@@ -1,10 +1,11 @@
 #include "Renderer/TerrainRenderer.h"
 #include "Renderer/TerrainPipelinePass.h"
 #include "Renderer/TerrainBackend.h"
-#include "Renderer/TerrainRuntimeVirtualTexture.h"
 #include "Renderer/TerrainTextureArray.h"
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVirtualTextureBackend.h"
+#include "Renderer/RuntimeVirtualTextureAtlas.h"
 #include "Renderer/RenderEngine.h"
 
 #include "Tools/MemoryStream.h"
@@ -22,6 +23,11 @@ namespace Renderer {
 	TerrainRenderer::~TerrainRenderer() {}
 
 	void TerrainRenderer::Initialize() {
+
+		auto* resourceStorage = mRenderEngine->mPipelineResourceStorage;
+
+		auto& finalOutputDesc = resourceStorage->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
+
 
 		std::string dirname = "E:/TerrainOfflineTask/001/Runtime/";
 
@@ -44,12 +50,12 @@ namespace Renderer {
 			mTerrainNodeRuntimeStates.resize(terrainNodeDescriptorSize);
 
 			// Far
-			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas.ret", 25);
-			mFarTerrainAlbedoMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainAlbedoMapAtlas.ret", 25);
-			mFarTerrainNormalMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainNormalMapAtlas.ret", 25);
+			mFarTerrainHeightMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainHeightMapAtlas.ret", mTerrainSetting.smFarTerrainTextureAtlasTileCountPerAxis);
+			mFarTerrainAlbedoMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainAlbedoMapAtlas.ret", mTerrainSetting.smFarTerrainTextureAtlasTileCountPerAxis);
+			mFarTerrainNormalMapAtlas = std::make_unique<TerrainTextureAtlas>(this, dirname + "FarTerrainNormalMapAtlas.ret", mTerrainSetting.smFarTerrainTextureAtlasTileCountPerAxis);
 
 			// FarCache
-			mFarTerrainTextureAtlasTileCache = std::make_unique<TerrainTextureAtlasTileCache>(625, 25);
+			mFarTerrainTextureAtlasTileCache = std::make_unique<TerrainTextureAtlasTileCache>(mTerrainSetting.smFarTerrainTextureAtlasTileCountPerAxis);
 
 			// TextureArray
 			mNearTerrainAlbedoArray = std::make_unique<TerrainTextureArray>(this, dirname + "NearTerrainAlbedoArray.ret");
@@ -60,6 +66,7 @@ namespace Renderer {
 		{
 			auto* device = mRenderEngine->mDevice.get();
 			auto* renderGraph = mRenderEngine->mRenderGraph.get();
+			auto* frameTracker = mRenderEngine->mFrameTracker.get();
 			auto* resourceAllocator = mRenderEngine->mResourceAllocator.get();
 			auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
 			auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
@@ -89,10 +96,42 @@ namespace Renderer {
 
 			renderGraph->ImportResource("TerrainNodeDescriptor", mTerrainNodeDescriptorBuffer);
 			resourceStateTracker->StartTracking(mTerrainNodeDescriptorBuffer);
+
+			TextureDesc _TerrainFeedbackMapDesc{};
+			_TerrainFeedbackMapDesc.width = finalOutputDesc.width;
+			_TerrainFeedbackMapDesc.height = finalOutputDesc.height;
+			_TerrainFeedbackMapDesc.format = DXGI_FORMAT_R16G16B16A16_UINT;
+			_TerrainFeedbackMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
+			_TerrainFeedbackMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			mTerrainFeedbackMap = resourceAllocator->Allocate(device, _TerrainFeedbackMapDesc, descriptorAllocator, nullptr);
+			mTerrainFeedbackMap->SetDebugName("TerrainFeedback");
+
+			renderGraph->ImportResource("TerrainFeedback", mTerrainFeedbackMap);
+			resourceStateTracker->StartTracking(mTerrainFeedbackMap);
+
+			BufferDesc _TerrainReadbackBufferDesc{};
+			_TerrainReadbackBufferDesc.size = GetRequiredIntermediateSize(mTerrainFeedbackMap->D3DResource(), 0, 1);
+			_TerrainReadbackBufferDesc.usage = GHL::EResourceUsage::ReadBack;
+			_TerrainReadbackBufferDesc.initialState = GHL::EResourceState::CopyDestination;
+			_TerrainReadbackBufferDesc.expectedState = _TerrainReadbackBufferDesc.initialState;
+			mTerrainFeedbackReadbackBuffers.resize(frameTracker->GetMaxSize());
+			for (uint32_t i = 0; i < mTerrainFeedbackReadbackBuffers.size(); i++) {
+				mTerrainFeedbackReadbackBuffers[i] = resourceAllocator->Allocate(device, _TerrainReadbackBufferDesc, descriptorAllocator, nullptr);
+				mTerrainFeedbackReadbackBuffers[i]->SetDebugName("TerrainFeedbackReadBack" + std::to_string(i));
+				renderGraph->ImportResource("TerrainFeedbackReadBack" + std::to_string(i), mTerrainFeedbackReadbackBuffers[i]);
+				resourceStateTracker->StartTracking(mTerrainFeedbackReadbackBuffers[i]);
+			}
+
+			mNearTerrainRvtAlbedoMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
+			mNearTerrainRvtNormalMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
+			mNearTerrainRuntimeVirtualTextureAtlasTileCache = std::make_unique<Renderer::RuntimeVirtualTextureAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxis);
 		}
 
 		// 地形后台线程，负责资源调度
 		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates);
+
+		// 实时虚拟纹理线程
+		mRuntimeVirtualTextureBackend = std::make_unique<RuntimeVirtualTextureBackend>(this, mTerrainSetting);
 
 		mTerrainPipelinePass = std::make_unique<TerrainPipelinePass>(this);
 	}

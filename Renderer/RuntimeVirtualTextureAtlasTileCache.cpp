@@ -1,8 +1,8 @@
-#include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
 
 namespace Renderer {
 
-	TerrainTextureAtlasTileCache::TerrainTextureAtlasTileCache(int32_t tileCountPerAxis) {
+	RuntimeVirtualTextureAtlasTileCache::RuntimeVirtualTextureAtlasTileCache(int32_t tileCountPerAxis) {
 		int32_t cacheCount = tileCountPerAxis * tileCountPerAxis;
 
 		mNodes.resize(cacheCount);
@@ -18,7 +18,7 @@ namespace Renderer {
 		mTail = mNodes[cacheCount - 1];
 	}
 
-	TerrainTextureAtlasTileCache::~TerrainTextureAtlasTileCache() {
+	RuntimeVirtualTextureAtlasTileCache::~RuntimeVirtualTextureAtlasTileCache() {
 		for (uint32_t i = 0; i < mNodes.size(); i++) {
 			delete mNodes[i];
 		}
@@ -26,7 +26,7 @@ namespace Renderer {
 		mNodes.clear();
 	}
 
-	void TerrainTextureAtlasTileCache::AddTail(TerrainTextureAtlasTileCache::Node* node) {
+	void RuntimeVirtualTextureAtlasTileCache::AddTail(RuntimeVirtualTextureAtlasTileCache::Node* node) {
 		if (node == mTail) {
 			return;
 		}
@@ -43,7 +43,7 @@ namespace Renderer {
 		}
 	}
 
-	void TerrainTextureAtlasTileCache::AddHead(TerrainTextureAtlasTileCache::Node* node) {
+	void RuntimeVirtualTextureAtlasTileCache::AddHead(RuntimeVirtualTextureAtlasTileCache::Node* node) {
 		if (node == mHead) {
 			return;
 		}
@@ -60,7 +60,7 @@ namespace Renderer {
 		}
 	}
 
-	void TerrainTextureAtlasTileCache::Remove(TerrainTextureAtlasTileCache::Node* node) {
+	void RuntimeVirtualTextureAtlasTileCache::Remove(RuntimeVirtualTextureAtlasTileCache::Node* node) {
 		if (mHead == node) {
 			mHead = node->next;
 

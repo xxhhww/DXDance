@@ -1,8 +1,8 @@
 #pragma once
 #include "Renderer/TerrainSetting.h"
 #include "Renderer/ResourceAllocator.h"
-
 #include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
 
 #include "GHL/Fence.h"
 #include "GHL/CommandQueue.h"
@@ -25,6 +25,9 @@ namespace Renderer {
 	class TerrainTextureArray;
 	class TerrainBackend;
 	class TerrainPipelinePass;
+
+	class RuntimeVirtualTextureBackend;
+	class RuntimeVirtualTextureAtlas;
 
 	struct TerrainLodDescriptor {
 	public:
@@ -64,6 +67,9 @@ namespace Renderer {
 		friend class TerrainTextureAtlas;
 		friend class TerrainTextureArray;
 		friend class TerrainPipelinePass;
+
+		friend class RuntimeVirtualTextureBackend;
+		friend class RuntimeVirtualTextureAtlas;
 
 	public:
 		TerrainRenderer(RenderEngine* renderEngine);
@@ -110,6 +116,19 @@ namespace Renderer {
 
 		Renderer::BufferWrap mTerrainLodDescriptorBuffer;	// GPU地形全LOD状态表，只被访问		
 		Renderer::BufferWrap mTerrainNodeDescriptorBuffer;	// GPU地形全节点状态表，被主渲染线程与后台线程(每次应该只更新部分节点)访问，该对象类似于Rvt中的PageTable
+
+
+		// 实时虚拟纹理后台
+		std::unique_ptr<RuntimeVirtualTextureBackend> mRuntimeVirtualTextureBackend;
+
+		// TerrainFeedback & TerrainFeedbackReadback
+		Renderer::TextureWrap mTerrainFeedbackMap;
+		std::vector<Renderer::BufferWrap>  mTerrainFeedbackReadbackBuffers;
+
+		// 适用于近距离渲染的实时虚拟纹理图集
+		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtAlbedoMapAtlas;
+		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtNormalMapAtlas;
+		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
 	};
 
 }

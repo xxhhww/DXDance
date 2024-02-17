@@ -109,5 +109,6 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeBuilder.hlsl" />
     <FxCompile Include="Shaders\Engine\Math\BoundingBox.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeRenderer.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainFeedbackRenderer.hlsl" />
   </ItemGroup>
 </Project>

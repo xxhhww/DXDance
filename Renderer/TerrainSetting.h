@@ -20,7 +20,13 @@ namespace Renderer {
 		static int32_t  smTerrainDataLoadedRange;		// 地形数据加载的范围
 		static uint32_t smTerrainDataLoadedLimit;		// 一次加载多少个节点的数据
 
-		static uint32_t smTerrainFeedbackScale;
+		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;	// 地形纹理图集每个轴的Tile个数
+
+
+		static uint32_t smTerrainFeedbackScale;			// TerrainFeedback相对于FinalOutput的缩放大小
+		static uint32_t smRvtTileSizeNoPadding;			// 实时虚拟纹理中一个Tile的大小
+		static uint32_t smRvtTilePaddingSize;			// 实时虚拟纹理中一个Tile的填充大小
+		static uint32_t smRvtTileCountPerAxis;			// 实时虚拟纹理中实际纹理上每个轴的Tile个数
 	};
 
 }

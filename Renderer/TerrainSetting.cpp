@@ -13,5 +13,11 @@ namespace Renderer {
 	uint32_t TerrainSetting::smPatchCountPerNodePerAxis = 8;	// patch count
 	int32_t  TerrainSetting::smTerrainDataLoadedRange = 4;		// 地形数据加载范围(离摄像机)
 	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 16;		// 一次加载64个地形节点的数据
-	uint32_t TerrainSetting::smTerrainFeedbackScale = 4;		// Feedback相对于FinalOutput的缩放大小
+
+	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25u;	// 地形纹理图集每个轴的Tile个数
+
+	uint32_t TerrainSetting::smTerrainFeedbackScale = 4;		// TerrainFeedback相对于FinalOutput的缩放大小
+	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
+	uint32_t TerrainSetting::smRvtTilePaddingSize = 4;			// 实时虚拟纹理中一个Tile的填充大小
+	uint32_t TerrainSetting::smRvtTileCountPerAxis = 15;		// 实时虚拟纹理中实际纹理上每个轴的Tile个数
 }

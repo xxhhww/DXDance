@@ -363,9 +363,6 @@
     <ClInclude Include="TerrainPipelinePass.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainRuntimeVirtualTexture.h">
-      <Filter>头文件\Renderer\TerrainRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="ReTextureFileFormat.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
@@ -377,6 +374,15 @@
     </ClInclude>
     <ClInclude Include="Misc.h">
       <Filter>头文件\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeVirtualTextureBackend.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeVirtualTextureAtlas.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeVirtualTextureAtlasTileCache.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -623,9 +629,6 @@
     <ClCompile Include="TerrainPipelinePass.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainRuntimeVirtualTexture.cpp">
-      <Filter>源文件\Renderer\TerrainRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="ReTextureFileFormat.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
@@ -637,6 +640,15 @@
     </ClCompile>
     <ClCompile Include="Misc.cpp">
       <Filter>源文件\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeVirtualTextureBackend.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeVirtualTextureAtlas.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeVirtualTextureAtlasTileCache.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

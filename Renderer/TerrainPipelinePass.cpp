@@ -120,7 +120,6 @@ namespace Renderer {
 					}
 				}
 
-
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage  = renderContext.resourceStorage;
 				auto* commandSigManger = renderContext.commandSignatureManger;
@@ -299,25 +298,29 @@ namespace Renderer {
 
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
-				NewTextureProperties _TerrainFeedbackProperties{};
-				_TerrainFeedbackProperties.width = finalOutputDesc.width / mTerrainSetting.smTerrainFeedbackScale;
-				_TerrainFeedbackProperties.height = finalOutputDesc.height / mTerrainSetting.smTerrainFeedbackScale;
-				_TerrainFeedbackProperties.format = DXGI_FORMAT_R16G16B16A16_UINT;
-				_TerrainFeedbackProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-				builder.DeclareTexture("TerrainFeedback", _TerrainFeedbackProperties);
 				builder.WriteRenderTarget("TerrainFeedback");
 
-			},
-			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				shaderManger.CreateGraphicsShader("TerrainFeedbackRenderer",
+					[&](GraphicsStateProxy& proxy) {
+						proxy.vsFilepath = shaderPath + "TerrainRenderer/TerrainFeedbackRenderer.hlsl";
+						proxy.psFilepath = proxy.vsFilepath;
+						proxy.depthStencilDesc.DepthEnable = true;
+						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+						proxy.renderTargetFormatArray = { DXGI_FORMAT_R16G16B16A16_UINT };
+					});
 
-			});
+				commandSignatureManger.CreateCommandSignature("TerrainFeedbackRenderer",
+					[&](GHL::CommandSignature& proxy) {
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 0u });
+						proxy.AddIndirectArgument(GHL::IndirectConstantBufferViewArgument{ 1u });
+						proxy.AddIndirectArgument(GHL::IndirectShaderResourceViewArgument{ 2u });
+						proxy.AddIndirectArgument(GHL::IndirectVertexBufferViewArgument{});
+						proxy.AddIndirectArgument(GHL::IndirectIndexBufferViewArgument{});
+						proxy.AddIndirectArgument(GHL::IndirectDrawIndexedArgument{});
+						proxy.SetRootSignature(shaderManger.GetBaseD3DRootSignature());
+						proxy.SetByteStride(sizeof(IndirectDrawIndexed));
+					});
 
-		renderGraph->AddPass(
-			"TerrainFeedbackCopyer",
-			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
-				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
-
-				builder.WriteCopyDstBuffer
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 

@@ -12,7 +12,6 @@
 namespace Renderer {
 
 	class TerrainRenderer;
-	class TerrainPhysicalTexture;
 
 	class TerrainTextureAtlas {
 	public:
@@ -34,7 +33,6 @@ namespace Renderer {
 		TerrainRenderer* mRenderer{ nullptr };
 
 		ReTextureFileFormat mReTextureFileFormat;
-
 
 		std::unique_ptr<GHL::DirectStorageFile> mDStorageFile;
 		std::ifstream mFileStreamer;

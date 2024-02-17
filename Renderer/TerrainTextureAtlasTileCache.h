@@ -28,7 +28,7 @@ namespace Renderer {
 		};
 
 	public:
-		TerrainTextureAtlasTileCache(int32_t cacheCount, int32_t tileCountPerAxis);
+		TerrainTextureAtlasTileCache(int32_t tileCountPerAxis);
 		~TerrainTextureAtlasTileCache();
 
 		// 添加到列表表尾

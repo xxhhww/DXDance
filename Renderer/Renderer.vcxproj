@@ -177,13 +177,15 @@
     <ClInclude Include="Misc.h" />
     <ClInclude Include="RaytracedTerrainShadow.h" />
     <ClInclude Include="ReTextureFileFormat.h" />
+    <ClInclude Include="RuntimeVirtualTextureAtlasTileCache.h" />
+    <ClInclude Include="RuntimeVirtualTextureBackend.h" />
+    <ClInclude Include="RuntimeVirtualTextureAtlas.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainBackend.h" />
     <ClInclude Include="TerrainTextureAtlasTileCache.h" />
     <ClInclude Include="TerrainPipelinePass.h" />
     <ClInclude Include="TerrainQuadTree.h" />
     <ClInclude Include="TerrainRenderer.h" />
-    <ClInclude Include="TerrainRuntimeVirtualTexture.h" />
     <ClInclude Include="TerrainSetting.h" />
     <ClInclude Include="TerrainTextureArray.h" />
     <ClInclude Include="TerrainTextureAtlas.h" />
@@ -278,6 +280,9 @@
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="RaytracedTerrainShadow.cpp" />
     <ClCompile Include="ReTextureFileFormat.cpp" />
+    <ClCompile Include="RuntimeVirtualTextureAtlasTileCache.cpp" />
+    <ClCompile Include="RuntimeVirtualTextureBackend.cpp" />
+    <ClCompile Include="RuntimeVirtualTextureAtlas.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TerrainBackend.cpp" />
@@ -285,7 +290,6 @@
     <ClCompile Include="TerrainPipelinePass.cpp" />
     <ClCompile Include="TerrainQuadTree.cpp" />
     <ClCompile Include="TerrainRenderer.cpp" />
-    <ClCompile Include="TerrainRuntimeVirtualTexture.cpp" />
     <ClCompile Include="TerrainSetting.cpp" />
     <ClCompile Include="TerrainTextureArray.cpp" />
     <ClCompile Include="TerrainTextureAtlas.cpp" />
