@@ -298,7 +298,15 @@ namespace Renderer {
 
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
-				builder.WriteRenderTarget("TerrainFeedback");
+				builder.WriteDepthStencil("GBufferDepthStencil");
+
+				NewBufferProperties _TerrainFeedbackRendererIndirectArgsProperties{};
+				_TerrainFeedbackRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
+				_TerrainFeedbackRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
+				_TerrainFeedbackRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_TerrainFeedbackRendererIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("TerrainFeedbackRendererIndirectArgs", _TerrainFeedbackRendererIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("TerrainFeedbackRendererIndirectArgs");
 
 				shaderManger.CreateGraphicsShader("TerrainFeedbackRenderer",
 					[&](GraphicsStateProxy& proxy) {
@@ -323,7 +331,94 @@ namespace Renderer {
 
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage = renderContext.resourceStorage;
 
+				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* indirectArgs        = resourceStorage->GetResourceByName("TerrainFeedbackRendererIndirectArgs")->GetBuffer();
+				auto* gBufferDepthStencil = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+
+				auto& terrainFeedback = mRenderer->mTerrainFeedbackMap;
+				auto& queuedFeedbackReadbacks = mRenderer->mQueuedFeedbackReadbacks;
+				auto& terrainFeedbackReadBackBuffers = mRenderer->mTerrainFeedbackReadbackBuffers;
+
+				mTerrainFeedbackPassData.terrainMeterSize   = mTerrainSetting.smTerrainMeterSize;
+				mTerrainFeedbackPassData.terrainHeightScale = mTerrainSetting.smTerrainHeightScale;
+				mTerrainFeedbackPassData.culledPatchListIndex    = culledPatchList->GetSRDescriptor()->GetHeapIndex();
+				mTerrainFeedbackPassData.nodeDescriptorListIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainFeedbackPassData.lodDescriptorListIndex  = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainFeedbackPassData.terrainHeightMapAtlasIndex     = mRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
+				mTerrainFeedbackPassData.terrainAtlasTileCountPerAxis   = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileCountPerAxis();
+				mTerrainFeedbackPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
+				mTerrainFeedbackPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
+				mTerrainFeedbackPassData.tileCountPerAxisInPage0Level          = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+				mTerrainFeedbackPassData.virtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level;
+				mTerrainFeedbackPassData.maxPageLevel                          = mTerrainSetting.smRvtMaxPageLevel;
+				mTerrainFeedbackPassData.pageLevelBias                         = mTerrainSetting.smRvtPageLevelBias;
+				mTerrainFeedbackPassData.rvtRealRect                           = mRenderer->GetRvtRealRect();
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
+				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
+
+				IndirectDrawIndexed indirectDrawIndexed{};
+				indirectDrawIndexed.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;
+				indirectDrawIndexed.lightDataAddress = resourceStorage->rootLightDataPerFrameAddress;
+				indirectDrawIndexed.passDataAddress = passDataAlloc.gpuAddress;
+				indirectDrawIndexed.vertexBufferView = mPatchMeshVertexBuffer->GetVBDescriptor();
+				indirectDrawIndexed.indexBufferView = mPatchMeshIndexBuffer->GetIBDescriptor();
+				indirectDrawIndexed.drawIndexedArguments.IndexCountPerInstance = mPatchMeshIndexCount;
+				indirectDrawIndexed.drawIndexedArguments.InstanceCount = 0u;
+				indirectDrawIndexed.drawIndexedArguments.StartIndexLocation = 0u;
+				indirectDrawIndexed.drawIndexedArguments.BaseVertexLocation = 0u;
+				indirectDrawIndexed.drawIndexedArguments.StartInstanceLocation = 0u;
+
+				auto barrierBatch = GHL::ResourceBarrierBatch{};
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch += commandBuffer.TransitionImmediately(terrainFeedback, GHL::EResourceState::RenderTarget);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
+				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
+				commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT), culledPatchList->GetCounterBuffer(), 0u, sizeof(uint32_t));
+
+				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
+				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
+
+				commandBuffer.SetRenderTargets({ terrainFeedback }, gBufferDepthStencil);
+
+				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+				commandBuffer.SetGraphicsRootSignature();
+				commandBuffer.SetGraphicsPipelineState("TerrainFeedbackRenderer");
+				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				commandBuffer.ExecuteIndirect("TerrainFeedbackRenderer", indirectArgs, 1u);
+
+				// 渲染完成之后，将Feedback复制到ReadbackBuffer中
+				barrierBatch = commandBuffer.TransitionImmediately(terrainFeedback, GHL::EResourceState::CopySource);
+				commandBuffer.FlushResourceBarrier(barrierBatch);
+
+				uint8_t currentFrameIndex = frameTracker->GetCurrFrameIndex();
+				BufferWrap& resolvedReadback = terrainFeedbackReadBackBuffers[currentFrameIndex];
+				auto& srcDesc = terrainFeedback->GetResourceFormat().D3DResourceDesc();
+				uint32_t rowPitch = (srcDesc.Width * GHL::GetFormatStride(srcDesc.Format) + 0x0ff) & ~0x0ff;
+				D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ 0,
+					{ srcDesc.Format, (UINT)srcDesc.Width, srcDesc.Height, srcDesc.DepthOrArraySize, rowPitch } };
+
+				D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(terrainFeedback->D3DResource(), 0);
+				D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(resolvedReadback->D3DResource(), layout);
+
+				// TODO 判断当前帧的QueuedReadback是否仍为Fresh，如果是，则说明ProcessFeedback线程还未处理完该帧的Feedback，需要等待其不再是Fresh的状态
+				const auto& currFrameAttribute = frameTracker->GetCurrFrameAttribute();
+				queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex).renderFrameFenceValue = currFrameAttribute.fenceValue;
+				queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex).isFresh = true;
+
+				commandBuffer.D3DCommandList()->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 			});
 
 		renderGraph->AddPass(
@@ -421,7 +516,7 @@ namespace Renderer {
 				mTerrainRendererPassData.terrainNormalMapAtlasIndex     = mRenderer->GetFarTerrainNormalMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainAtlasTileCountPerAxis   = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileCountPerAxis();
 				mTerrainRendererPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
-				mTerrainRendererPassData.terrainPatchVertexCountPerAxis = 9u;
+				mTerrainRendererPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
@@ -507,6 +602,7 @@ namespace Renderer {
 			// uint32_t size = 16u;
 			// float sizePerGrid = 0.5f;
 			uint32_t size = 8u;
+			mPatchMeshVertexCountPerAxis = size + 1u;
 			float sizePerGrid = 1u;
 			float totalMeterSize = size * sizePerGrid;
 			float gridCount = size * size;

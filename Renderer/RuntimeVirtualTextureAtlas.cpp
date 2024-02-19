@@ -8,7 +8,7 @@ namespace Renderer {
 	: mRenderer(terrainRenderer) 
 	, mTileSizeNoPadding(mRenderer->mTerrainSetting.smRvtTileSizeNoPadding)
 	, mPaddingSize(mRenderer->mTerrainSetting.smRvtTilePaddingSize)
-	, mTileCountPerAxis(mRenderer->mTerrainSetting.smRvtTileCountPerAxis)
+	, mTileCountPerAxis(mRenderer->mTerrainSetting.smRvtTileCountPerAxisInAtlas)
 	, mTileCount(mTileCountPerAxis * mTileCountPerAxis)
 	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis) {
 

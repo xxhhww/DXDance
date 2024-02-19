@@ -2,6 +2,7 @@
 #include "Renderer/TerrainSetting.h"
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVirtualTexturePageTable.h"
 #include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
 
 #include "GHL/Fence.h"
@@ -90,6 +91,8 @@ namespace Renderer {
 		inline auto* GetNearTerrainAlbedoArray() const { return mNearTerrainAlbedoArray.get(); }
 		inline auto* GetNearTerrainNormalArray() const { return mNearTerrainNormalArray.get(); }
 
+		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
+
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
 
@@ -123,12 +126,23 @@ namespace Renderer {
 
 		// TerrainFeedback & TerrainFeedbackReadback
 		Renderer::TextureWrap mTerrainFeedbackMap;
+		struct FeedbackReadbackQueued {
+		public:
+			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入 RVT线程只读
+			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与入 RVT线程进行访问与修改
+		};
+		std::vector<FeedbackReadbackQueued> mQueuedFeedbackReadbacks;
 		std::vector<Renderer::BufferWrap>  mTerrainFeedbackReadbackBuffers;
 
 		// 适用于近距离渲染的实时虚拟纹理图集
 		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtAlbedoMapAtlas;
 		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtNormalMapAtlas;
 		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
+
+		// PageTableMap
+		Math::Vector4 mRvtRealRect;
+		RuntimeVirtualTexturePageTable mPageTable;
+		Renderer::TextureWrap mPageTableMap;
 	};
 
 }

@@ -124,7 +124,7 @@ namespace Renderer {
 
 			mNearTerrainRvtAlbedoMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
 			mNearTerrainRvtNormalMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
-			mNearTerrainRuntimeVirtualTextureAtlasTileCache = std::make_unique<Renderer::RuntimeVirtualTextureAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxis);
+			mNearTerrainRuntimeVirtualTextureAtlasTileCache = std::make_unique<Renderer::RuntimeVirtualTextureAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
 		}
 
 		// 地形后台线程，负责资源调度

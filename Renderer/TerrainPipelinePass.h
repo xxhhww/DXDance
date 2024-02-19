@@ -71,6 +71,29 @@ namespace Renderer {
 			float    pad7;
 		};
 
+		struct TerrainFeedbackPassData {
+			Math::Vector2 terrainMeterSize;
+			float         terrainHeightScale;
+			uint32_t      culledPatchListIndex;
+
+			uint32_t nodeDescriptorListIndex;
+			uint32_t lodDescriptorListIndex;
+			uint32_t terrainHeightMapAtlasIndex;
+			uint32_t terrainAtlasTileCountPerAxis;
+
+			uint32_t terrainAtlasTileWidthInPixels;
+			uint32_t terrainPatchVertexCountPerAxis;
+			uint32_t tileCountPerAxisInPage0Level;
+			uint32_t virtualTextureSizeInBytesInPage0Level;
+
+			uint32_t maxPageLevel;
+			uint32_t pageLevelBias;
+			float pad1;
+			float pad2;
+
+			Math::Vector4 rvtRealRect{};
+		};
+
 	public:
 		TerrainPipelinePass(TerrainRenderer* renderer);
 		~TerrainPipelinePass();
@@ -105,21 +128,14 @@ namespace Renderer {
 		};
 		std::vector<NodeLocation> mMaxLodNodeList;
 
+		uint32_t   mPatchMeshVertexCountPerAxis;
 		BufferWrap mPatchMeshVertexBuffer;
 		BufferWrap mPatchMeshIndexBuffer;
 		uint32_t   mPatchMeshIndexCount;
 
 		TerrainBuilderPassData mTerrainBuilderPassData;
 		TerrainRendererPassData mTerrainRendererPassData;
-
-		TextureWrap mTerrainFeedbackMap;
-		struct QueuedReadbackFeedback {
-		public:
-			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入 RVT线程只读
-			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与入 RVT线程进行访问与修改
-		};
-		std::vector<QueuedReadbackFeedback> mQueuedReadbacks;
-		std::vector<BufferWrap> mTerrainReadbackBuffers;
+		TerrainFeedbackPassData mTerrainFeedbackPassData;
 	};
 
 }

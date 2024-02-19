@@ -23,10 +23,19 @@ namespace Renderer {
 		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;	// 地形纹理图集每个轴的Tile个数
 
 
-		static uint32_t smTerrainFeedbackScale;			// TerrainFeedback相对于FinalOutput的缩放大小
-		static uint32_t smRvtTileSizeNoPadding;			// 实时虚拟纹理中一个Tile的大小
-		static uint32_t smRvtTilePaddingSize;			// 实时虚拟纹理中一个Tile的填充大小
-		static uint32_t smRvtTileCountPerAxis;			// 实时虚拟纹理中实际纹理上每个轴的Tile个数
+		static uint32_t smTerrainFeedbackScale;				// TerrainFeedback相对于FinalOutput的缩放大小
+		static uint32_t smRvtTileSizeNoPadding;				// 实时虚拟纹理中一个Tile的大小
+		static uint32_t smRvtTilePaddingSize;				// 实时虚拟纹理中一个Tile的填充大小
+		static uint32_t smRvtTileCountPerAxisInAtlas;		// 实时虚拟纹理中纹理图集上每个轴的Tile个数
+		static int32_t  smRvtRectRadius;					// 实时虚拟纹理的矩形半径(边长的一半)
+		static uint32_t smRvtPixelSizePerMeter;				// 每米的像素值
+
+		static uint32_t smRvtMaxPageLevel;
+		static uint32_t smRvtPageLevelBias;
+		static uint32_t smRvtVirtualTextureSizeInBytesInPage0Level;	// VT大小InPage0Level
+		static uint32_t smRvtTileCountPerAxisInPage0Level;			// 虚拟纹理页表(查找表)的大小
+		static uint32_t smRvtVirtualTextureSizeInBytesInWorld;		// VT大小InWorld
+		static uint32_t smRvtTileCountPerAxisInWorld;				// 世界中每个轴的Tile个数
 	};
 
 }
