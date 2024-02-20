@@ -19,6 +19,7 @@ namespace Renderer {
 			Math::Int2 tilePos{ -1, -1 };	// 在纹理图集上的索引
 
 			int32_t    terrainNodeIndex{ -1 };	// 该图集元素上装载的地形节点索引值
+
 			int32_t    mipLevel{ -1 };			// mipLevel值(lod值)
 			Math::Int2 pagePos{ -1, -1 };		// 当前mipLevel下的索引
 

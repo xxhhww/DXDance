@@ -18,7 +18,8 @@
 namespace Renderer {
 
 	TerrainRenderer::TerrainRenderer(RenderEngine* renderEngine)
-	: mRenderEngine(renderEngine) {}
+	: mRenderEngine(renderEngine) 
+	, mQueuedFeedbackReadbacks(mRenderEngine->mFrameTracker->GetMaxSize()) {}
 	
 	TerrainRenderer::~TerrainRenderer() {}
 
@@ -98,8 +99,8 @@ namespace Renderer {
 			resourceStateTracker->StartTracking(mTerrainNodeDescriptorBuffer);
 
 			TextureDesc _TerrainFeedbackMapDesc{};
-			_TerrainFeedbackMapDesc.width = finalOutputDesc.width;
-			_TerrainFeedbackMapDesc.height = finalOutputDesc.height;
+			_TerrainFeedbackMapDesc.width = finalOutputDesc.width / mTerrainSetting.smTerrainFeedbackScale;
+			_TerrainFeedbackMapDesc.height = finalOutputDesc.height / mTerrainSetting.smTerrainFeedbackScale;
 			_TerrainFeedbackMapDesc.format = DXGI_FORMAT_R16G16B16A16_UINT;
 			_TerrainFeedbackMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
 			_TerrainFeedbackMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
@@ -108,6 +109,18 @@ namespace Renderer {
 
 			renderGraph->ImportResource("TerrainFeedback", mTerrainFeedbackMap);
 			resourceStateTracker->StartTracking(mTerrainFeedbackMap);
+
+			TextureDesc _TerrainFeedbackDepthMapDesc{};
+			_TerrainFeedbackDepthMapDesc.width = finalOutputDesc.width / mTerrainSetting.smTerrainFeedbackScale;
+			_TerrainFeedbackDepthMapDesc.height = finalOutputDesc.height / mTerrainSetting.smTerrainFeedbackScale;
+			_TerrainFeedbackDepthMapDesc.format = DXGI_FORMAT_D32_FLOAT;
+			_TerrainFeedbackDepthMapDesc.expectedState = GHL::EResourceState::DepthWrite;
+			_TerrainFeedbackDepthMapDesc.clearVaule = GHL::DepthStencilClearValue{ 1.0f, 0u };
+			mTerrainFeedbackDepthMap = resourceAllocator->Allocate(device, _TerrainFeedbackDepthMapDesc, descriptorAllocator, nullptr);
+			mTerrainFeedbackDepthMap->SetDebugName("TerrainFeedbackDepth");
+
+			renderGraph->ImportResource("TerrainFeedbackDepth", mTerrainFeedbackDepthMap);
+			resourceStateTracker->StartTracking(mTerrainFeedbackDepthMap);
 
 			BufferDesc _TerrainReadbackBufferDesc{};
 			_TerrainReadbackBufferDesc.size = GetRequiredIntermediateSize(mTerrainFeedbackMap->D3DResource(), 0, 1);

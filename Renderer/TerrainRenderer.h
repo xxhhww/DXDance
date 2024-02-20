@@ -126,6 +126,7 @@ namespace Renderer {
 
 		// TerrainFeedback & TerrainFeedbackReadback
 		Renderer::TextureWrap mTerrainFeedbackMap;
+		Renderer::TextureWrap mTerrainFeedbackDepthMap;
 		struct FeedbackReadbackQueued {
 		public:
 			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入 RVT线程只读
@@ -141,8 +142,8 @@ namespace Renderer {
 
 		// PageTableMap
 		Math::Vector4 mRvtRealRect;
-		RuntimeVirtualTexturePageTable mPageTable;
-		Renderer::TextureWrap mPageTableMap;
+		std::vector<RuntimeVirtualTexturePageTable> mRvtPageTables;
+		Renderer::TextureWrap mRvtPageTableMap;
 	};
 
 }

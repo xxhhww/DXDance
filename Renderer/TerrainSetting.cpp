@@ -16,7 +16,7 @@ namespace Renderer {
 
 	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25u;	// 地形纹理图集每个轴的Tile个数
 
-	uint32_t TerrainSetting::smTerrainFeedbackScale = 4;		// TerrainFeedback相对于FinalOutput的缩放大小
+	uint32_t TerrainSetting::smTerrainFeedbackScale = 2;		// TerrainFeedback相对于FinalOutput的缩放大小
 	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
 	uint32_t TerrainSetting::smRvtTilePaddingSize = 4;			// 实时虚拟纹理中一个Tile的填充大小
 	uint32_t TerrainSetting::smRvtTileCountPerAxisInAtlas = 15;	// 实时虚拟纹理中实际纹理上每个轴的Tile个数

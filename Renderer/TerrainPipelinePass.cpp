@@ -298,8 +298,6 @@ namespace Renderer {
 
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 
-				builder.WriteDepthStencil("GBufferDepthStencil");
-
 				NewBufferProperties _TerrainFeedbackRendererIndirectArgsProperties{};
 				_TerrainFeedbackRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
 				_TerrainFeedbackRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
@@ -336,12 +334,13 @@ namespace Renderer {
 
 				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs        = resourceStorage->GetResourceByName("TerrainFeedbackRendererIndirectArgs")->GetBuffer();
-				auto* gBufferDepthStencil = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
 
 				auto& terrainFeedback = mRenderer->mTerrainFeedbackMap;
+				auto& terrainFeedbackDesc = terrainFeedback->GetResourceFormat().GetTextureDesc();
+				auto& terrainFeedbackDepth = mRenderer->mTerrainFeedbackDepthMap;
 				auto& queuedFeedbackReadbacks = mRenderer->mQueuedFeedbackReadbacks;
 				auto& terrainFeedbackReadBackBuffers = mRenderer->mTerrainFeedbackReadbackBuffers;
-
+				
 				mTerrainFeedbackPassData.terrainMeterSize   = mTerrainSetting.smTerrainMeterSize;
 				mTerrainFeedbackPassData.terrainHeightScale = mTerrainSetting.smTerrainHeightScale;
 				mTerrainFeedbackPassData.culledPatchListIndex    = culledPatchList->GetSRDescriptor()->GetHeapIndex();
@@ -352,7 +351,7 @@ namespace Renderer {
 				mTerrainFeedbackPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
 				mTerrainFeedbackPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
 				mTerrainFeedbackPassData.tileCountPerAxisInPage0Level          = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-				mTerrainFeedbackPassData.virtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level;
+				mTerrainFeedbackPassData.virtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level / mTerrainSetting.smTerrainFeedbackScale;
 				mTerrainFeedbackPassData.maxPageLevel                          = mTerrainSetting.smRvtMaxPageLevel;
 				mTerrainFeedbackPassData.pageLevelBias                         = mTerrainSetting.smRvtPageLevelBias;
 				mTerrainFeedbackPassData.rvtRealRect                           = mRenderer->GetRvtRealRect();
@@ -376,6 +375,7 @@ namespace Renderer {
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
 				barrierBatch += commandBuffer.TransitionImmediately(terrainFeedback, GHL::EResourceState::RenderTarget);
+				barrierBatch += commandBuffer.TransitionImmediately(terrainFeedbackDepth, GHL::EResourceState::DepthWrite);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
@@ -387,10 +387,12 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
-				uint16_t width = static_cast<uint16_t>(finalOutputDesc.width);
-				uint16_t height = static_cast<uint16_t>(finalOutputDesc.height);
+				uint16_t width = static_cast<uint16_t>(terrainFeedbackDesc.width);
+				uint16_t height = static_cast<uint16_t>(terrainFeedbackDesc.height);
 
-				commandBuffer.SetRenderTargets({ terrainFeedback }, gBufferDepthStencil);
+				commandBuffer.ClearRenderTarget(terrainFeedback);
+				commandBuffer.ClearDepth(terrainFeedbackDepth, 1.0f);
+				commandBuffer.SetRenderTargets({ terrainFeedback }, terrainFeedbackDepth);
 
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });

@@ -4,7 +4,6 @@
 #include "Renderer/ResourceStateTracker.h"
 #include "Renderer/LinearBufferAllocator.h"
 #include "Renderer/PoolCommandListAllocator.h"
-
 #include "Renderer/TerrainTextureAtlasTileCache.h"
 
 #include "GHL/DirectStorageQueue.h"

@@ -16,7 +16,7 @@ namespace Renderer {
 			Math::Int2 tilePos{ -1, -1 };	// 在图集上的索引
 
 			int32_t    pageLevel{ -1 };		// 所处页表级别
-			Math::Int2 pagePos{ -1, -1 };	// 所处页表位置
+			Math::Int2 pagePos{ -1, -1 };	// 所处页表级别下的位置
 
 		public:
 			inline Node(int32_t id, const Math::Int2& pos) : tileID(id), tilePos(pos) {}

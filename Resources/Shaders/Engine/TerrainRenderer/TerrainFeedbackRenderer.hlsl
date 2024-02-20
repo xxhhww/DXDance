@@ -1,6 +1,8 @@
 #ifndef _TerrainFeedbackRenderer__
 #define _TerrainFeedbackRenderer__
 
+#include "TerrainHeader.hlsl"
+
 struct PassData {
 	float2 terrainMeterSize;
 	float  terrainHeightScale;
@@ -45,6 +47,8 @@ struct v2p {
 	float3 vsPos     : POSITION3;
 	float2 uv        : TEXCOORD2;
 	uint   nodeLod   : NODELOD;
+
+	float  terrainHeight : TerrainHeight;
 };
 
 struct p2o {
@@ -56,8 +60,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<TerrainNodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
 	StructuredBuffer<TerrainLodDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
 	Texture2D terrainHeightMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainHeightMapAtlasIndex];
-	Texture2D terrainAlbedoMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainAlbedoMapAtlasIndex];
-	Texture2D terrainNormalMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainNormalMapAtlasIndex];
 
 	RenderPatch renderPatch = culledPatchList[instanceID];
 	uint3 nodeLoc = renderPatch.nodeLoc;
@@ -117,8 +119,8 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 
 p2o PSMain(v2p input) {
 	float2 uvVT = float2(0.0f, 0.0f);
-	uvVT.x = (input.currWsPos.x - PassDataCB.rvtRealRect.x) / PassDataCB.rvtRealRect.z;
-	uvVT.y = (PassDataCB.rvtRealRect.y - input.currWsPos.z) / PassDataCB.rvtRealRect.w;
+	uvVT.x = (input.wsPos.x - PassDataCB.rvtRealRect.x) / PassDataCB.rvtRealRect.z;
+	uvVT.y = (PassDataCB.rvtRealRect.y - input.wsPos.z) / PassDataCB.rvtRealRect.w;
 
 	// Calcute Feedback
 	uint2 pagePos = floor(uvVT * (float)PassDataCB.tileCountPerAxisInPage0Level);

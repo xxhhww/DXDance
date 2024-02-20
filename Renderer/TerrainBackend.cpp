@@ -1,5 +1,4 @@
 #include "Renderer/TerrainBackend.h"
-#include "Renderer/TerrainRenderer.h"
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/RenderEngine.h"
 
@@ -37,7 +36,7 @@ namespace Renderer {
 	}
 
 	TerrainBackend::~TerrainBackend() {
-
+		mThreadRunning = false;
 	}
 
 	void TerrainBackend::Preload() {
@@ -566,7 +565,7 @@ namespace Renderer {
 		auto& currFrameCompletedFlag = mFrameCompletedFlags.at(frameIndex);
 		currFrameCompletedFlag++;
 
-		// 表面CopyFrame与ComputeFrame都完成了
+		// 表明CopyFrame与ComputeFrame都完成了
 		if (currFrameCompletedFlag == smFrameCompletedFlag) {
 			
 			auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
