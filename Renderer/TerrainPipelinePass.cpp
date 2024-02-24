@@ -101,6 +101,10 @@ namespace Renderer {
 					});
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage = renderContext.resourceStorage;
+				auto* commandSigManger = renderContext.commandSignatureManger;
+
 				// 检测TerrainBackend是否存在资源更新任务
 				{
 					auto* terrainBackend = mRenderer->mTerrainBackend.get();
@@ -108,6 +112,9 @@ namespace Renderer {
 					
 					TerrainBackend::RecordedGpuCommand recordedGpuCommand{};
 					if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
+						// 修改节点实时状态
+						terrainBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
+
 						// 向GPU输送已被录制好的命令
 						recordedGpuCommand.copyQueue->ExecuteCommandList(recordedGpuCommand.copyCommandList->D3DCommandList());
 						recordedGpuCommand.copyQueue->SignalFence(*recordedGpuCommand.copyFence, recordedGpuCommand.copyFenceExpectedValue);
@@ -120,9 +127,31 @@ namespace Renderer {
 					}
 				}
 
-				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage  = renderContext.resourceStorage;
-				auto* commandSigManger = renderContext.commandSignatureManger;
+				// 
+				{
+					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+					const auto& rvtRealRect = mRenderer->GetRvtRealRect();
+
+					// 更新RvtRealRect
+					Math::Int2 fixedPos0 = TerrainRenderer::GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
+					int32_t xDiff = fixedPos0.x - ((rvtRealRect.x + mTerrainSetting.smRvtRectRadius) * 0.5f);
+					int32_t yDiff = fixedPos0.y - ((rvtRealRect.y - mTerrainSetting.smRvtRectRadius) * 0.5f);
+
+					if (std::abs(xDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance || std::abs(yDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance) {
+						Math::Int2 fixedPos1 = TerrainRenderer::GetFixedPosition(Math::Vector2{ fixedPos0.x, fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+						Math::Int2 oldCenter = Math::Int2((int)((rvtRealRect.x + mTerrainSetting.smRvtRectRadius) * 0.5f), ((rvtRealRect.y - mTerrainSetting.smRvtRectRadius) * 0.5f));
+						Math::Vector4 rvtNewRealRect = Math::Vector4{
+							fixedPos1.x - mTerrainSetting.smRvtRectRadius, 
+							fixedPos1.y - mTerrainSetting.smRvtRectRadius, 
+							2 * mTerrainSetting.smRvtRectRadius, 
+							2 * mTerrainSetting.smRvtRectRadius
+						};
+						mRenderer->SetRvtRealRect(rvtNewRealRect);
+
+						// 通知Rvt线程录制命令，并同步等待其完成
+						mRenderer->mRvtPageTableViewChangedFlag++;
+					}
+				}
 
 				auto* consumeNodeList = resourceStorage->GetResourceByName("ConsumeNodeList")->GetBuffer();
 				auto* appendNodeList  = resourceStorage->GetResourceByName("AppendNodeList")->GetBuffer();
@@ -417,8 +446,10 @@ namespace Renderer {
 
 				// TODO 判断当前帧的QueuedReadback是否仍为Fresh，如果是，则说明ProcessFeedback线程还未处理完该帧的Feedback，需要等待其不再是Fresh的状态
 				const auto& currFrameAttribute = frameTracker->GetCurrFrameAttribute();
-				queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex).renderFrameFenceValue = currFrameAttribute.fenceValue;
-				queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex).isFresh = true;
+				auto& queuedFeedbackReadback = queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex);
+				queuedFeedbackReadback.renderFrameFenceValue = currFrameAttribute.fenceValue;
+				queuedFeedbackReadback.isFresh = true;
+				queuedFeedbackReadback.rvtRealRect = mRenderer->GetRvtRealRect();
 
 				commandBuffer.D3DCommandList()->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 			});

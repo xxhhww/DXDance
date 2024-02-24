@@ -154,12 +154,28 @@ namespace Renderer {
 	}
 
 	void TerrainRenderer::Update() {
+		const auto& cameraPosition = mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+
 		// 如果是第一帧，需要同步加载地形数据(当前摄像机位置附近 + 最高级LOD)
 		static bool smFirstFrame = true;
 		if (smFirstFrame) {
 			mTerrainBackend->Preload();
 			smFirstFrame = false;
+
+			Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
+			Math::Int2 fixedPos1 = GetFixedPosition(Math::Vector2{ fixedPos0.x, fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+
+			mRvtRealRect = Math::Vector4{
+				fixedPos1.x - mTerrainSetting.smRvtRectRadius, fixedPos1.y - mTerrainSetting.smRvtRectRadius, 2 * mTerrainSetting.smRvtRectRadius, 2 * mTerrainSetting.smRvtRectRadius
+			};
 		}
+	}
+
+	Math::Int2 TerrainRenderer::GetFixedPosition(const Math::Vector2& position, int32_t cellSize) {
+		return Math::Int2{
+			(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
+			(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
+		};
 	}
 
 }

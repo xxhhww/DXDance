@@ -40,4 +40,12 @@ struct GpuUpdateTerrainNodeDescriptorRequest {
 	uint tilePosY;
 };
 
+struct GpuUpdateTerrainRvtLookupRequest {
+	float2   tilePos;	// pageTable节点所需纹理对应图集中的位置
+	int      mipLevel;	// pageLevel
+	float    pad;
+
+	float4x4 mvpMatrix;	// 转换到图片空间中的矩阵
+};
+
 #endif

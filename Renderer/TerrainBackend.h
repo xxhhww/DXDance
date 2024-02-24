@@ -25,18 +25,6 @@ namespace Renderer {
 	};
 
 	/*
-	* 描述如何更新地形节点描述的结构体
-	*/
-	struct GpuUpdateTerrainNodeDescriptorRequest {
-	public:
-		uint32_t srcTerrainNodeIndex{ 65536u };	// 源地形节点索引(65536为无效值)
-		uint32_t dstTerrainNodeIndex;			// 终地形节点索引
-
-		uint32_t tilePosX;	// 终地形节点数据在图集上的坐标(如果srcTerrainNodeIndex存在有效值，则该坐标原先属于srcTerrainNodeIndex，现在被剥夺了)
-		uint32_t tilePosY;	// 同上
-	};
-
-	/*
 	* 后台类(负责创建与管理地形节点的全量表、流入流出地形节点数据、并与GPU驻留的地形数据做交互)
 	*/
 	class TerrainBackend {
@@ -52,6 +40,8 @@ namespace Renderer {
 			GHL::Fence*        computeFence{ nullptr };
 			GHL::CommandList*  computeCommandList{ nullptr };
 			uint64_t           computeFenceExpectedValue{ 0u };
+
+			uint32_t           frameIndex{ 0u };
 		};
 
 	public:
@@ -68,6 +58,8 @@ namespace Renderer {
 		void Preload();
 
 		auto& GetRecordedGpuCommands() { return mRecordedGpuCommands; }
+
+		void OnFrameLoading(uint32_t frameIndex);
 
 	private:
 		// 后台线程

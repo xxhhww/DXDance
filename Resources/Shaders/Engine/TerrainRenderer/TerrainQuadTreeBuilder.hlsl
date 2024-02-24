@@ -98,7 +98,10 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 
 	// 对当前节点的距离进行评估
     float3 wsPositionXYZ = GetNodeWSPositionXYZ(nodeLoc, lod);
-    float dis = distance(FrameDataCB.CurrentRenderCamera.Position.xyz, wsPositionXYZ.xyz);
+	wsPositionXYZ.y = 0.0f;
+	float3 wsCameraPosition = FrameDataCB.CurrentEditorCamera.Position.xyz;
+	wsCameraPosition.y = 0.0f;
+    float dis = distance(wsCameraPosition, wsPositionXYZ.xyz);
     float f = dis / (currLodDescriptor.nodeMeterSize * PassDataCB.nodeEvaluationC.x);
     if(f < 1) { return true; }
     return false;

@@ -29,7 +29,20 @@ namespace Renderer {
 
 	class RuntimeVirtualTextureBackend {
 	public:
-		struct RecordedGpuCommand {};
+		struct RecordedGpuCommand {
+		public:
+			GHL::CommandQueue* graphicsQueue{ nullptr };
+			GHL::Fence*        graphicsFence{ nullptr };
+			GHL::CommandList*  graphicsCommandList{ nullptr };
+			uint64_t           graphicsFenceExpectedValue{ 0u };
+
+			GHL::CommandQueue* computeQueue{ nullptr };
+			GHL::Fence*        computeFence{ nullptr };
+			GHL::CommandList*  computeCommandList{ nullptr };
+			uint64_t           computeFenceExpectedValue{ 0u };
+
+			uint32_t           frameIndex{ 0u };
+		};
 
 	public:
 		RuntimeVirtualTextureBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting);
@@ -41,7 +54,7 @@ namespace Renderer {
 		void BackendThread();
 
 		// 处理Feedback
-		void ProcessTerrainFeedback(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks);
+		void ProcessTerrainFeedback(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, uint32_t completedFenceValue);
 
 		// 录制GPU命令
 		void RecordGpuCommand(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
@@ -91,6 +104,7 @@ namespace Renderer {
 		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;				// 该队列由BackThread和MainThread共同访问
 
 		std::vector<std::vector<RuntimeVirtualTextureNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
+
 	};
 
 }

@@ -387,6 +387,9 @@
     <ClInclude Include="RuntimeVirtualTexturePageTable.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="RuntimeVirtualTextureValidRect.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -654,6 +657,9 @@
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
     <ClCompile Include="RuntimeVirtualTexturePageTable.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="RuntimeVirtualTextureValidRect.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>
