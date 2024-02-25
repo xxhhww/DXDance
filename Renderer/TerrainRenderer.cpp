@@ -163,10 +163,13 @@ namespace Renderer {
 			smFirstFrame = false;
 
 			Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
-			Math::Int2 fixedPos1 = GetFixedPosition(Math::Vector2{ fixedPos0.x, fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+			Math::Int2 fixedPos1 = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
 
 			mRvtRealRect = Math::Vector4{
-				fixedPos1.x - mTerrainSetting.smRvtRectRadius, fixedPos1.y - mTerrainSetting.smRvtRectRadius, 2 * mTerrainSetting.smRvtRectRadius, 2 * mTerrainSetting.smRvtRectRadius
+				(float)(fixedPos1.x - mTerrainSetting.smRvtRectRadius), 
+				(float)(fixedPos1.y + mTerrainSetting.smRvtRectRadius),
+				(float)(2 * mTerrainSetting.smRvtRectRadius),
+				(float)(2 * mTerrainSetting.smRvtRectRadius)
 			};
 		}
 	}
@@ -176,6 +179,26 @@ namespace Renderer {
 			(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
 			(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
 		};
+	}
+
+	void TerrainRenderer::NotifyRealRectChanged() {
+		++mRvtRealRectChangedFlag;
+	}
+
+	bool TerrainRenderer::ConsumeRealRectChanged() {
+		if (mRvtRealRectChangedFlag == 1u) {
+			--mRvtRealRectChangedFlag;
+			return true;
+		}
+		return false;
+	}
+
+	void TerrainRenderer::SetRealRectChangedEvnet() { 
+		::SetEvent(mRvtRealRectChangedEvent); 
+	}
+
+	void TerrainRenderer::WaitRealRectChangedEvnet() { 
+		::WaitForSingleObject(mRvtRealRectChangedEvent, INFINITE); 
 	}
 
 }

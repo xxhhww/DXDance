@@ -25,6 +25,8 @@ namespace Renderer {
 	}
 
 	void RuntimeVirtualTextureBackend::BackendThread() {
+		return;
+
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* mainRenderFrameFence = renderEngine->mRenderFrameFence.get();
 		uint64_t previousMainFrameFenceValue = 0u;
@@ -59,9 +61,7 @@ namespace Renderer {
 			}
 
 			// 主线程检测到RvtPageTable的ViewRect发生变动，并将该变动通知给RvtBackend线程，此时，主线程同步等待RvtBackend线程的处理
-			if (mRenderer->mRvtPageTableViewChangedFlag == 1u) {
-				--mRenderer->mRvtPageTableViewChangedFlag;
-
+			if (mRenderer->ConsumeRealRectChanged()) {
 				// 对InQueue InLoading InTexture的PageTableNode进行处理
 			}
 

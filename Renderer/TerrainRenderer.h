@@ -45,16 +45,26 @@ namespace Renderer {
 		bool inReady{ false };		// 是否在CPU端分配到一个AtlasNode
 		bool inQueue{ false };		// 是否位于GPU命令提交队列中
 		bool inLoading{ false };	// 是否GPU命令已被提交
+
+		bool inReadyOut{ false };
+		bool inQueueOut{ false };
+		bool inLoadingOut{ false };
+
 		bool inTexture{ false };	// 是否已在纹理图集中
 
 		TerrainTextureAtlasTileCache::Node* atlasNode{ nullptr };
 
 	public:
-		inline void SetInActive()  { inReady = false; inQueue = false; inLoading = false; inTexture = false; }
-		inline void SetInReady()   { inReady = true;  inQueue = false; inLoading = false; inTexture = false; }
-		inline void SetInQueue()   { inReady = false; inQueue = true;  inLoading = false; inTexture = false; }
-		inline void SetInLoading() { inReady = false; inQueue = false; inLoading = true;  inTexture = false; }
-		inline void SetInTexture() { inReady = false; inQueue = false; inLoading = false; inTexture = true;  }
+		inline void SetInReady()   { inReady = true;  inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+		inline void SetInQueue()   { inReady = false; inQueue = true;  inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+		inline void SetInLoading() { inReady = false; inQueue = false; inLoading = true;  inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+
+		inline void SetInReadyOut()   { inReady = false; inQueue = false; inLoading = false; inReadyOut = true;  inQueueOut = false; inLoadingOut = false; inTexture = true; }
+		inline void SetInQueueOut()   { inReady = false; inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = true;  inLoadingOut = false; inTexture = true; }
+		inline void SetInLoadingOut() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = true;  inTexture = true; }
+
+		inline void SetInTexture()  { inReady = false; inQueue = false; inLoading = false; inReadyOut = false;  inQueueOut = false; inLoadingOut = false; inTexture = true;  }
+		inline void SetOutTexture() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false;  inQueueOut = false; inLoadingOut = false; inTexture = false; }
 	};
 
 	struct TerrainNodeDescriptor {
@@ -94,11 +104,16 @@ namespace Renderer {
 		inline auto* GetNearTerrainAlbedoArray() const { return mNearTerrainAlbedoArray.get(); }
 		inline auto* GetNearTerrainNormalArray() const { return mNearTerrainNormalArray.get(); }
 
-		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
+		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
 
+		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
 		inline void SetRvtRealRect(const Math::Vector4& realRect) { mRvtRealRect = realRect; }
 
-		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
+		void NotifyRealRectChanged();
+		bool ConsumeRealRectChanged();
+
+		void SetRealRectChangedEvnet();
+		void WaitRealRectChangedEvnet();
 
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
@@ -149,7 +164,8 @@ namespace Renderer {
 		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
 
 		// PageTableMap
-		std::atomic<uint32_t> mRvtPageTableViewChangedFlag{ 0u };
+		std::atomic<uint32_t> mRvtRealRectChangedFlag{ 0u };
+		HANDLE mRvtRealRectChangedEvent{ nullptr };
 		Math::Vector4 mRvtRealRect;
 		std::vector<RuntimeVirtualTexturePageTable> mRvtPageTables;
 		Renderer::TextureWrap mRvtPageTableMap;

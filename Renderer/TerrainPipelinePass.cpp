@@ -134,22 +134,23 @@ namespace Renderer {
 
 					// 更新RvtRealRect
 					Math::Int2 fixedPos0 = TerrainRenderer::GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
-					int32_t xDiff = fixedPos0.x - ((rvtRealRect.x + mTerrainSetting.smRvtRectRadius) * 0.5f);
-					int32_t yDiff = fixedPos0.y - ((rvtRealRect.y - mTerrainSetting.smRvtRectRadius) * 0.5f);
+					int32_t xDiff = fixedPos0.x - (rvtRealRect.x + mTerrainSetting.smRvtRectRadius);
+					int32_t yDiff = fixedPos0.y - (rvtRealRect.y - mTerrainSetting.smRvtRectRadius);
 
 					if (std::abs(xDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance || std::abs(yDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance) {
-						Math::Int2 fixedPos1 = TerrainRenderer::GetFixedPosition(Math::Vector2{ fixedPos0.x, fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
-						Math::Int2 oldCenter = Math::Int2((int)((rvtRealRect.x + mTerrainSetting.smRvtRectRadius) * 0.5f), ((rvtRealRect.y - mTerrainSetting.smRvtRectRadius) * 0.5f));
+						Math::Int2 fixedPos1 = TerrainRenderer::GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+						Math::Int2 oldCenter = Math::Int2((int32_t)(rvtRealRect.x + mTerrainSetting.smRvtRectRadius), (int32_t)(rvtRealRect.y - mTerrainSetting.smRvtRectRadius));
 						Math::Vector4 rvtNewRealRect = Math::Vector4{
-							fixedPos1.x - mTerrainSetting.smRvtRectRadius, 
-							fixedPos1.y - mTerrainSetting.smRvtRectRadius, 
-							2 * mTerrainSetting.smRvtRectRadius, 
-							2 * mTerrainSetting.smRvtRectRadius
+							(float)(fixedPos1.x - mTerrainSetting.smRvtRectRadius), 
+							(float)(fixedPos1.y + mTerrainSetting.smRvtRectRadius),
+							(float)(2 * mTerrainSetting.smRvtRectRadius),
+							(float)(2 * mTerrainSetting.smRvtRectRadius)
 						};
 						mRenderer->SetRvtRealRect(rvtNewRealRect);
 
 						// 通知Rvt线程录制命令，并同步等待其完成
-						mRenderer->mRvtPageTableViewChangedFlag++;
+						mRenderer->NotifyRealRectChanged();
+						mRenderer->WaitRealRectChangedEvnet();
 					}
 				}
 

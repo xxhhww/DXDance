@@ -425,7 +425,7 @@ namespace Renderer {
 						continue;
 					}
 					// 该节点对应的资源已在图集上
-					else if (currNodeRuntimeState.inTexture) {
+					else if (!currNodeRuntimeState.inReadyOut && !currNodeRuntimeState.inQueueOut && !currNodeRuntimeState.inLoadingOut && currNodeRuntimeState.inTexture) {
 						tileCache->Remove(currNodeRuntimeState.atlasNode);
 						tileCache->AddTail(currNodeRuntimeState.atlasNode);
 					}
@@ -464,6 +464,10 @@ namespace Renderer {
 
 			auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
 			currNodeRuntimeState.SetInReady();
+			if (requestTask.prevTerrainNodeIndex != 65536u) {
+				auto& prevNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.prevTerrainNodeIndex);
+				prevNodeRuntimeState.SetInReadyOut();
+			}
 		}
 	}
 
@@ -494,6 +498,10 @@ namespace Renderer {
 
 				auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
 				currNodeRuntimeState.SetInQueue();
+				if (requestTask.prevTerrainNodeIndex != 65536u) {
+					auto& prevNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.prevTerrainNodeIndex);
+					prevNodeRuntimeState.SetInQueueOut();
+				}
 			}
 			::PIXEndEvent(copyCommandList->D3DCommandList());
 			copyCommandList->Close();
@@ -581,6 +589,10 @@ namespace Renderer {
 			// 更新节点实时状态
 			auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
 			currNodeRuntimeState.SetInLoading();
+			if (requestTask.prevTerrainNodeIndex != 65536u) {
+				auto& prevNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.prevTerrainNodeIndex);
+				prevNodeRuntimeState.SetInLoadingOut();
+			}
 		}
 	}
 
@@ -599,6 +611,11 @@ namespace Renderer {
 				auto& currNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.nextTerrainNodeIndex);
 				currNodeRuntimeState.SetInTexture();
 				currNodeRuntimeState.atlasNode = requestTask.atlasNode;
+				if (requestTask.prevTerrainNodeIndex != 65536u) {
+					auto& prevNodeRuntimeState = mTerrainNodeRuntimeStates.at(requestTask.prevTerrainNodeIndex);
+					prevNodeRuntimeState.SetOutTexture();
+					prevNodeRuntimeState.atlasNode = nullptr;
+				}
 
 				// 更新AtlasNode负载
 				requestTask.atlasNode->terrainNodeIndex = requestTask.nextTerrainNodeIndex;
