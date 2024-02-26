@@ -23,11 +23,11 @@ struct a2v {
 
 struct v2p {
 	float4 currCsPos : SV_POSITION;
-	float4 indexData : INDEXDATA;
+	uint4  indexData : INDEXDATA;
 };
 
 struct p2o {
-	float4 indexData : SV_TARGET0;
+	uint4  indexData : SV_TARGET0;
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
@@ -39,7 +39,7 @@ v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 
 	v2p output;
 	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
-	output.indexData = float4(drawRequest.tilePos, drawRequest.mipLevel, 1.0f);
+	output.indexData = uint4(drawRequest.tilePos, drawRequest.mipLevel, 1u);
 
 	return output;
 }

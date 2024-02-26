@@ -19,7 +19,9 @@ namespace Renderer {
 	uint32_t TerrainSetting::smTerrainFeedbackScale = 2;		// TerrainFeedback相对于FinalOutput的缩放大小
 	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
 	uint32_t TerrainSetting::smRvtTilePaddingSize = 4;			// 实时虚拟纹理中一个Tile的填充大小
+	uint32_t TerrainSetting::smRvtTileSizeWithPadding = smRvtTileSizeNoPadding + smRvtTilePaddingSize * 2u;
 	uint32_t TerrainSetting::smRvtTileCountPerAxisInAtlas = 15;	// 实时虚拟纹理中实际纹理上每个轴的Tile个数
+	uint32_t TerrainSetting::smRvtAtlasTextureSize = smRvtTileSizeWithPadding * smRvtTileCountPerAxisInAtlas;
 	int32_t  TerrainSetting::smRvtRectRadius = 1024;			// 实时虚拟纹理的矩形半径(边长的一半)
 	uint32_t TerrainSetting::smRvtPixelSizePerMeter = 64;		// 每米的像素值
 
@@ -30,11 +32,14 @@ namespace Renderer {
 	uint32_t TerrainSetting::smRvtVirtualTextureSizeInBytesInWorld = smTerrainMeterSize * smRvtPixelSizePerMeter;
 	uint32_t TerrainSetting::smRvtTileCountPerAxisInWorld = (smRvtVirtualTextureSizeInBytesInWorld / smRvtTileSizeNoPadding);			// 世界中每个轴的Tile个数
 
-	uint32_t TerrainSetting::smWorldMeterSizePerTileInPage0Level = smRvtTileSizeNoPadding / smRvtPixelSizePerMeter;
+	uint32_t TerrainSetting::smWorldMeterSizePerTileInPage0Level = (float)smRvtTileSizeNoPadding / (float)smRvtPixelSizePerMeter;
+	float    TerrainSetting::smWorldMeterSizePerPaddingInPage0Level = smRvtTilePaddingSize / smRvtPixelSizePerMeter;
 
 	uint32_t TerrainSetting::smTerrainFeedbackBufferElementCount = (smRvtTileCountPerAxisInPage0Level * smRvtTileCountPerAxisInPage0Level / 2);
 
 	uint32_t TerrainSetting::smRvtDataLoadedLimit = 6u;
 
 	uint32_t TerrainSetting::smRvtRealRectChangedViewDistance = 256u;
+
+	uint32_t TerrainSetting::smWorldMeterSizePerTiledTexture = 8u;
 }

@@ -104,6 +104,9 @@ namespace Renderer {
 		inline auto* GetNearTerrainAlbedoArray() const { return mNearTerrainAlbedoArray.get(); }
 		inline auto* GetNearTerrainNormalArray() const { return mNearTerrainNormalArray.get(); }
 
+		inline auto* GetNearTerrainRvtAlbedoAtlas() const { return mNearTerrainRvtAlbedoAtlas.get(); }
+		inline auto* GetNearTerrainRvtNormalAtlas() const { return mNearTerrainRvtNormalAtlas.get(); }
+
 		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
 
 		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
@@ -158,17 +161,18 @@ namespace Renderer {
 		std::vector<FeedbackReadbackQueued> mQueuedFeedbackReadbacks;
 		std::vector<Renderer::BufferWrap>  mTerrainFeedbackReadbackBuffers;
 
-		// 适用于近距离渲染的实时虚拟纹理图集
-		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtAlbedoMapAtlas;
-		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtNormalMapAtlas;
-		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
-
-		// PageTableMap
+		// LookupPageTable
 		std::atomic<uint32_t> mRvtRealRectChangedFlag{ 0u };
-		HANDLE mRvtRealRectChangedEvent{ nullptr };
+		HANDLE mRvtRealRectChangedEvent{ NULL };
 		Math::Vector4 mRvtRealRect;
-		std::vector<RuntimeVirtualTexturePageTable> mRvtPageTables;
-		Renderer::TextureWrap mRvtPageTableMap;
+		uint32_t mMaxPageLevel;
+		std::vector<RuntimeVirtualTexturePageTable> mRvtLookupPageTables;
+		Renderer::TextureWrap mRvtLookupPageTableMap;
+
+		// 适用于近距离渲染的实时虚拟纹理图集
+		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtAlbedoAtlas;
+		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtNormalAtlas;
+		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
 	};
 
 }

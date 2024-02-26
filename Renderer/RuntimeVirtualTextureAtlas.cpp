@@ -6,11 +6,12 @@ namespace Renderer {
 
 	RuntimeVirtualTextureAtlas::RuntimeVirtualTextureAtlas(TerrainRenderer* terrainRenderer, DXGI_FORMAT dxgiFormat, const std::string& name)
 	: mRenderer(terrainRenderer) 
+	, mDxgiFormat(dxgiFormat)
 	, mTileSizeNoPadding(mRenderer->mTerrainSetting.smRvtTileSizeNoPadding)
 	, mPaddingSize(mRenderer->mTerrainSetting.smRvtTilePaddingSize)
 	, mTileCountPerAxis(mRenderer->mTerrainSetting.smRvtTileCountPerAxisInAtlas)
 	, mTileCount(mTileCountPerAxis * mTileCountPerAxis)
-	, mPhysicalTextureSize(GetTileSizeWithPadding() * mTileCountPerAxis) {
+	, mTextureAtlasSize(GetTileSizeWithPadding() * mTileCountPerAxis) {
 
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* device = renderEngine->mDevice.get();
@@ -22,13 +23,13 @@ namespace Renderer {
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
 
 		TextureDesc _PhysicalTextureDesc{};
-		_PhysicalTextureDesc.width = mPhysicalTextureSize;
-		_PhysicalTextureDesc.height = mPhysicalTextureSize;
+		_PhysicalTextureDesc.width = mTextureAtlasSize;
+		_PhysicalTextureDesc.height = mTextureAtlasSize;
 		_PhysicalTextureDesc.format = dxgiFormat;
 		_PhysicalTextureDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
 		_PhysicalTextureDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-		mPhysicalTexture = resourceAllocator->Allocate(device, _PhysicalTextureDesc, descriptorAllocator, nullptr);
-		mPhysicalTexture->SetDebugName(name);
+		mTextureAtlas = resourceAllocator->Allocate(device, _PhysicalTextureDesc, descriptorAllocator, nullptr);
+		mTextureAtlas->SetDebugName(name);
 
 		renderGraph->ImportResource(name, mPhysicalTexture);
 		resourceStateTracker->StartTracking(mPhysicalTexture);

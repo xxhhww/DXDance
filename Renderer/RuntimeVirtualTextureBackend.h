@@ -71,6 +71,9 @@ namespace Renderer {
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
 
+		// 着色器程序名称
+		inline static std::string smUpdateRuntimeVirtualTextureAtlasSN = "UpdateRuntimeVirtualTextureAtlas";
+		inline static std::string smUpdateLookupPageTableMapSN = "UpdateLookupPageTableMap";
 		inline static uint32_t smMaxRvtFrameCount = 3u;
 
 		// 线程同步变量
@@ -90,18 +93,29 @@ namespace Renderer {
 
 		std::unique_ptr<Renderer::ResourceStateTracker>     mRvtResourceStateTracker;
 
-		struct UpdateVirtualTextureAtlasPassData {
+		struct UpdateRuntimeVirtualTextureAtlasPassData {
+		public:
+			uint32_t drawRequestBufferIndex;
+			uint32_t terrainSplatMapIndex;
+			uint32_t terrainAlbedoTextureArrayIndex;
+			uint32_t terrainNormalTextureArrayIndex;
+
+			uint32_t terrainRoughnessTextureArrayIndex;
+			float    pad1;
+			float    pad2;
+			float    pad3;
+		};
+		UpdateRuntimeVirtualTextureAtlasPassData mUpdateRuntimeVirtualTextureAtlasPassData;
+		BufferWrap mUpdateRuntimeVirtualTextureAtlasRequestBuffer;
+
+		struct UpdateLookupPageTablePassData {
+		public:
 
 		};
+		UpdateLookupPageTablePassData mUpdateLookupPageTablePassData;
+		BufferWrap mUpdateLookupPageTableRequestBuffer;
 
-		struct UpdatePageTablePassData {
-
-		};
-
-		UpdateVirtualTextureAtlasPassData mUpdateVirtualTextureAtlasPassData;
-		UpdatePageTablePassData mUpdatePageTablePassData;
-
-		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;				// 该队列由BackThread和MainThread共同访问
+		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;										// 该队列由BackThread和MainThread共同访问
 
 		std::vector<std::vector<RuntimeVirtualTextureNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
 

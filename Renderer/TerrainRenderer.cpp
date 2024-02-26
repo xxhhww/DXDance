@@ -135,8 +135,31 @@ namespace Renderer {
 				resourceStateTracker->StartTracking(mTerrainFeedbackReadbackBuffers[i]);
 			}
 
-			mNearTerrainRvtAlbedoMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
-			mNearTerrainRvtNormalMapAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
+			// 除以2直到smRvtTileCountPerAxisInPage0Level不能再被2整除
+			mMaxPageLevel = 0u;
+			uint32_t tempCount = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			mRvtLookupPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+			while (tempCount != 1 && tempCount % 2 == 0) {
+				mMaxPageLevel++;
+				tempCount /= 2;
+
+				mRvtLookupPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+			}
+
+			// LookupPageTableMap
+			TextureDesc _LookupPageTableMapDesc{};
+			_LookupPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			_LookupPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			_LookupPageTableMapDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			_LookupPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
+			_LookupPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			mRvtLookupPageTableMap = resourceAllocator->Allocate(device, _LookupPageTableMapDesc, descriptorAllocator, nullptr);
+			mRvtLookupPageTableMap->SetDebugName("RvtLookupPageTableMap");
+			renderGraph->ImportResource("RvtLookupPageTableMap", mRvtLookupPageTableMap);
+			resourceStateTracker->StartTracking(mRvtLookupPageTableMap);
+
+			mNearTerrainRvtAlbedoAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
+			mNearTerrainRvtNormalAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
 			mNearTerrainRuntimeVirtualTextureAtlasTileCache = std::make_unique<Renderer::RuntimeVirtualTextureAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
 		}
 
