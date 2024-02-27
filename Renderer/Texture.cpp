@@ -20,14 +20,10 @@ namespace Renderer {
 
 		ASSERT_FORMAT(textureDesc.usage == GHL::EResourceUsage::Default, "Texture Usage Must be Default");
 
-		if (textureDesc.createdMethod == GHL::ECreatedMethod::Reserved) {
-			ASSERT_FORMAT(mHeapAllocator != nullptr, "Texture Created Reserved, HeapAllocator is nullptr");
-		}
-
 		D3D12_HEAP_PROPERTIES heapProperties{};
 		heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
 		// HeapAllocator为空，则以默认方式创建资源
-		if (mHeapAllocator == nullptr) {
+		if (mHeapAllocator == nullptr && textureDesc.createdMethod != GHL::ECreatedMethod::Reserved) {
 			// 以默认方式创建该Buffer
 			HRASSERT(mDevice->D3DDevice()->CreateCommittedResource(
 				&heapProperties,

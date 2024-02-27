@@ -390,6 +390,12 @@
     <ClInclude Include="RuntimeVirtualTextureValidRect.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainTiledTexture.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainTiledTextureHeapAllocationCache.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuddyHeapAllocator.cpp">
@@ -660,6 +666,12 @@
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
     <ClCompile Include="RuntimeVirtualTextureValidRect.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTiledTexture.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainTiledTextureHeapAllocationCache.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>

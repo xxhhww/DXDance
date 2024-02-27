@@ -2,6 +2,7 @@
 #include "Renderer/TerrainSetting.h"
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/TerrainTiledTextureHeapAllocationCache.h"
 #include "Renderer/RuntimeVirtualTexturePageTable.h"
 #include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
 
@@ -24,6 +25,7 @@ namespace Renderer {
 	
 	class TerrainTextureAtlas;
 	class TerrainTextureArray;
+	class TerrainTiledTexture;
 	class TerrainBackend;
 	class TerrainPipelinePass;
 
@@ -80,6 +82,7 @@ namespace Renderer {
 		friend class TerrainBackend;
 		friend class TerrainTextureAtlas;
 		friend class TerrainTextureArray;
+		friend class TerrainTiledTexture;
 		friend class TerrainPipelinePass;
 
 		friend class RuntimeVirtualTextureBackend;
@@ -137,6 +140,7 @@ namespace Renderer {
 		// 近距离地形混合所用纹理
 		std::unique_ptr<TerrainTextureArray> mNearTerrainAlbedoArray;
 		std::unique_ptr<TerrainTextureArray> mNearTerrainNormalArray;
+		std::unique_ptr<BuddyHeapAllocator> mTerrainTextureArrayHeapAllocator;
 
 		std::unique_ptr<TerrainBackend> mTerrainBackend;
 
@@ -145,6 +149,9 @@ namespace Renderer {
 		Renderer::BufferWrap mTerrainLodDescriptorBuffer;	// GPU地形全LOD状态表，只被访问		
 		Renderer::BufferWrap mTerrainNodeDescriptorBuffer;	// GPU地形全节点状态表，被主渲染线程与后台线程(每次应该只更新部分节点)访问，该对象类似于Rvt中的PageTable
 
+		std::unique_ptr<TerrainTiledTexture> mTerrainTiledSplatMap;								// SplatMap
+		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledSplatMapHeapAllocator;
+		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledSplatMapHeapAllocationCache;
 
 		// 实时虚拟纹理后台
 		std::unique_ptr<RuntimeVirtualTextureBackend> mRuntimeVirtualTextureBackend;

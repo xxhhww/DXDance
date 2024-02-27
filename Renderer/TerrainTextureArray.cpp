@@ -28,6 +28,7 @@ namespace Renderer {
 		_TextureArrayDesc.arraySize = fileHeader.arraySize;
 		_TextureArrayDesc.mipLevals = fileHeader.mipLevels;
 		_TextureArrayDesc.format = (DXGI_FORMAT)fileHeader.dxgiFormat;
+		_TextureArrayDesc.createdMethod = GHL::ECreatedMethod::Reserved;
 		_TextureArrayDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::AnyShaderAccess;
 		_TextureArrayDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 		mTextureArray = resourceAllocator->Allocate(device, _TextureArrayDesc, descriptorAllocator, nullptr);

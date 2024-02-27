@@ -1,5 +1,6 @@
 #include "Renderer/TerrainBackend.h"
 #include "Renderer/TerrainTextureAtlas.h"
+#include "Renderer/TerrainTextureArray.h"
 #include "Renderer/RenderEngine.h"
 
 #include "Tools/Assert.h"
@@ -60,6 +61,96 @@ namespace Renderer {
 		auto* terrainTextureAtlasTileCache = mRenderer->mFarTerrainTextureAtlasTileCache.get();
 		
 		// 录入预加载地形数据的命令
+		auto preloadTerrainTextureArray = [&](TerrainTextureArray* terrainTextureArray, GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, GHL::DirectStorageQueue* dstorageQueue, GHL::Fence* dstorageFence) {
+			const auto& reTextureFileFormat = terrainTextureArray->GetReTextureFileFormat();
+			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
+			const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
+
+			auto* dsFileHandle = terrainTextureArray->GetDStorageFile();
+			auto& textureArray = terrainTextureArray->GetTextureArray();
+
+			uint32_t currTileIndex = 0u;
+			for (uint32_t arrayIndex = 0; arrayIndex < reTextureFileHeader.arraySize; arrayIndex++) {
+				for (uint32_t mipIndex = 0; mipIndex < reTextureFileHeader.mipLevels; mipIndex++) {
+					uint32_t currSubresourceIndex = arrayIndex * reTextureFileHeader.mipLevels + mipIndex;
+
+					// 计算该mipLevel下Tile的个数
+					uint32_t localTileCountPerAxis = (reTextureFileHeader.imageHeight / std::pow(2, mipIndex)) / reTextureFileHeader.tileHeight;
+					uint32_t localTileCount = localTileCountPerAxis * localTileCountPerAxis;
+
+					uint32_t tilePosX = 0u;
+					uint32_t tilePosY = 0u;
+					for (uint32_t localTileIndex = 0u; localTileIndex < localTileCount; localTileIndex++) {
+						const auto& tileDataInfo = reTileDataInfos.at(currTileIndex);
+
+						// Mapping
+						auto* heapAllocation = mRenderer->mTerrainTextureArrayHeapAllocator->Allocate(reTextureFileHeader.tileSlicePitch);
+						uint32_t numTiles = 1u;
+						std::vector<D3D12_TILE_RANGE_FLAGS> rangeFlags(numTiles, D3D12_TILE_RANGE_FLAG_NONE);
+						// if the number of standard (not packed) mips is n, then start updating at subresource n
+						D3D12_TILED_RESOURCE_COORDINATE tiledRegionStartCoordinates{ tilePosX, tilePosY, 0, currSubresourceIndex };
+						D3D12_TILE_REGION_SIZE tiledRegionSizes{ numTiles, FALSE, 0, 0, 0 };
+
+						// perform packed mip tile mapping on the copy queue
+						mappingQueue->D3DCommandQueue()->UpdateTileMappings(
+							textureArray->D3DResource(),
+							numTiles,
+							&tiledRegionStartCoordinates,
+							&tiledRegionSizes,
+							heapAllocation->heap->D3DHeap(),
+							numTiles,
+							rangeFlags.data(),
+							&heapAllocation->tileOffset,
+							nullptr,
+							D3D12_TILE_MAPPING_FLAG_NONE
+						);
+						mappingFence->IncrementExpectedValue();
+						mappingQueue->SignalFence(*mappingFence);
+						mappingFence->Wait();
+
+						// 计算TextureRegion
+						D3D12_BOX region{};
+						region.front = 0u;
+						region.back = 1u;	// 描述深度为1
+						region.left = tilePosX * reTextureFileHeader.tileWidth;
+						region.top = tilePosY * reTextureFileHeader.tileHeight;
+						region.right = region.left + reTextureFileHeader.tileWidth;
+						region.bottom = region.top + reTextureFileHeader.tileHeight;
+
+						tilePosX++;
+						if (tilePosX >= localTileCountPerAxis) {
+							tilePosX = 0u;
+							tilePosY++;
+						}
+
+						DSTORAGE_REQUEST dsRequest{};
+						dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
+						dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
+						dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)reTextureFileHeader.compressionFormat;
+						dsRequest.Destination.Tiles.Resource = textureArray.Get()->D3DResource();
+						dsRequest.Destination.Tiles.TiledRegionStartCoordinate = tiledRegionStartCoordinates;
+						dsRequest.Destination.Tiles.TileRegionSize = tiledRegionSizes;
+						dsRequest.Source.File.Source = dsFileHandle->GetDStorageFile();
+						dsRequest.Source.File.Offset = tileDataInfo.offset;
+						dsRequest.Source.File.Size = tileDataInfo.numBytes;
+						dsRequest.UncompressedSize = reTextureFileHeader.tileSlicePitch;
+
+						dstorageQueue->EnqueueRequest(&dsRequest);
+
+						currTileIndex++;
+					}
+
+					currSubresourceIndex++;
+				}
+			}
+
+			dstorageFence->IncrementExpectedValue();
+			dstorageQueue->EnqueueSignal(*dstorageFence);
+			dstorageQueue->Submit();
+		};
+		preloadTerrainTextureArray(mRenderer->mNearTerrainAlbedoArray.get(), mBackMappingQueue.get(), mBackMappingFence.get(), mBackDStorageQueue.get(), mBackDStorageFence.get());
+		preloadTerrainTextureArray(mRenderer->mNearTerrainNormalArray.get(), mBackMappingQueue.get(), mBackMappingFence.get(), mBackDStorageQueue.get(), mBackDStorageFence.get());
+
 		/*
 		auto preloadFarTerrainTextureAtlas = [&](TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, GHL::DirectStorageQueue* dstorageQueue) {
 			const auto& reTextureFileFormat = terrainTextureAtlas->GetReTextureFileFormat();
@@ -637,11 +728,9 @@ namespace Renderer {
 
 		// 创建DStorageAPI对象
 		{
-			/*
 			mBackDStorageQueue = std::make_unique<GHL::DirectStorageQueue>(device, dstorageFactory, DSTORAGE_REQUEST_SOURCE_FILE);
 			mBackDStorageFence = std::make_unique<GHL::Fence>(device);
 			mBackDStorageFence->SetDebugName("TerrainBackend_DStorageFence");
-			*/
 		}
 
 		// 创建图形API对象并设置回调函数
@@ -663,6 +752,14 @@ namespace Renderer {
 			mBackComputeFrameTracker = std::make_unique<Renderer::RingFrameTracker>(smMaxBackFrameCount);
 			mBackComputeLinearBufferAllocator = std::make_unique<Renderer::LinearBufferAllocator>(device, mBackCopyFrameTracker.get());
 			mBackComputeCommandListAllocator = std::make_unique<Renderer::PoolCommandListAllocator>(device, mBackComputeFrameTracker.get());
+		}
+
+		// 创建HeapAllocator
+		{
+			mBackMappingQueue = std::make_unique<GHL::CopyQueue>(device);
+			mBackMappingQueue->SetDebugName("TerrainBackend_MappingQueue");
+			mBackMappingFence = std::make_unique<GHL::Fence>(device);
+			mBackMappingFence->SetDebugName("TerrainBackend_MappingFence");
 		}
 
 		// 创建图形对象

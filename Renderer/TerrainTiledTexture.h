@@ -14,20 +14,17 @@ namespace Renderer {
 
 	class TerrainRenderer;
 
-	/*
-	* 管理地形渲染所使用的纹理数组，该纹理数组以保留形式创建
-	*/
-	class TerrainTextureArray {
+	class TerrainTiledTexture {
 	public:
-		TerrainTextureArray(TerrainRenderer* renderer, const std::string& filepath);
+		TerrainTiledTexture(TerrainRenderer* renderer, const std::string& filepath);
 
-		inline ~TerrainTextureArray() = default;
+		inline ~TerrainTiledTexture() = default;
 
 		inline const auto& GetReTextureFileFormat() const { return mReTextureFileFormat; }
 		inline const auto& GetResourceFormat() const { return mResourceFormat; }
 
 		inline auto* GetDStorageFile() const { return mDStorageFile.get(); }
-		inline auto& GetTextureArray() { return mTextureArray; }
+		inline auto& GetTiledTexture() { return mTiledTexture; }
 
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
@@ -38,7 +35,7 @@ namespace Renderer {
 		ResourceFormat mResourceFormat;
 		std::unique_ptr<GHL::DirectStorageFile> mDStorageFile;
 
-		TextureWrap mTextureArray;
+		TextureWrap mTiledTexture;
 	};
 
 }

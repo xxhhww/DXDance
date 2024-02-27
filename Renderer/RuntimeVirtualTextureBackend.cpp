@@ -43,6 +43,10 @@ namespace Renderer {
 		mThreadRunning = false;
 	}
 
+	void RuntimeVirtualTextureBackend::Preload() {
+
+	}
+
 	void RuntimeVirtualTextureBackend::BackendThread() {
 		return;
 
@@ -363,16 +367,16 @@ namespace Renderer {
 			barrierBatch += mainResourceStateTracker->TransitionImmediately(terrainNormalAtlas->GetTextureAtlas(), GHL::EResourceState::RenderTarget);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 
-			commandBuffer.SetRenderTargets({ terrainAlbedoAtlas, terrainNormalAtlas });
+			commandBuffer.SetRenderTargets({ terrainAlbedoAtlas->GetTextureAtlas(), terrainNormalAtlas->GetTextureAtlas() });
 			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 			commandBuffer.SetGraphicsRootSignature();
 			commandBuffer.SetGraphicsPipelineState("UpdatePhysicalTexture");
 			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
-			commandBuffer.SetVertexBuffer(0u, quadMesh->GetVertexBuffer());
-			commandBuffer.SetIndexBuffer(quadMesh->GetIndexBuffer());
+			// commandBuffer.SetVertexBuffer(0u, quadMesh->GetVertexBuffer());
+			// commandBuffer.SetIndexBuffer(quadMesh->GetIndexBuffer());
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), updateRequests.size(), 0u, 0u, 0u);
+			// commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), updateRequests.size(), 0u, 0u, 0u);
 
 			commandBuffer.PIXEndEvent();
 

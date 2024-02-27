@@ -49,6 +49,9 @@ namespace Renderer {
 
 		~RuntimeVirtualTextureBackend();
 
+		// 预加载
+		void Preload();
+
 	private:
 		// 后台线程
 		void BackendThread();
@@ -84,6 +87,9 @@ namespace Renderer {
 		// 地形数据(From TerrainRenderer)
 		TerrainSetting& mTerrainSetting;
 		std::vector<RuntimeVirtualTexturePageTable>& mRvtPageTables;
+
+		std::unique_ptr<Renderer::BuddyHeapAllocator> mTerrainTiledSplatMapHeapAllocator;
+
 
 		std::unique_ptr<GHL::CommandQueue>                  mRvtGraphicsQueue;
 		std::unique_ptr<GHL::Fence>                         mRvtGraphicsFence;

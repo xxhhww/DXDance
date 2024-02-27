@@ -406,13 +406,11 @@ namespace OfflineTask {
 		retFileHeader.tileRowPitch = srcElementByteSize * retFileHeader.tileWidth;
 		retFileHeader.tileSlicePitch = retFileHeader.tileRowPitch * retFileHeader.tileHeight;
 
-		auto writeTile = [&](uint8_t* pDst, const D3D12_TILED_RESOURCE_COORDINATE& in_coord, const DirectX::Image& srcImage) {
+		auto writeTile = [&](uint8_t* pDst, const D3D12_TILED_RESOURCE_COORDINATE& in_coord, const DirectX::Image& srcImage, uint32_t tileRowBytes, uint32_t numRowsPerTile) {
 			// this is a BC7 or BC1 decoder
 			// we know that tiles will be 64KB
 			// 1 tile of BC7 size 256x256 will have a row size of 1024 bytes, and 64 rows (4 texels per row)
 			// 1 tile of BC1 size 512x256 will also have row size 1024 bytes and 64 rows
-			const UINT tileRowBytes = 1024;
-			const UINT numRowsPerTile = 64;
 
 			UINT srcOffset = 0u;
 
@@ -455,7 +453,7 @@ namespace OfflineTask {
 				for (uint32_t y = 0; y < currSubresourceInfo.heightTiles; y++) {
 					for (uint32_t x = 0; x < currSubresourceInfo.widthTiles; x++) {
 						tile.resize(D3D12_TILED_RESOURCE_TILE_SIZE_IN_BYTES); // reset to standard tile size
-						writeTile(tile.data(), D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, subresourceIndex }, currImage);
+						writeTile(tile.data(), D3D12_TILED_RESOURCE_COORDINATE{ x, y, 0, subresourceIndex }, currImage, retFileHeader.tileRowPitch, retFileHeader.tileHeight);
 
 						if (retFileHeader.compressionFormat) {
 							compressTile(tile, tile.size());

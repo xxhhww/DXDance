@@ -2,6 +2,7 @@
 #include "Renderer/TerrainPipelinePass.h"
 #include "Renderer/TerrainBackend.h"
 #include "Renderer/TerrainTextureArray.h"
+#include "Renderer/TerrainTiledTexture.h"
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
 #include "Renderer/RuntimeVirtualTextureBackend.h"
@@ -25,7 +26,13 @@ namespace Renderer {
 
 	void TerrainRenderer::Initialize() {
 
+		auto* device = mRenderEngine->mDevice.get();
+		auto* renderGraph = mRenderEngine->mRenderGraph.get();
+		auto* frameTracker = mRenderEngine->mFrameTracker.get();
 		auto* resourceStorage = mRenderEngine->mPipelineResourceStorage;
+		auto* resourceAllocator = mRenderEngine->mResourceAllocator.get();
+		auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
+		auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
 
 		auto& finalOutputDesc = resourceStorage->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
@@ -61,17 +68,16 @@ namespace Renderer {
 			// TextureArray
 			mNearTerrainAlbedoArray = std::make_unique<TerrainTextureArray>(this, dirname + "NearTerrainAlbedoArray.ret");
 			mNearTerrainNormalArray = std::make_unique<TerrainTextureArray>(this, dirname + "NearTerrainNormalArray.ret");
+			mTerrainTextureArrayHeapAllocator = std::make_unique<Renderer::BuddyHeapAllocator>(device, frameTracker);
+
+			// TiledSplatMap
+			mTerrainTiledSplatMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledSplatMap.ret");
+			mTerrainTiledSplatMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
+			mTerrainTiledSplatMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache, mTerrainTiledSplatMapHeapAllocator.get(), mTerrainTiledSplatMap->GetReTextureFileFormat().GetFileHeader().tileSlicePitch);
 		}
 
 		// 创建并初始化GPU对象
 		{
-			auto* device = mRenderEngine->mDevice.get();
-			auto* renderGraph = mRenderEngine->mRenderGraph.get();
-			auto* frameTracker = mRenderEngine->mFrameTracker.get();
-			auto* resourceAllocator = mRenderEngine->mResourceAllocator.get();
-			auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
-			auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
-
 			Renderer::BufferDesc _TerrainLodDescriptorBufferDesc{};
 			_TerrainLodDescriptorBufferDesc.stride = sizeof(TerrainLodDescriptor);
 			_TerrainLodDescriptorBufferDesc.size = _TerrainLodDescriptorBufferDesc.stride * mTerrainLodDescriptors.size();

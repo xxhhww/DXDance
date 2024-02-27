@@ -31,8 +31,8 @@ namespace Renderer {
 		mTextureAtlas = resourceAllocator->Allocate(device, _PhysicalTextureDesc, descriptorAllocator, nullptr);
 		mTextureAtlas->SetDebugName(name);
 
-		renderGraph->ImportResource(name, mPhysicalTexture);
-		resourceStateTracker->StartTracking(mPhysicalTexture);
+		renderGraph->ImportResource(name, mTextureAtlas);
+		resourceStateTracker->StartTracking(mTextureAtlas);
 	}
 
 }

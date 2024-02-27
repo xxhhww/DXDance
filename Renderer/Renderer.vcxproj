@@ -182,6 +182,7 @@
     <ClInclude Include="RuntimeVirtualTextureAtlas.h" />
     <ClInclude Include="RuntimeVirtualTexturePageTable.h" />
     <ClInclude Include="RuntimeVirtualTextureValidRect.h" />
+    <ClInclude Include="TerrainTiledTextureHeapAllocationCache.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainBackend.h" />
     <ClInclude Include="TerrainTextureAtlasTileCache.h" />
@@ -191,6 +192,7 @@
     <ClInclude Include="TerrainSetting.h" />
     <ClInclude Include="TerrainTextureArray.h" />
     <ClInclude Include="TerrainTextureAtlas.h" />
+    <ClInclude Include="TerrainTiledTexture.h" />
     <ClInclude Include="TextureAtlas.h" />
     <ClInclude Include="VegetationPhysicalDataCache.h" />
     <ClInclude Include="VegetationSystem.h" />
@@ -287,6 +289,7 @@
     <ClCompile Include="RuntimeVirtualTextureAtlas.cpp" />
     <ClCompile Include="RuntimeVirtualTexturePageTable.cpp" />
     <ClCompile Include="RuntimeVirtualTextureValidRect.cpp" />
+    <ClCompile Include="TerrainTiledTextureHeapAllocationCache.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />
     <ClCompile Include="TerrainBackend.cpp" />
@@ -297,6 +300,7 @@
     <ClCompile Include="TerrainSetting.cpp" />
     <ClCompile Include="TerrainTextureArray.cpp" />
     <ClCompile Include="TerrainTextureAtlas.cpp" />
+    <ClCompile Include="TerrainTiledTexture.cpp" />
     <ClCompile Include="TextureAtlas.cpp" />
     <ClCompile Include="VegetationPhysicalDataCache.cpp" />
     <ClCompile Include="VegetationSystem.cpp" />

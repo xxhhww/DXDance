@@ -101,6 +101,9 @@ namespace Renderer {
 		std::vector<TerrainNodeDescriptor>& mTerrainNodeDescriptors;		// 地形全节点内容描述表
 		std::vector<TerrainNodeRuntimeState>& mTerrainNodeRuntimeStates;	// 地形全节点运行时状态
 
+		std::unique_ptr<GHL::CommandQueue> mBackMappingQueue;
+		std::unique_ptr<GHL::Fence>        mBackMappingFence;
+
 		std::unique_ptr<GHL::DirectStorageQueue> mBackDStorageQueue;
 		std::unique_ptr<GHL::Fence>			     mBackDStorageFence;
 

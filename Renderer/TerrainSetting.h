@@ -21,7 +21,7 @@ namespace Renderer {
 		static uint32_t smTerrainDataLoadedLimit;		// 一次加载多少个节点的数据
 
 		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;	// 地形纹理图集每个轴的Tile个数
-
+		static uint32_t smTerrainTiledSplatMapTileCountPerCache;	// TiledSplatMap最多保留多少Tile
 
 		static uint32_t smTerrainFeedbackScale;				// TerrainFeedback相对于FinalOutput的缩放大小
 		static uint32_t smRvtTileSizeNoPadding;				// 实时虚拟纹理中一个Tile的大小
