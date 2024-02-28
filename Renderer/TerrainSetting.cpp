@@ -25,10 +25,10 @@ namespace Renderer {
 	uint32_t TerrainSetting::smRvtTileSizeWithPadding = smRvtTileSizeNoPadding + smRvtTilePaddingSize * 2u;
 	uint32_t TerrainSetting::smRvtTileCountPerAxisInAtlas = 15;	// 实时虚拟纹理中实际纹理上每个轴的Tile个数
 	uint32_t TerrainSetting::smRvtAtlasTextureSize = smRvtTileSizeWithPadding * smRvtTileCountPerAxisInAtlas;
-	int32_t  TerrainSetting::smRvtRectRadius = 1024;			// 实时虚拟纹理的矩形半径(边长的一半)
+	int32_t  TerrainSetting::smRvtRectRadius = 512;				// 实时虚拟纹理的矩形半径(边长的一半)
 	uint32_t TerrainSetting::smRvtPixelSizePerMeter = 64;		// 每米的像素值
 
-	uint32_t TerrainSetting::smRvtMaxPageLevel = 12;			// log2(smRvtRectRadius * 2)
+	uint32_t TerrainSetting::smRvtMaxPageLevel = 8;			// log2(smRvtRectRadius * 2)
 	uint32_t TerrainSetting::smRvtPageLevelBias = 0;
 	uint32_t TerrainSetting::smRvtVirtualTextureSizeInBytesInPage0Level = smRvtRectRadius * 2 * smRvtPixelSizePerMeter;
 	uint32_t TerrainSetting::smRvtTileCountPerAxisInPage0Level = (smRvtVirtualTextureSizeInBytesInPage0Level / smRvtTileSizeNoPadding);	// 虚拟纹理页表(查找表)的大小

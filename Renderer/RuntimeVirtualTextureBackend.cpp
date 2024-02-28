@@ -2,7 +2,9 @@
 #include "Renderer/RuntimeVirtualTextureAtlas.h"
 #include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
 #include "Renderer/TerrainTextureArray.h"
+#include "Renderer/TerrainTiledTexture.h"
 #include "Renderer/RenderEngine.h"
+#include "Renderer/Misc.h"
 
 #include "Tools/Assert.h"
 
@@ -346,16 +348,17 @@ namespace Renderer {
 			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
 
 			mUpdateRuntimeVirtualTextureAtlasPassData.drawRequestBufferIndex = mUpdateRuntimeVirtualTextureAtlasRequestBuffer->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainAlbedoTextureArrayIndex = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray().Get()->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainNormalTextureArrayIndex = mRenderer->GetNearTerrainNormalArray()->GetTextureArray().Get()->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVirtualTextureAtlasPassData.terrainAlbedoTextureArrayIndex = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVirtualTextureAtlasPassData.terrainNormalTextureArrayIndex = mRenderer->GetNearTerrainNormalArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
 			mUpdateRuntimeVirtualTextureAtlasPassData.terrainRoughnessTextureArrayIndex;
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainSplatMapIndex;
+			mUpdateRuntimeVirtualTextureAtlasPassData.terrainSplatMapIndex = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
 
 			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVirtualTextureAtlasPassData));
 			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVirtualTextureAtlasPassData, sizeof(UpdateRuntimeVirtualTextureAtlasPassData));
 
 			auto* terrainAlbedoAtlas = mRenderer->GetNearTerrainRvtAlbedoAtlas();
 			auto* terrainNormalAtlas = mRenderer->GetNearTerrainRvtNormalAtlas();
+
 			// 将数据数组上传到GPU中去
 			auto barrierBatch = GHL::ResourceBarrierBatch{};
 			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVirtualTextureAtlasRequestBuffer, GHL::EResourceState::CopyDestination);
@@ -371,19 +374,19 @@ namespace Renderer {
 			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 			commandBuffer.SetGraphicsRootSignature();
-			commandBuffer.SetGraphicsPipelineState("UpdatePhysicalTexture");
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVirtualTextureAtlasSN);
 			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
-			// commandBuffer.SetVertexBuffer(0u, quadMesh->GetVertexBuffer());
-			// commandBuffer.SetIndexBuffer(quadMesh->GetIndexBuffer());
+			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
+			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			// commandBuffer.DrawIndexedInstanced(quadMesh->GetIndexCount(), updateRequests.size(), 0u, 0u, 0u);
+			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
 
 			commandBuffer.PIXEndEvent();
-
 			commandList->Close();
+			recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList = commandList.Get();
 		}
 
-		// 录制GraphicsCommandList，用于更新LookupPageTable
+		// 录制GraphicsCommandList，用于更新PageTable
 		{
 
 		}
@@ -417,7 +420,8 @@ namespace Renderer {
 	void RuntimeVirtualTextureBackend::CreateGraphicsObject() {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* device = renderEngine->mDevice.get();
-		auto* dstorageFactory = renderEngine->mDStorageFactory.get();
+		auto* dstorageQueue = renderEngine->mDStorageMemQueue.get();
+		auto* dstorageFence = renderEngine->mDStorageFence.get();
 
 		auto  shaderPath = renderEngine->smEngineShaderPath;
 		auto* shaderManger = renderEngine->mShaderManger.get();
@@ -462,6 +466,49 @@ namespace Renderer {
 			mUpdateLookupPageTableRequestBuffer = resourceAllocator->Allocate(device, _UpdateLookupPageTableRequestBufferDesc, descriptorAllocator, nullptr);
 			mUpdateLookupPageTableRequestBuffer->SetDebugName("UpdateLookupPageTableRequestBuffer");
 			mRvtResourceStateTracker->StartTracking(mUpdateLookupPageTableRequestBuffer);
+		}
+
+		// 创建QuadMesh
+		{
+			std::vector<Vertex> vertices;
+			vertices.resize(6u);
+			vertices[0].position = Math::Vector3{ 0.0f, 1.0f, 0.0f };
+			vertices[0].uv = Math::Vector2{ 0.0f, 1.0f };
+			vertices[1].position = Math::Vector3{ 0.0f, 0.0f, 0.0f };
+			vertices[1].uv = Math::Vector2{ 0.0f, 0.0f };
+			vertices[2].position = Math::Vector3{ 1.0f, 0.0f, 0.0f };
+			vertices[2].uv = Math::Vector2{ 1.0f, 0.0f };
+			vertices[3].position = Math::Vector3{ 1.0f, 1.0f, 0.0f };
+			vertices[3].uv = Math::Vector2{ 1.0f, 1.0f };
+
+			std::vector<uint32_t> indices;
+			indices.emplace_back(0u);
+			indices.emplace_back(2u);
+			indices.emplace_back(1u);
+			indices.emplace_back(2u);
+			indices.emplace_back(0u);
+			indices.emplace_back(3u);
+
+			Renderer::BufferDesc vertexBufferDesc{};
+			vertexBufferDesc.stride = sizeof(Renderer::Vertex);
+			vertexBufferDesc.size = vertexBufferDesc.stride * vertices.size();
+			vertexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mQuadMeshVertexBuffer = resourceAllocator->Allocate(device, vertexBufferDesc, descriptorAllocator, nullptr);
+
+			Renderer::BufferDesc indexBufferDesc{};
+			indexBufferDesc.stride = sizeof(uint32_t);
+			indexBufferDesc.size = indexBufferDesc.stride * indices.size();
+			indexBufferDesc.usage = GHL::EResourceUsage::Default;
+			mQuadMeshIndexBuffer = resourceAllocator->Allocate(device, indexBufferDesc, descriptorAllocator, nullptr);
+			mQuadMeshIndexCount = indices.size();
+
+			EnqueueDStorageRequest(dstorageQueue, static_cast<void*>(vertices.data()), vertexBufferDesc.size, mQuadMeshVertexBuffer.Get(), 0u);
+			EnqueueDStorageRequest(dstorageQueue, static_cast<void*>(indices.data()), indexBufferDesc.size, mQuadMeshIndexBuffer.Get(), 0u);
+
+			dstorageFence->IncrementExpectedValue();
+			dstorageQueue->EnqueueSignal(*dstorageFence);
+			dstorageQueue->Submit();
+			dstorageFence->Wait();
 		}
 
 		// 创建着色器程序

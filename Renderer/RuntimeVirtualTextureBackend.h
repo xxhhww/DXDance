@@ -33,13 +33,10 @@ namespace Renderer {
 		public:
 			GHL::CommandQueue* graphicsQueue{ nullptr };
 			GHL::Fence*        graphicsFence{ nullptr };
-			GHL::CommandList*  graphicsCommandList{ nullptr };
 			uint64_t           graphicsFenceExpectedValue{ 0u };
 
-			GHL::CommandQueue* computeQueue{ nullptr };
-			GHL::Fence*        computeFence{ nullptr };
-			GHL::CommandList*  computeCommandList{ nullptr };
-			uint64_t           computeFenceExpectedValue{ 0u };
+			GHL::CommandList*  updateRuntimeVTTextureAtlasCommandList{ nullptr };
+			GHL::CommandList*  updateRuntimeVTPageTableCommandList{ nullptr };
 
 			uint32_t           frameIndex{ 0u };
 		};
@@ -98,6 +95,11 @@ namespace Renderer {
 		std::unique_ptr<Renderer::PoolCommandListAllocator> mRvtCommandListAllocator;
 
 		std::unique_ptr<Renderer::ResourceStateTracker>     mRvtResourceStateTracker;
+
+		uint32_t   mQuadMeshVertexCountPerAxis;
+		BufferWrap mQuadMeshVertexBuffer;
+		BufferWrap mQuadMeshIndexBuffer;
+		uint32_t   mQuadMeshIndexCount;
 
 		struct UpdateRuntimeVirtualTextureAtlasPassData {
 		public:

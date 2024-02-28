@@ -579,7 +579,7 @@ namespace Renderer {
 
 
 				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
-				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
+				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetNearTerrainAlbedoArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();

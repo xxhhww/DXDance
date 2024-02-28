@@ -16,7 +16,7 @@ struct PassData {
 	uint  terrainAtlasTileWidthInPixels;
 	uint  terrainPatchVertexCountPerAxis;
 	uint  tileCountPerAxisInPage0Level;
-	uint  virtualTextureSizeInBytesInPage0Level;
+	uint  scaledVirtualTextureSizeInBytesInPage0Level;
 
 	uint  maxPageLevel;
 	uint  pageLevelBias;
@@ -59,6 +59,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	StructuredBuffer<RenderPatch>           culledPatchList    = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
 	StructuredBuffer<TerrainNodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
 	StructuredBuffer<TerrainLodDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
+
 	Texture2D terrainHeightMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainHeightMapAtlasIndex];
 
 	RenderPatch renderPatch = culledPatchList[instanceID];
@@ -125,13 +126,13 @@ p2o PSMain(v2p input) {
 	// Calcute Feedback
 	uint2 pagePos = floor(uvVT * (float)PassDataCB.tileCountPerAxisInPage0Level);
 	
-	float2 uv = uvVT * (float)PassDataCB.virtualTextureSizeInBytesInPage0Level;
+	float2 uv = uvVT * (float)PassDataCB.scaledVirtualTextureSizeInBytesInPage0Level;
 	float2 dx = ddx(uv);
 	float2 dy = ddy(uv);
-	int mip = clamp(int(0.5 * log2(max(dot(dx, dx), dot(dy, dy))) + 0.5 + PassDataCB.maxPageLevel), 0, PassDataCB.pageLevelBias);
+	int mip = clamp(int(0.5 * log2(max(dot(dx, dx), dot(dy, dy))) + 0.5 + PassDataCB.pageLevelBias), 0, PassDataCB.maxPageLevel);
 
 	// ÊÇ·ñÔ½½ç
-	uint overBound = (uvVT.x > 1.0f || uvVT.y > 1.0f || uvVT.x < 0.0f || uvVT.y < 0.0f) ? 0u : 1u;
+	uint overBound = (uvVT.x > 1.0f || uvVT.y > 1.0f || uvVT.x < 0.0f || uvVT.y < 0.0f) ? 1u : 0u;	
 
 	p2o output;
 	output.terrainFeedback  = uint4(pagePos, mip , overBound);

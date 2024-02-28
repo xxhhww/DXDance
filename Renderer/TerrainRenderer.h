@@ -139,6 +139,9 @@ namespace Renderer {
 
 		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
 
+		inline const auto& GetMaxPageLevel()  const { return mMaxPageLevel; }
+		inline const auto& GetPageLevelBias() const { return mPageLevelBias; }
+
 		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
 
 		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
@@ -182,6 +185,8 @@ namespace Renderer {
 		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledSplatMapHeapAllocator;							// HeapAllocator
 		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledTextureTileRuntimeStates;				// 全Tile运行时状态
 		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledSplatMapHeapAllocationCache;	// HeapAllocatonCache
+		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledSplatMapBackend;
+		D3D12_SUBRESOURCE_TILING mTerrainTiledSplatMapBackendTiling;
 
 		// 实时虚拟纹理后台
 		std::unique_ptr<RuntimeVirtualTextureBackend> mRuntimeVirtualTextureBackend;
@@ -203,6 +208,7 @@ namespace Renderer {
 		HANDLE mRvtRealRectChangedEvent{ NULL };
 		Math::Vector4 mRvtRealRect;
 		uint32_t mMaxPageLevel;
+		uint32_t mPageLevelBias;
 		std::vector<RuntimeVirtualTexturePageTable> mRvtLookupPageTables;
 		Renderer::TextureWrap mRvtLookupPageTableMap;
 

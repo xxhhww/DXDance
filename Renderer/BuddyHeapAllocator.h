@@ -63,6 +63,8 @@ namespace Renderer {
 
 		void DeallocateEx(Allocation* allocation);
 
+		GHL::Heap* GetHeap(uint32_t heapIndex) const { return mHeaps.at(heapIndex).get(); }
+
 	private:
 		void CleanUpPendingDeallocation(uint8_t frameIndex);
 

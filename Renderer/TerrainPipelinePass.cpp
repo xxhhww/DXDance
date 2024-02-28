@@ -380,14 +380,14 @@ namespace Renderer {
 				mTerrainFeedbackPassData.terrainAtlasTileCountPerAxis   = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileCountPerAxis();
 				mTerrainFeedbackPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
 				mTerrainFeedbackPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
-				mTerrainFeedbackPassData.tileCountPerAxisInPage0Level          = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-				mTerrainFeedbackPassData.virtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level / mTerrainSetting.smTerrainFeedbackScale;
-				mTerrainFeedbackPassData.maxPageLevel                          = mTerrainSetting.smRvtMaxPageLevel;
-				mTerrainFeedbackPassData.pageLevelBias                         = mTerrainSetting.smRvtPageLevelBias;
-				mTerrainFeedbackPassData.rvtRealRect                           = mRenderer->GetRvtRealRect();
+				mTerrainFeedbackPassData.tileCountPerAxisInPage0Level                = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+				mTerrainFeedbackPassData.scaledVirtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level / mTerrainSetting.smTerrainFeedbackScale;
+				mTerrainFeedbackPassData.maxPageLevel  = mRenderer->GetMaxPageLevel();
+				mTerrainFeedbackPassData.pageLevelBias = mRenderer->GetPageLevelBias();
+				mTerrainFeedbackPassData.rvtRealRect   = mRenderer->GetRvtRealRect();
 
-				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
-				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
+				memcpy(passDataAlloc.cpuAddress, &mTerrainFeedbackPassData, sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
 
 				IndirectDrawIndexed indirectDrawIndexed{};
 				indirectDrawIndexed.frameDataAddress = resourceStorage->rootConstantsPerFrameAddress;

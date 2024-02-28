@@ -84,7 +84,7 @@ namespace Renderer {
 			uint32_t terrainAtlasTileWidthInPixels;
 			uint32_t terrainPatchVertexCountPerAxis;
 			uint32_t tileCountPerAxisInPage0Level;
-			uint32_t virtualTextureSizeInBytesInPage0Level;
+			uint32_t scaledVirtualTextureSizeInBytesInPage0Level;
 
 			uint32_t maxPageLevel;
 			uint32_t pageLevelBias;
