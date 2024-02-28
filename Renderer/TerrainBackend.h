@@ -80,10 +80,13 @@ namespace Renderer {
 		void CreateGraphicsObject();
 
 		// 处理地形节点请求
-		void ProcessTerrainNodeRequest(std::vector<TerrainNodeRequestTask>& requestTasks, Math::Vector3 cameraPosition);
+		void ProduceTerrainNodeRequest(std::vector<TerrainNodeRequestTask>& requestTasks, Math::Vector3 cameraPosition);
 		
-		// 处理TerrainTiledSplatMap
-		void ProcessTerrainTiledSplatMapRequest(std::vector<TerrainTiledTextureTileRequestTask>& requestTasks, Math::Vector3 cameraPosition, bool useLimit = true);
+		// 生成TerrainTiledSplatMapTileRequest
+		void ProduceTerrainTiledSplatMapTileRequest(std::vector<TerrainTiledTextureTileRequestTask>& requestTasks, Math::Vector3 cameraPosition, bool useLimit = true);
+
+		// 处理TerrainTiledSplatMapTileRequest
+		void ProcessTerrainTiledSplatMapTileRequest(std::vector<TerrainTiledTextureTileRequestTask>& requestTasks);
 
 		// 录制GPU命令
 		void RecordGpuCommand(std::vector<TerrainNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
