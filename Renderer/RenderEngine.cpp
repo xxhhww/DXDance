@@ -5,6 +5,7 @@
 
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/TerrainTextureArray.h"
+#include "Renderer/TerrainTiledTexture.h"
 
 #include "ECS/Entity.h"
 #include "ECS/CLight.h"
@@ -578,6 +579,7 @@ namespace Renderer {
 
 
 				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
+				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetNearTerrainAlbedoArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();

@@ -12,10 +12,12 @@ namespace Renderer {
 	uint32_t TerrainSetting::smMaxLOD = 4;						// pow(2, 4) * 64 = 1024.0f，即 LOD0 1 2 3 4
 	uint32_t TerrainSetting::smPatchCountPerNodePerAxis = 8;	// patch count
 	int32_t  TerrainSetting::smTerrainDataLoadedRange = 4;		// 地形数据加载范围(离摄像机)
-	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 16;		// 一次加载64个地形节点的数据
+	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 16;		// 一次加载16个地形节点的数据
 
-	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25u;	// 地形纹理图集每个轴的Tile个数
-	uint32_t TerrainSetting::smTerrainTiledSplatMapTileCountPerCache = 256u;
+	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25;	// 地形纹理图集每个轴的Tile个数
+	uint32_t TerrainSetting::smTerrainTiledSplatMapTileCountPerCache = 512;
+	int32_t  TerrainSetting::smTerrainTiledTextureDataLoadedRange = 8;			// 128 * 16 = 2048
+	uint32_t TerrainSetting::smTerrainTiledTextureDataLoadedLimit = 16;		// 一次加载16个Tile的数据
 
 	uint32_t TerrainSetting::smTerrainFeedbackScale = 2;		// TerrainFeedback相对于FinalOutput的缩放大小
 	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
@@ -38,9 +40,9 @@ namespace Renderer {
 
 	uint32_t TerrainSetting::smTerrainFeedbackBufferElementCount = (smRvtTileCountPerAxisInPage0Level * smRvtTileCountPerAxisInPage0Level / 2);
 
-	uint32_t TerrainSetting::smRvtDataLoadedLimit = 6u;
+	uint32_t TerrainSetting::smRvtDataLoadedLimit = 6;
 
-	uint32_t TerrainSetting::smRvtRealRectChangedViewDistance = 256u;
+	uint32_t TerrainSetting::smRvtRealRectChangedViewDistance = 256;
 
-	uint32_t TerrainSetting::smWorldMeterSizePerTiledTexture = 8u;
+	uint32_t TerrainSetting::smWorldMeterSizePerTiledTexture = 8;
 }

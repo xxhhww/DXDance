@@ -5,6 +5,7 @@
 #include "Renderer/LinearBufferAllocator.h"
 #include "Renderer/PoolCommandListAllocator.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
+#include "Renderer/TerrainTiledTextureHeapAllocationCache.h"
 
 #include "GHL/DirectStorageQueue.h"
 
@@ -22,6 +23,16 @@ namespace Renderer {
 		int32_t nextTerrainNodeIndex{ -1 };		// 下任地形节点索引
 
 	public:
+	};
+
+	/*
+	* TerrainTiledRequestTask
+	*/
+	struct TerrainTiledTextureTileRequestTask {
+	public:
+		TerrainTiledTextureHeapAllocationCache::Node* cacheNode{ nullptr };	// 代表一个HeapAllocation
+		int32_t prevTileIndex{ -1 };	// 前任Tile索引
+		int32_t nextTileIndex{ -1 };	// 下任Tile索引
 	};
 
 	/*
@@ -50,7 +61,8 @@ namespace Renderer {
 			TerrainSetting& terrainSetting,
 			std::vector<TerrainLodDescriptor>&  terrainLodDescriptors,
 			std::vector<TerrainNodeDescriptor>& terrainNodeDescriptors,
-			std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates);
+			std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates,
+			std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledTextureTileRuntimeStates);
 
 		~TerrainBackend();
 
@@ -69,6 +81,9 @@ namespace Renderer {
 
 		// 处理地形节点请求
 		void ProcessTerrainNodeRequest(std::vector<TerrainNodeRequestTask>& requestTasks, Math::Vector3 cameraPosition);
+		
+		// 处理TerrainTiledSplatMap
+		void ProcessTerrainTiledSplatMapRequest(std::vector<TerrainTiledTextureTileRequestTask>& requestTasks, Math::Vector3 cameraPosition, bool useLimit = true);
 
 		// 录制GPU命令
 		void RecordGpuCommand(std::vector<TerrainNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
@@ -81,6 +96,9 @@ namespace Renderer {
 
 		// 帧完成回调
 		void OnFrameCompleted(uint8_t frameIndex);
+
+		// DSTorage帧完成回调
+		void OnDStorageFrameCompleted(uint8_t frameIndex);
 
 	private:
 		TerrainRenderer* mRenderer{ nullptr };
@@ -97,15 +115,18 @@ namespace Renderer {
 
 		// 地形数据(From TerrainRenderer)
 		TerrainSetting& mTerrainSetting;
-		std::vector<TerrainLodDescriptor>& mTerrainLodDescriptors;		// 地形全LOD内容描述表
+		std::vector<TerrainLodDescriptor>& mTerrainLodDescriptors;			// 地形全LOD内容描述表
 		std::vector<TerrainNodeDescriptor>& mTerrainNodeDescriptors;		// 地形全节点内容描述表
 		std::vector<TerrainNodeRuntimeState>& mTerrainNodeRuntimeStates;	// 地形全节点运行时状态
 
-		std::unique_ptr<GHL::CommandQueue> mBackMappingQueue;
-		std::unique_ptr<GHL::Fence>        mBackMappingFence;
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledTextureTileRuntimeStates;	// Tile全节点运行时状态
 
-		std::unique_ptr<GHL::DirectStorageQueue> mBackDStorageQueue;
-		std::unique_ptr<GHL::Fence>			     mBackDStorageFence;
+		// For TerrainTiledTexutre(SplatMap)
+		std::unique_ptr<GHL::CommandQueue>          mBackMappingQueue;
+		std::unique_ptr<GHL::Fence>                 mBackMappingFence;
+		std::unique_ptr<GHL::DirectStorageQueue>    mBackDStorageQueue;
+		std::unique_ptr<GHL::Fence>			        mBackDStorageFence;
+		std::unique_ptr<Renderer::RingFrameTracker> mBackDStorageFrameTracker;
 
 		std::unique_ptr<GHL::CommandQueue>                  mBackCopyQueue;
 		std::unique_ptr<GHL::Fence>                         mBackCopyFence;
@@ -134,6 +155,8 @@ namespace Renderer {
 		std::vector<std::vector<TerrainNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
 		std::vector<uint32_t> mFrameCompletedFlags;											// 帧完成标记序列
 		inline static uint32_t smFrameCompletedFlag = 2u;									// 帧完成的标记大小
+
+		std::vector<std::vector<TerrainTiledTextureTileRequestTask>> mReservedTerrainTiledTextureTileRequestTasks; // 预留的TiledTextureTile请求任务
 	};
 
 }

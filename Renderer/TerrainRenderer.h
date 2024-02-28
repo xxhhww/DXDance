@@ -78,6 +78,33 @@ namespace Renderer {
 		uint32_t tilePosY;	// 255表示资源未加载
 	};
 
+	struct TerrainTiledTextureTileRuntimeState {
+	public:
+		bool inReady{ false };		// 是否在CPU端分配到一个AtlasNode
+		bool inQueue{ false };		// 是否位于GPU命令提交队列中
+		bool inLoading{ false };	// 是否GPU命令已被提交
+
+		bool inReadyOut{ false };
+		bool inQueueOut{ false };
+		bool inLoadingOut{ false };
+
+		bool inTexture{ false };	// 是否已在纹理图集中
+
+		TerrainTiledTextureHeapAllocationCache::Node* cacheNode{ nullptr };
+
+	public:
+		inline void SetInReady() { inReady = true;  inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+		inline void SetInQueue() { inReady = false; inQueue = true;  inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+		inline void SetInLoading() { inReady = false; inQueue = false; inLoading = true;  inReadyOut = false; inQueueOut = false; inLoadingOut = false; inTexture = false; }
+
+		inline void SetInReadyOut() { inReady = false; inQueue = false; inLoading = false; inReadyOut = true;  inQueueOut = false; inLoadingOut = false; inTexture = true; }
+		inline void SetInQueueOut() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = true;  inLoadingOut = false; inTexture = true; }
+		inline void SetInLoadingOut() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false; inQueueOut = false; inLoadingOut = true;  inTexture = true; }
+
+		inline void SetInTexture() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false;  inQueueOut = false; inLoadingOut = false; inTexture = true; }
+		inline void SetOutTexture() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false;  inQueueOut = false; inLoadingOut = false; inTexture = false; }
+	};
+
 	class TerrainRenderer {
 		friend class TerrainBackend;
 		friend class TerrainTextureAtlas;
@@ -109,6 +136,8 @@ namespace Renderer {
 
 		inline auto* GetNearTerrainRvtAlbedoAtlas() const { return mNearTerrainRvtAlbedoAtlas.get(); }
 		inline auto* GetNearTerrainRvtNormalAtlas() const { return mNearTerrainRvtNormalAtlas.get(); }
+
+		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
 
 		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
 
@@ -149,9 +178,10 @@ namespace Renderer {
 		Renderer::BufferWrap mTerrainLodDescriptorBuffer;	// GPU地形全LOD状态表，只被访问		
 		Renderer::BufferWrap mTerrainNodeDescriptorBuffer;	// GPU地形全节点状态表，被主渲染线程与后台线程(每次应该只更新部分节点)访问，该对象类似于Rvt中的PageTable
 
-		std::unique_ptr<TerrainTiledTexture> mTerrainTiledSplatMap;								// SplatMap
-		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledSplatMapHeapAllocator;
-		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledSplatMapHeapAllocationCache;
+		std::unique_ptr<TerrainTiledTexture> mTerrainTiledSplatMap;											// SplatMap
+		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledSplatMapHeapAllocator;							// HeapAllocator
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledTextureTileRuntimeStates;				// 全Tile运行时状态
+		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledSplatMapHeapAllocationCache;	// HeapAllocatonCache
 
 		// 实时虚拟纹理后台
 		std::unique_ptr<RuntimeVirtualTextureBackend> mRuntimeVirtualTextureBackend;

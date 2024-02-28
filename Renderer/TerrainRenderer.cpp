@@ -73,6 +73,7 @@ namespace Renderer {
 			// TiledSplatMap
 			mTerrainTiledSplatMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledSplatMap.ret");
 			mTerrainTiledSplatMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
+			mTerrainTiledTextureTileRuntimeStates.resize(mTerrainTiledSplatMap->GetReTextureFileFormat().GetFileHeader().tileNums);
 			mTerrainTiledSplatMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache, mTerrainTiledSplatMapHeapAllocator.get(), mTerrainTiledSplatMap->GetReTextureFileFormat().GetFileHeader().tileSlicePitch);
 		}
 
@@ -170,7 +171,7 @@ namespace Renderer {
 		}
 
 		// 地形后台线程，负责资源调度
-		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates);
+		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledTextureTileRuntimeStates);
 
 		// 实时虚拟纹理线程
 		mRuntimeVirtualTextureBackend = std::make_unique<RuntimeVirtualTextureBackend>(this, mTerrainSetting);

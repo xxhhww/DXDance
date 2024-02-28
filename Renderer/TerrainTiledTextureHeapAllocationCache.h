@@ -15,8 +15,7 @@ namespace Renderer {
 		public:
 			BuddyHeapAllocator::Allocation* heapAllocation{ nullptr };
 
-			Math::Int2 prevTilePos{ -1, -1 };
-			Math::Int2 nextTilePos{ -1, -1 };
+			int32_t tileIndex{ -1 };
 
 		public:
 			inline Node(BuddyHeapAllocator::Allocation* allocation) : heapAllocation(allocation) {}

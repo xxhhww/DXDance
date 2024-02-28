@@ -1,6 +1,7 @@
 #include "Renderer/TerrainBackend.h"
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/TerrainTextureArray.h"
+#include "Renderer/TerrainTiledTexture.h"
 #include "Renderer/RenderEngine.h"
 
 #include "Tools/Assert.h"
@@ -26,12 +27,14 @@ namespace Renderer {
 		TerrainSetting& terrainSetting,
 		std::vector<TerrainLodDescriptor>& terrainLodDescriptors,
 		std::vector<TerrainNodeDescriptor>& terrainNodeDescriptors,
-		std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates)
+		std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates,
+		std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledTextureTileRuntimeStates)
 	: mRenderer(renderer)
 	, mTerrainSetting(terrainSetting)
 	, mTerrainLodDescriptors(terrainLodDescriptors)
 	, mTerrainNodeDescriptors(terrainNodeDescriptors) 
-	, mTerrainNodeRuntimeStates(terrainNodeRuntimeStates) {
+	, mTerrainNodeRuntimeStates(terrainNodeRuntimeStates) 
+	, mTerrainTiledTextureTileRuntimeStates(terrainTiledTextureTileRuntimeStates) {
 		mReservedTerrainNodeRequestTasks.resize(smMaxBackFrameCount);
 		mFrameCompletedFlags.resize(smMaxBackFrameCount);
 
@@ -55,12 +58,15 @@ namespace Renderer {
 	void TerrainBackend::Preload() {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* shaderManger = renderEngine->mShaderManger.get();
+		auto* resourceStorage = renderEngine->mPipelineResourceStorage;
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
 
+		const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+
 		auto* terrainTextureAtlasTileCache = mRenderer->mFarTerrainTextureAtlasTileCache.get();
 		
-		// 录入预加载地形数据的命令
+		// 预加载地形纹理数据
 		auto preloadTerrainTextureArray = [&](TerrainTextureArray* terrainTextureArray, GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, GHL::DirectStorageQueue* dstorageQueue, GHL::Fence* dstorageFence) {
 			const auto& reTextureFileFormat = terrainTextureArray->GetReTextureFileFormat();
 			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
@@ -127,7 +133,7 @@ namespace Renderer {
 						dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
 						dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
 						dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)reTextureFileHeader.compressionFormat;
-						dsRequest.Destination.Tiles.Resource = textureArray.Get()->D3DResource();
+						dsRequest.Destination.Tiles.Resource = textureArray->D3DResource();
 						dsRequest.Destination.Tiles.TiledRegionStartCoordinate = tiledRegionStartCoordinates;
 						dsRequest.Destination.Tiles.TileRegionSize = tiledRegionSizes;
 						dsRequest.Source.File.Source = dsFileHandle->GetDStorageFile();
@@ -151,81 +157,89 @@ namespace Renderer {
 		preloadTerrainTextureArray(mRenderer->mNearTerrainAlbedoArray.get(), mBackMappingQueue.get(), mBackMappingFence.get(), mBackDStorageQueue.get(), mBackDStorageFence.get());
 		preloadTerrainTextureArray(mRenderer->mNearTerrainNormalArray.get(), mBackMappingQueue.get(), mBackMappingFence.get(), mBackDStorageQueue.get(), mBackDStorageFence.get());
 
-		/*
-		auto preloadFarTerrainTextureAtlas = [&](TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, GHL::DirectStorageQueue* dstorageQueue) {
-			const auto& reTextureFileFormat = terrainTextureAtlas->GetReTextureFileFormat();
+		// 预加载TerrainTiledSplatMap
+		auto preloadTerrainTiledTexture = [&](TerrainTiledTexture* terrainTiledTexture, GHL::CommandQueue* mappingQueue, GHL::Fence* mappingFence, GHL::DirectStorageQueue* dstorageQueue, GHL::Fence* dstorageFence, Math::Vector4 cameraPosition) {
+			const auto& reTextureFileFormat = terrainTiledTexture->GetReTextureFileFormat();
 			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
 			const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
 
-			auto* dsFileHandle = terrainTextureAtlas->GetDStorageFile();
-			auto& textureAtlas = terrainTextureAtlas->GetTextureAtlas();
+			auto* dsFileHandle = terrainTiledTexture->GetDStorageFile();
+			auto& tiledTexture = terrainTiledTexture->GetTiledTexture();
 
-			// 当前地形节点对应的TileInfo
-			const auto& tileDataInfo = reTileDataInfos.at(requestTask.nextTerrainNodeIndex);
+			std::vector<TerrainTiledTextureTileRequestTask> requestTasks;
+			ProcessTerrainTiledSplatMapRequest(requestTasks, cameraPosition, false);
 
-			// 计算TextureRegion
-			auto* atlasNode = requestTask.atlasNode;
-			D3D12_BOX region{};
-			region.front = 0u;
-			region.back = 1u;	// 描述深度为1
-			region.left = atlasNode->tilePos.x * reTextureFileHeader.tileWidth;
-			region.top = atlasNode->tilePos.y * reTextureFileHeader.tileHeight;
-			region.right = region.left + reTextureFileHeader.tileWidth;
-			region.bottom = region.top + reTextureFileHeader.tileHeight;
+			for (const auto& requestTask : requestTasks) {
+				const auto& tileDataInfo = reTileDataInfos.at(requestTask.nextTileIndex);
+				uint32_t tileCountPerAxis = reTextureFileHeader.imageWidth / reTextureFileHeader.tileWidth;
+				uint32_t tilePosX = requestTask.nextTileIndex % tileCountPerAxis;
+				uint32_t tilePosY = requestTask.nextTileIndex / tileCountPerAxis;
+				uint32_t subresourceIndex = 0u;
+				uint32_t numTiles = 1u;
+				auto* heapAllocation = requestTask.cacheNode->heapAllocation;
 
-			DSTORAGE_REQUEST dsRequest{};
-			dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
-			dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION;
-			dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)reTextureFileHeader.compressionFormat;
-			dsRequest.Destination.Texture.Resource = textureAtlas.Get()->D3DResource();
-			dsRequest.Destination.Texture.Region = region;
-			dsRequest.Source.File.Source = dsFileHandle->GetDStorageFile();
-			dsRequest.Source.File.Offset = tileDataInfo.offset;
-			dsRequest.Source.File.Size = tileDataInfo.numBytes;
-			dsRequest.UncompressedSize = reTextureFileHeader.tileSlicePitch;
+				std::vector<D3D12_TILE_RANGE_FLAGS> rangeFlags(numTiles, D3D12_TILE_RANGE_FLAG_NONE);
+				// if the number of standard (not packed) mips is n, then start updating at subresource n
+				D3D12_TILED_RESOURCE_COORDINATE tiledRegionStartCoordinates{ tilePosX, tilePosY, 0, subresourceIndex };
+				D3D12_TILE_REGION_SIZE tiledRegionSizes{ numTiles, FALSE, 0, 0, 0 };
 
-			dstorageQueue->EnqueueRequest(&dsRequest);
+				// perform packed mip tile mapping on the copy queue
+				mappingQueue->D3DCommandQueue()->UpdateTileMappings(
+					tiledTexture->D3DResource(),
+					numTiles,
+					&tiledRegionStartCoordinates,
+					&tiledRegionSizes,
+					heapAllocation->heap->D3DHeap(),
+					numTiles,
+					rangeFlags.data(),
+					&heapAllocation->tileOffset,
+					nullptr,
+					D3D12_TILE_MAPPING_FLAG_NONE
+				);
+				mappingFence->IncrementExpectedValue();
+				mappingQueue->SignalFence(*mappingFence);
+				mappingFence->Wait();
+
+				// 计算TextureRegion
+				D3D12_BOX region{};
+				region.front = 0u;
+				region.back = 1u;	// 描述深度为1
+				region.left = tilePosX * reTextureFileHeader.tileWidth;
+				region.top = tilePosY * reTextureFileHeader.tileHeight;
+				region.right = region.left + reTextureFileHeader.tileWidth;
+				region.bottom = region.top + reTextureFileHeader.tileHeight;
+
+				DSTORAGE_REQUEST dsRequest{};
+				dsRequest.Options.SourceType = DSTORAGE_REQUEST_SOURCE_FILE;
+				dsRequest.Options.DestinationType = DSTORAGE_REQUEST_DESTINATION_TILES;
+				dsRequest.Options.CompressionFormat = (DSTORAGE_COMPRESSION_FORMAT)reTextureFileHeader.compressionFormat;
+				dsRequest.Destination.Tiles.Resource = tiledTexture->D3DResource();
+				dsRequest.Destination.Tiles.TiledRegionStartCoordinate = tiledRegionStartCoordinates;
+				dsRequest.Destination.Tiles.TileRegionSize = tiledRegionSizes;
+				dsRequest.Source.File.Source = dsFileHandle->GetDStorageFile();
+				dsRequest.Source.File.Offset = tileDataInfo.offset;
+				dsRequest.Source.File.Size = tileDataInfo.numBytes;
+				dsRequest.UncompressedSize = reTextureFileHeader.tileSlicePitch;
+
+				dstorageQueue->EnqueueRequest(&dsRequest);
+			}
+
+			dstorageFence->IncrementExpectedValue();
+			dstorageQueue->EnqueueSignal(*dstorageFence);
+			dstorageQueue->Submit();
+
+			// GPU任务完成后，更新CPU中节点资源驻留状态
+			auto* heapAllocationCache = mRenderer->mTerrainTiledSplatMapHeapAllocationCache.get();
+			for (const auto& requestTask : requestTasks) {
+				auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+				currTileRuntimeState.SetInTexture();
+				currTileRuntimeState.cacheNode = requestTask.cacheNode;
+
+				requestTask.cacheNode->tileIndex = requestTask.nextTileIndex;
+				heapAllocationCache->AddTail(requestTask.cacheNode);
+			}
 		};
-		*/
-
-		/*
-		auto preloadFarTerrainTextureAtlas = [&](TerrainTextureAtlas* terrainTextureAtlas, TerrainNodeRequestTask& requestTask, CommandListWrap& copyCommandList, LinearBufferAllocator* tempLinearBufferAllocator) {
-			const auto& reTextureFileFormat = terrainTextureAtlas->GetReTextureFileFormat();
-			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
-			const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
-			size_t tileRowPitch = GHL::GetFormatStride(((DXGI_FORMAT)reTextureFileHeader.dxgiFormat)) * reTextureFileHeader.tileWidth;
-
-			auto& fileStreamer = terrainTextureAtlas->GetFileStreamer();
-			auto& textureAtlas = terrainTextureAtlas->GetTextureAtlas();
-			auto& fileHandle = terrainTextureAtlas->GetFileHandle();
-
-			// 当前地形节点对应的TileInfo
-			const auto& currTileDataInfo = reTileDataInfos.at(requestTask.nextTerrainNodeIndex);
-
-			// 计算TextureRegion
-			auto* atlasNode = requestTask.atlasNode;
-			D3D12_BOX region{};
-			region.front = 0u;
-			region.back = 1u;	// 描述深度为1
-			region.left = atlasNode->tilePos.x * reTextureFileHeader.tileWidth;
-			region.top = atlasNode->tilePos.y * reTextureFileHeader.tileHeight;
-			region.right = region.left + reTextureFileHeader.tileWidth;
-			region.bottom = region.top + reTextureFileHeader.tileHeight;
-
-			// 将文件数据读取到tempLinearBuffer中
-			auto dyAlloc = tempLinearBufferAllocator->Allocate(currTileDataInfo.numBytes);
-			fileStreamer.seekg(currTileDataInfo.offset, std::ios::beg);
-			fileStreamer.read((char*)dyAlloc.cpuAddress, currTileDataInfo.numBytes);
-
-			// CopyBufferRegion
-			D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout{ dyAlloc.offset,
-				{ (DXGI_FORMAT)reTextureFileHeader.dxgiFormat, reTextureFileHeader.tileWidth, reTextureFileHeader.tileHeight, 1u, tileRowPitch} };
-
-			D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(dyAlloc.backResource, layout);
-			D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(textureAtlas.Get()->D3DResource(), 0u);
-			copyCommandList->D3DCommandList()->CopyTextureRegion(&dstLocation, region.left, region.top, 0, &srcLocation, nullptr);
-		};
-		*/
+		preloadTerrainTiledTexture(mRenderer->mTerrainTiledSplatMap.get(), mBackMappingQueue.get(), mBackMappingFence.get(), mBackDStorageQueue.get(), mBackDStorageFence.get(), resourceStorage->rootConstantsPerFrame.currentEditorCamera.position);
 
 		// 压入新的CopyFrame
 		{
@@ -383,6 +397,9 @@ namespace Renderer {
 				auto cameraPosition = pipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
 				std::vector<TerrainNodeRequestTask> terrainNodeRequestTasks;
 				ProcessTerrainNodeRequest(terrainNodeRequestTasks, cameraPosition);
+
+				std::vector<TerrainTiledTextureTileRequestTask> terrainTiledTextureTileRequestTasks;
+				ProcessTerrainTiledSplatMapRequest(terrainTiledTextureTileRequestTasks, cameraPosition);
 
 				// 当前有节点更新请求
 				if (!terrainNodeRequestTasks.empty()) {
@@ -562,6 +579,99 @@ namespace Renderer {
 		}
 	}
 
+	void TerrainBackend::ProcessTerrainTiledSplatMapRequest(std::vector<TerrainTiledTextureTileRequestTask>& requestTasks, Math::Vector3 cameraPosition, bool useLimit) {
+		auto* terrainTiledSplatMap = mRenderer->mTerrainTiledSplatMap.get();
+		auto* heapAllocatonCache = mRenderer->mTerrainTiledSplatMapHeapAllocationCache.get();
+
+		const auto& reTextureFileFormat = terrainTiledSplatMap->GetReTextureFileFormat();
+		const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
+		const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
+
+		auto GetFixedPos = [](const Math::Vector3& pos, float tileMeterSize, float terrainMeterSize) {
+			// 对pos做偏移
+			Math::Vector3 transformedPos = pos;
+			transformedPos.x = transformedPos.x + terrainMeterSize / 2.0f;
+			transformedPos.y = transformedPos.y;
+			transformedPos.z = -transformedPos.z + terrainMeterSize / 2.0f;
+
+			Math::Int2 fixedPos = Math::Int2{
+				(int32_t)std::floor(transformedPos.x / tileMeterSize + 0.5f) * (int32_t)tileMeterSize,
+				(int32_t)std::floor(transformedPos.z / tileMeterSize + 0.5f) * (int32_t)tileMeterSize
+			};
+
+			return Math::Int2{ fixedPos.x / (int32_t)tileMeterSize, fixedPos.y / (int32_t)tileMeterSize };
+		};
+
+		Math::Int2 fixedPos = GetFixedPos(cameraPosition, (float)reTextureFileHeader.tileWidth, mTerrainSetting.smTerrainMeterSize);
+
+		// 考虑范围为： -smTerrainTiledTextureDataLoadedRange, smTerrainTiledTextureDataLoadedRange 内的地形节点
+		for (int32_t yIndex = -mTerrainSetting.smTerrainTiledTextureDataLoadedRange; yIndex <= mTerrainSetting.smTerrainTiledTextureDataLoadedRange; yIndex++) {
+			for (int32_t xIndex = -mTerrainSetting.smTerrainTiledTextureDataLoadedRange; xIndex <= mTerrainSetting.smTerrainTiledTextureDataLoadedRange; xIndex++) {
+				int32_t currNodeLocationX = fixedPos.x + xIndex;
+				int32_t currNodeLocationY = fixedPos.y + yIndex;
+
+				// 剔除非法边界
+				if (currNodeLocationX < 0 || currNodeLocationX > ((reTextureFileHeader.imageWidth / reTextureFileHeader.tileWidth) - 1)) {
+					continue;
+				}
+				if (currNodeLocationY < 0 || currNodeLocationY > ((reTextureFileHeader.imageWidth / reTextureFileHeader.tileWidth) - 1)) {
+					continue;
+				}
+
+				// 计算出当前节点的全局索引
+				uint32_t tileCountPerRow = reTextureFileHeader.imageWidth / reTextureFileHeader.tileWidth;
+				uint32_t currTileIndex = currNodeLocationY * tileCountPerRow + currNodeLocationX;
+
+				// 获取该节点的实时状态
+				auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(currTileIndex);
+
+				if (currTileRuntimeState.inReady || currTileRuntimeState.inQueue || currTileRuntimeState.inLoading) {
+					// 该节点对应的资源正在加载
+					continue;
+				}
+				// 该节点对应的资源已在图集上
+				else if (!currTileRuntimeState.inReadyOut && !currTileRuntimeState.inQueueOut && !currTileRuntimeState.inLoadingOut && currTileRuntimeState.inTexture) {
+					heapAllocatonCache->Remove(currTileRuntimeState.cacheNode);
+					heapAllocatonCache->AddTail(currTileRuntimeState.cacheNode);
+				}
+				else {
+					// 创建对应的Tile请求任务(但不分配HeapAllocation)
+					TerrainTiledTextureTileRequestTask requestTask{};
+					requestTask.nextTileIndex = currTileIndex;
+					requestTasks.push_back(requestTask);
+				}
+			}
+		}
+
+		// 保留一定数量的请求任务，一次只加载smTerrainDataLoadedLimit个地形节点的数据
+		if (requestTasks.size() > mTerrainSetting.smTerrainTiledTextureDataLoadedLimit && useLimit) {
+			requestTasks.resize(mTerrainSetting.smTerrainTiledTextureDataLoadedLimit);
+		}
+
+		// 为剩余请求任务申请atlasNode，并更新节点的实时状态
+		for (auto& requestTask : requestTasks) {
+			auto* cacheNode = heapAllocatonCache->GetHead();
+			heapAllocatonCache->Remove(cacheNode);
+
+			// 如果该atlasNode已经负载了一个地形节点的资源，做记录
+			if (cacheNode->tileIndex != -1) {
+				requestTask.prevTileIndex = cacheNode->tileIndex;
+			}
+			// 使用的atlasNode没有负载地形节点
+			else {
+				requestTask.prevTileIndex = -1;
+			}
+			requestTask.cacheNode = cacheNode;
+
+			auto& currNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+			currNodeRuntimeState.SetInReady();
+			if (requestTask.prevTileIndex != -1) {
+				auto& prevNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.prevTileIndex);
+				prevNodeRuntimeState.SetInReadyOut();
+			}
+		}
+	}
+
 	void TerrainBackend::RecordGpuCommand(std::vector<TerrainNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* shaderManger = renderEngine->mShaderManger.get();
@@ -716,6 +826,28 @@ namespace Renderer {
 		}
 	}
 
+	void TerrainBackend::OnDStorageFrameCompleted(uint8_t frameIndex) {
+		auto* heapAllocationCache = mRenderer->mTerrainTiledSplatMapHeapAllocationCache.get();
+
+		auto& reservedRequestTasks = mReservedTerrainTiledTextureTileRequestTasks.at(frameIndex);
+		for (auto& requestTask : reservedRequestTasks) {
+			// 更新节点实时状态
+			auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+			currTileRuntimeState.SetInTexture();
+			currTileRuntimeState.cacheNode = requestTask.cacheNode;
+			if (requestTask.prevTileIndex != -1) {
+				auto& prevNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.prevTileIndex);
+				prevNodeRuntimeState.SetOutTexture();
+				prevNodeRuntimeState.cacheNode = nullptr;
+			}
+
+			// 更新AtlasNode负载
+			requestTask.cacheNode->tileIndex = requestTask.nextTileIndex;
+			heapAllocationCache->AddTail(requestTask.cacheNode);
+		}
+		reservedRequestTasks.clear();
+	}
+
 	void TerrainBackend::CreateGraphicsObject() {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* device = renderEngine->mDevice.get();
@@ -731,6 +863,7 @@ namespace Renderer {
 			mBackDStorageQueue = std::make_unique<GHL::DirectStorageQueue>(device, dstorageFactory, DSTORAGE_REQUEST_SOURCE_FILE);
 			mBackDStorageFence = std::make_unique<GHL::Fence>(device);
 			mBackDStorageFence->SetDebugName("TerrainBackend_DStorageFence");
+			mBackDStorageFrameTracker = std::make_unique<Renderer::RingFrameTracker>(smMaxBackFrameCount);
 		}
 
 		// 创建图形API对象并设置回调函数
@@ -794,6 +927,10 @@ namespace Renderer {
 			});
 		mBackComputeFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
 			this->OnFrameCompleted(attribute.frameIndex);
+			});
+
+		mBackDStorageFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
+			this->OnDStorageFrameCompleted(attribute.frameIndex);
 			});
 	}
 
