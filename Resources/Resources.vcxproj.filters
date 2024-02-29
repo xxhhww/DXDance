@@ -111,7 +111,7 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainFeedbackRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainFeedbackDownScale.hlsl" />
-    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVirtualTextureLookupPageTableUpdater.hlsl" />
-    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVirtualTextureAtlasUpdater.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableUpdater.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTAtlasUpdater.hlsl" />
   </ItemGroup>
 </Project>

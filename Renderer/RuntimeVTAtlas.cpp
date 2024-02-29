@@ -1,10 +1,10 @@
-#include "Renderer/RuntimeVirtualTextureAtlas.h"
+#include "Renderer/RuntimeVTAtlas.h"
 #include "Renderer/TerrainRenderer.h"
 #include "Renderer/RenderEngine.h"
 
 namespace Renderer {
 
-	RuntimeVirtualTextureAtlas::RuntimeVirtualTextureAtlas(TerrainRenderer* terrainRenderer, DXGI_FORMAT dxgiFormat, const std::string& name)
+	RuntimeVTAtlas::RuntimeVTAtlas(TerrainRenderer* terrainRenderer, DXGI_FORMAT dxgiFormat, const std::string& name)
 	: mRenderer(terrainRenderer) 
 	, mDxgiFormat(dxgiFormat)
 	, mTileSizeNoPadding(mRenderer->mTerrainSetting.smRvtTileSizeNoPadding)

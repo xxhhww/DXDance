@@ -1,9 +1,9 @@
 #pragma once
-#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVTAtlasTileCache.h"
 
 namespace Renderer {
 
-	struct RuntimeVirtualTexturePageTableNodeRuntimeState {
+	struct RuntimeVTPageTableNodeRuntimeState {
 	public:
 		bool tempFlag{ false };
 
@@ -17,7 +17,7 @@ namespace Renderer {
 
 		bool inTexture{ false };	// 在纹理图集中
 
-		RuntimeVirtualTextureAtlasTileCache::Node* atlasNode{ nullptr };
+		RuntimeVTAtlasTileCache::Node* atlasNode{ nullptr };
 
 		uint32_t pageLevel;
 
@@ -36,17 +36,17 @@ namespace Renderer {
 		inline void SetOutTexture() { inReady = false; inQueue = false; inLoading = false; inReadyOut = false;  inQueueOut = false; inLoadingOut = false; inTexture = false; }
 	};
 
-	class RuntimeVirtualTexturePageTable {
+	class RuntimeVTPageTable {
 	public:
-		RuntimeVirtualTexturePageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level);
-		~RuntimeVirtualTexturePageTable() = default;
+		RuntimeVTPageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level);
+		~RuntimeVTPageTable() = default;
 
 		inline auto& GetNodeRuntimeState(uint32_t pagePosX, uint32_t pagePosY) { return mNodeRuntimeStates[pagePosX][pagePosY]; }
 
 	private:
 		uint32_t mPageLevel;
 		uint32_t mNodeCountPerAxis;
-		std::vector<std::vector<RuntimeVirtualTexturePageTableNodeRuntimeState>> mNodeRuntimeStates;
+		std::vector<std::vector<RuntimeVTPageTableNodeRuntimeState>> mNodeRuntimeStates;
 	};
 
 }

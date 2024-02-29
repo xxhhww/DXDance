@@ -3,8 +3,8 @@
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
 #include "Renderer/TerrainTiledTextureHeapAllocationCache.h"
-#include "Renderer/RuntimeVirtualTexturePageTable.h"
-#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVTPageTable.h"
+#include "Renderer/RuntimeVTAtlasTileCache.h"
 
 #include "GHL/Fence.h"
 #include "GHL/CommandQueue.h"
@@ -29,8 +29,8 @@ namespace Renderer {
 	class TerrainBackend;
 	class TerrainPipelinePass;
 
-	class RuntimeVirtualTextureBackend;
-	class RuntimeVirtualTextureAtlas;
+	class RuntimeVTBackend;
+	class RuntimeVTAtlas;
 
 	struct TerrainLodDescriptor {
 	public:
@@ -112,8 +112,8 @@ namespace Renderer {
 		friend class TerrainTiledTexture;
 		friend class TerrainPipelinePass;
 
-		friend class RuntimeVirtualTextureBackend;
-		friend class RuntimeVirtualTextureAtlas;
+		friend class RuntimeVTBackend;
+		friend class RuntimeVTAtlas;
 
 	public:
 		TerrainRenderer(RenderEngine* renderEngine);
@@ -158,6 +158,9 @@ namespace Renderer {
 
 		TerrainSetting mTerrainSetting;
 
+		std::unique_ptr<GHL::CommandQueue> mTempMappingQueue;
+		std::unique_ptr<GHL::Fence>        mTempMappingFence;
+
 		std::vector<TerrainLodDescriptor>    mTerrainLodDescriptors;		// 地形全LOD内容描述表
 		std::vector<TerrainNodeDescriptor>   mTerrainNodeDescriptors;		// 地形全节点内容描述表
 		std::vector<TerrainNodeRuntimeState> mTerrainNodeRuntimeStates;		// 地形全节点运行时状态
@@ -189,7 +192,7 @@ namespace Renderer {
 		D3D12_SUBRESOURCE_TILING mTerrainTiledSplatMapBackendTiling;
 
 		// 实时虚拟纹理后台
-		std::unique_ptr<RuntimeVirtualTextureBackend> mRuntimeVirtualTextureBackend;
+		std::unique_ptr<RuntimeVTBackend> mRuntimeVTBackend;
 
 		// TerrainFeedback & TerrainFeedbackReadback
 		Renderer::TextureWrap mTerrainFeedbackMap;
@@ -209,13 +212,13 @@ namespace Renderer {
 		Math::Vector4 mRvtRealRect;
 		uint32_t mMaxPageLevel;
 		uint32_t mPageLevelBias;
-		std::vector<RuntimeVirtualTexturePageTable> mRvtLookupPageTables;
+		std::vector<RuntimeVTPageTable> mRvtLookupPageTables;
 		Renderer::TextureWrap mRvtLookupPageTableMap;
 
 		// 适用于近距离渲染的实时虚拟纹理图集
-		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtAlbedoAtlas;
-		std::unique_ptr<RuntimeVirtualTextureAtlas> mNearTerrainRvtNormalAtlas;
-		std::unique_ptr<RuntimeVirtualTextureAtlasTileCache> mNearTerrainRuntimeVirtualTextureAtlasTileCache;
+		std::unique_ptr<RuntimeVTAtlas> mNearTerrainRvtAlbedoAtlas;
+		std::unique_ptr<RuntimeVTAtlas> mNearTerrainRvtNormalAtlas;
+		std::unique_ptr<RuntimeVTAtlasTileCache> mNearTerrainRuntimeVTAtlasTileCache;
 	};
 
 }

@@ -5,8 +5,8 @@
 #include "Renderer/TerrainTiledTexture.h"
 #include "Renderer/TerrainTextureAtlas.h"
 #include "Renderer/TerrainTextureAtlasTileCache.h"
-#include "Renderer/RuntimeVirtualTextureBackend.h"
-#include "Renderer/RuntimeVirtualTextureAtlas.h"
+#include "Renderer/RuntimeVTBackend.h"
+#include "Renderer/RuntimeVTAtlas.h"
 #include "Renderer/RenderEngine.h"
 
 #include "Tools/MemoryStream.h"
@@ -35,13 +35,18 @@ namespace Renderer {
 		auto* descriptorAllocator = mRenderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = mRenderEngine->mResourceStateTracker.get();
 
-		auto* commandQueue = mRenderEngine->mGraphicsQueue.get();
-		auto* commandFence = mRenderEngine->mRenderFrameFence.get();
-
 		auto& finalOutputDesc = resourceStorage->GetResourceByName("FinalOutput")->GetTexture()->GetResourceFormat().GetTextureDesc();
 
 
 		std::string dirname = "E:/TerrainOfflineTask/001/Runtime/";
+
+		// 创建TempMappingQueue
+		{
+			mTempMappingQueue = std::make_unique<GHL::CopyQueue>(device);
+			mTempMappingQueue->SetDebugName("TerrainRenderer_TempMappingQueue");
+			mTempMappingFence = std::make_unique<GHL::Fence>(device);
+			mTempMappingFence->SetDebugName("TerrainRenderer_TempMappingFence");
+		}
 
 		// 读取地形数据
 		{
@@ -115,7 +120,7 @@ namespace Renderer {
 			std::vector<D3D12_TILE_RANGE_FLAGS>rangeFlags(numRanges, D3D12_TILE_RANGE_FLAG_NONE);
 			std::vector<UINT> rangeTileCounts(numRanges, numAtlasTiles);
 
-			commandQueue->D3DCommandQueue()->UpdateTileMappings(
+			mTempMappingQueue->D3DCommandQueue()->UpdateTileMappings(
 				mTerrainTiledSplatMapBackend.Get(),
 				numResourceRegions,
 				&resourceRegionStartCoordinates,
@@ -127,11 +132,9 @@ namespace Renderer {
 				rangeTileCounts.data(),
 				D3D12_TILE_MAPPING_FLAG_NONE
 			);
-			commandFence->IncrementExpectedValue();
-			commandQueue->SignalFence(*commandFence);
-			commandFence->Wait();
-
-			int32_t i = 0;
+			mTempMappingFence->IncrementExpectedValue();
+			mTempMappingQueue->SignalFence(*mTempMappingFence.get());
+			mTempMappingFence->Wait();
 		}
 
 		// 创建并初始化GPU对象
@@ -223,16 +226,16 @@ namespace Renderer {
 			renderGraph->ImportResource("RvtLookupPageTableMap", mRvtLookupPageTableMap);
 			resourceStateTracker->StartTracking(mRvtLookupPageTableMap);
 
-			mNearTerrainRvtAlbedoAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
-			mNearTerrainRvtNormalAtlas = std::make_unique<Renderer::RuntimeVirtualTextureAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
-			mNearTerrainRuntimeVirtualTextureAtlasTileCache = std::make_unique<Renderer::RuntimeVirtualTextureAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
+			mNearTerrainRvtAlbedoAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
+			mNearTerrainRvtNormalAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
+			mNearTerrainRuntimeVTAtlasTileCache = std::make_unique<Renderer::RuntimeVTAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
 		}
 
 		// 地形后台线程，负责资源调度
 		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledTextureTileRuntimeStates);
 
 		// 实时虚拟纹理线程
-		mRuntimeVirtualTextureBackend = std::make_unique<RuntimeVirtualTextureBackend>(this, mTerrainSetting);
+		mRuntimeVTBackend = std::make_unique<RuntimeVTBackend>(this, mTerrainSetting);
 
 		mTerrainPipelinePass = std::make_unique<TerrainPipelinePass>(this);
 	}

@@ -375,19 +375,19 @@
     <ClInclude Include="Misc.h">
       <Filter>头文件\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVirtualTextureBackend.h">
+    <ClInclude Include="RuntimeVTBackend.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVirtualTextureAtlas.h">
+    <ClInclude Include="RuntimeVTAtlas.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVirtualTextureAtlasTileCache.h">
+    <ClInclude Include="RuntimeVTAtlasTileCache.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVirtualTexturePageTable.h">
+    <ClInclude Include="RuntimeVTPageTable.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVirtualTextureValidRect.h">
+    <ClInclude Include="RuntimeVTValidRect.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
     <ClInclude Include="TerrainTiledTexture.h">
@@ -653,19 +653,19 @@
     <ClCompile Include="Misc.cpp">
       <Filter>源文件\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeVirtualTextureBackend.cpp">
+    <ClCompile Include="RuntimeVTBackend.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeVirtualTextureAtlas.cpp">
+    <ClCompile Include="RuntimeVTAtlas.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeVirtualTextureAtlasTileCache.cpp">
+    <ClCompile Include="RuntimeVTAtlasTileCache.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeVirtualTexturePageTable.cpp">
+    <ClCompile Include="RuntimeVTPageTable.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="RuntimeVirtualTextureValidRect.cpp">
+    <ClCompile Include="RuntimeVTValidRect.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
     <ClCompile Include="TerrainTiledTexture.cpp">

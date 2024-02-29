@@ -10,8 +10,8 @@ struct PassData {
 
 	uint  nodeDescriptorListIndex;
 	uint  lodDescriptorListIndex;
-	uint  terrainAlbedoTextureArrayIndex;
-	uint  terrainNormalTextureArrayIndex;
+	uint  runtimeVTAlbedoAtlasIndex;
+	uint  runtimeVTNormalAtlasIndex;
 
 	uint  terrainHeightMapAtlasIndex;
 	uint  terrainAlbedoMapAtlasIndex;
@@ -165,7 +165,12 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 p2o PSMain(v2p input) {
+	Texture2D runtimeVTAlbedoAtlas = ResourceDescriptorHeap[PassDataCB.runtimeVTAlbedoAtlasIndex];
+	Texture2D runtimeVTNormalAtlas = ResourceDescriptorHeap[PassDataCB.runtimeVTNormalAtlasIndex];
+
 	float3 currLodColor = GetLODColor(input.nodeLod);
+	float3 runtimeVTColor = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
+	currLodColor = runtimeVTColor * 0.01f + currLodColor;
 
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;

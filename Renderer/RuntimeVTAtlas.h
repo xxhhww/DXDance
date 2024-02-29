@@ -5,10 +5,10 @@ namespace Renderer {
 
 	class TerrainRenderer;
 
-	class RuntimeVirtualTextureAtlas {
+	class RuntimeVTAtlas {
 	public:
-		RuntimeVirtualTextureAtlas(TerrainRenderer* terrainRenderer, DXGI_FORMAT dxgiFormat, const std::string& name);
-		~RuntimeVirtualTextureAtlas() = default;
+		RuntimeVTAtlas(TerrainRenderer* terrainRenderer, DXGI_FORMAT dxgiFormat, const std::string& name);
+		~RuntimeVTAtlas() = default;
 
 		inline const auto& GetTileSizeNoPadding()   const { return mTileSizeNoPadding; }
 		inline const auto& GetPaddingSize()         const { return mPaddingSize; }

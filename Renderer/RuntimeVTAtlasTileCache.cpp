@@ -1,8 +1,8 @@
-#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVTAtlasTileCache.h"
 
 namespace Renderer {
 
-	RuntimeVirtualTextureAtlasTileCache::RuntimeVirtualTextureAtlasTileCache(int32_t tileCountPerAxis) {
+	RuntimeVTAtlasTileCache::RuntimeVTAtlasTileCache(int32_t tileCountPerAxis) {
 		int32_t cacheCount = tileCountPerAxis * tileCountPerAxis;
 
 		mNodes.resize(cacheCount);
@@ -18,7 +18,7 @@ namespace Renderer {
 		mTail = mNodes[cacheCount - 1];
 	}
 
-	RuntimeVirtualTextureAtlasTileCache::~RuntimeVirtualTextureAtlasTileCache() {
+	RuntimeVTAtlasTileCache::~RuntimeVTAtlasTileCache() {
 		for (uint32_t i = 0; i < mNodes.size(); i++) {
 			delete mNodes[i];
 		}
@@ -26,7 +26,7 @@ namespace Renderer {
 		mNodes.clear();
 	}
 
-	void RuntimeVirtualTextureAtlasTileCache::AddTail(RuntimeVirtualTextureAtlasTileCache::Node* node) {
+	void RuntimeVTAtlasTileCache::AddTail(RuntimeVTAtlasTileCache::Node* node) {
 		if (node == mTail) {
 			return;
 		}
@@ -43,7 +43,7 @@ namespace Renderer {
 		}
 	}
 
-	void RuntimeVirtualTextureAtlasTileCache::AddHead(RuntimeVirtualTextureAtlasTileCache::Node* node) {
+	void RuntimeVTAtlasTileCache::AddHead(RuntimeVTAtlasTileCache::Node* node) {
 		if (node == mHead) {
 			return;
 		}
@@ -60,7 +60,7 @@ namespace Renderer {
 		}
 	}
 
-	void RuntimeVirtualTextureAtlasTileCache::Remove(RuntimeVirtualTextureAtlasTileCache::Node* node) {
+	void RuntimeVTAtlasTileCache::Remove(RuntimeVTAtlasTileCache::Node* node) {
 		if (mHead == node) {
 			mHead = node->next;
 

@@ -4,8 +4,8 @@
 #include "Renderer/ResourceStateTracker.h"
 #include "Renderer/LinearBufferAllocator.h"
 #include "Renderer/PoolCommandListAllocator.h"
-#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
-#include "Renderer/RuntimeVirtualTexturePageTable.h"
+#include "Renderer/RuntimeVTAtlasTileCache.h"
+#include "Renderer/RuntimeVTPageTable.h"
 
 #include "Tools/ConcurrentQueue.h"
 
@@ -14,9 +14,9 @@ namespace Renderer {
 	/*
 	* 实时虚拟纹理调度请求
 	*/
-	struct RuntimeVirtualTextureNodeRequestTask {
+	struct RuntimeVTNodeRequestTask {
 	public:
-		RuntimeVirtualTextureAtlasTileCache::Node* atlasNode{ nullptr };	// 一个图集元素
+		RuntimeVTAtlasTileCache::Node* atlasNode{ nullptr };	// 一个图集元素
 
 		// 前一任
 		Math::Int2 prevPagePos{ -1, -1 };
@@ -27,7 +27,7 @@ namespace Renderer {
 		int32_t    nextPageLevel{ -1 };
 	};
 
-	class RuntimeVirtualTextureBackend {
+	class RuntimeVTBackend {
 	public:
 		struct RecordedGpuCommand {
 		public:
@@ -42,22 +42,26 @@ namespace Renderer {
 		};
 
 	public:
-		RuntimeVirtualTextureBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting);
+		RuntimeVTBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting);
 
-		~RuntimeVirtualTextureBackend();
+		~RuntimeVTBackend();
 
 		// 预加载
 		void Preload();
+
+		void OnFrameLoading(uint32_t frameIndex);
+
+		auto& GetRecordedGpuCommands() { return mRecordedGpuCommands; }
 
 	private:
 		// 后台线程
 		void BackendThread();
 
 		// 处理Feedback
-		void ProcessTerrainFeedback(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, uint32_t completedFenceValue);
+		void ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue);
 
 		// 录制GPU命令
-		void RecordGpuCommand(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
+		void RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
 
 		// 创建图形对象
 		void CreateGraphicsObject();
@@ -72,8 +76,8 @@ namespace Renderer {
 		TerrainRenderer* mRenderer{ nullptr };
 
 		// 着色器程序名称
-		inline static std::string smUpdateRuntimeVirtualTextureAtlasSN = "UpdateRuntimeVirtualTextureAtlas";
-		inline static std::string smUpdateLookupPageTableMapSN = "UpdateLookupPageTableMap";
+		inline static std::string smUpdateRuntimeVTAtlasSN = "UpdateRuntimeVTAtlas";
+		inline static std::string smUpdateRuntimeVTPageTableSN = "UpdateRuntimeVTPageTable";
 		inline static uint32_t smMaxRvtFrameCount = 3u;
 
 		// 线程同步变量
@@ -83,7 +87,7 @@ namespace Renderer {
 
 		// 地形数据(From TerrainRenderer)
 		TerrainSetting& mTerrainSetting;
-		std::vector<RuntimeVirtualTexturePageTable>& mRvtPageTables;
+		std::vector<RuntimeVTPageTable>& mRvtPageTables;
 
 		std::unique_ptr<Renderer::BuddyHeapAllocator> mTerrainTiledSplatMapHeapAllocator;
 
@@ -101,7 +105,7 @@ namespace Renderer {
 		BufferWrap mQuadMeshIndexBuffer;
 		uint32_t   mQuadMeshIndexCount;
 
-		struct UpdateRuntimeVirtualTextureAtlasPassData {
+		struct UpdateRuntimeVTAtlasPassData {
 		public:
 			uint32_t drawRequestBufferIndex;
 			uint32_t terrainSplatMapIndex;
@@ -113,8 +117,8 @@ namespace Renderer {
 			float    pad2;
 			float    pad3;
 		};
-		UpdateRuntimeVirtualTextureAtlasPassData mUpdateRuntimeVirtualTextureAtlasPassData;
-		BufferWrap mUpdateRuntimeVirtualTextureAtlasRequestBuffer;
+		UpdateRuntimeVTAtlasPassData mUpdateRuntimeVTAtlasPassData;
+		BufferWrap mUpdateRuntimeVTAtlasRequestBuffer;
 
 		struct UpdateLookupPageTablePassData {
 		public:
@@ -125,7 +129,7 @@ namespace Renderer {
 
 		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;										// 该队列由BackThread和MainThread共同访问
 
-		std::vector<std::vector<RuntimeVirtualTextureNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
+		std::vector<std::vector<RuntimeVTNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
 
 	};
 

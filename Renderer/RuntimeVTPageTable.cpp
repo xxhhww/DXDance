@@ -1,8 +1,8 @@
-#include "Renderer/RuntimeVirtualTexturePageTable.h"
+#include "Renderer/RuntimeVTPageTable.h"
 
 namespace Renderer {
 
-	RuntimeVirtualTexturePageTable::RuntimeVirtualTexturePageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level)
+	RuntimeVTPageTable::RuntimeVTPageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level)
 	: mPageLevel(pageLevel) 
 	, mNodeCountPerAxis(tableSizeInPage0Level / std::pow(2, pageLevel)) {
 		mNodeRuntimeStates.resize(mNodeCountPerAxis);

@@ -1,6 +1,6 @@
-#include "Renderer/RuntimeVirtualTextureBackend.h"
-#include "Renderer/RuntimeVirtualTextureAtlas.h"
-#include "Renderer/RuntimeVirtualTextureAtlasTileCache.h"
+#include "Renderer/RuntimeVTBackend.h"
+#include "Renderer/RuntimeVTAtlas.h"
+#include "Renderer/RuntimeVTAtlasTileCache.h"
 #include "Renderer/TerrainTextureArray.h"
 #include "Renderer/TerrainTiledTexture.h"
 #include "Renderer/RenderEngine.h"
@@ -10,7 +10,7 @@
 
 namespace Renderer {
 
-	struct GpuUpdateRuntimeVirtualTextureAtlasRequest {
+	struct GpuUpdateRuntimeVTAtlasRequest {
 	public:
 		Math::Matrix4 mvpMatrix;
 		Math::Vector4 tileOffset;
@@ -27,10 +27,11 @@ namespace Renderer {
 		Math::Matrix4 mvpMatrix;	// 转换到图片空间中的矩阵
 	};
 
-	RuntimeVirtualTextureBackend::RuntimeVirtualTextureBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting)
+	RuntimeVTBackend::RuntimeVTBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting)
 	: mRenderer(renderer)
 	, mTerrainSetting(terrainSetting) 
 	, mRvtPageTables(mRenderer->mRvtLookupPageTables) {
+		mReservedTerrainNodeRequestTasks.resize(smMaxRvtFrameCount);
 
 		CreateGraphicsObject();
 
@@ -41,17 +42,29 @@ namespace Renderer {
 		);
 	}
 
-	RuntimeVirtualTextureBackend::~RuntimeVirtualTextureBackend() {
+	RuntimeVTBackend::~RuntimeVTBackend() {
 		mThreadRunning = false;
 	}
 
-	void RuntimeVirtualTextureBackend::Preload() {
+	void RuntimeVTBackend::Preload() {
 
 	}
 
-	void RuntimeVirtualTextureBackend::BackendThread() {
-		return;
+	void RuntimeVTBackend::OnFrameLoading(uint32_t frameIndex) {
+		auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
 
+		for (auto& requestTask : reservedRequestTasks) {
+			// 更新节点实时状态
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			currNodeRuntimeState.SetInLoading();
+			if (requestTask.prevPageLevel != -1) {
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				prevNodeRuntimeState.SetInLoadingOut();
+			}
+		}
+	}
+
+	void RuntimeVTBackend::BackendThread() {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* mainRenderFrameFence = renderEngine->mRenderFrameFence.get();
 		uint64_t previousMainFrameFenceValue = 0u;
@@ -63,7 +76,7 @@ namespace Renderer {
 			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
 				previousMainFrameFenceValue = currentMainFrameFenceValue;
 
-				std::vector<RuntimeVirtualTextureNodeRequestTask> rvtNodeRequestTasks;
+				std::vector<RuntimeVTNodeRequestTask> rvtNodeRequestTasks;
 				ProcessTerrainFeedback(rvtNodeRequestTasks, currentMainFrameFenceValue);
 
 				if (!rvtNodeRequestTasks.empty()) {
@@ -73,10 +86,15 @@ namespace Renderer {
 
 					// 记录当前帧对应的Gpu命令
 					RecordedGpuCommand recordedGpuCommand{};
+					recordedGpuCommand.graphicsFence = mRvtGraphicsFence.get();
+					recordedGpuCommand.graphicsQueue = mRvtGraphicsQueue.get();
+					recordedGpuCommand.graphicsFenceExpectedValue = currFrameFenceExpectedValue;
+					recordedGpuCommand.frameIndex = mRvtFrameTracker->GetCurrFrameIndex();
+					recordedGpuCommand.updateRuntimeVTPageTableCommandList = nullptr;
+					recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList = nullptr;
 
 					// 根据当前请求任务录制GPU命令
 					RecordGpuCommand(rvtNodeRequestTasks, recordedGpuCommand);
-
 					// 预留请求任务，以便后续帧完成后的回调处理(mBackComputeFrameTracker->GetFrameIndex()理论上也可以)
 					mReservedTerrainNodeRequestTasks.at(mRvtFrameTracker->GetCurrFrameIndex()).insert(mReservedTerrainNodeRequestTasks.at(mRvtFrameTracker->GetCurrFrameIndex()).end(), rvtNodeRequestTasks.begin(), rvtNodeRequestTasks.end());
 
@@ -111,10 +129,10 @@ namespace Renderer {
 		}
 	}
 
-	void RuntimeVirtualTextureBackend::ProcessTerrainFeedback(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, uint32_t completedFenceValue) {
+	void RuntimeVTBackend::ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue) {
 		auto& queuedFeedbackReadbacks = mRenderer->mQueuedFeedbackReadbacks;
 		auto& terrainFeedbackReadbackBuffers = mRenderer->mTerrainFeedbackReadbackBuffers;
-
+		
 		// 寻找最新鲜的Feedback
 		bool feedbackFound = false;
 		uint64_t latestFeedbackFenceValue = 0;
@@ -148,7 +166,7 @@ namespace Renderer {
 		uint32_t rowByteSize = (width * GHL::GetFormatStride(feedbackMapDesc.format) + 0x0ff) & ~0x0ff;
 		rowByteSize /= (sizeof(uint16_t) / sizeof(uint8_t));
 
-		auto* tileCache = mRenderer->mNearTerrainRuntimeVirtualTextureAtlasTileCache.get();
+		auto* tileCache = mRenderer->mNearTerrainRuntimeVTAtlasTileCache.get();
 
 		for (uint32_t y = 0u; y < height; y++) {
 			for (uint32_t x = 0u; x < rowByteSize;) {
@@ -160,8 +178,17 @@ namespace Renderer {
 
 				if (overBound == 0u) { continue; }
 
+				// 将Page0Pos转换到当前Level下的PagePos
+				int32_t perSize = (int32_t)std::pow(2, pageLevel);
+				int32_t pagePosX = page0PosX / perSize;
+				int32_t pagePosY = page0PosY / perSize;
+
+				if (pageLevel < 8) {
+					int32_t i = 0;
+				}
+
 				// 填充请求队列(注意剔除重复目标)
-				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeState(page0PosX, page0PosY);
+				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeState((uint32_t)pagePosX, (uint32_t)pagePosY);
 
 				if (currNodeRuntimeState.inReady || currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading || currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
@@ -174,11 +201,10 @@ namespace Renderer {
 				}
 				else {
 					// 创建对应的地形请求任务(但不分配图集元素)
-					int32_t perSize = (int32_t)std::pow(2, pageLevel);
-					RuntimeVirtualTextureNodeRequestTask requestTask{};
-					requestTask.nextPageLevel = pageLevel;
-					requestTask.nextPagePos.x = page0PosX - page0PosX % perSize;
-					requestTask.nextPagePos.y = page0PosY - page0PosY % perSize;
+					RuntimeVTNodeRequestTask requestTask{};
+					requestTask.nextPageLevel = (int32_t)pageLevel;
+					requestTask.nextPagePos.x = pagePosX;
+					requestTask.nextPagePos.y = pagePosY;
 					requestTasks.push_back(requestTask);
 
 					// 剔除重复requestTask
@@ -197,10 +223,10 @@ namespace Renderer {
 			currNodeRuntimeState.SetTempFlag(false);
 		}
 
-		// 安装pageLevel从大到小对请求队列进行排序
+		// 按照pageLevel从大到小对请求队列进行排序
 		std::sort(requestTasks.begin(), requestTasks.end(),
-			[](const RuntimeVirtualTextureNodeRequestTask& taskA, const RuntimeVirtualTextureNodeRequestTask& taskB) {
-				return taskA.nextPageLevel < taskB.nextPageLevel;
+			[](const RuntimeVTNodeRequestTask& taskA, const RuntimeVTNodeRequestTask& taskB) {
+				return taskA.nextPageLevel > taskB.nextPageLevel;
 			}
 		);
 
@@ -216,8 +242,8 @@ namespace Renderer {
 
 			// 如果该atlasNode已经负载了一个地形节点的资源，做记录
 			if (atlasNode->pageLevel != -1) {
-				requestTask.nextPagePos = atlasNode->pagePos;
-				requestTask.nextPageLevel = atlasNode->pageLevel;
+				requestTask.prevPagePos = atlasNode->pagePos;
+				requestTask.prevPageLevel = atlasNode->pageLevel;
 			}
 			// 使用的atlasNode没有负载地形节点
 			else {
@@ -230,19 +256,19 @@ namespace Renderer {
 			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetInReady();
 			if (requestTask.prevPageLevel != -1) {
-				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
 				prevNodeRuntimeState.SetInReadyOut();
 			}
 		}
 	}
 
-	void RuntimeVirtualTextureBackend::RecordGpuCommand(std::vector<RuntimeVirtualTextureNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
+	void RuntimeVTBackend::RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* shaderManger = renderEngine->mShaderManger.get();
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* mainResourceStateTracker = renderEngine->mResourceStateTracker.get();
 
-		std::vector<GpuUpdateRuntimeVirtualTextureAtlasRequest> updateRequests;
+		std::vector<GpuUpdateRuntimeVTAtlasRequest> updateRequests;
 		for (auto& requestTask : requestTasks) {
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mTerrainSetting.smRvtTileSizeWithPadding;
@@ -325,7 +351,7 @@ namespace Renderer {
 			mvpMatrix._34 = 1.0f;
 			mvpMatrix._44 = 1.0f;
 
-			GpuUpdateRuntimeVirtualTextureAtlasRequest updateRequest{};
+			GpuUpdateRuntimeVTAtlasRequest updateRequest{};
 			updateRequest.mvpMatrix = mvpMatrix;
 			updateRequest.tileOffset = tileOffset;
 			updateRequest.blendOffset = scaleOffset;
@@ -336,45 +362,49 @@ namespace Renderer {
 			return;
 		}
 
-		// 录制GraphicsCommandList，用于更新RuntimeVirtualTextureAtlas
+		// 录制GraphicsCommandList，用于更新RuntimeVTAtlas
 		{
+			auto& terrainAlbedoArray = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray();
+			auto& terrainNormalArray = mRenderer->GetNearTerrainNormalArray()->GetTextureArray();
+			auto& terrainTiledSplatMap = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture();
+			auto& runtimeVTAlbedoAtlas = mRenderer->GetNearTerrainRvtAlbedoAtlas()->GetTextureAtlas();
+			auto& runtimeVTNormalAtlas = mRenderer->GetNearTerrainRvtNormalAtlas()->GetTextureAtlas();
+
 			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
 			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
-			commandBuffer.PIXBeginEvent("UpdateRuntimeVirtualTextureAtlas");
+			commandBuffer.PIXBeginEvent("UpdateRuntimeVTAtlas");
 
 			uint16_t width = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
 			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
 
-			mUpdateRuntimeVirtualTextureAtlasPassData.drawRequestBufferIndex = mUpdateRuntimeVirtualTextureAtlasRequestBuffer->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainAlbedoTextureArrayIndex = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainNormalTextureArrayIndex = mRenderer->GetNearTerrainNormalArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainRoughnessTextureArrayIndex;
-			mUpdateRuntimeVirtualTextureAtlasPassData.terrainSplatMapIndex = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.drawRequestBufferIndex         = mUpdateRuntimeVTAtlasRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainAlbedoTextureArrayIndex = terrainAlbedoArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainNormalTextureArrayIndex = terrainNormalArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainRoughnessTextureArrayIndex;
+			mUpdateRuntimeVTAtlasPassData.terrainSplatMapIndex           = terrainTiledSplatMap->GetSRDescriptor()->GetHeapIndex();
 
-			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVirtualTextureAtlasPassData));
-			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVirtualTextureAtlasPassData, sizeof(UpdateRuntimeVirtualTextureAtlasPassData));
-
-			auto* terrainAlbedoAtlas = mRenderer->GetNearTerrainRvtAlbedoAtlas();
-			auto* terrainNormalAtlas = mRenderer->GetNearTerrainRvtNormalAtlas();
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTAtlasPassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTAtlasPassData, sizeof(UpdateRuntimeVTAtlasPassData));
 
 			// 将数据数组上传到GPU中去
 			auto barrierBatch = GHL::ResourceBarrierBatch{};
-			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVirtualTextureAtlasRequestBuffer, GHL::EResourceState::CopyDestination);
+			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::CopyDestination);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
-			commandBuffer.UploadBufferRegion(mUpdateRuntimeVirtualTextureAtlasRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVirtualTextureAtlasRequest));
+			commandBuffer.UploadBufferRegion(mUpdateRuntimeVTAtlasRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVTAtlasRequest));
 		
-			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVirtualTextureAtlasRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
-			barrierBatch += mainResourceStateTracker->TransitionImmediately(terrainAlbedoAtlas->GetTextureAtlas(), GHL::EResourceState::RenderTarget);
-			barrierBatch += mainResourceStateTracker->TransitionImmediately(terrainNormalAtlas->GetTextureAtlas(), GHL::EResourceState::RenderTarget);
+			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess, GHL::EResourceState::RenderTarget} };
+			barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTNormalAtlas, GHL::EResourceState::PixelShaderAccess, GHL::EResourceState::RenderTarget} };
+
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 
-			commandBuffer.SetRenderTargets({ terrainAlbedoAtlas->GetTextureAtlas(), terrainNormalAtlas->GetTextureAtlas() });
+			commandBuffer.SetRenderTargets({ runtimeVTAlbedoAtlas, runtimeVTNormalAtlas });
 			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 			commandBuffer.SetGraphicsRootSignature();
-			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVirtualTextureAtlasSN);
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVTAtlasSN);
 			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
 			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
 			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
@@ -392,15 +422,15 @@ namespace Renderer {
 		}
 	}
 
-	void RuntimeVirtualTextureBackend::SetupFrameCompletedCallBack() {
+	void RuntimeVTBackend::SetupFrameCompletedCallBack() {
 		// 添加FrameCompletedCallback
 		mRvtFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
 			this->OnFrameCompleted(attribute.frameIndex);
 		});
 	}
 
-	void RuntimeVirtualTextureBackend::OnFrameCompleted(uint8_t frameIndex) {
-		auto* rvtTextureAtlasTileCache = mRenderer->mNearTerrainRuntimeVirtualTextureAtlasTileCache.get();
+	void RuntimeVTBackend::OnFrameCompleted(uint8_t frameIndex) {
+		auto* runtimeVTAtlasTileCache = mRenderer->mNearTerrainRuntimeVTAtlasTileCache.get();
 
 		auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
 		for (auto& requestTask : reservedRequestTasks) {
@@ -408,16 +438,21 @@ namespace Renderer {
 			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetInTexture();
 			currNodeRuntimeState.atlasNode = requestTask.atlasNode;
+			if (requestTask.prevPageLevel != -1) {
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				prevNodeRuntimeState.SetOutTexture();
+				prevNodeRuntimeState.atlasNode = nullptr;
+			}
 
 			// 更新AtlasNode负载
 			requestTask.atlasNode->pageLevel = requestTask.nextPageLevel;
 			requestTask.atlasNode->pagePos = requestTask.nextPagePos;
-			rvtTextureAtlasTileCache->AddTail(requestTask.atlasNode);
+			runtimeVTAtlasTileCache->AddTail(requestTask.atlasNode);
 		}
 		reservedRequestTasks.clear();
 	}
 
-	void RuntimeVirtualTextureBackend::CreateGraphicsObject() {
+	void RuntimeVTBackend::CreateGraphicsObject() {
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* device = renderEngine->mDevice.get();
 		auto* dstorageQueue = renderEngine->mDStorageMemQueue.get();
@@ -432,7 +467,7 @@ namespace Renderer {
 		{
 			mRvtResourceStateTracker = std::make_unique<Renderer::ResourceStateTracker>();
 
-			mRvtGraphicsQueue = std::make_unique<GHL::CopyQueue>(device);
+			mRvtGraphicsQueue = std::make_unique<GHL::GraphicsQueue>(device);
 			mRvtGraphicsQueue->SetDebugName("RuntimeVT_GraphicsQueue");
 			mRvtGraphicsFence = std::make_unique<GHL::Fence>(device);
 			mRvtGraphicsFence->SetDebugName("RuntimeVT_GraphicsFence");
@@ -445,16 +480,16 @@ namespace Renderer {
 		{
 			auto* rvtAlbedoMapAtlas = mRenderer->mNearTerrainRvtAlbedoAtlas.get();
 
-			BufferDesc _UpdateRuntimeVirtualTextureAtlasRequestBufferDesc{};
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.stride = sizeof(GpuUpdateRuntimeVirtualTextureAtlasRequest);
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.size = _UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.stride * rvtAlbedoMapAtlas->GetTileCount();
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.usage = GHL::EResourceUsage::Default;
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.initialState = GHL::EResourceState::Common;
-			_UpdateRuntimeVirtualTextureAtlasRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
-			mUpdateRuntimeVirtualTextureAtlasRequestBuffer = resourceAllocator->Allocate(device, _UpdateRuntimeVirtualTextureAtlasRequestBufferDesc, descriptorAllocator, nullptr);
-			mUpdateRuntimeVirtualTextureAtlasRequestBuffer->SetDebugName("UpdateRuntimeVirtualTextureAtlasRequestBuffer");
-			mRvtResourceStateTracker->StartTracking(mUpdateRuntimeVirtualTextureAtlasRequestBuffer);
+			BufferDesc _UpdateRuntimeVTAtlasRequestBufferDesc{};
+			_UpdateRuntimeVTAtlasRequestBufferDesc.stride = sizeof(GpuUpdateRuntimeVTAtlasRequest);
+			_UpdateRuntimeVTAtlasRequestBufferDesc.size = _UpdateRuntimeVTAtlasRequestBufferDesc.stride * rvtAlbedoMapAtlas->GetTileCount();
+			_UpdateRuntimeVTAtlasRequestBufferDesc.usage = GHL::EResourceUsage::Default;
+			_UpdateRuntimeVTAtlasRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			_UpdateRuntimeVTAtlasRequestBufferDesc.initialState = GHL::EResourceState::Common;
+			_UpdateRuntimeVTAtlasRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
+			mUpdateRuntimeVTAtlasRequestBuffer = resourceAllocator->Allocate(device, _UpdateRuntimeVTAtlasRequestBufferDesc, descriptorAllocator, nullptr);
+			mUpdateRuntimeVTAtlasRequestBuffer->SetDebugName("UpdateRuntimeVTAtlasRequestBuffer");
+			mRvtResourceStateTracker->StartTracking(mUpdateRuntimeVTAtlasRequestBuffer);
 
 			BufferDesc _UpdateLookupPageTableRequestBufferDesc{};
 			_UpdateLookupPageTableRequestBufferDesc.stride = sizeof(GpuUpdateLookupPageTableRequest);
@@ -513,9 +548,9 @@ namespace Renderer {
 
 		// 创建着色器程序
 		{
-			shaderManger->CreateGraphicsShader(smUpdateRuntimeVirtualTextureAtlasSN,
+			shaderManger->CreateGraphicsShader(smUpdateRuntimeVTAtlasSN,
 				[&](GraphicsStateProxy& proxy) {
-					proxy.vsFilepath = shaderPath + "TerrainRenderer/RuntimeVirtualTextureAtlasUpdater.hlsl";
+					proxy.vsFilepath = shaderPath + "TerrainRenderer/RuntimeVTAtlasUpdater.hlsl";
 					proxy.psFilepath = proxy.vsFilepath;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
@@ -525,9 +560,9 @@ namespace Renderer {
 				}
 			);
 
-			shaderManger->CreateGraphicsShader(smUpdateLookupPageTableMapSN,
+			shaderManger->CreateGraphicsShader(smUpdateRuntimeVTPageTableSN,
 				[&](GraphicsStateProxy& proxy) {
-					proxy.vsFilepath = shaderPath + "TerrainRenderer/RuntimeVirtualTextureLookupPageTableUpdater.hlsl";
+					proxy.vsFilepath = shaderPath + "TerrainRenderer/RuntimeVTPageTableUpdater.hlsl";
 					proxy.psFilepath = proxy.vsFilepath;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {

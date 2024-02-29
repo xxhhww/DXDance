@@ -35,8 +35,8 @@ namespace Renderer {
 
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
-			uint32_t terrainAlbedoTextureArrayIndex;
-			uint32_t terrainNormalTextureArrayIndex;
+			uint32_t terrainRuntimeVTAlbedoAtlasIndex;
+			uint32_t terrainRuntimeVTNormalAtlasIndex;
 
 			uint32_t terrainHeightMapAtlasIndex;
 			uint32_t terrainAlbedoMapAtlasIndex;

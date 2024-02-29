@@ -132,10 +132,14 @@ p2o PSMain(v2p input) {
 	int mip = clamp(int(0.5 * log2(max(dot(dx, dx), dot(dy, dy))) + 0.5 + PassDataCB.pageLevelBias), 0, PassDataCB.maxPageLevel);
 
 	// ÊÇ·ñÔ½½ç
-	uint overBound = (uvVT.x > 1.0f || uvVT.y > 1.0f || uvVT.x < 0.0f || uvVT.y < 0.0f) ? 1u : 0u;	
+	uint overBound = (uvVT.x >= 1.0f || uvVT.y >= 1.0f || uvVT.x <= 0.0f || uvVT.y <= 0.0f) ? 1u : 0u;	
+	if(overBound) {
+		pagePos = uint2(0, 0);
+		mip = 0;
+	}
 
 	p2o output;
-	output.terrainFeedback  = uint4(pagePos, mip , overBound);
+	output.terrainFeedback  = uint4(pagePos, mip , !overBound);
 
 	return output;
 }
