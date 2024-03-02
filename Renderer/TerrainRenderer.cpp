@@ -206,35 +206,37 @@ namespace Renderer {
 			mPageLevelBias = mTerrainSetting.smRvtPageLevelBias;
 			mMaxPageLevel = 0u;
 			uint32_t tempCount = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-			mRvtLookupPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+			mRuntimeVTPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
 			while (tempCount != 1 && tempCount % 2 == 0 && mMaxPageLevel < mTerrainSetting.smRvtMaxPageLevel) {
 				mMaxPageLevel++;
 				tempCount /= 2;
 
-				mRvtLookupPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+				mRuntimeVTPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
 			}
 
 			// LookupPageTableMap
-			TextureDesc _LookupPageTableMapDesc{};
-			_LookupPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-			_LookupPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-			_LookupPageTableMapDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			_LookupPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
-			_LookupPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
-			mRvtLookupPageTableMap = resourceAllocator->Allocate(device, _LookupPageTableMapDesc, descriptorAllocator, nullptr);
-			mRvtLookupPageTableMap->SetDebugName("RvtLookupPageTableMap");
-			renderGraph->ImportResource("RvtLookupPageTableMap", mRvtLookupPageTableMap);
-			resourceStateTracker->StartTracking(mRvtLookupPageTableMap);
+			TextureDesc _RuntimeVTPageTableMapDesc{};
+			_RuntimeVTPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			_RuntimeVTPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			_RuntimeVTPageTableMapDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
+			_RuntimeVTPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			mRuntimeVTPageTableMap = resourceAllocator->Allocate(device, _RuntimeVTPageTableMapDesc, descriptorAllocator, nullptr);
+			mRuntimeVTPageTableMap->SetDebugName("RuntimeVTPageTableMap");
+			renderGraph->ImportResource("RuntimeVTPageTableMap", mRuntimeVTPageTableMap);
+			resourceStateTracker->StartTracking(mRuntimeVTPageTableMap);
 
-			mNearTerrainRvtAlbedoAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "NearTerrainRvtAlbedoMapAtlas");
-			mNearTerrainRvtNormalAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "NearTerrainRvtNormalMapAtlas");
-			mNearTerrainRuntimeVTAtlasTileCache = std::make_unique<Renderer::RuntimeVTAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
+			mRuntimeVTAlbedoAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "RuntimeVTAlbedoAtlas");
+			mRuntimeVTNormalAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "RuntimeVTNormalAtlas");
+			mRuntimeVTAtlasTileCache = std::make_unique<Renderer::RuntimeVTAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
 		}
 
 		// 地形后台线程，负责资源调度
 		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledTextureTileRuntimeStates);
 
 		// 实时虚拟纹理线程
+		mRuntimeVTRealRectChangedCompletedEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		ASSERT_FORMAT(mRuntimeVTRealRectChangedCompletedEvent != nullptr, "CreateEvent Failed");
 		mRuntimeVTBackend = std::make_unique<RuntimeVTBackend>(this, mTerrainSetting);
 
 		mTerrainPipelinePass = std::make_unique<TerrainPipelinePass>(this);
@@ -250,46 +252,68 @@ namespace Renderer {
 		// 如果是第一帧，需要同步加载地形数据(当前摄像机位置附近 + 最高级LOD)
 		static bool smFirstFrame = true;
 		if (smFirstFrame) {
-			mTerrainBackend->Preload();
-			smFirstFrame = false;
+			auto GetFixedPosition = [](const Math::Vector2& position, float cellSize) {
+				return Math::Int2{
+					(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
+					(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
+				};
+			};
 
 			Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
-			Math::Int2 fixedPos1 = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+			Math::Int2 runtimeVTRealRectCenter = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
 
-			mRvtRealRect = Math::Vector4{
-				(float)(fixedPos1.x - mTerrainSetting.smRvtRectRadius), 
-				(float)(fixedPos1.y + mTerrainSetting.smRvtRectRadius),
-				(float)(2 * mTerrainSetting.smRvtRectRadius),
-				(float)(2 * mTerrainSetting.smRvtRectRadius)
+			mRuntimeVTRealRect = Math::Vector4{
+				(float)runtimeVTRealRectCenter.x - mTerrainSetting.smRvtRectRadius,
+				(float)runtimeVTRealRectCenter.y + mTerrainSetting.smRvtRectRadius,
+				2.0f * mTerrainSetting.smRvtRectRadius,
+				2.0f * mTerrainSetting.smRvtRectRadius
 			};
+
+			mTerrainBackend->Preload();
+			mRuntimeVTBackend->Preload();
+
+			smFirstFrame = false;
 		}
 	}
 
-	Math::Int2 TerrainRenderer::GetFixedPosition(const Math::Vector2& position, int32_t cellSize) {
-		return Math::Int2{
-			(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
-			(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
+	void TerrainRenderer::OnRuntimeVTRealRectChanged(const Math::Vector4& currRuntimeVTRealRect) {
+		const Math::Vector4 prevRuntimeVTRealRect = mRuntimeVTRealRect;
+
+		const Math::Int2 currRuntimeVTRealRectCenter = Math::Int2{
+			(int32_t)currRuntimeVTRealRect.x + (int32_t)currRuntimeVTRealRect.z,
+			(int32_t)currRuntimeVTRealRect.y - (int32_t)currRuntimeVTRealRect.w
 		};
+
+		const Math::Int2 prevRuntimeVTRealRectCenter = Math::Int2{
+			(int32_t)prevRuntimeVTRealRect.x + (int32_t)prevRuntimeVTRealRect.z,
+			(int32_t)prevRuntimeVTRealRect.y - (int32_t)prevRuntimeVTRealRect.w
+		};
+
+		const Math::Int2 runtimeVTRealRectOffset = (currRuntimeVTRealRectCenter - prevRuntimeVTRealRectCenter) / (int32_t)mTerrainSetting.smWorldMeterSizePerTileInPage0Level;
+
+		mRuntimeVTRealRect = currRuntimeVTRealRect;
+		mRuntimeVTRealRectOffset = runtimeVTRealRectOffset;
+
+		// 通知RuntimeVTBackend对RealRectChanged事件做处理
+		++mRuntimeVTRealRectChangedFlag;
+
+		// 同步等待RuntimeVTBackend完成处理
+		::WaitForSingleObject(mRuntimeVTRealRectChangedCompletedEvent, INFINITE);
+
+		// TODO...
+		int32_t i = 0;
 	}
 
-	void TerrainRenderer::NotifyRealRectChanged() {
-		++mRvtRealRectChangedFlag;
-	}
-
-	bool TerrainRenderer::ConsumeRealRectChanged() {
-		if (mRvtRealRectChangedFlag == 1u) {
-			--mRvtRealRectChangedFlag;
+	bool TerrainRenderer::CheckRuntimeVTRealRectChanged() {
+		if (mRuntimeVTRealRectChangedFlag == 1u) {
+			--mRuntimeVTRealRectChangedFlag;
 			return true;
 		}
 		return false;
 	}
 
-	void TerrainRenderer::SetRealRectChangedEvnet() { 
-		::SetEvent(mRvtRealRectChangedEvent); 
-	}
-
-	void TerrainRenderer::WaitRealRectChangedEvnet() { 
-		::WaitForSingleObject(mRvtRealRectChangedEvent, INFINITE); 
+	void TerrainRenderer::SetRuntimeVTRealRectChangedCompletedEvnet() {
+		::SetEvent(mRuntimeVTRealRectChangedCompletedEvent); 
 	}
 
 }

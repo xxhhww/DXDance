@@ -31,7 +31,7 @@ namespace Renderer {
 		static uint32_t smRvtTileSizeWithPadding;
 		static uint32_t smRvtTileCountPerAxisInAtlas;		// 实时虚拟纹理中纹理图集上每个轴的Tile个数
 		static uint32_t smRvtAtlasTextureSize;				// 纹理图集的大小
-		static int32_t  smRvtRectRadius;					// 实时虚拟纹理的矩形半径(边长的一半)
+		static float    smRvtRectRadius;					// 实时虚拟纹理的矩形半径(边长的一半)
 		static uint32_t smRvtPixelSizePerMeter;				// 每米的像素值
 
 		static uint32_t smRvtMaxPageLevel;
@@ -41,14 +41,14 @@ namespace Renderer {
 		static uint32_t smRvtVirtualTextureSizeInBytesInWorld;		// VT大小InWorld
 		static uint32_t smRvtTileCountPerAxisInWorld;				// 世界中每个轴的Tile个数
 
-		static uint32_t smWorldMeterSizePerTileInPage0Level;		// 纹理图集元素对应的世界大小
+		static float	 smWorldMeterSizePerTileInPage0Level;		// 纹理图集元素对应的世界大小
 		static float    smWorldMeterSizePerPaddingInPage0Level;		// 图集元素的Padding对应的世界大小
 
 		static uint32_t smTerrainFeedbackBufferElementCount;		// TerrainFeedbackBuffer中元素的个数
 
 		static uint32_t smRvtDataLoadedLimit;						// 一次加载多少个虚拟纹理
 
-		static uint32_t smRvtRealRectChangedViewDistance;			// Rvt更新一次对应摄像机移动的大小
+		static float smRvtRealRectChangedViewDistance;				// Rvt更新一次对应摄像机移动的大小
 
 		static uint32_t smWorldMeterSizePerTiledTexture;			// 对地形进行纹理平铺，多少米平铺一个地形纹理，此处的地形纹理是地形纹理数组中的纹理
 	};

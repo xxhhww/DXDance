@@ -40,13 +40,13 @@ struct GpuUpdateTerrainNodeDescriptorRequest {
 	uint tilePosY;
 };
 
-struct GpuDrawRuntimeVirtualTextureAtlasRequest {
+struct GpuUpdateRuntimeVTAtlasRequest {
 	float4x4 mvpMatrix;
 	float4   tileOffset;
 	float4   blendOffset;
 };
 
-struct GpuDrawLookupPageTableRequest {
+struct GpuUpdateRuntimeVTPageTableRequest {
 	uint  tilePosX;		// pageTable节点所需纹理对应图集中的位置
 	uint  tilePosY;
 	int   pageLevel;	// pageLevel

@@ -181,7 +181,6 @@
     <ClInclude Include="RuntimeVTBackend.h" />
     <ClInclude Include="RuntimeVTAtlas.h" />
     <ClInclude Include="RuntimeVTPageTable.h" />
-    <ClInclude Include="RuntimeVTValidRect.h" />
     <ClInclude Include="TerrainTiledTextureHeapAllocationCache.h" />
     <ClInclude Include="Task_SplitHeightMap.h" />
     <ClInclude Include="TerrainBackend.h" />
@@ -288,7 +287,6 @@
     <ClCompile Include="RuntimeVTBackend.cpp" />
     <ClCompile Include="RuntimeVTAtlas.cpp" />
     <ClCompile Include="RuntimeVTPageTable.cpp" />
-    <ClCompile Include="RuntimeVTValidRect.cpp" />
     <ClCompile Include="TerrainTiledTextureHeapAllocationCache.cpp" />
     <ClCompile Include="TAAPass.cpp" />
     <ClCompile Include="Task_SplitHeightMap.cpp" />

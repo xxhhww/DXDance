@@ -19,6 +19,8 @@ namespace Renderer {
 
 		RuntimeVTAtlasTileCache::Node* atlasNode{ nullptr };
 
+		int32_t physicalPosX = -1;
+		int32_t physicalPosY = -1;
 		uint32_t pageLevel;
 
 	public:
@@ -41,11 +43,23 @@ namespace Renderer {
 		RuntimeVTPageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level);
 		~RuntimeVTPageTable() = default;
 
-		inline auto& GetNodeRuntimeState(uint32_t pagePosX, uint32_t pagePosY) { return mNodeRuntimeStates[pagePosX][pagePosY]; }
+		inline const auto& GetPageOffset() const { return mPageOffset; }
+
+		void OnRuntimeVTRealRectChanged(Math::Int2 offsetInPage0Level, std::vector<RuntimeVTPageTableNodeRuntimeState*>& changedPageNodeRuntimeStates);
+
+		RuntimeVTPageTableNodeRuntimeState& GetNodeRuntimeStateTransformed(int32_t pagePosX, int32_t pagePosY);
+
+		RuntimeVTPageTableNodeRuntimeState& GetNodeRuntimeStateDirected(int32_t pagePosX, int32_t pagePosY);
+
+		inline auto& GetNodeRuntimeStates() { return mNodeRuntimeStates; }
+		inline const auto& GetNodeRuntimeStates() const { return mNodeRuntimeStates; }
+
+		Math::Int2 GetTransformedXY(int32_t x, int32_t y);
 
 	private:
-		uint32_t mPageLevel;
-		uint32_t mNodeCountPerAxis;
+		uint32_t mPageLevel{ 0u };
+		int32_t  mNodeCountPerAxis{ 0u };
+		Math::Int2 mPageOffset{ 0, 0 };
 		std::vector<std::vector<RuntimeVTPageTableNodeRuntimeState>> mNodeRuntimeStates;
 	};
 

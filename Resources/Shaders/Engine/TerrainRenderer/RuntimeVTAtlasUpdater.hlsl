@@ -41,8 +41,8 @@ struct p2o {
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
-	StructuredBuffer<GpuDrawRuntimeVirtualTextureAtlasRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
-	GpuDrawRuntimeVirtualTextureAtlasRequest drawRequest = drawRequestBuffer[instanceID];
+	StructuredBuffer<GpuUpdateRuntimeVTAtlasRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
+	GpuUpdateRuntimeVTAtlasRequest drawRequest = drawRequestBuffer[instanceID];
 
 	v2p output;
 	output.currCsPos = mul(float4(input.lsPos, 1.0f), drawRequest.mvpMatrix);

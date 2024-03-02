@@ -4,7 +4,10 @@
 #include "TerrainHeader.hlsl"
 
 struct PassData{
-	uint drawRequestBufferIndex;
+	uint  drawRequestBufferIndex;
+	float pad1;
+	float pad2;
+	float pad3;
 };
 
 #define PassDataType PassData
@@ -31,9 +34,9 @@ struct p2o {
 };
 
 v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
-	StructuredBuffer<GpuDrawLookupPageTableRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
+	StructuredBuffer<GpuUpdateRuntimeVTPageTableRequest> drawRequestBuffer = ResourceDescriptorHeap[PassDataCB.drawRequestBufferIndex];
 
-	GpuDrawLookupPageTableRequest drawRequest = drawRequestBuffer[instanceID];
+	GpuUpdateRuntimeVTPageTableRequest drawRequest = drawRequestBuffer[instanceID];
 
 	float2 pos = saturate(mul(float4(input.lsPos, 1.0f), drawRequest.mvpMatrix).xy);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Math/Int.h"
+#include "Math/Vector.h"
 
 namespace Renderer {
 
@@ -17,6 +18,9 @@ namespace Renderer {
 
 			int32_t    pageLevel{ -1 };		// 所处页表级别
 			Math::Int2 pagePos{ -1, -1 };	// 所处页表级别下的位置
+			Math::Int2 pageOffset{ -1, -1 };
+			Math::Int2 testpagePos{ -1, -1 };
+			Math::Vector4 realRect;
 
 		public:
 			inline Node(int32_t id, const Math::Int2& pos) : tileID(id), tilePos(pos) {}

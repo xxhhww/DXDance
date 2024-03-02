@@ -361,7 +361,7 @@ namespace Renderer {
 				mTerrainFeedbackPassData.scaledVirtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level / mTerrainSetting.smTerrainFeedbackScale;
 				mTerrainFeedbackPassData.maxPageLevel  = mRenderer->GetMaxPageLevel();
 				mTerrainFeedbackPassData.pageLevelBias = mRenderer->GetPageLevelBias();
-				mTerrainFeedbackPassData.rvtRealRect   = mRenderer->GetRvtRealRect();
+				mTerrainFeedbackPassData.rvtRealRect   = mRenderer->GetRuntimeVTRealRect();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainFeedbackPassData, sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
@@ -427,7 +427,7 @@ namespace Renderer {
 				auto& queuedFeedbackReadback = queuedFeedbackReadbacks.at(currFrameAttribute.frameIndex);
 				queuedFeedbackReadback.renderFrameFenceValue = currFrameAttribute.fenceValue;
 				queuedFeedbackReadback.isFresh = true;
-				queuedFeedbackReadback.rvtRealRect = mRenderer->GetRvtRealRect();
+				queuedFeedbackReadback.runtimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
 
 				commandBuffer.D3DCommandList()->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
 			});
@@ -487,52 +487,60 @@ namespace Renderer {
 				auto* resourceStorage  = renderContext.resourceStorage;
 				auto* resourceTracker  = renderContext.resourceStateTracker;
 
-				// 检测RuntimeVTPageTable是否需要因为摄像机而发生变动
+				// 提交RuntimeVTBackend录制的命令
 				{
-					auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
-					auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
-					auto& runtiemVTAlbedoAtlas = mRenderer->GetNearTerrainRvtAlbedoAtlas()->GetTextureAtlas();
-					auto& runtiemVTNormalAtlas = mRenderer->GetNearTerrainRvtNormalAtlas()->GetTextureAtlas();
-
-					RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
-					if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
-						// 修改节点实时状态
-						runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
-
-						// 向GPU输送已被录制好的命令
-						recordedGpuCommand.graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList->D3DCommandList());
-						recordedGpuCommand.graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-
-						// 让ComputeQueue等待命令的完成
-						graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-
-						resourceTracker->TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
-						resourceTracker->TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::RenderTarget);
-					}
-
-
 					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
-					const auto& rvtRealRect = mRenderer->GetRvtRealRect();
+					const auto& prevRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
+					const auto& prevRuntimeVTRealRectCenter = Math::Vector2{
+						prevRuntimeVTRealRect.x + mTerrainSetting.smRvtRectRadius,
+						prevRuntimeVTRealRect.y - mTerrainSetting.smRvtRectRadius
+					};
+
+					auto GetFixedPosition = [](const Math::Vector2& position, float cellSize) {
+						return Math::Int2{
+							(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
+							(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
+						};
+					};
 
 					// 更新RvtRealRect
-					Math::Int2 fixedPos0 = TerrainRenderer::GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
-					int32_t xDiff = fixedPos0.x - (rvtRealRect.x + mTerrainSetting.smRvtRectRadius);
-					int32_t yDiff = fixedPos0.y - (rvtRealRect.y - mTerrainSetting.smRvtRectRadius);
+					Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
+					float xDiff = (float)fixedPos0.x - prevRuntimeVTRealRectCenter.x;
+					float yDiff = (float)fixedPos0.y - prevRuntimeVTRealRectCenter.y;
 
 					if (std::abs(xDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance || std::abs(yDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance) {
-						Math::Int2 fixedPos1 = TerrainRenderer::GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
-						Math::Int2 oldCenter = Math::Int2((int32_t)(rvtRealRect.x + mTerrainSetting.smRvtRectRadius), (int32_t)(rvtRealRect.y - mTerrainSetting.smRvtRectRadius));
-						Math::Vector4 rvtNewRealRect = Math::Vector4{
-							(float)(fixedPos1.x - mTerrainSetting.smRvtRectRadius),
-							(float)(fixedPos1.y + mTerrainSetting.smRvtRectRadius),
-							(float)(2 * mTerrainSetting.smRvtRectRadius),
-							(float)(2 * mTerrainSetting.smRvtRectRadius)
+						Math::Int2 currRuntimeVTRealRectCenter = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+						Math::Vector4 currRuntimeVTRealRect = Math::Vector4{
+							(float)currRuntimeVTRealRectCenter.x - mTerrainSetting.smRvtRectRadius,
+							(float)currRuntimeVTRealRectCenter.y + mTerrainSetting.smRvtRectRadius,
+							2.0f * mTerrainSetting.smRvtRectRadius,
+							2.0f * mTerrainSetting.smRvtRectRadius
 						};
-						mRenderer->SetRvtRealRect(rvtNewRealRect);
 
-						// 通知Rvt线程录制命令，并同步等待其完成
-						// mRenderer->NotifyRealRectChanged();
-						// mRenderer->WaitRealRectChangedEvnet();
+						// 同步等待
+						mRenderer->OnRuntimeVTRealRectChanged(currRuntimeVTRealRect);
+					}
+					else {
+						auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
+						auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
+						auto& runtiemVTAlbedoAtlas = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+						auto& runtiemVTNormalAtlas = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
+
+						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
+						if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
+							// 修改节点实时状态
+							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
+
+							// 向GPU输送已被录制好的命令
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList->D3DCommandList());
+							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+
+							// 让ComputeQueue等待命令的完成
+							// graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+
+							resourceTracker->TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
+							resourceTracker->TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::RenderTarget);
+						}
 					}
 				}
 
@@ -544,8 +552,8 @@ namespace Renderer {
 				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
-				auto& runtiemVTAlbedoAtlas    = mRenderer->GetNearTerrainRvtAlbedoAtlas()->GetTextureAtlas();
-				auto& runtiemVTNormalAtlas    = mRenderer->GetNearTerrainRvtNormalAtlas()->GetTextureAtlas();
+				auto& runtiemVTAlbedoAtlas    = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+				auto& runtiemVTNormalAtlas    = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
 				// auto* pageTableTexture      = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
 				// auto* physicalTextureAlbedo = resourceStorage->GetResourceByName("PhysicalTextureAlbedo")->GetTexture();
 				// auto* physicalTextureNormal = resourceStorage->GetResourceByName("PhysicalTextureNormal")->GetTexture();

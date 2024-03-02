@@ -134,24 +134,26 @@ namespace Renderer {
 		inline auto* GetNearTerrainAlbedoArray() const { return mNearTerrainAlbedoArray.get(); }
 		inline auto* GetNearTerrainNormalArray() const { return mNearTerrainNormalArray.get(); }
 
-		inline auto* GetNearTerrainRvtAlbedoAtlas() const { return mNearTerrainRvtAlbedoAtlas.get(); }
-		inline auto* GetNearTerrainRvtNormalAtlas() const { return mNearTerrainRvtNormalAtlas.get(); }
+		inline auto& GetRuntimeVTPageTables() { return mRuntimeVTPageTables; }
+		inline const auto& GetRuntimeVTPageTables() const { return mRuntimeVTPageTables; }
+		
+		inline auto& GetRuntimeVTPageTableMap() { return mRuntimeVTPageTableMap; }
+
+		inline auto* GetRuntimeVTAlbedoAtlas()  const { return mRuntimeVTAlbedoAtlas.get(); }
+		inline auto* GetRuntimeVTNormalAtlas()  const { return mRuntimeVTNormalAtlas.get(); }
 
 		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
 
 		inline const auto& GetMaxPageLevel()  const { return mMaxPageLevel; }
 		inline const auto& GetPageLevelBias() const { return mPageLevelBias; }
 
-		static Math::Int2 GetFixedPosition(const Math::Vector2& position, int32_t cellSize);
+		inline const auto& GetRuntimeVTRealRect() const { return mRuntimeVTRealRect; }
+		inline const auto& GetRuntimeVTRealRectOffset() const { return mRuntimeVTRealRectOffset; }
 
-		inline const auto& GetRvtRealRect() const { return mRvtRealRect; }
-		inline void SetRvtRealRect(const Math::Vector4& realRect) { mRvtRealRect = realRect; }
+		void OnRuntimeVTRealRectChanged(const Math::Vector4& currRuntimeVTRealRect);
 
-		void NotifyRealRectChanged();
-		bool ConsumeRealRectChanged();
-
-		void SetRealRectChangedEvnet();
-		void WaitRealRectChangedEvnet();
+		bool CheckRuntimeVTRealRectChanged();
+		void SetRuntimeVTRealRectChangedCompletedEvnet();
 
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
@@ -199,26 +201,28 @@ namespace Renderer {
 		Renderer::TextureWrap mTerrainFeedbackDepthMap;
 		struct FeedbackReadbackQueued {
 		public:
-			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入 RVT线程只读
-			Math::Vector4 rvtRealRect;				// 该变量由渲染主线程写入 RVT线程只读
-			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与入 RVT线程进行访问与修改
+			uint64_t renderFrameFenceValue{ 0u };	// 该变量由渲染主线程写入 RuntimeVTBackend线程只读
+			Math::Vector4 runtimeVTRealRect;		// 该变量由渲染主线程写入 RuntimeVTBackend线程只读
+			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与入 RuntimeVTBackend线程进行访问与修改
 		};
 		std::vector<FeedbackReadbackQueued> mQueuedFeedbackReadbacks;
 		std::vector<Renderer::BufferWrap>  mTerrainFeedbackReadbackBuffers;
 
-		// LookupPageTable
-		std::atomic<uint32_t> mRvtRealRectChangedFlag{ 0u };
-		HANDLE mRvtRealRectChangedEvent{ NULL };
-		Math::Vector4 mRvtRealRect;
+		// RuntimeVTPageTable
 		uint32_t mMaxPageLevel;
 		uint32_t mPageLevelBias;
-		std::vector<RuntimeVTPageTable> mRvtLookupPageTables;
-		Renderer::TextureWrap mRvtLookupPageTableMap;
+		Math::Vector4 mRuntimeVTRealRect;
+		Math::Int2 mRuntimeVTRealRectOffset;
+		HANDLE mRuntimeVTRealRectChangedCompletedEvent{ NULL };
+		std::atomic<uint32_t> mRuntimeVTRealRectChangedFlag{ 0u };
+		std::vector<RuntimeVTPageTable> mRuntimeVTPageTables;
+
+		Renderer::TextureWrap mRuntimeVTPageTableMap;
 
 		// 适用于近距离渲染的实时虚拟纹理图集
-		std::unique_ptr<RuntimeVTAtlas> mNearTerrainRvtAlbedoAtlas;
-		std::unique_ptr<RuntimeVTAtlas> mNearTerrainRvtNormalAtlas;
-		std::unique_ptr<RuntimeVTAtlasTileCache> mNearTerrainRuntimeVTAtlasTileCache;
+		std::unique_ptr<RuntimeVTAtlas> mRuntimeVTAlbedoAtlas;
+		std::unique_ptr<RuntimeVTAtlas> mRuntimeVTNormalAtlas;
+		std::unique_ptr<RuntimeVTAtlasTileCache> mRuntimeVTAtlasTileCache;
 	};
 
 }

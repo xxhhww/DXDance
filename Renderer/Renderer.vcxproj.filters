@@ -387,9 +387,6 @@
     <ClInclude Include="RuntimeVTPageTable.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeVTValidRect.h">
-      <Filter>头文件\Renderer\TerrainRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="TerrainTiledTexture.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
@@ -663,9 +660,6 @@
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
     <ClCompile Include="RuntimeVTPageTable.cpp">
-      <Filter>源文件\Renderer\TerrainRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="RuntimeVTValidRect.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
     <ClCompile Include="TerrainTiledTexture.cpp">

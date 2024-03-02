@@ -17,6 +17,7 @@ namespace Renderer {
 	struct RuntimeVTNodeRequestTask {
 	public:
 		RuntimeVTAtlasTileCache::Node* atlasNode{ nullptr };	// 一个图集元素
+		Math::Vector4 runtimeVTRealRect;
 
 		// 前一任
 		Math::Int2 prevPagePos{ -1, -1 };
@@ -57,11 +58,14 @@ namespace Renderer {
 		// 后台线程
 		void BackendThread();
 
-		// 处理Feedback
-		void ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue);
+		// 处理TerrainFeedback(由于处理TerrainFeedback时间较长，且在处理时可能会发生RuntimeVTRealRectChanged事件，因此我们需要在处理Feedback时一直判断RuntimeVTRealRectChanged事情是否发生)
+		bool ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue);
 
 		// 录制GPU命令
 		void RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand);
+
+		// 处理RuntimeVTRealRectChanged
+		void ProcessRuntimeVTRealRectChanged();
 
 		// 创建图形对象
 		void CreateGraphicsObject();
@@ -88,6 +92,7 @@ namespace Renderer {
 		// 地形数据(From TerrainRenderer)
 		TerrainSetting& mTerrainSetting;
 		std::vector<RuntimeVTPageTable>& mRvtPageTables;
+		Math::Vector4 mRuntimeVTRealRect;	// 非引用
 
 		std::unique_ptr<Renderer::BuddyHeapAllocator> mTerrainTiledSplatMapHeapAllocator;
 
@@ -120,14 +125,17 @@ namespace Renderer {
 		UpdateRuntimeVTAtlasPassData mUpdateRuntimeVTAtlasPassData;
 		BufferWrap mUpdateRuntimeVTAtlasRequestBuffer;
 
-		struct UpdateLookupPageTablePassData {
+		struct UpdateRuntimeVTPageTablePassData {
 		public:
-
+			uint32_t drawRequestBufferIndex;
+			float pad1;
+			float pad2;
+			float pad3;
 		};
-		UpdateLookupPageTablePassData mUpdateLookupPageTablePassData;
-		BufferWrap mUpdateLookupPageTableRequestBuffer;
+		UpdateRuntimeVTPageTablePassData mUpdateRuntimeVTPageTablePassData;
+		BufferWrap mUpdateRuntimeVTPageTableRequestBuffer;
 
-		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;										// 该队列由BackThread和MainThread共同访问
+		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;							// 该队列由BackThread和MainThread共同访问
 
 		std::vector<std::vector<RuntimeVTNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
 

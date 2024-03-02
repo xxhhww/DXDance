@@ -17,7 +17,7 @@ namespace Renderer {
 		Math::Vector4 blendOffset;
 	};
 
-	struct GpuUpdateLookupPageTableRequest {
+	struct GpuUpdateRuntimeVTPageTableRequest {
 	public:
 		uint32_t tilePosX;
 		uint32_t tilePosY;
@@ -30,8 +30,11 @@ namespace Renderer {
 	RuntimeVTBackend::RuntimeVTBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting)
 	: mRenderer(renderer)
 	, mTerrainSetting(terrainSetting) 
-	, mRvtPageTables(mRenderer->mRvtLookupPageTables) {
+	, mRvtPageTables(mRenderer->mRuntimeVTPageTables) {
 		mReservedTerrainNodeRequestTasks.resize(smMaxRvtFrameCount);
+
+		mHasPreloaded = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		ASSERT_FORMAT(mHasPreloaded != nullptr, "CreateEvent Failed");
 
 		CreateGraphicsObject();
 
@@ -47,7 +50,10 @@ namespace Renderer {
 	}
 
 	void RuntimeVTBackend::Preload() {
+		mRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
 
+		// 加载完成后通知后台线程，启动资源调度线程
+		::SetEvent(mHasPreloaded);
 	}
 
 	void RuntimeVTBackend::OnFrameLoading(uint32_t frameIndex) {
@@ -55,19 +61,23 @@ namespace Renderer {
 
 		for (auto& requestTask : reservedRequestTasks) {
 			// 更新节点实时状态
-			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetInLoading();
 			if (requestTask.prevPageLevel != -1) {
-				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
 				prevNodeRuntimeState.SetInLoadingOut();
 			}
 		}
 	}
 
 	void RuntimeVTBackend::BackendThread() {
+		// 等待预先加载完成后启动任务
+		::WaitForSingleObject(mHasPreloaded, INFINITE);
+
 		auto* renderEngine = mRenderer->mRenderEngine;
 		auto* mainRenderFrameFence = renderEngine->mRenderFrameFence.get();
 		uint64_t previousMainFrameFenceValue = 0u;
+		bool runtimeVTRealRectChanged = false;
 
 		while (mThreadRunning) {
 			uint64_t currentMainFrameFenceValue = mainRenderFrameFence->CompletedValue();
@@ -77,9 +87,9 @@ namespace Renderer {
 				previousMainFrameFenceValue = currentMainFrameFenceValue;
 
 				std::vector<RuntimeVTNodeRequestTask> rvtNodeRequestTasks;
-				ProcessTerrainFeedback(rvtNodeRequestTasks, currentMainFrameFenceValue);
+				runtimeVTRealRectChanged = ProcessTerrainFeedback(rvtNodeRequestTasks, currentMainFrameFenceValue);
 
-				if (!rvtNodeRequestTasks.empty()) {
+				if (!rvtNodeRequestTasks.empty() && !runtimeVTRealRectChanged) {
 					// 压入新的RvtFrame
 					uint64_t currFrameFenceExpectedValue = mRvtGraphicsFence->IncrementExpectedValue();
 					mRvtFrameTracker->PushCurrentFrame(currFrameFenceExpectedValue);
@@ -103,9 +113,17 @@ namespace Renderer {
 				}
 			}
 
-			// 主线程检测到RvtPageTable的ViewRect发生变动，并将该变动通知给RvtBackend线程，此时，主线程同步等待RvtBackend线程的处理
-			if (mRenderer->ConsumeRealRectChanged()) {
-				// 对InQueue InLoading InTexture的PageTableNode进行处理
+			// 主线程检测到RuntimeVTRealRectChanged事件，并将该事件通知给RuntimeVTBackend线程，此时，主线程此时同步等待RuntimeVTBackend线程的处理
+			if (mRenderer->CheckRuntimeVTRealRectChanged() || runtimeVTRealRectChanged) {
+				runtimeVTRealRectChanged = false;
+
+				mRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
+
+				// 处理RuntimeVTRealRectChanged
+				ProcessRuntimeVTRealRectChanged();
+
+				// 通知主线程
+				mRenderer->SetRuntimeVTRealRectChangedCompletedEvnet();
 			}
 
 			// 检测塞入的GPU命令是否过载
@@ -129,19 +147,18 @@ namespace Renderer {
 		}
 	}
 
-	void RuntimeVTBackend::ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue) {
+	bool RuntimeVTBackend::ProcessTerrainFeedback(std::vector<RuntimeVTNodeRequestTask>& requestTasks, uint32_t completedFenceValue) {
 		auto& queuedFeedbackReadbacks = mRenderer->mQueuedFeedbackReadbacks;
 		auto& terrainFeedbackReadbackBuffers = mRenderer->mTerrainFeedbackReadbackBuffers;
 		
-		// 寻找最新鲜的Feedback
+		// 寻找最新鲜的且RuntimeVTRealRect一致的Feedback
 		bool feedbackFound = false;
 		uint64_t latestFeedbackFenceValue = 0;
 		uint32_t targetFeedbackIndex{ 0u };
 		for (size_t i = 0; i < queuedFeedbackReadbacks.size(); i++) {
-			if (queuedFeedbackReadbacks.at(i).isFresh) {
+			if (queuedFeedbackReadbacks.at(i).isFresh && queuedFeedbackReadbacks.at(i).runtimeVTRealRect == mRuntimeVTRealRect) {
 				uint64_t feedbackFenceValue = queuedFeedbackReadbacks.at(i).renderFrameFenceValue;
-				if ((completedFenceValue >= feedbackFenceValue) &&
-					((!feedbackFound) || (latestFeedbackFenceValue <= feedbackFenceValue))) {
+				if ((completedFenceValue >= feedbackFenceValue) && ((!feedbackFound) || (latestFeedbackFenceValue <= feedbackFenceValue))) {
 					feedbackFound = true;
 					targetFeedbackIndex = i;
 					latestFeedbackFenceValue = feedbackFenceValue;
@@ -152,7 +169,7 @@ namespace Renderer {
 		}
 
 		if (!feedbackFound) {
-			return;
+			return false;
 		}
 ;
 		auto& readbackBuffer = terrainFeedbackReadbackBuffers.at(targetFeedbackIndex);
@@ -166,10 +183,21 @@ namespace Renderer {
 		uint32_t rowByteSize = (width * GHL::GetFormatStride(feedbackMapDesc.format) + 0x0ff) & ~0x0ff;
 		rowByteSize /= (sizeof(uint16_t) / sizeof(uint8_t));
 
-		auto* tileCache = mRenderer->mNearTerrainRuntimeVTAtlasTileCache.get();
+		auto* tileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
 
 		for (uint32_t y = 0u; y < height; y++) {
 			for (uint32_t x = 0u; x < rowByteSize;) {
+				// 每一次都判断是否发生RuntimeVTRealRectChanged事件
+				if (mRenderer->CheckRuntimeVTRealRectChanged()) {
+
+					// 恢复PageTableNode实时状态
+					for (auto& requestTask : requestTasks) {
+						auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+						currNodeRuntimeState.SetTempFlag(false);
+					}
+
+					return true;
+				}
 
 				uint16_t page0PosX = pResolvedData[x++];	// page0PosX
 				uint16_t page0PosY = pResolvedData[x++];	// page0PosY
@@ -183,12 +211,8 @@ namespace Renderer {
 				int32_t pagePosX = page0PosX / perSize;
 				int32_t pagePosY = page0PosY / perSize;
 
-				if (pageLevel < 8) {
-					int32_t i = 0;
-				}
-
 				// 填充请求队列(注意剔除重复目标)
-				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeState((uint32_t)pagePosX, (uint32_t)pagePosY);
+				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed((uint32_t)pagePosX, (uint32_t)pagePosY);
 
 				if (currNodeRuntimeState.inReady || currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading || currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
@@ -196,6 +220,9 @@ namespace Renderer {
 				}
 				// 该节点对应的资源已在图集上
 				else if (!currNodeRuntimeState.inReadyOut && !currNodeRuntimeState.inQueueOut && !currNodeRuntimeState.inLoadingOut && currNodeRuntimeState.inTexture) {
+					if (currNodeRuntimeState.atlasNode == nullptr) {
+						int32_t i = 0;
+					}
 					tileCache->Remove(currNodeRuntimeState.atlasNode);
 					tileCache->AddTail(currNodeRuntimeState.atlasNode);
 				}
@@ -205,6 +232,7 @@ namespace Renderer {
 					requestTask.nextPageLevel = (int32_t)pageLevel;
 					requestTask.nextPagePos.x = pagePosX;
 					requestTask.nextPagePos.y = pagePosY;
+					requestTask.runtimeVTRealRect = mRuntimeVTRealRect;
 					requestTasks.push_back(requestTask);
 
 					// 剔除重复requestTask
@@ -217,9 +245,21 @@ namespace Renderer {
 		}
 		readbackBuffer->UnMap();
 
+		// 保持最高级别的PageLevel一直处于驻留状态
+		auto& runtimeVTPageTable = mRvtPageTables.back();
+		auto& maxPageLevelNodeRuntimeStates = runtimeVTPageTable.GetNodeRuntimeStates();
+		for (auto& rows : maxPageLevelNodeRuntimeStates) {
+			for (auto& currNodeRuntimeState : rows) {
+				if (currNodeRuntimeState.atlasNode != nullptr) {
+					tileCache->Remove(currNodeRuntimeState.atlasNode);
+					tileCache->AddTail(currNodeRuntimeState.atlasNode);
+				}
+			}
+		}
+
 		// 恢复PageTableNode实时状态
 		for (auto& requestTask : requestTasks) {
-			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetTempFlag(false);
 		}
 
@@ -235,6 +275,8 @@ namespace Renderer {
 			requestTasks.resize(mTerrainSetting.smRvtDataLoadedLimit);
 		}
 
+		// TODO对父节点进行调度
+
 		// 分配Tile
 		for (auto& requestTask : requestTasks) {
 			auto* atlasNode = tileCache->GetHead();
@@ -245,7 +287,7 @@ namespace Renderer {
 				requestTask.prevPagePos = atlasNode->pagePos;
 				requestTask.prevPageLevel = atlasNode->pageLevel;
 			}
-			// 使用的atlasNode没有负载地形节点
+			// 使用的atlasNode没有负载地形节点w
 			else {
 				requestTask.prevPagePos = Math::Int2{ -1, -1 };
 				requestTask.prevPageLevel = -1;
@@ -253,13 +295,19 @@ namespace Renderer {
 
 			requestTask.atlasNode = atlasNode;
 
-			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetInReady();
 			if (requestTask.prevPageLevel != -1) {
-				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				bool inTExture = prevNodeRuntimeState.inTexture;
 				prevNodeRuntimeState.SetInReadyOut();
+				if (prevNodeRuntimeState.atlasNode == nullptr) {
+					int32_t i = 0;
+				}
 			}
 		}
+
+		return false;
 	}
 
 	void RuntimeVTBackend::RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
@@ -273,18 +321,18 @@ namespace Renderer {
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mTerrainSetting.smRvtTileSizeWithPadding;
 			const Math::Vector4 tileRectInImageSpace = Math::Vector4{
-				requestTask.atlasNode->tilePos.x * (float)tileSizeWithPadding,
-				requestTask.atlasNode->tilePos.y * (float)tileSizeWithPadding,
+				(float)requestTask.atlasNode->tilePos.x * (float)tileSizeWithPadding,
+				(float)requestTask.atlasNode->tilePos.y * (float)tileSizeWithPadding,
 				(float)tileSizeWithPadding,
 				(float)tileSizeWithPadding
 			};
 
 			float powNumber = std::pow(2, requestTask.nextPageLevel);
-			const auto& currRvtRealRect = mRenderer->GetRvtRealRect();
+			const auto& currRvtRealRect = mRenderer->GetRuntimeVTRealRect();
 			float paddingEffect = powNumber * mTerrainSetting.smWorldMeterSizePerPaddingInPage0Level;
 			Math::Vector4 tileRectInWorldSpace = Math::Vector4{
-				currRvtRealRect.x + (mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber * requestTask.nextPagePos.x) - paddingEffect,
-				currRvtRealRect.y - (mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber * requestTask.nextPagePos.y) + paddingEffect,
+				currRvtRealRect.x + (mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber * (float)requestTask.nextPagePos.x) - paddingEffect,
+				currRvtRealRect.y - (mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber * (float)requestTask.nextPagePos.y) + paddingEffect,
 				mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber + 2.0f * paddingEffect,
 				mTerrainSetting.smWorldMeterSizePerTileInPage0Level * powNumber + 2.0f * paddingEffect
 			};
@@ -367,8 +415,8 @@ namespace Renderer {
 			auto& terrainAlbedoArray = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray();
 			auto& terrainNormalArray = mRenderer->GetNearTerrainNormalArray()->GetTextureArray();
 			auto& terrainTiledSplatMap = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture();
-			auto& runtimeVTAlbedoAtlas = mRenderer->GetNearTerrainRvtAlbedoAtlas()->GetTextureAtlas();
-			auto& runtimeVTNormalAtlas = mRenderer->GetNearTerrainRvtNormalAtlas()->GetTextureAtlas();
+			auto& runtimeVTAlbedoAtlas = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+			auto& runtimeVTNormalAtlas = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
 
 			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
 			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
@@ -416,9 +464,69 @@ namespace Renderer {
 			recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList = commandList.Get();
 		}
 
+		// 生成GpuUpdateRuntimeVTPageTableRequests;
+		std::vector<GpuUpdateRuntimeVTPageTableRequest> updateRuntimeVTPageTableRequests;
+		for (const auto& requestTask : requestTasks) {
+
+		}
+
 		// 录制GraphicsCommandList，用于更新PageTable
 		{
 
+		}
+	}
+
+	void RuntimeVTBackend::ProcessRuntimeVTRealRectChanged() {
+		// 将已经录制好的任务全部清空
+		RecordedGpuCommand recordedGpuCommand{};
+		while (!mRecordedGpuCommands.Empty()) {
+			mRecordedGpuCommands.TryPop(recordedGpuCommand);
+
+			// CommandList不执行，只执行SignalFence操作
+			recordedGpuCommand.graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+		}
+
+		// 恢复节点实时状态(帧倒序恢复)
+		auto* runtimeVTAtlasTileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
+		for (int32_t i = mReservedTerrainNodeRequestTasks.size() - 1; i >= 0; i--) {
+			auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks[i];
+			for (auto& requestTask : reservedRequestTasks) {
+				requestTask.atlasNode->pageLevel = -1;
+				requestTask.atlasNode->pagePos = Math::Int2{ -1, -1 };
+
+				auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+				currNodeRuntimeState.SetOutTexture();
+				currNodeRuntimeState.atlasNode = nullptr;
+				if (requestTask.prevPageLevel != -1) {
+					auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+					prevNodeRuntimeState.SetOutTexture();
+					prevNodeRuntimeState.atlasNode = nullptr;
+				}
+
+				ASSERT_FORMAT(requestTask.atlasNode->prev == nullptr);
+				ASSERT_FORMAT(requestTask.atlasNode->next == nullptr);
+				runtimeVTAtlasTileCache->AddHead(requestTask.atlasNode);
+			}
+			reservedRequestTasks.clear();
+		}
+
+		auto& runtimeVTPageTables = mRenderer->GetRuntimeVTPageTables();
+		std::vector<RuntimeVTPageTableNodeRuntimeState*> changedRuntimeVTPageTableNodeRuntimeStates;
+
+		for (auto& runtimeVTPageTable : runtimeVTPageTables) {
+			runtimeVTPageTable.OnRuntimeVTRealRectChanged(mRenderer->GetRuntimeVTRealRectOffset(), changedRuntimeVTPageTableNodeRuntimeStates);
+		}
+
+		for (auto& changedNodeRuntimeState : changedRuntimeVTPageTableNodeRuntimeStates) {
+			// 在changedRuntimeVTPageTableNodeRuntimeStates中可能存在重复值，需要再进行nullptr判断
+			if (changedNodeRuntimeState->atlasNode != nullptr) {
+				runtimeVTAtlasTileCache->Remove(changedNodeRuntimeState->atlasNode);
+				runtimeVTAtlasTileCache->AddHead(changedNodeRuntimeState->atlasNode);
+				changedNodeRuntimeState->atlasNode->pageLevel = -1;
+				changedNodeRuntimeState->atlasNode->pagePos = Math::Int2{ -1, -1 };
+				changedNodeRuntimeState->atlasNode = nullptr;
+				changedNodeRuntimeState->SetOutTexture();
+			}
 		}
 	}
 
@@ -430,23 +538,29 @@ namespace Renderer {
 	}
 
 	void RuntimeVTBackend::OnFrameCompleted(uint8_t frameIndex) {
-		auto* runtimeVTAtlasTileCache = mRenderer->mNearTerrainRuntimeVTAtlasTileCache.get();
+		auto* runtimeVTAtlasTileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
 
 		auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
 		for (auto& requestTask : reservedRequestTasks) {
 			// 更新节点实时状态
-			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeState(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
 			currNodeRuntimeState.SetInTexture();
 			currNodeRuntimeState.atlasNode = requestTask.atlasNode;
+			if (currNodeRuntimeState.atlasNode == nullptr) {
+				int32_t i = 0;
+			}
 			if (requestTask.prevPageLevel != -1) {
-				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeState(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+				auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
 				prevNodeRuntimeState.SetOutTexture();
 				prevNodeRuntimeState.atlasNode = nullptr;
 			}
 
 			// 更新AtlasNode负载
 			requestTask.atlasNode->pageLevel = requestTask.nextPageLevel;
-			requestTask.atlasNode->pagePos = requestTask.nextPagePos;
+			requestTask.atlasNode->pagePos = mRvtPageTables[requestTask.nextPageLevel].GetTransformedXY(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			requestTask.atlasNode->pageOffset = mRvtPageTables[requestTask.nextPageLevel].GetPageOffset();
+			requestTask.atlasNode->realRect = mRuntimeVTRealRect;
+			requestTask.atlasNode->testpagePos = requestTask.nextPagePos;
 			runtimeVTAtlasTileCache->AddTail(requestTask.atlasNode);
 		}
 		reservedRequestTasks.clear();
@@ -478,11 +592,11 @@ namespace Renderer {
 
 		// 创建RequestBuffer
 		{
-			auto* rvtAlbedoMapAtlas = mRenderer->mNearTerrainRvtAlbedoAtlas.get();
+			auto* runtimeVTAlbedoAtlas = mRenderer->mRuntimeVTAlbedoAtlas.get();
 
 			BufferDesc _UpdateRuntimeVTAtlasRequestBufferDesc{};
 			_UpdateRuntimeVTAtlasRequestBufferDesc.stride = sizeof(GpuUpdateRuntimeVTAtlasRequest);
-			_UpdateRuntimeVTAtlasRequestBufferDesc.size = _UpdateRuntimeVTAtlasRequestBufferDesc.stride * rvtAlbedoMapAtlas->GetTileCount();
+			_UpdateRuntimeVTAtlasRequestBufferDesc.size = _UpdateRuntimeVTAtlasRequestBufferDesc.stride * runtimeVTAlbedoAtlas->GetTileCount();
 			_UpdateRuntimeVTAtlasRequestBufferDesc.usage = GHL::EResourceUsage::Default;
 			_UpdateRuntimeVTAtlasRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
 			_UpdateRuntimeVTAtlasRequestBufferDesc.initialState = GHL::EResourceState::Common;
@@ -491,16 +605,16 @@ namespace Renderer {
 			mUpdateRuntimeVTAtlasRequestBuffer->SetDebugName("UpdateRuntimeVTAtlasRequestBuffer");
 			mRvtResourceStateTracker->StartTracking(mUpdateRuntimeVTAtlasRequestBuffer);
 
-			BufferDesc _UpdateLookupPageTableRequestBufferDesc{};
-			_UpdateLookupPageTableRequestBufferDesc.stride = sizeof(GpuUpdateLookupPageTableRequest);
-			_UpdateLookupPageTableRequestBufferDesc.size = _UpdateLookupPageTableRequestBufferDesc.stride * rvtAlbedoMapAtlas->GetTileCount();
-			_UpdateLookupPageTableRequestBufferDesc.usage = GHL::EResourceUsage::Default;
-			_UpdateLookupPageTableRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
-			_UpdateLookupPageTableRequestBufferDesc.initialState = GHL::EResourceState::Common;
-			_UpdateLookupPageTableRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
-			mUpdateLookupPageTableRequestBuffer = resourceAllocator->Allocate(device, _UpdateLookupPageTableRequestBufferDesc, descriptorAllocator, nullptr);
-			mUpdateLookupPageTableRequestBuffer->SetDebugName("UpdateLookupPageTableRequestBuffer");
-			mRvtResourceStateTracker->StartTracking(mUpdateLookupPageTableRequestBuffer);
+			BufferDesc _UpdateRuntimeVTPageTableRequestBufferDesc{};
+			_UpdateRuntimeVTPageTableRequestBufferDesc.stride = sizeof(GpuUpdateRuntimeVTPageTableRequest);
+			_UpdateRuntimeVTPageTableRequestBufferDesc.size = _UpdateRuntimeVTPageTableRequestBufferDesc.stride * runtimeVTAlbedoAtlas->GetTileCount();
+			_UpdateRuntimeVTPageTableRequestBufferDesc.usage = GHL::EResourceUsage::Default;
+			_UpdateRuntimeVTPageTableRequestBufferDesc.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+			_UpdateRuntimeVTPageTableRequestBufferDesc.initialState = GHL::EResourceState::Common;
+			_UpdateRuntimeVTPageTableRequestBufferDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::NonPixelShaderAccess;
+			mUpdateRuntimeVTPageTableRequestBuffer = resourceAllocator->Allocate(device, _UpdateRuntimeVTPageTableRequestBufferDesc, descriptorAllocator, nullptr);
+			mUpdateRuntimeVTPageTableRequestBuffer->SetDebugName("UpdateRuntimeVTPageTableRequestBuffer");
+			mRvtResourceStateTracker->StartTracking(mUpdateRuntimeVTPageTableRequestBuffer);
 		}
 
 		// 创建QuadMesh
@@ -554,8 +668,8 @@ namespace Renderer {
 					proxy.psFilepath = proxy.vsFilepath;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
-						mRenderer->GetNearTerrainRvtAlbedoAtlas()->GetDxgiFormat(),		// AlbedoMapAtlas
-						mRenderer->GetNearTerrainRvtNormalAtlas()->GetDxgiFormat()		// NormalMapAtlas
+						mRenderer->GetRuntimeVTAlbedoAtlas()->GetDxgiFormat(),		// AlbedoMapAtlas
+						mRenderer->GetRuntimeVTNormalAtlas()->GetDxgiFormat()		// NormalMapAtlas
 					};
 				}
 			);
@@ -566,7 +680,7 @@ namespace Renderer {
 					proxy.psFilepath = proxy.vsFilepath;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
-						DXGI_FORMAT_R16G16B16A16_UINT	// LookupPageTableMap
+						mRenderer->GetRuntimeVTPageTableMap()->GetResourceFormat().GetTextureDesc().format
 					};
 				}
 			);
