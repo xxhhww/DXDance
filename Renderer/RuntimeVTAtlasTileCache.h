@@ -13,14 +13,18 @@ namespace Renderer {
 			Node* prev{ nullptr };
 
 		public:
+			uint64_t runtimeVTFrameTick{ 0u };
+
 			int32_t    tileID{ -1 };		// 在图集上的ID
 			Math::Int2 tilePos{ -1, -1 };	// 在图集上的索引
 
 			int32_t    pageLevel{ -1 };		// 所处页表级别
 			Math::Int2 pagePos{ -1, -1 };	// 所处页表级别下的位置
+
 			Math::Int2 pageOffset{ -1, -1 };
-			Math::Int2 testpagePos{ -1, -1 };
-			Math::Vector4 realRect;
+
+			Math::Vector4 runtimeVTRealRect{ 0.0f, 0.0f, 0.0f, 0.0f };
+			Math::Int2 pagePosInRealRect{ -1, -1 };
 
 		public:
 			inline Node(int32_t id, const Math::Int2& pos) : tileID(id), tilePos(pos) {}

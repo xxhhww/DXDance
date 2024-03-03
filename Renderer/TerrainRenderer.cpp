@@ -218,16 +218,16 @@ namespace Renderer {
 			TextureDesc _RuntimeVTPageTableMapDesc{};
 			_RuntimeVTPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 			_RuntimeVTPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
-			_RuntimeVTPageTableMapDesc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess;
-			_RuntimeVTPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+			_RuntimeVTPageTableMapDesc.format = DXGI_FORMAT_R8G8B8A8_UINT;
+			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::CopySource;
+			_RuntimeVTPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, (float)mTerrainSetting.smRvtMaxPageLevel + 1u, 0.0f };
 			mRuntimeVTPageTableMap = resourceAllocator->Allocate(device, _RuntimeVTPageTableMapDesc, descriptorAllocator, nullptr);
 			mRuntimeVTPageTableMap->SetDebugName("RuntimeVTPageTableMap");
 			renderGraph->ImportResource("RuntimeVTPageTableMap", mRuntimeVTPageTableMap);
 			resourceStateTracker->StartTracking(mRuntimeVTPageTableMap);
 
 			mRuntimeVTAlbedoAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "RuntimeVTAlbedoAtlas");
-			mRuntimeVTNormalAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R16G16B16A16_FLOAT, "RuntimeVTNormalAtlas");
+			mRuntimeVTNormalAtlas = std::make_unique<Renderer::RuntimeVTAtlas>(this, DXGI_FORMAT_R8G8B8A8_UNORM, "RuntimeVTNormalAtlas");
 			mRuntimeVTAtlasTileCache = std::make_unique<Renderer::RuntimeVTAtlasTileCache>(mTerrainSetting.smRvtTileCountPerAxisInAtlas);
 		}
 

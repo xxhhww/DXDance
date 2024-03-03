@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer/RuntimeVTAtlasTileCache.h"
+#include "Math/Int.h"
 
 namespace Renderer {
 
@@ -19,9 +20,11 @@ namespace Renderer {
 
 		RuntimeVTAtlasTileCache::Node* atlasNode{ nullptr };
 
-		int32_t physicalPosX = -1;
-		int32_t physicalPosY = -1;
-		uint32_t pageLevel;
+		Math::Int4 rectInPage0Level{ 0, 0,0 ,0 };
+
+		int32_t  physicalPosX{ -1 };
+		int32_t  physicalPosY{ -1 };
+		uint32_t pageLevel{ 0u };
 
 	public:
 		inline void SetTempFlag(bool flag) { tempFlag = flag; }

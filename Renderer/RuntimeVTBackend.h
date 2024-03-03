@@ -128,17 +128,19 @@ namespace Renderer {
 		struct UpdateRuntimeVTPageTablePassData {
 		public:
 			uint32_t drawRequestBufferIndex;
-			float pad1;
+			uint32_t runtimeVTPageTableCopyIndex;
 			float pad2;
 			float pad3;
 		};
 		UpdateRuntimeVTPageTablePassData mUpdateRuntimeVTPageTablePassData;
 		BufferWrap mUpdateRuntimeVTPageTableRequestBuffer;
+		Renderer::TextureWrap mRuntimeVTPageTableCopy;	// 副本
 
 		Tool::ConcurrentQueue<RecordedGpuCommand> mRecordedGpuCommands;							// 该队列由BackThread和MainThread共同访问
 
 		std::vector<std::vector<RuntimeVTNodeRequestTask>> mReservedTerrainNodeRequestTasks;	// 预留的地形节点请求任务，以便帧完成后的回调处理
 
+		uint64_t mRuntimeVTFrameTick{ 0u };
 	};
 
 }

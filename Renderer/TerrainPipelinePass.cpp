@@ -523,8 +523,9 @@ namespace Renderer {
 					else {
 						auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
 						auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
-						auto& runtiemVTAlbedoAtlas = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
-						auto& runtiemVTNormalAtlas = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
+						auto& runtimeVTPageTableMap = mRenderer->GetRuntimeVTPageTableMap();
+						auto& runtiemVTAlbedoAtlas  = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+						auto& runtiemVTNormalAtlas  = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
 
 						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
 						if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
@@ -533,11 +534,13 @@ namespace Renderer {
 
 							// 向GPU输送已被录制好的命令
 							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableCommandList->D3DCommandList());
 							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
 
 							// 让ComputeQueue等待命令的完成
 							// graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
 
+							resourceTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::RenderTarget);
 							resourceTracker->TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
 							resourceTracker->TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::RenderTarget);
 						}
@@ -552,6 +555,8 @@ namespace Renderer {
 				auto* gBufferMotionVector     = resourceStorage->GetResourceByName("GBufferMotionVector")->GetTexture();
 				auto* gBufferViewDepth        = resourceStorage->GetResourceByName("GBufferViewDepth")->GetTexture();
 				auto* gBufferDepthStencil     = resourceStorage->GetResourceByName("GBufferDepthStencil")->GetTexture();
+
+				auto& runtimeVTPageTableMap   = mRenderer->GetRuntimeVTPageTableMap();
 				auto& runtiemVTAlbedoAtlas    = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
 				auto& runtiemVTNormalAtlas    = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
 				// auto* pageTableTexture      = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
@@ -580,14 +585,15 @@ namespace Renderer {
 				mTerrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.nodeDescriptorListIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.lodDescriptorListIndex  = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.terrainRuntimeVTAlbedoAtlasIndex = runtiemVTAlbedoAtlas->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.terrainRuntimeVTNormalAtlasIndex = runtiemVTNormalAtlas->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainHeightMapAtlasIndex     = mRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainAlbedoMapAtlasIndex     = mRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainNormalMapAtlasIndex     = mRenderer->GetFarTerrainNormalMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainAtlasTileCountPerAxis   = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileCountPerAxis();
 				mTerrainRendererPassData.terrainAtlasTileWidthInPixels  = mRenderer->GetFarTerrainHeightMapAtlas()->GetTileSize();
 				mTerrainRendererPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
+				mTerrainRendererPassData.runtimeVTPageTableMapIndex = mRenderer->GetRuntimeVTPageTableMap()->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.runtimeVTAlbedoAtlasIndex  = runtiemVTAlbedoAtlas->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.runtimeVTNormalAtlasIndex  = runtiemVTNormalAtlas->GetSRDescriptor()->GetHeapIndex();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
@@ -607,6 +613,7 @@ namespace Renderer {
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch += commandBuffer.TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::PixelShaderAccess);
 				// barrierBatch += commandBuffer.TransitionImmediately(terrainHeightMap, GHL::EResourceState::PixelShaderAccess);

@@ -10,18 +10,13 @@ struct PassData {
 
 	uint  nodeDescriptorListIndex;
 	uint  lodDescriptorListIndex;
-	uint  runtimeVTAlbedoAtlasIndex;
-	uint  runtimeVTNormalAtlasIndex;
-
 	uint  terrainHeightMapAtlasIndex;
 	uint  terrainAlbedoMapAtlasIndex;
+
 	uint  terrainNormalMapAtlasIndex;
 	uint  terrainAtlasTileCountPerAxis;
-
 	uint  terrainAtlasTileWidthInPixels;
 	uint  terrainPatchVertexCountPerAxis;
-	float pad2;
-	float pad3;
 
 	// x: page table size
 	// y: virtual texture size
@@ -35,9 +30,9 @@ struct PassData {
 	// w: physical texture size y
 	float4 vtPhysicalMapParams;
 
-	uint  pageTableMapIndex;
-	uint  physicalAlbedoMapIndex;
-	uint  physicalNormalMapIndex;
+	uint  runtimeVTPageTableMapIndex;
+	uint  runtimeVTAlbedoAtlasIndex;
+	uint  runtimeVTNormalAtlasIndex;
 	float pad4;
 
 	uint  lodDebug;
@@ -165,12 +160,15 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 }
 
 p2o PSMain(v2p input) {
-	Texture2D runtimeVTAlbedoAtlas = ResourceDescriptorHeap[PassDataCB.runtimeVTAlbedoAtlasIndex];
-	Texture2D runtimeVTNormalAtlas = ResourceDescriptorHeap[PassDataCB.runtimeVTNormalAtlasIndex];
+	Texture2D runtimeVTAlbedoAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTAlbedoAtlasIndex];
+	Texture2D runtimeVTNormalAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTNormalAtlasIndex];
+	Texture2D runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
 
 	float3 currLodColor = GetLODColor(input.nodeLod);
-	float3 runtimeVTColor = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
-	currLodColor = runtimeVTColor * 0.01f + currLodColor;
+	float3 runtimeVTAlbedo = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
+	float3 runtimeVTNormal = runtimeVTNormalAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
+	uint3  runtimeVTPageTable = runtimeVTPageTableMap.SampleLevel(SamplerPointWrap, input.uv, 0u).rgb;
+	currLodColor = currLodColor + runtimeVTNormal * 0.01f + runtimeVTPageTable * 0.001f;
 
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;

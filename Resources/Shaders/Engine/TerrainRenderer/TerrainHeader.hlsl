@@ -52,6 +52,7 @@ struct GpuUpdateRuntimeVTPageTableRequest {
 	int   pageLevel;	// pageLevel
 	float pad1;
 
+	int4  rectInPage0Level;
 	float4x4 mvpMatrix;	// 转换到图片空间中的矩阵
 };
 

@@ -5,6 +5,9 @@ namespace Renderer {
 	RuntimeVTPageTable::RuntimeVTPageTable(uint32_t pageLevel, uint32_t tableSizeInPage0Level)
 	: mPageLevel(pageLevel) 
 	, mNodeCountPerAxis((int32_t)tableSizeInPage0Level / std::pow(2, pageLevel)) {
+
+		int32_t powNumber = std::pow(2, mPageLevel);
+
 		mNodeRuntimeStates.resize(mNodeCountPerAxis);
 		for (int32_t i = 0; i < mNodeCountPerAxis; i++) {
 
@@ -18,6 +21,7 @@ namespace Renderer {
 				nodeRuntimeState.inLoading = false;
 				nodeRuntimeState.inTexture = false;
 				nodeRuntimeState.atlasNode = nullptr;
+				nodeRuntimeState.rectInPage0Level = Math::Int4{ i * powNumber, j * powNumber, powNumber, powNumber };
 			}
 		}
 	}

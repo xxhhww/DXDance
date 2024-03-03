@@ -35,18 +35,13 @@ namespace Renderer {
 
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
-			uint32_t terrainRuntimeVTAlbedoAtlasIndex;
-			uint32_t terrainRuntimeVTNormalAtlasIndex;
-
 			uint32_t terrainHeightMapAtlasIndex;
 			uint32_t terrainAlbedoMapAtlasIndex;
+
 			uint32_t terrainNormalMapAtlasIndex;
 			uint32_t terrainAtlasTileCountPerAxis;
-
 			uint32_t terrainAtlasTileWidthInPixels;
 			uint32_t terrainPatchVertexCountPerAxis;
-			float pad2;
-			float pad3;
 
 			// x: page table size
 			// y: virtual texture size
@@ -60,9 +55,9 @@ namespace Renderer {
 			// w: physical texture size y
 			Math::Vector4 vtPhysicalMapParams{};
 
-			uint32_t pageTableMapIndex;
-			uint32_t physicalAlbedoMapIndex;
-			uint32_t physicalNormalMapIndex;
+			uint32_t runtimeVTPageTableMapIndex;
+			uint32_t runtimeVTAlbedoAtlasIndex;
+			uint32_t runtimeVTNormalAtlasIndex;
 			float    pad4;
 
 			uint32_t lodDebug;

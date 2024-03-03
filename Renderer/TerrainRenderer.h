@@ -137,7 +137,7 @@ namespace Renderer {
 		inline auto& GetRuntimeVTPageTables() { return mRuntimeVTPageTables; }
 		inline const auto& GetRuntimeVTPageTables() const { return mRuntimeVTPageTables; }
 		
-		inline auto& GetRuntimeVTPageTableMap() { return mRuntimeVTPageTableMap; }
+		inline auto& GetRuntimeVTPageTableMap()  { return mRuntimeVTPageTableMap; }
 
 		inline auto* GetRuntimeVTAlbedoAtlas()  const { return mRuntimeVTAlbedoAtlas.get(); }
 		inline auto* GetRuntimeVTNormalAtlas()  const { return mRuntimeVTNormalAtlas.get(); }
