@@ -139,8 +139,9 @@ namespace Renderer {
 		
 		inline auto& GetRuntimeVTPageTableMap()  { return mRuntimeVTPageTableMap; }
 
-		inline auto* GetRuntimeVTAlbedoAtlas()  const { return mRuntimeVTAlbedoAtlas.get(); }
-		inline auto* GetRuntimeVTNormalAtlas()  const { return mRuntimeVTNormalAtlas.get(); }
+		inline auto* GetRuntimeVTAlbedoAtlas()    const { return mRuntimeVTAlbedoAtlas.get(); }
+		inline auto* GetRuntimeVTNormalAtlas()    const { return mRuntimeVTNormalAtlas.get(); }
+		inline auto* GetRuntimeVTAtlasTileCache() const{ return mRuntimeVTAtlasTileCache.get(); }
 
 		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
 
@@ -148,7 +149,7 @@ namespace Renderer {
 		inline const auto& GetPageLevelBias() const { return mPageLevelBias; }
 
 		inline const auto& GetRuntimeVTRealRect() const { return mRuntimeVTRealRect; }
-		inline const auto& GetRuntimeVTRealRectOffset() const { return mRuntimeVTRealRectOffset; }
+		inline const auto& GetRuntimeVTRealRectOffsetInPage0Level() const { return mRuntimeVTRealRectOffsetInPage0Level; }
 
 		void OnRuntimeVTRealRectChanged(const Math::Vector4& currRuntimeVTRealRect);
 
@@ -212,7 +213,7 @@ namespace Renderer {
 		uint32_t mMaxPageLevel;
 		uint32_t mPageLevelBias;
 		Math::Vector4 mRuntimeVTRealRect;
-		Math::Int2 mRuntimeVTRealRectOffset;
+		Math::Int2 mRuntimeVTRealRectOffsetInPage0Level;
 		HANDLE mRuntimeVTRealRectChangedCompletedEvent{ NULL };
 		std::atomic<uint32_t> mRuntimeVTRealRectChangedFlag{ 0u };
 		std::vector<RuntimeVTPageTable> mRuntimeVTPageTables;

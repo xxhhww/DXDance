@@ -19,6 +19,9 @@ struct PassData {
 	uint   lodDescriptorListIndex;
 	uint   culledPatchListIndex;
 	float  pad;
+
+	uint   nearCulledPatchListIndex;
+	uint   farCulledPatchListIndex;
 };
 
 #define PassDataType PassData

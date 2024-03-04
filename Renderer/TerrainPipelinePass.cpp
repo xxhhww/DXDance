@@ -489,6 +489,10 @@ namespace Renderer {
 
 				// 提交RuntimeVTBackend录制的命令
 				{
+					auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
+					auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
+					auto& recordedGpuCommandsInRealRectChanged = runtimeVTBackend->GetRecordedGpuCommandsInRealRectChanged();
+
 					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
 					const auto& prevRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
 					const auto& prevRuntimeVTRealRectCenter = Math::Vector2{
@@ -519,30 +523,33 @@ namespace Renderer {
 
 						// 同步等待
 						mRenderer->OnRuntimeVTRealRectChanged(currRuntimeVTRealRect);
+
+						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
+						if (recordedGpuCommandsInRealRectChanged.TryPop(recordedGpuCommand)) {
+							// 修改节点实时状态
+							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
+
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList->D3DCommandList());
+
+							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+							graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+						}
+
 					}
 					else {
-						auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
-						auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
-						auto& runtimeVTPageTableMap = mRenderer->GetRuntimeVTPageTableMap();
-						auto& runtiemVTAlbedoAtlas  = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
-						auto& runtiemVTNormalAtlas  = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
-
 						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
 						if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
 							// 修改节点实时状态
 							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
 
 							// 向GPU输送已被录制好的命令
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasCommandList->D3DCommandList());
 							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableCommandList->D3DCommandList());
+
 							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-
-							// 让ComputeQueue等待命令的完成
-							// graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-
-							resourceTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::RenderTarget);
-							resourceTracker->TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
-							resourceTracker->TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::RenderTarget);
+							graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
 						}
 					}
 				}
@@ -559,9 +566,6 @@ namespace Renderer {
 				auto& runtimeVTPageTableMap   = mRenderer->GetRuntimeVTPageTableMap();
 				auto& runtiemVTAlbedoAtlas    = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
 				auto& runtiemVTNormalAtlas    = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
-				// auto* pageTableTexture      = resourceStorage->GetResourceByName("PageTableTexture")->GetTexture();
-				// auto* physicalTextureAlbedo = resourceStorage->GetResourceByName("PhysicalTextureAlbedo")->GetTexture();
-				// auto* physicalTextureNormal = resourceStorage->GetResourceByName("PhysicalTextureNormal")->GetTexture();
 
 				/*
 				// 更新Rvt参数
@@ -616,10 +620,6 @@ namespace Renderer {
 				barrierBatch += commandBuffer.TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::PixelShaderAccess);
-				// barrierBatch += commandBuffer.TransitionImmediately(terrainHeightMap, GHL::EResourceState::PixelShaderAccess);
-				// barrierBatch += commandBuffer.TransitionImmediately(pageTableTexture, GHL::EResourceState::PixelShaderAccess);
-				// barrierBatch += commandBuffer.TransitionImmediately(physicalTextureAlbedo, GHL::EResourceState::PixelShaderAccess);
-				// barrierBatch += commandBuffer.TransitionImmediately(physicalTextureNormal, GHL::EResourceState::PixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));

@@ -113,5 +113,7 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainFeedbackDownScale.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableUpdater.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTAtlasUpdater.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableChangedPass1.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableChangedPass2.hlsl" />
   </ItemGroup>
 </Project>

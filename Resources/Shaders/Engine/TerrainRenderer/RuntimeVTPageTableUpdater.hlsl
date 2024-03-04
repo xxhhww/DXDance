@@ -6,7 +6,7 @@
 struct PassData{
 	uint  updateRequestBufferIndex;
 	uint  runtimeVTPageTableCopyIndex;
-	float pad2;
+	uint  preLoad;
 	float pad3;
 };
 
@@ -57,7 +57,7 @@ p2o PSMain(v2p input) {
 
 	uint4 copyData = runtimeVTPageTableCopy[globalIndex.xy].rgba;
 
-	if(copyData.z <= input.indexData.z) discard;
+	if(copyData.z <= input.indexData.z && !PassDataCB.preLoad) discard;
 
 	runtimeVTPageTableCopy[globalIndex.xy].z = input.indexData.z;
 

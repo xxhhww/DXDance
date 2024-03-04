@@ -10,24 +10,6 @@
 
 namespace Renderer {
 
-	struct GpuUpdateRuntimeVTAtlasRequest {
-	public:
-		Math::Matrix4 mvpMatrix;
-		Math::Vector4 tileOffset;
-		Math::Vector4 blendOffset;
-	};
-
-	struct GpuUpdateRuntimeVTPageTableRequest {
-	public:
-		uint32_t tilePosX;
-		uint32_t tilePosY;
-		int32_t  pageLevel;
-		float    pad1;
-
-		Math::Int4 rectInPage0Level;
-		Math::Matrix4 mvpMatrix;		// 转换到图片空间中的矩阵
-	};
-
 	RuntimeVTBackend::RuntimeVTBackend(TerrainRenderer* renderer, TerrainSetting& terrainSetting)
 	: mRenderer(renderer)
 	, mTerrainSetting(terrainSetting) 
@@ -51,7 +33,185 @@ namespace Renderer {
 	}
 
 	void RuntimeVTBackend::Preload() {
+		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* shaderManger = renderEngine->mShaderManger.get();
+		auto* resourceStorage = renderEngine->mPipelineResourceStorage;
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
+
+		auto* runtimeVTAtlasTileCache = mRenderer->GetRuntimeVTAtlasTileCache();
+
 		mRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
+
+		// 加载MaxPageLevel
+		uint32_t maxPageLevel = mTerrainSetting.smRvtMaxPageLevel;
+		int32_t powNumber = std::pow(2, maxPageLevel);
+		int32_t nodeCountPerAxisInMaxPageLevel = mTerrainSetting.smRvtTileCountPerAxisInPage0Level / powNumber;
+
+		// 填充请求任务，并分配atlasNode
+		std::vector<RuntimeVTNodeRequestTask> requestTasks;
+		for (int32_t i = 0; i < nodeCountPerAxisInMaxPageLevel; i++) {
+			for (int32_t j = 0; j < nodeCountPerAxisInMaxPageLevel; j++) {
+				auto* atlasNode = runtimeVTAtlasTileCache->GetHead();
+				runtimeVTAtlasTileCache->Remove(atlasNode);
+
+				RuntimeVTNodeRequestTask requestTask{};
+				requestTask.atlasNode = atlasNode;
+				requestTask.nextPagePos.x = i;
+				requestTask.nextPagePos.y = j;
+				requestTask.nextPageLevel = maxPageLevel;
+				requestTask.prevPagePos.x = -1;
+				requestTask.prevPagePos.y = -1;
+				requestTask.prevPageLevel = -1;
+				requestTask.runtimeVTRealRect = mRuntimeVTRealRect;
+				requestTasks.push_back(requestTask);
+
+				auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+				currNodeRuntimeState.SetInReady();
+			}
+		}
+
+		// 录制GraphicsQueue
+		{
+			mRvtGraphicsFence->IncrementExpectedValue();
+			mRvtFrameTracker->PushCurrentFrame(mRvtGraphicsFence->ExpectedValue());
+		}
+
+		// 录制UpdateRuntimeVTAtlas命令
+		{
+			std::vector<GpuUpdateRuntimeVTAtlasRequest> updateRequests;
+			ProduceGpuUpdateRuntimeVTAtlasRequests(requestTasks, updateRequests);
+
+			auto& terrainAlbedoArray    = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray();
+			auto& terrainNormalArray    = mRenderer->GetNearTerrainNormalArray()->GetTextureArray();
+			auto& terrainTiledSplatMap  = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture();
+			auto& runtimeVTAlbedoAtlas  = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+			auto& runtimeVTNormalAtlas  = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
+
+			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("PreLoadRuntimeVTAtlas");
+
+			uint16_t width = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
+			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
+
+			mUpdateRuntimeVTAtlasPassData.drawRequestBufferIndex = mUpdateRuntimeVTAtlasRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainAlbedoTextureArrayIndex = terrainAlbedoArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainNormalTextureArrayIndex = terrainNormalArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainRoughnessTextureArrayIndex;
+			mUpdateRuntimeVTAtlasPassData.terrainSplatMapIndex = terrainTiledSplatMap->GetSRDescriptor()->GetHeapIndex();
+
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTAtlasPassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTAtlasPassData, sizeof(UpdateRuntimeVTAtlasPassData));
+
+			// 将数据数组上传到GPU中去
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch += commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mUpdateRuntimeVTAtlasRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVTAtlasRequest));
+
+			barrierBatch =  commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTNormalAtlas, GHL::EResourceState::RenderTarget);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.SetRenderTargets({ runtimeVTAlbedoAtlas, runtimeVTNormalAtlas });
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVTAtlasSN);
+			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
+			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
+
+			barrierBatch =  resourceStateTracker->TransitionImmediately(runtimeVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess);
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTNormalAtlas, GHL::EResourceState::PixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.PIXEndEvent();
+			commandList->Close();
+			mRvtGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+		}
+
+		// 录制RuntimeVTPageTable命令
+		{
+			std::vector<GpuUpdateRuntimeVTPageTableRequest> updateRequests;
+			ProduceGpuUpdateRuntimeVTPageTableRequests(requestTasks, updateRequests);
+
+			auto& runtimeVTPageTableMap = mRenderer->GetRuntimeVTPageTableMap();
+
+			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("PreLoadRuntimeVTPageTable");
+
+			uint16_t width = static_cast<uint16_t>(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+
+			mUpdateRuntimeVTPageTablePassData.drawRequestBufferIndex = mUpdateRuntimeVTPageTableRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTPageTablePassData.runtimeVTPageTableCopyIndex = mRuntimeVTPageTableCopy->GetUADescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTPageTablePassData.preLoad = 1;
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTPageTablePassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTPageTablePassData, sizeof(UpdateRuntimeVTPageTablePassData));
+
+			// Copy RuntimeVTPageTable & 将数据数组上传到GPU中去
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch += commandBuffer.TransitionImmediately(mUpdateRuntimeVTPageTableRequestBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mUpdateRuntimeVTPageTableRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVTPageTableRequest));
+
+			barrierBatch =  resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::RenderTarget);
+			barrierBatch += commandBuffer.TransitionImmediately(mRuntimeVTPageTableCopy, GHL::EResourceState::UnorderedAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mUpdateRuntimeVTPageTableRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.SetRenderTarget(runtimeVTPageTableMap);
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVTPageTableSN);
+			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
+			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
+
+			barrierBatch =  resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.PIXEndEvent();
+			commandList->Close();
+			mRvtGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
+		}
+
+		// 等待任务完成
+		{
+			mRvtGraphicsQueue->SignalFence(*mRvtGraphicsFence.get());
+			mRvtGraphicsFence->Wait();
+			mRvtFrameTracker->PopCompletedFrame(mRvtGraphicsFence->CompletedValue());
+		}
+
+		// GPU任务完成，更新CPU中PageTableNode的驻留状态
+		for (auto& requestTask : requestTasks) {
+			// 更新节点实时状态
+			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			currNodeRuntimeState.SetInTexture();
+			currNodeRuntimeState.atlasNode = requestTask.atlasNode;
+
+			// 更新AtlasNode负载
+			requestTask.atlasNode->pageLevel = requestTask.nextPageLevel;
+			requestTask.atlasNode->pagePos = mRvtPageTables[requestTask.nextPageLevel].GetTransformedXY(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+			requestTask.atlasNode->pageOffset = mRvtPageTables[requestTask.nextPageLevel].GetPageOffset();
+			requestTask.atlasNode->runtimeVTRealRect = mRuntimeVTRealRect;
+			requestTask.atlasNode->pagePosInRealRect = requestTask.nextPagePos;
+			runtimeVTAtlasTileCache->AddTail(requestTask.atlasNode);
+		}
+
+		// 设置帧完成回调函数
+		SetupFrameCompletedCallBack();
 
 		// 加载完成后通知后台线程，启动资源调度线程
 		::SetEvent(mHasPreloaded);
@@ -97,12 +257,15 @@ namespace Renderer {
 
 					// 记录当前帧对应的Gpu命令
 					RecordedGpuCommand recordedGpuCommand{};
-					recordedGpuCommand.graphicsFence = mRvtGraphicsFence.get();
 					recordedGpuCommand.graphicsQueue = mRvtGraphicsQueue.get();
+					recordedGpuCommand.graphicsFence = mRvtGraphicsFence.get();
 					recordedGpuCommand.graphicsFenceExpectedValue = currFrameFenceExpectedValue;
-					recordedGpuCommand.frameIndex = mRvtFrameTracker->GetCurrFrameIndex();
+					recordedGpuCommand.updateRuntimeVTAtlasCommandList = nullptr;
 					recordedGpuCommand.updateRuntimeVTPageTableCommandList = nullptr;
-					recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList = nullptr;
+					recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList = nullptr;
+					recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList = nullptr;
+					recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList = nullptr;
+					recordedGpuCommand.frameIndex = mRvtFrameTracker->GetCurrFrameIndex();
 
 					// 根据当前请求任务录制GPU命令
 					RecordGpuCommand(rvtNodeRequestTasks, recordedGpuCommand);
@@ -122,6 +285,32 @@ namespace Renderer {
 
 				// 处理RuntimeVTRealRectChanged
 				ProcessRuntimeVTRealRectChanged();
+
+				// 压入新的RvtFrame
+				uint64_t currFrameFenceExpectedValue = mRvtGraphicsFence->IncrementExpectedValue();
+				mRvtFrameTracker->PushCurrentFrame(currFrameFenceExpectedValue);
+
+				// 记录当前帧对应的Gpu命令
+				RecordedGpuCommand recordedGpuCommand{};
+				recordedGpuCommand.graphicsQueue = mRvtGraphicsQueue.get();
+				recordedGpuCommand.graphicsFence = mRvtGraphicsFence.get();
+				recordedGpuCommand.graphicsFenceExpectedValue = currFrameFenceExpectedValue;
+				recordedGpuCommand.updateRuntimeVTAtlasCommandList = nullptr;
+				recordedGpuCommand.updateRuntimeVTPageTableCommandList = nullptr;
+				recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList = nullptr;
+				recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList = nullptr;
+				recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList = nullptr;
+				recordedGpuCommand.frameIndex = mRvtFrameTracker->GetCurrFrameIndex();
+
+				// 录制命令
+				std::vector<RuntimeVTNodeRequestTask> rvtNodeRequestTasks;
+				RecordedGpuCommandInRealRectChanged(recordedGpuCommand, rvtNodeRequestTasks);
+
+				// 预留请求任务，以便后续帧完成后的回调处理(mBackComputeFrameTracker->GetFrameIndex()理论上也可以)
+				mReservedTerrainNodeRequestTasks.at(mRvtFrameTracker->GetCurrFrameIndex()).insert(mReservedTerrainNodeRequestTasks.at(mRvtFrameTracker->GetCurrFrameIndex()).end(), rvtNodeRequestTasks.begin(), rvtNodeRequestTasks.end());
+
+				// 将命令压入队列中
+				mRecordedGpuCommandsInRealRectChanged.Push(std::move(recordedGpuCommand));
 
 				// 通知主线程
 				mRenderer->SetRuntimeVTRealRectChangedCompletedEvnet();
@@ -172,8 +361,6 @@ namespace Renderer {
 		if (!feedbackFound) {
 			return false;
 		}
-
-		mRuntimeVTFrameTick++;
 ;
 		auto& readbackBuffer = terrainFeedbackReadbackBuffers.at(targetFeedbackIndex);
 		uint16_t* pResolvedData = reinterpret_cast<uint16_t*>(readbackBuffer->Map());
@@ -186,7 +373,7 @@ namespace Renderer {
 		uint32_t rowByteSize = (width * GHL::GetFormatStride(feedbackMapDesc.format) + 0x0ff) & ~0x0ff;
 		rowByteSize /= (sizeof(uint16_t) / sizeof(uint8_t));
 
-		auto* tileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
+		auto* tileCache = mRenderer->GetRuntimeVTAtlasTileCache();
 
 		for (uint32_t y = 0u; y < height; y++) {
 			for (uint32_t x = 0u; x < rowByteSize;) {
@@ -207,7 +394,7 @@ namespace Renderer {
 				uint16_t pageLevel = pResolvedData[x++];	// pageLevel
 				uint16_t overBound = pResolvedData[x++];	// overBound
 
-				if (overBound == 0u || pageLevel <= 5) { continue; }
+				if (overBound == 0u) { continue; }
 
 				// 将Page0Pos转换到当前Level下的PagePos
 				int32_t perSize = (int32_t)std::pow(2, pageLevel);
@@ -217,6 +404,8 @@ namespace Renderer {
 				// 填充请求队列(注意剔除重复目标)
 				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed((uint32_t)pagePosX, (uint32_t)pagePosY);
 
+
+				/*
 				if (currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
 					continue;
@@ -232,8 +421,9 @@ namespace Renderer {
 
 				// 剔除重复requestTask
 				currNodeRuntimeState.SetTempFlag(true);
+				*/
 
-				/*
+
 				if (currNodeRuntimeState.inReady || currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading || currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
 					continue;
@@ -243,7 +433,6 @@ namespace Renderer {
 					if (currNodeRuntimeState.atlasNode == nullptr) {
 						int32_t i = 0;
 					}
-					currNodeRuntimeState.atlasNode->runtimeVTFrameTick = mRuntimeVTFrameTick;
 					tileCache->Remove(currNodeRuntimeState.atlasNode);
 					tileCache->AddTail(currNodeRuntimeState.atlasNode);
 				}
@@ -259,7 +448,6 @@ namespace Renderer {
 					// 剔除重复requestTask
 					currNodeRuntimeState.SetTempFlag(true);
 				}
-				*/
 			}
 
 			// 转移到纹理的下一行，纹理的每一行除了最后一行都需要256字节对齐
@@ -312,7 +500,7 @@ namespace Renderer {
 				requestTask.prevPagePos = Math::Int2{ -1, -1 };
 				requestTask.prevPageLevel = -1;
 			}
-
+			
 			requestTask.atlasNode = atlasNode;
 
 			auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
@@ -330,13 +518,7 @@ namespace Renderer {
 		return false;
 	}
 
-	void RuntimeVTBackend::RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
-		auto* renderEngine = mRenderer->mRenderEngine;
-		auto* shaderManger = renderEngine->mShaderManger.get();
-		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
-		auto* mainResourceStateTracker = renderEngine->mResourceStateTracker.get();
-
-		std::vector<GpuUpdateRuntimeVTAtlasRequest> updateRequests;
+	void RuntimeVTBackend::ProduceGpuUpdateRuntimeVTAtlasRequests(std::vector<RuntimeVTNodeRequestTask>& requestTasks, std::vector<GpuUpdateRuntimeVTAtlasRequest>& updateRequests) {
 		for (auto& requestTask : requestTasks) {
 			// 计算tilePos对应的图像空间下的tileRect
 			const auto& tileSizeWithPadding = mTerrainSetting.smRvtTileSizeWithPadding;
@@ -425,6 +607,82 @@ namespace Renderer {
 			updateRequest.blendOffset = scaleOffset;
 			updateRequests.emplace_back(std::move(updateRequest));
 		}
+	}
+
+	void RuntimeVTBackend::ProduceGpuUpdateRuntimeVTPageTableRequests(std::vector<RuntimeVTNodeRequestTask>& requestTasks, std::vector<GpuUpdateRuntimeVTPageTableRequest>& updateRequests) {
+		for (const auto& requestTask : requestTasks) {
+			int32_t powNumber = std::pow(2, requestTask.nextPageLevel);
+			Math::Int2 pagePosInPage0Level = requestTask.nextPagePos * powNumber;
+
+			GpuUpdateRuntimeVTPageTableRequest updateRequest;
+			updateRequest.tilePosX = requestTask.atlasNode->tilePos.x;
+			updateRequest.tilePosY = requestTask.atlasNode->tilePos.y;
+			updateRequest.pageLevel = requestTask.nextPageLevel;
+			updateRequest.rectInPage0Level = Math::Int4{ pagePosInPage0Level.x, pagePosInPage0Level.y, powNumber, powNumber };
+			updateRequests.push_back(updateRequest);
+
+			if (requestTask.prevPageLevel != -1) {
+				int32_t pageLevel = requestTask.atlasNode->pageLevel;
+				int32_t powNumber = std::pow(2, pageLevel);
+
+				// 当前atlasNode上对应的RuntimeVTRealRect可能与当前不同，因此需要将prevPagePos转换到当前RuntimeVTRealRect的视角下的pagePos
+				Math::Int2    pageOffsetInPrevRealRect = requestTask.atlasNode->pageOffset;
+				Math::Int2    pagePosInPrevRealRect = requestTask.atlasNode->pagePosInRealRect;
+
+				Math::Vector4 currRealRect = mRuntimeVTRealRect;
+				Math::Int2    pageOffsetInCurrRealRect = mRvtPageTables[pageLevel].GetPageOffset();
+
+				Math::Int2    offsetInCurrPageLevel = pageOffsetInCurrRealRect - pageOffsetInPrevRealRect;
+				Math::Int2    pagePosInCurrPageLevel = pagePosInPrevRealRect + offsetInCurrPageLevel;
+				Math::Int2    pagePosInCurrPage0Level = pagePosInCurrPageLevel * powNumber;
+
+				RuntimeVTPageTableNodeRuntimeState prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrPageLevel.x, pagePosInCurrPageLevel.y);
+
+				while (pageLevel <= mRenderer->GetMaxPageLevel() && (prevNodeRuntimeStates.inLoadingOut || prevNodeRuntimeStates.inQueueOut || prevNodeRuntimeStates.inReadyOut || !prevNodeRuntimeStates.inTexture)) {
+					pageLevel++;
+
+					powNumber = std::pow(2, pageLevel);
+					pagePosInCurrPageLevel.x = pagePosInCurrPage0Level.x / powNumber;
+					pagePosInCurrPageLevel.y = pagePosInCurrPage0Level.y / powNumber;
+					prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrPageLevel.x, pagePosInCurrPageLevel.y);
+				}
+
+				if (prevNodeRuntimeStates.inLoadingOut || prevNodeRuntimeStates.inQueueOut || prevNodeRuntimeStates.inReadyOut) {
+					int32_t i = 0;
+				}
+
+				updateRequest.tilePosX = prevNodeRuntimeStates.atlasNode->tilePos.x;
+				updateRequest.tilePosY = prevNodeRuntimeStates.atlasNode->tilePos.y;
+				updateRequest.pageLevel = prevNodeRuntimeStates.pageLevel;
+				updateRequest.rectInPage0Level = Math::Int4{ pagePosInCurrPage0Level.x, pagePosInCurrPage0Level.y, powNumber, powNumber };
+				updateRequests.push_back(updateRequest);
+			}
+		}
+
+		// 排序(从大到小)
+		std::sort(updateRequests.begin(), updateRequests.end(),
+			[](const GpuUpdateRuntimeVTPageTableRequest& requestA, const GpuUpdateRuntimeVTPageTableRequest& requestB) {
+				return requestA.pageLevel > requestB.pageLevel;
+			});
+
+		// 生成MVPMatrix
+		for (auto& updateRequest : updateRequests) {
+			float size = (float)updateRequest.rectInPage0Level.z / (float)mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+			updateRequest.mvpMatrix = Math::Matrix4{
+				Math::Vector3{ updateRequest.rectInPage0Level.x / (float)mTerrainSetting.smRvtTileCountPerAxisInPage0Level, updateRequest.rectInPage0Level.y / (float)mTerrainSetting.smRvtTileCountPerAxisInPage0Level, 0.0f },
+				Math::Quaternion{},
+				Math::Vector3{ size, size, size }
+			}.Transpose();
+		}
+	}
+
+	void RuntimeVTBackend::RecordGpuCommand(std::vector<RuntimeVTNodeRequestTask>& requestTasks, RecordedGpuCommand& recordedGpuCommand) {
+		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* shaderManger = renderEngine->mShaderManger.get();
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+
+		std::vector<GpuUpdateRuntimeVTAtlasRequest> updateRequests;
+		ProduceGpuUpdateRuntimeVTAtlasRequests(requestTasks, updateRequests);
 
 		if (updateRequests.empty()) {
 			return;
@@ -465,9 +723,7 @@ namespace Renderer {
 			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
 			barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess, GHL::EResourceState::RenderTarget} };
 			barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTNormalAtlas, GHL::EResourceState::PixelShaderAccess, GHL::EResourceState::RenderTarget} };
-
 			commandBuffer.FlushResourceBarrier(barrierBatch);
-
 			commandBuffer.SetRenderTargets({ runtimeVTAlbedoAtlas, runtimeVTNormalAtlas });
 			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
@@ -479,9 +735,13 @@ namespace Renderer {
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
 
+			barrierBatch =  GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTAlbedoAtlas, GHL::EResourceState::RenderTarget, GHL::EResourceState::PixelShaderAccess} };
+			barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTNormalAtlas, GHL::EResourceState::RenderTarget, GHL::EResourceState::PixelShaderAccess} };
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
 			commandBuffer.PIXEndEvent();
 			commandList->Close();
-			recordedGpuCommand.updateRuntimeVTTextureAtlasCommandList = commandList.Get();
+			recordedGpuCommand.updateRuntimeVTAtlasCommandList = commandList.Get();
 		}
 
 		// 生成GpuUpdateRuntimeVTPageTableRequests;
@@ -502,25 +762,33 @@ namespace Renderer {
 				int32_t powNumber = std::pow(2, pageLevel);
 
 				// 当前atlasNode上对应的RuntimeVTRealRect可能与当前不同，因此需要将prevPagePos转换到当前RuntimeVTRealRect的视角下的pagePos
-				Math::Int2    pageOffsetInPrevRealRect = requestTask.atlasNode->pageOffset;
-				Math::Int2    pagePosInPrevRealRect = requestTask.atlasNode->pagePosInRealRect;
+				const Math::Vector4 prevRuntimeVTRealRect = requestTask.atlasNode->runtimeVTRealRect;
+				const Math::Vector4 currRuntimeVTRealRect = mRuntimeVTRealRect;
 
-				Math::Vector4 currRealRect = mRuntimeVTRealRect;
-				Math::Int2    pageOffsetInCurrRealRect = mRvtPageTables[pageLevel].GetPageOffset();
+				const Math::Int2 prevRuntimeVTRealRectCenter = Math::Int2{
+					(int32_t)prevRuntimeVTRealRect.x + (int32_t)prevRuntimeVTRealRect.z,
+					(int32_t)prevRuntimeVTRealRect.y - (int32_t)prevRuntimeVTRealRect.w
+				};
 
-				Math::Int2    offsetInCurrPageLevel = pageOffsetInCurrRealRect - pageOffsetInPrevRealRect;
-				Math::Int2    pagePosInCurrPageLevel = pagePosInPrevRealRect + offsetInCurrPageLevel;
-				Math::Int2    pagePosInCurrPage0Level = pagePosInCurrPageLevel * powNumber;
+				const Math::Int2 currRuntimeVTRealRectCenter = Math::Int2{
+					(int32_t)currRuntimeVTRealRect.x + (int32_t)currRuntimeVTRealRect.z,
+					(int32_t)currRuntimeVTRealRect.y - (int32_t)currRuntimeVTRealRect.w
+				};
 				 
-				RuntimeVTPageTableNodeRuntimeState prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrPageLevel.x, pagePosInCurrPageLevel.y);
+				const Math::Int2 offsetInPage0Level = (currRuntimeVTRealRectCenter - prevRuntimeVTRealRectCenter) / (int32_t)mTerrainSetting.smWorldMeterSizePerTileInPage0Level;
+				const Math::Int2 offsetInCurrPageLevel = offsetInPage0Level / powNumber;
+
+				Math::Int2 pagePosInCurrRealRect = requestTask.atlasNode->pagePosInRealRect; + offsetInCurrPageLevel;
+				Math::Int2 pagePosInCurrPage0Level = pagePosInCurrRealRect * powNumber;
+
+				RuntimeVTPageTableNodeRuntimeState prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrRealRect.x, pagePosInCurrRealRect.y);
 
 				while (pageLevel <= mRenderer->GetMaxPageLevel() && (prevNodeRuntimeStates.inLoadingOut || prevNodeRuntimeStates.inQueueOut || prevNodeRuntimeStates.inReadyOut || !prevNodeRuntimeStates.inTexture)) {
 					pageLevel ++;
 
-					powNumber = std::pow(2, pageLevel);
-					pagePosInCurrPageLevel.x = pagePosInCurrPage0Level.x / powNumber;
-					pagePosInCurrPageLevel.y = pagePosInCurrPage0Level.y / powNumber;
-					prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrPageLevel.x, pagePosInCurrPageLevel.y);
+					pagePosInCurrRealRect.x = pagePosInCurrRealRect.x / 2;
+					pagePosInCurrRealRect.y = pagePosInCurrRealRect.y / 2;
+					prevNodeRuntimeStates = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed(pagePosInCurrRealRect.x, pagePosInCurrRealRect.y);
 				}
 
 				if (prevNodeRuntimeStates.inLoadingOut || prevNodeRuntimeStates.inQueueOut || prevNodeRuntimeStates.inReadyOut) {
@@ -566,21 +834,9 @@ namespace Renderer {
 
 			mUpdateRuntimeVTPageTablePassData.drawRequestBufferIndex      = mUpdateRuntimeVTPageTableRequestBuffer->GetSRDescriptor()->GetHeapIndex();
 			mUpdateRuntimeVTPageTablePassData.runtimeVTPageTableCopyIndex = mRuntimeVTPageTableCopy->GetUADescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTPageTablePassData.preLoad = 0;
 			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTPageTablePassData));
 			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTPageTablePassData, sizeof(UpdateRuntimeVTPageTablePassData));
-
-			{
-				static bool flag = true;
-				if (flag) {
-					auto barrierBatch = GHL::ResourceBarrierBatch{};
-					barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess, GHL::EResourceState::RenderTarget} };
-					commandBuffer.FlushResourceBarrier(barrierBatch);
-					commandBuffer.ClearRenderTarget(runtimeVTPageTableMap, Math::Vector4{ 0.0f, 0.0f, (float)mTerrainSetting.smRvtMaxPageLevel + 1u, 0.0f });
-					barrierBatch += GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTPageTableMap, GHL::EResourceState::RenderTarget, GHL::EResourceState::PixelShaderAccess} };
-					commandBuffer.FlushResourceBarrier(barrierBatch);
-					flag = false;
-				}
-			}
 
 			// Copy RuntimeVTPageTable & 将数据数组上传到GPU中去
 			auto barrierBatch = GHL::ResourceBarrierBatch{};
@@ -606,6 +862,9 @@ namespace Renderer {
 			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRuntimeVTPageTableRequests.size(), 0u, 0u, 0u);
 
+			barrierBatch = GHL::ResourceBarrierBatch{ GHL::TransitionBarrier{runtimeVTPageTableMap, GHL::EResourceState::RenderTarget, GHL::EResourceState::PixelShaderAccess} };
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
 			commandBuffer.PIXEndEvent();
 			commandList->Close();
 			recordedGpuCommand.updateRuntimeVTPageTableCommandList = commandList.Get();
@@ -613,17 +872,40 @@ namespace Renderer {
 	}
 
 	void RuntimeVTBackend::ProcessRuntimeVTRealRectChanged() {
-		// 将已经录制好的任务全部清空
+
+		auto* runtimeVTAtlasTileCache = mRenderer->GetRuntimeVTAtlasTileCache();
+		
+		// 将已经录制好但没有提交的任务全部清空
 		RecordedGpuCommand recordedGpuCommand{};
 		while (!mRecordedGpuCommands.Empty()) {
 			mRecordedGpuCommands.TryPop(recordedGpuCommand);
 
 			// CommandList不执行，只执行SignalFence操作
 			recordedGpuCommand.graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+
+			auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks[recordedGpuCommand.frameIndex];
+			for (auto& requestTask : reservedRequestTasks) {
+				auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+				currNodeRuntimeState.SetOutTexture();
+				currNodeRuntimeState.atlasNode = nullptr;
+				if (requestTask.prevPageLevel != -1) {
+					// 孩子们，我回来了！
+					auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+					prevNodeRuntimeState.SetInTexture();
+				}
+
+				ASSERT_FORMAT(requestTask.atlasNode->prev == nullptr);
+				ASSERT_FORMAT(requestTask.atlasNode->next == nullptr);
+				runtimeVTAtlasTileCache->AddHead(requestTask.atlasNode);
+			}
+			reservedRequestTasks.clear();
 		}
 
-		// 恢复节点实时状态(帧倒序恢复)
-		auto* runtimeVTAtlasTileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
+		mRvtGraphicsFence->Wait();
+		mRvtFrameTracker->PopCompletedFrame(mRvtGraphicsFence->CompletedValue());
+		
+		/*
+		// 假定预留的任务全都没有做完，恢复节点实时状态(帧倒序恢复)
 		for (int32_t i = mReservedTerrainNodeRequestTasks.size() - 1; i >= 0; i--) {
 			auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks[i];
 			for (auto& requestTask : reservedRequestTasks) {
@@ -645,12 +927,13 @@ namespace Renderer {
 			}
 			reservedRequestTasks.clear();
 		}
+		*/
 
 		auto& runtimeVTPageTables = mRenderer->GetRuntimeVTPageTables();
 		std::vector<RuntimeVTPageTableNodeRuntimeState*> changedRuntimeVTPageTableNodeRuntimeStates;
 
 		for (auto& runtimeVTPageTable : runtimeVTPageTables) {
-			runtimeVTPageTable.OnRuntimeVTRealRectChanged(mRenderer->GetRuntimeVTRealRectOffset(), changedRuntimeVTPageTableNodeRuntimeStates);
+			runtimeVTPageTable.OnRuntimeVTRealRectChanged(mRenderer->GetRuntimeVTRealRectOffsetInPage0Level(), changedRuntimeVTPageTableNodeRuntimeStates);
 		}
 
 		for (auto& changedNodeRuntimeState : changedRuntimeVTPageTableNodeRuntimeStates) {
@@ -666,6 +949,273 @@ namespace Renderer {
 		}
 	}
 
+	void RuntimeVTBackend::RecordedGpuCommandInRealRectChanged(RecordedGpuCommand& recordedGpuCommand, std::vector<RuntimeVTNodeRequestTask>& requestTasks) {
+		auto* renderEngine = mRenderer->mRenderEngine;
+		auto* shaderManger = renderEngine->mShaderManger.get();
+		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
+		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
+
+		auto& runtimeVTPageTableMap = mRenderer->GetRuntimeVTPageTableMap();
+		auto& runtimeVTPageTableMapDesc = runtimeVTPageTableMap->GetResourceFormat().GetTextureDesc();
+
+		auto* runtimeVTAtlasTileCache = mRenderer->GetRuntimeVTAtlasTileCache();
+
+		const Math::Int2 offsetInPage0Level = mRenderer->GetRuntimeVTRealRectOffsetInPage0Level();
+
+		// 计算非法PageLevel
+		uint32_t invalidPageLevelBeg = 0u;
+		uint32_t invalidPageLevelEnd = mTerrainSetting.smRvtMaxPageLevel;
+		uint32_t powNumber = std::pow(2, invalidPageLevelBeg);
+		while (offsetInPage0Level.x % powNumber == 0 && offsetInPage0Level.y % powNumber == 0) {
+			invalidPageLevelBeg++;
+			powNumber = std::pow(2, invalidPageLevelBeg);
+		}
+
+		// 计算非法区域
+		/*
+		offsetInPage0Level = int2(0, 32)
+		invalidRegionX = int2(0, 255)
+		invalidRegionY = int2(224, 255)
+
+		offsetInPage0Level = int2(0, -32)
+		invalidRegionX = int2(0, 255)
+		invalidRegionY = int2(0, 31)
+
+		offsetInPage0Level = int2(32, 0)
+		invalidRegionX = int2(0, 31)
+		invalidRegionY = int2(0, 255)
+
+		offsetInPage0Level = int2(-32, 0)
+		invalidRegionX = int2(224, 255)
+		invalidRegionY = int2(0, 255)
+		*/
+
+		int32_t invalidRegionXBeg = 0;
+		int32_t invalidRegionXEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+		int32_t invalidRegionYBeg = 0;
+		int32_t invalidRegionYEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+
+		if (offsetInPage0Level.x > 0) {
+			invalidRegionXEnd = offsetInPage0Level.x - 1;
+		}
+		else if (offsetInPage0Level.x < 0) {
+			invalidRegionXBeg = invalidRegionXEnd + offsetInPage0Level.x + 1;
+		}
+
+		if (offsetInPage0Level.y > 0) {
+			invalidRegionYBeg = invalidRegionYEnd - offsetInPage0Level.y + 1;
+		}
+		else if (offsetInPage0Level.y < 0) {
+			invalidRegionYEnd = -(offsetInPage0Level.y + 1);
+		}
+
+		// 计算RequestTasks，加载MaxPageLevel
+		{
+			uint32_t maxPageLevel = mTerrainSetting.smRvtMaxPageLevel;
+			int32_t  powNumber = std::pow(2, maxPageLevel);
+			int32_t  nodeCountPerAxisInMaxPageLevel = mTerrainSetting.smRvtTileCountPerAxisInPage0Level / powNumber;
+
+			for (int32_t i = 0; i < nodeCountPerAxisInMaxPageLevel; i++) {
+				for (int32_t j = 0; j < nodeCountPerAxisInMaxPageLevel; j++) {
+					auto* atlasNode = runtimeVTAtlasTileCache->GetHead();
+					runtimeVTAtlasTileCache->Remove(atlasNode);
+
+					RuntimeVTNodeRequestTask requestTask{};
+					requestTask.atlasNode = atlasNode;
+					requestTask.nextPagePos.x = i;
+					requestTask.nextPagePos.y = j;
+					requestTask.nextPageLevel = maxPageLevel;
+
+					if (atlasNode->pageLevel != -1) {
+						requestTask.prevPagePos = atlasNode->pagePos;
+						requestTask.prevPageLevel = atlasNode->pageLevel;
+					}
+					requestTask.runtimeVTRealRect = mRuntimeVTRealRect;
+					requestTasks.push_back(requestTask);
+
+					auto& currNodeRuntimeState = mRvtPageTables[requestTask.nextPageLevel].GetNodeRuntimeStateTransformed(requestTask.nextPagePos.x, requestTask.nextPagePos.y);
+					currNodeRuntimeState.SetInReady();
+					if (requestTask.prevPageLevel != -1) {
+						auto& prevNodeRuntimeState = mRvtPageTables[requestTask.prevPageLevel].GetNodeRuntimeStateDirected(requestTask.prevPagePos.x, requestTask.prevPagePos.y);
+						bool inTExture = prevNodeRuntimeState.inTexture;
+						prevNodeRuntimeState.SetInReadyOut();
+						if (prevNodeRuntimeState.atlasNode == nullptr) {
+							int32_t i = 0;
+						}
+					}
+				}
+			}
+		}
+
+		// 录制RuntimeVTAtlasPass
+		{
+			std::vector<GpuUpdateRuntimeVTAtlasRequest> updateRequests;
+			ProduceGpuUpdateRuntimeVTAtlasRequests(requestTasks, updateRequests);
+
+			auto& terrainAlbedoArray    = mRenderer->GetNearTerrainAlbedoArray()->GetTextureArray();
+			auto& terrainNormalArray    = mRenderer->GetNearTerrainNormalArray()->GetTextureArray();
+			auto& terrainTiledSplatMap  = mRenderer->GetTerrainTiledSplatMap()->GetTiledTexture();
+			auto& runtimeVTAlbedoAtlas  = mRenderer->GetRuntimeVTAlbedoAtlas()->GetTextureAtlas();
+			auto& runtimeVTNormalAtlas  = mRenderer->GetRuntimeVTNormalAtlas()->GetTextureAtlas();
+
+			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("UpdateRuntimeVTAtlasInRealRectChanged");
+
+			uint16_t width = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
+			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtAtlasTextureSize);
+
+			mUpdateRuntimeVTAtlasPassData.drawRequestBufferIndex = mUpdateRuntimeVTAtlasRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainAlbedoTextureArrayIndex = terrainAlbedoArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainNormalTextureArrayIndex = terrainNormalArray->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTAtlasPassData.terrainRoughnessTextureArrayIndex;
+			mUpdateRuntimeVTAtlasPassData.terrainSplatMapIndex = terrainTiledSplatMap->GetSRDescriptor()->GetHeapIndex();
+
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTAtlasPassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTAtlasPassData, sizeof(UpdateRuntimeVTAtlasPassData));
+
+			// 将数据数组上传到GPU中去
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch = commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mUpdateRuntimeVTAtlasRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVTAtlasRequest));
+
+			barrierBatch =  commandBuffer.TransitionImmediately(mUpdateRuntimeVTAtlasRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTAlbedoAtlas, GHL::EResourceState::RenderTarget);
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTNormalAtlas, GHL::EResourceState::RenderTarget);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.SetRenderTargets({ runtimeVTAlbedoAtlas, runtimeVTNormalAtlas });
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVTAtlasSN);
+			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
+			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
+
+			barrierBatch =  resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::UnorderedAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mRuntimeVTPageTableCopy, GHL::EResourceState::UnorderedAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.PIXEndEvent();
+			commandList->Close();
+
+			recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList = commandList.Get();
+		}
+
+		// 录制RuntimeVTPageTableChangedPass
+		{
+			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("MakeRuntimeVTPageTableInvalid");
+
+			mRuntimeVTPageTableChangedPass1Data.runtimeVTPageTableMapIndex = runtimeVTPageTableMap->GetUADescriptor()->GetHeapIndex();
+			mRuntimeVTPageTableChangedPass1Data.maxPageLevel = mTerrainSetting.smRvtMaxPageLevel;
+			mRuntimeVTPageTableChangedPass1Data.invalidPageLevelBeg = invalidPageLevelBeg;
+			mRuntimeVTPageTableChangedPass1Data.invalidPageLevelEnd = invalidPageLevelEnd;
+			mRuntimeVTPageTableChangedPass1Data.invalidRegionXBeg = invalidRegionXBeg;
+			mRuntimeVTPageTableChangedPass1Data.invalidRegionXEnd = invalidRegionXEnd;
+			mRuntimeVTPageTableChangedPass1Data.invalidRegionYBeg = invalidRegionYBeg;
+			mRuntimeVTPageTableChangedPass1Data.invalidRegionYEnd = invalidRegionYEnd;
+
+			auto passDataAlloc1 = mRvtLinearBufferAllocator->Allocate(sizeof(RuntimeVTPageTableChangedPass1Data));
+			memcpy(passDataAlloc1.cpuAddress, &mRuntimeVTPageTableChangedPass1Data, sizeof(RuntimeVTPageTableChangedPass1Data));
+
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch += resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::UnorderedAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.SetComputeRootSignature();
+			commandBuffer.SetComputeRootCBV(1u, passDataAlloc1.gpuAddress);
+			commandBuffer.SetComputePipelineState(smRuntimeVTPageTableChangedPass1SN);
+			commandBuffer.Dispatch(runtimeVTPageTableMapDesc.width / smThreadSizeInGroup, runtimeVTPageTableMapDesc.height / smThreadSizeInGroup, 1u);
+
+			mRuntimeVTPageTableChangedPass2Data.srcRuntimeVTPageTableMapIndex = runtimeVTPageTableMap->GetSRDescriptor()->GetHeapIndex();
+			mRuntimeVTPageTableChangedPass2Data.dstRuntimeVTPageTableMapIndex = mRuntimeVTPageTableCopy->GetUADescriptor()->GetHeapIndex();
+			mRuntimeVTPageTableChangedPass2Data.pixelOffset = offsetInPage0Level;
+			mRuntimeVTPageTableChangedPass2Data.pageTableMapSize = runtimeVTPageTableMapDesc.width;
+
+			auto passDataAlloc2 = mRvtLinearBufferAllocator->Allocate(sizeof(RuntimeVTPageTableChangedPass2Data));
+			memcpy(passDataAlloc2.cpuAddress, &mRuntimeVTPageTableChangedPass2Data, sizeof(RuntimeVTPageTableChangedPass2Data));
+
+			barrierBatch = resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::NonPixelShaderAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mRuntimeVTPageTableCopy, GHL::EResourceState::UnorderedAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.SetComputeRootSignature();
+			commandBuffer.SetComputeRootCBV(1u, passDataAlloc2.gpuAddress);
+			commandBuffer.SetComputePipelineState(smRuntimeVTPageTableChangedPass2SN);
+			commandBuffer.Dispatch(runtimeVTPageTableMapDesc.width / smThreadSizeInGroup, runtimeVTPageTableMapDesc.height / smThreadSizeInGroup, 1u);
+
+			barrierBatch = resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::CopyDestination);
+			barrierBatch += commandBuffer.TransitionImmediately(mRuntimeVTPageTableCopy, GHL::EResourceState::CopySource);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.CopyResource(runtimeVTPageTableMap, mRuntimeVTPageTableCopy);
+
+			commandBuffer.PIXEndEvent();
+			commandList->Close();
+
+			recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList = commandList.Get();
+		}
+
+		{
+			std::vector<GpuUpdateRuntimeVTPageTableRequest> updateRequests;
+			ProduceGpuUpdateRuntimeVTPageTableRequests(requestTasks, updateRequests);
+
+			auto& runtimeVTPageTableMap = mRenderer->GetRuntimeVTPageTableMap();
+
+			auto commandList = mRvtCommandListAllocator->AllocateGraphicsCommandList();
+			auto* descriptorHeap = descriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
+			commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
+			CommandBuffer commandBuffer{ commandList.Get(), shaderManger, mRvtResourceStateTracker.get(), mRvtLinearBufferAllocator.get(), nullptr };
+			commandBuffer.PIXBeginEvent("UpdateRuntimeVTPageTableInRealRectChanged");
+
+			uint16_t width = static_cast<uint16_t>(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+			uint16_t height = static_cast<uint16_t>(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+
+			mUpdateRuntimeVTPageTablePassData.drawRequestBufferIndex = mUpdateRuntimeVTPageTableRequestBuffer->GetSRDescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTPageTablePassData.runtimeVTPageTableCopyIndex = mRuntimeVTPageTableCopy->GetUADescriptor()->GetHeapIndex();
+			mUpdateRuntimeVTPageTablePassData.preLoad = 0;
+			auto passDataAlloc = mRvtLinearBufferAllocator->Allocate(sizeof(UpdateRuntimeVTPageTablePassData));
+			memcpy(passDataAlloc.cpuAddress, &mUpdateRuntimeVTPageTablePassData, sizeof(UpdateRuntimeVTPageTablePassData));
+
+			// Copy RuntimeVTPageTable & 将数据数组上传到GPU中去
+			auto barrierBatch = GHL::ResourceBarrierBatch{};
+			barrierBatch += commandBuffer.TransitionImmediately(mUpdateRuntimeVTPageTableRequestBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.UploadBufferRegion(mUpdateRuntimeVTPageTableRequestBuffer, 0u, updateRequests.data(), updateRequests.size() * sizeof(GpuUpdateRuntimeVTPageTableRequest));
+
+			barrierBatch =  resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::RenderTarget);
+			barrierBatch += commandBuffer.TransitionImmediately(mRuntimeVTPageTableCopy, GHL::EResourceState::UnorderedAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mUpdateRuntimeVTPageTableRequestBuffer, GHL::EResourceState::NonPixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+			commandBuffer.SetRenderTarget(runtimeVTPageTableMap);
+			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
+			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
+			commandBuffer.SetGraphicsRootSignature();
+			commandBuffer.SetGraphicsPipelineState(smUpdateRuntimeVTPageTableSN);
+			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
+			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
+			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, updateRequests.size(), 0u, 0u, 0u);
+
+			barrierBatch = resourceStateTracker->TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			commandBuffer.PIXEndEvent();
+			commandList->Close();
+
+			recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList = commandList.Get();
+		}
+	}
+
 	void RuntimeVTBackend::SetupFrameCompletedCallBack() {
 		// 添加FrameCompletedCallback
 		mRvtFrameTracker->AddFrameCompletedCallBack([this](const RingFrameTracker::FrameAttribute& attribute, uint64_t completedValue) {
@@ -674,7 +1224,7 @@ namespace Renderer {
 	}
 
 	void RuntimeVTBackend::OnFrameCompleted(uint8_t frameIndex) {
-		auto* runtimeVTAtlasTileCache = mRenderer->mRuntimeVTAtlasTileCache.get();
+		auto* runtimeVTAtlasTileCache = mRenderer->GetRuntimeVTAtlasTileCache();
 
 		auto& reservedRequestTasks = mReservedTerrainNodeRequestTasks.at(frameIndex);
 		for (auto& requestTask : reservedRequestTasks) {
@@ -721,6 +1271,12 @@ namespace Renderer {
 			mRvtGraphicsQueue->SetDebugName("RuntimeVT_GraphicsQueue");
 			mRvtGraphicsFence = std::make_unique<GHL::Fence>(device);
 			mRvtGraphicsFence->SetDebugName("RuntimeVT_GraphicsFence");
+
+			mRvtComputeQueue = std::make_unique<GHL::ComputeQueue>(device);
+			mRvtComputeQueue->SetDebugName("RuntimeVT_ComputeQueue");
+			mRvtComputeFence = std::make_unique<GHL::Fence>(device);
+			mRvtComputeFence->SetDebugName("RuntimeVT_ComputeFence");
+
 			mRvtFrameTracker = std::make_unique<Renderer::RingFrameTracker>(smMaxRvtFrameCount);
 			mRvtLinearBufferAllocator = std::make_unique<Renderer::LinearBufferAllocator>(device, mRvtFrameTracker.get());
 			mRvtCommandListAllocator = std::make_unique<Renderer::PoolCommandListAllocator>(device, mRvtFrameTracker.get());
@@ -759,7 +1315,7 @@ namespace Renderer {
 			_RuntimeVTPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 			_RuntimeVTPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 			_RuntimeVTPageTableMapDesc.format = DXGI_FORMAT_R8G8B8A8_UINT;
-			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::UnorderedAccess;
+			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::CopyDestination | GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopySource;
 			_RuntimeVTPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 			mRuntimeVTPageTableCopy = resourceAllocator->Allocate(device, _RuntimeVTPageTableMapDesc, descriptorAllocator, nullptr);
 			mRuntimeVTPageTableCopy->SetDebugName("RuntimeVTPageTableCopy");
@@ -834,10 +1390,19 @@ namespace Renderer {
 					};
 				}
 			);
-		}
 
-		// 设置帧完成回调函数
-		SetupFrameCompletedCallBack();
+			shaderManger->CreateComputeShader(smRuntimeVTPageTableChangedPass1SN,
+				[&](ComputeStateProxy& proxy) {
+					proxy.csFilepath = shaderPath + "TerrainRenderer/RuntimeVTPageTableChangedPass1.hlsl";
+				}
+			);
+
+			shaderManger->CreateComputeShader(smRuntimeVTPageTableChangedPass2SN,
+				[&](ComputeStateProxy& proxy) {
+					proxy.csFilepath = shaderPath + "TerrainRenderer/RuntimeVTPageTableChangedPass2.hlsl";
+				}
+			);
+		}
 	}
 
 }

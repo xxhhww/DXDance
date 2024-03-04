@@ -40,7 +40,7 @@ namespace Renderer {
 
 	uint32_t TerrainSetting::smTerrainFeedbackBufferElementCount = (smRvtTileCountPerAxisInPage0Level * smRvtTileCountPerAxisInPage0Level / 2);
 
-	uint32_t TerrainSetting::smRvtDataLoadedLimit = 4;
+	uint32_t TerrainSetting::smRvtDataLoadedLimit = 12;
 
 	float    TerrainSetting::smRvtRealRectChangedViewDistance = 128;
 

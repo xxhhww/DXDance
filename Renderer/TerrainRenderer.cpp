@@ -214,12 +214,12 @@ namespace Renderer {
 				mRuntimeVTPageTables.emplace_back(mMaxPageLevel, mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
 			}
 
-			// LookupPageTableMap
+			// RuntimeVTPageTableMap
 			TextureDesc _RuntimeVTPageTableMapDesc{};
 			_RuntimeVTPageTableMapDesc.width = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 			_RuntimeVTPageTableMapDesc.height = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 			_RuntimeVTPageTableMapDesc.format = DXGI_FORMAT_R8G8B8A8_UINT;
-			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::CopySource;
+			_RuntimeVTPageTableMapDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::PixelShaderAccess | GHL::EResourceState::CopySource | GHL::EResourceState::UnorderedAccess | GHL::EResourceState::NonPixelShaderAccess | GHL::EResourceState::CopyDestination;
 			_RuntimeVTPageTableMapDesc.clearVaule = GHL::ColorClearValue{ 0.0f, 0.0f, (float)mTerrainSetting.smRvtMaxPageLevel + 1u, 0.0f };
 			mRuntimeVTPageTableMap = resourceAllocator->Allocate(device, _RuntimeVTPageTableMapDesc, descriptorAllocator, nullptr);
 			mRuntimeVTPageTableMap->SetDebugName("RuntimeVTPageTableMap");
@@ -289,10 +289,10 @@ namespace Renderer {
 			(int32_t)prevRuntimeVTRealRect.y - (int32_t)prevRuntimeVTRealRect.w
 		};
 
-		const Math::Int2 runtimeVTRealRectOffset = (currRuntimeVTRealRectCenter - prevRuntimeVTRealRectCenter) / (int32_t)mTerrainSetting.smWorldMeterSizePerTileInPage0Level;
+		const Math::Int2 runtimeVTRealRectOffsetInPage0Level = (currRuntimeVTRealRectCenter - prevRuntimeVTRealRectCenter) / (int32_t)mTerrainSetting.smWorldMeterSizePerTileInPage0Level;
 
 		mRuntimeVTRealRect = currRuntimeVTRealRect;
-		mRuntimeVTRealRectOffset = runtimeVTRealRectOffset;
+		mRuntimeVTRealRectOffsetInPage0Level = runtimeVTRealRectOffsetInPage0Level;
 
 		// 通知RuntimeVTBackend对RealRectChanged事件做处理
 		++mRuntimeVTRealRectChangedFlag;

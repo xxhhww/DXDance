@@ -27,7 +27,6 @@ namespace Game {
 		// 计算摄像机出现的位置(以Tank为中心的半球面坐标系，高度角45度 高度50米 半径50根号2)
 		Math::Vector3 cameraPosition{ playerPosition.x, playerPosition.y + sCameraTopViewHeight,  playerPosition.z - sCameraTopViewHeight };
 		Math::Quaternion cameraRotation{};
-		cameraPosition.x = -255.0f;
 
 		// RenderCamera(球面摄像机)
 		{
