@@ -115,5 +115,7 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTAtlasUpdater.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableChangedPass1.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableChangedPass2.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeNearRenderer.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeFarRenderer.hlsl" />
   </ItemGroup>
 </Project>

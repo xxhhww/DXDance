@@ -18,10 +18,14 @@ struct PassData {
 	uint   nodeDescriptorListIndex;
 	uint   lodDescriptorListIndex;
 	uint   culledPatchListIndex;
-	float  pad;
+	float  pad1;
 
 	uint   nearCulledPatchListIndex;
 	uint   farCulledPatchListIndex;
+	float  pad2;
+	float  pad3;
+
+	float4 runtimeVTRealRect;
 };
 
 #define PassDataType PassData
@@ -198,8 +202,10 @@ bool Cull(BoundingBox boundingBox) {
 
 [numthreads(8, 8, 1)]
 void BuildPatches(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID) {
-	StructuredBuffer<uint3>             finalNodeList   = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
-	AppendStructuredBuffer<RenderPatch> culledPatchList = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	StructuredBuffer<uint3>             finalNodeList       = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
+	AppendStructuredBuffer<RenderPatch> culledPatchList     = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	AppendStructuredBuffer<RenderPatch> nearCulledPatchList = ResourceDescriptorHeap[PassDataCB.nearCulledPatchListIndex];
+	AppendStructuredBuffer<RenderPatch> farCulledPatchList  = ResourceDescriptorHeap[PassDataCB.farCulledPatchListIndex];
 
 	uint3 nodeLoc = finalNodeList[groupID.x];
     uint2 patchOffset = groupThreadID.xy;
@@ -207,12 +213,28 @@ void BuildPatches(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : 
     RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
 
 	// 计算Patch的包围盒
-	BoundingBox boundingBox = GetPatchBoundingBox(patch);
+	BoundingBox patchBoundingBox = GetPatchBoundingBox(patch);
 
 	// 裁剪Patch
-	if(Cull(boundingBox)) { return; }
+	if(Cull(patchBoundingBox)) { return; }
 
     culledPatchList.Append(patch);
+
+	// 计算Patch是否在RuntimeVTRealRect中
+	// RuntimeVTRealRect以左上角为起点，将其转换为左下角，只需要偏移z轴，也就是y分量
+	float4 runtimeVTRealRect = PassDataCB.runtimeVTRealRect;
+	runtimeVTRealRect.y = runtimeVTRealRect.y - runtimeVTRealRect.w;
+
+	//计算Patch的Rect
+	float2 patchLength = float2(patchBoundingBox.maxPosition.xz - patchBoundingBox.minPosition.xz);
+	float4 patchRect = float4(patchBoundingBox.minPosition.xz, patchLength);
+
+	if(IsRectInRect(patchRect, runtimeVTRealRect)) {
+		nearCulledPatchList.Append(patch);
+	}
+	else {
+		farCulledPatchList.Append(patch);
+	}
 }
 
 #endif

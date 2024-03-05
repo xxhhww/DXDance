@@ -25,7 +25,14 @@ namespace Renderer {
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
-			float    pad;
+			float    pad1;
+
+			uint32_t nearCulledPatchListIndex;
+			uint32_t farCulledPatchListIndex;
+			float    pad2;
+			float    pad3;
+
+			Math::Vector4 runtimeVTRealRect{};
 		};
 
 		struct TerrainRendererPassData {
@@ -33,15 +40,20 @@ namespace Renderer {
 			float         terrainHeightScale;
 			uint32_t      culledPatchListIndex;
 
+			uint32_t nearCulledPatchListIndex;
+			uint32_t farCulledPatchListIndex;
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
+
 			uint32_t terrainHeightMapAtlasIndex;
 			uint32_t terrainAlbedoMapAtlasIndex;
-
 			uint32_t terrainNormalMapAtlasIndex;
+			uint32_t lodDebug;
+
 			uint32_t terrainAtlasTileCountPerAxis;
 			uint32_t terrainAtlasTileWidthInPixels;
 			uint32_t terrainPatchVertexCountPerAxis;
+			float    pad1;
 
 			// x: page table size
 			// y: virtual texture size
@@ -58,12 +70,7 @@ namespace Renderer {
 			uint32_t runtimeVTPageTableMapIndex;
 			uint32_t runtimeVTAlbedoAtlasIndex;
 			uint32_t runtimeVTNormalAtlasIndex;
-			float    pad4;
-
-			uint32_t lodDebug;
-			float    pad5;
-			float    pad6;
-			float    pad7;
+			float    pad2;
 		};
 
 		struct TerrainFeedbackPassData {

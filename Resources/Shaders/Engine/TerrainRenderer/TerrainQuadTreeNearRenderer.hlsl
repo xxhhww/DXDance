@@ -1,5 +1,5 @@
-#ifndef _TerrainQuadTreeRenderer__
-#define _TerrainQuadTreeRenderer__
+#ifndef _TerrainQuadTreeNearRenderer__
+#define _TerrainQuadTreeNearRenderer__
 
 #include "TerrainHeader.hlsl"
 
@@ -87,7 +87,7 @@ uint GetGlobalNodeId(uint2 nodeLoc, uint lod) {
 }
 
 v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
-	StructuredBuffer<RenderPatch>           culledPatchList    = ResourceDescriptorHeap[PassDataCB.culledPatchListIndex];
+	StructuredBuffer<RenderPatch>           culledPatchList    = ResourceDescriptorHeap[PassDataCB.nearCulledPatchListIndex];
 	StructuredBuffer<TerrainNodeDescriptor> nodeDescriptorList = ResourceDescriptorHeap[PassDataCB.nodeDescriptorListIndex];
 	StructuredBuffer<TerrainLodDescriptor>  lodDescriptorList  = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
 	Texture2D terrainHeightMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainHeightMapAtlasIndex];

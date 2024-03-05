@@ -231,6 +231,12 @@ namespace Renderer {
 				builder.DeclareBuffer("CulledPatchList", _CulledPatchListProperties);
 				builder.WriteBuffer("CulledPatchList");
 
+				builder.DeclareBuffer("NearCulledPatchList", _CulledPatchListProperties);
+				builder.WriteBuffer("NearCulledPatchList");
+
+				builder.DeclareBuffer("FarCulledPatchList", _CulledPatchListProperties);
+				builder.WriteBuffer("FarCulledPatchList");
+
 				NewBufferProperties _BuildPatchesIndirectArgsProperties{};
 				_BuildPatchesIndirectArgsProperties.stride = sizeof(IndirectDispatch);
 				_BuildPatchesIndirectArgsProperties.size = sizeof(IndirectDispatch);
@@ -258,12 +264,17 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage  = renderContext.resourceStorage;
 
-				auto* finalNodeList   = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
-				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
-				auto* indirectArgs    = resourceStorage->GetResourceByName("BuildPatchesIndirectArgs")->GetBuffer();
+				auto* finalNodeList       = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
+				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* nearCulledPatchList = resourceStorage->GetResourceByName("NearCulledPatchList")->GetBuffer();
+				auto* farCulledPatchList  = resourceStorage->GetResourceByName("FarCulledPatchList")->GetBuffer();
+				auto* indirectArgs        = resourceStorage->GetResourceByName("BuildPatchesIndirectArgs")->GetBuffer();
 
-				mTerrainBuilderPassData.finalNodeListIndex   = finalNodeList->GetSRDescriptor()->GetHeapIndex();
-				mTerrainBuilderPassData.culledPatchListIndex = culledPatchList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.finalNodeListIndex       = finalNodeList->GetSRDescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.culledPatchListIndex     = culledPatchList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.nearCulledPatchListIndex = nearCulledPatchList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.farCulledPatchListIndex  = farCulledPatchList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.runtimeVTRealRect        = mRenderer->GetRuntimeVTRealRect();
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainBuilderPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainBuilderPassData, sizeof(TerrainPipelinePass::TerrainBuilderPassData));
@@ -279,18 +290,22 @@ namespace Renderer {
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::CopySource);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(nearCulledPatchList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(farCulledPatchList->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
-
 				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDispatch, sizeof(IndirectDispatch));
 				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
 				commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 2u, finalNodeList->GetCounterBuffer(), 0u, sizeof(uint32_t));
-
 				commandBuffer.ClearCounterBuffer(culledPatchList, 0u);
+				commandBuffer.ClearCounterBuffer(nearCulledPatchList, 0u);
+				commandBuffer.ClearCounterBuffer(farCulledPatchList, 0u);
 
 				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
 				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
 				barrierBatch += commandBuffer.TransitionImmediately(finalNodeList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(nearCulledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(farCulledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				commandBuffer.SetComputeRootSignature();
@@ -438,6 +453,8 @@ namespace Renderer {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Graphics);
 
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
+				builder.ReadBuffer("NearCulledPatchList", ShaderAccessFlag::PixelShader);
+				builder.ReadBuffer("FarCulledPatchList", ShaderAccessFlag::PixelShader);
 
 				builder.WriteRenderTarget("GBufferAlbedoMetalness");
 				builder.WriteRenderTarget("GBufferPositionEmission");
@@ -446,17 +463,41 @@ namespace Renderer {
 				builder.WriteRenderTarget("GBufferViewDepth");
 				builder.WriteDepthStencil("GBufferDepthStencil");
 
-				NewBufferProperties _TerrainRendererIndirectArgsProperties{};
-				_TerrainRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
-				_TerrainRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
-				_TerrainRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
-				_TerrainRendererIndirectArgsProperties.aliased = false;
-				builder.DeclareBuffer("TerrainRendererIndirectArgs", _TerrainRendererIndirectArgsProperties);
-				builder.WriteCopyDstBuffer("TerrainRendererIndirectArgs");
+				NewBufferProperties _TerrainNearRendererIndirectArgsProperties{};
+				_TerrainNearRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
+				_TerrainNearRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
+				_TerrainNearRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_TerrainNearRendererIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("TerrainNearRendererIndirectArgs", _TerrainNearRendererIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("TerrainNearRendererIndirectArgs");
 
-				shaderManger.CreateGraphicsShader("TerrainRenderer",
+				NewBufferProperties _TerrainFarRendererIndirectArgsProperties{};
+				_TerrainFarRendererIndirectArgsProperties.stride = sizeof(IndirectDrawIndexed);
+				_TerrainFarRendererIndirectArgsProperties.size = sizeof(IndirectDrawIndexed);
+				_TerrainFarRendererIndirectArgsProperties.miscFlag = GHL::EBufferMiscFlag::IndirectArgs;
+				_TerrainFarRendererIndirectArgsProperties.aliased = false;
+				builder.DeclareBuffer("TerrainFarRendererIndirectArgs", _TerrainFarRendererIndirectArgsProperties);
+				builder.WriteCopyDstBuffer("TerrainFarRendererIndirectArgs");
+
+				shaderManger.CreateGraphicsShader("TerrainNearRenderer",
 					[&](GraphicsStateProxy& proxy) {
-						proxy.vsFilepath = shaderPath + "TerrainRenderer/TerrainQuadTreeRenderer.hlsl";
+						proxy.vsFilepath = shaderPath + "TerrainRenderer/TerrainQuadTreeNearRenderer.hlsl";
+						proxy.psFilepath = proxy.vsFilepath;
+						proxy.depthStencilDesc.DepthEnable = true;
+						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+						// proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
+						proxy.renderTargetFormatArray = {
+							DXGI_FORMAT_R8G8B8A8_UNORM,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R32_FLOAT
+						};
+					});
+
+				shaderManger.CreateGraphicsShader("TerrainFarRenderer",
+					[&](GraphicsStateProxy& proxy) {
+						proxy.vsFilepath = shaderPath + "TerrainRenderer/TerrainQuadTreeFarRenderer.hlsl";
 						proxy.psFilepath = proxy.vsFilepath;
 						proxy.depthStencilDesc.DepthEnable = true;
 						proxy.depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
@@ -554,8 +595,11 @@ namespace Renderer {
 					}
 				}
 
-				auto* culledPatchList = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
-				auto* indirectArgs    = resourceStorage->GetResourceByName("TerrainRendererIndirectArgs")->GetBuffer();
+				auto* nearIndirectArgs = resourceStorage->GetResourceByName("TerrainNearRendererIndirectArgs")->GetBuffer();
+				auto* farIndirectArgs  = resourceStorage->GetResourceByName("TerrainFarRendererIndirectArgs")->GetBuffer();
+				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
+				auto* nearCulledPatchList = resourceStorage->GetResourceByName("NearCulledPatchList")->GetBuffer();
+				auto* farCulledPatchList  = resourceStorage->GetResourceByName("FarCulledPatchList")->GetBuffer();
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
@@ -586,9 +630,11 @@ namespace Renderer {
 				mTerrainRendererPassData.lodDebug             = mTerrainSetting.smUseLodDebug;
 				mTerrainRendererPassData.terrainMeterSize     = mTerrainSetting.smTerrainMeterSize;
 				mTerrainRendererPassData.terrainHeightScale   = mTerrainSetting.smTerrainHeightScale;
-				mTerrainRendererPassData.culledPatchListIndex = culledPatchList->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.nodeDescriptorListIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
-				mTerrainRendererPassData.lodDescriptorListIndex  = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.culledPatchListIndex     = culledPatchList->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.nearCulledPatchListIndex = nearCulledPatchList->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.farCulledPatchListIndex  = farCulledPatchList->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.nodeDescriptorListIndex  = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.lodDescriptorListIndex   = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainHeightMapAtlasIndex     = mRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainAlbedoMapAtlasIndex     = mRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.terrainNormalMapAtlasIndex     = mRenderer->GetFarTerrainNormalMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
@@ -615,20 +661,27 @@ namespace Renderer {
 				indirectDrawIndexed.drawIndexedArguments.StartInstanceLocation = 0u;
 
 				auto barrierBatch = GHL::ResourceBarrierBatch{};
-				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
-				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch =  commandBuffer.TransitionImmediately(nearIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(nearCulledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
+				barrierBatch += commandBuffer.TransitionImmediately(farIndirectArgs->GetCounterBuffer(), GHL::EResourceState::CopyDestination);
+				barrierBatch += commandBuffer.TransitionImmediately(farCulledPatchList->GetCounterBuffer(), GHL::EResourceState::CopySource);
 				barrierBatch += commandBuffer.TransitionImmediately(runtimeVTPageTableMap, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTAlbedoAtlas, GHL::EResourceState::PixelShaderAccess);
 				barrierBatch += commandBuffer.TransitionImmediately(runtiemVTNormalAtlas, GHL::EResourceState::PixelShaderAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
+				commandBuffer.UploadBufferRegion(nearIndirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
+				commandBuffer.ClearCounterBuffer(nearIndirectArgs, 1u);
+				commandBuffer.UploadBufferRegion(farIndirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
+				commandBuffer.ClearCounterBuffer(farIndirectArgs, 1u);
+				commandBuffer.CopyBufferRegion(nearIndirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT), nearCulledPatchList->GetCounterBuffer(), 0u, sizeof(uint32_t));
+				commandBuffer.CopyBufferRegion(farIndirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT), farCulledPatchList->GetCounterBuffer(), 0u, sizeof(uint32_t));
 
-				commandBuffer.UploadBufferRegion(indirectArgs, 0u, &indirectDrawIndexed, sizeof(IndirectDrawIndexed));
-				commandBuffer.ClearCounterBuffer(indirectArgs, 1u);
-				commandBuffer.CopyBufferRegion(indirectArgs, sizeof(D3D12_GPU_VIRTUAL_ADDRESS) * 3u + sizeof(D3D12_VERTEX_BUFFER_VIEW) + sizeof(D3D12_INDEX_BUFFER_VIEW) + sizeof(UINT), culledPatchList->GetCounterBuffer(), 0u, sizeof(uint32_t));
-
-				barrierBatch =  commandBuffer.TransitionImmediately(indirectArgs, GHL::EResourceState::IndirectArgument);
-				barrierBatch += commandBuffer.TransitionImmediately(indirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
-				barrierBatch += commandBuffer.TransitionImmediately(culledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				barrierBatch =  commandBuffer.TransitionImmediately(nearIndirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(nearIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(nearCulledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
+				barrierBatch += commandBuffer.TransitionImmediately(farIndirectArgs, GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(farIndirectArgs->GetCounterBuffer(), GHL::EResourceState::IndirectArgument);
+				barrierBatch += commandBuffer.TransitionImmediately(farCulledPatchList->GetCounterBuffer(), GHL::EResourceState::UnorderedAccess);
 				commandBuffer.FlushResourceBarrier(barrierBatch);
 
 				uint16_t width  = static_cast<uint16_t>(finalOutputDesc.width);
@@ -647,9 +700,15 @@ namespace Renderer {
 				commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, width, height });
 				commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, width, height });
 				commandBuffer.SetGraphicsRootSignature();
-				commandBuffer.SetGraphicsPipelineState("TerrainRenderer");
 				commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				commandBuffer.ExecuteIndirect("TerrainRenderer", indirectArgs, 1u);
+
+				// Near Terrain
+				commandBuffer.SetGraphicsPipelineState("TerrainNearRenderer");
+				commandBuffer.ExecuteIndirect("TerrainRenderer", nearIndirectArgs, 1u);
+
+				// Far Terrain
+				commandBuffer.SetGraphicsPipelineState("TerrainFarRenderer");
+				commandBuffer.ExecuteIndirect("TerrainRenderer", farIndirectArgs, 1u);
 			});
 	}
 
