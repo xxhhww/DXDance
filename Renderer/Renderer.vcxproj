@@ -166,11 +166,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="CommandSignatureManger.h" />
-    <ClInclude Include="DataUploader.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="DeferredLightPass.h" />
-    <ClInclude Include="FileHandle.h" />
     <ClInclude Include="FormatConverter.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="CascadeShadowPass.h" />
@@ -196,7 +192,6 @@
     <ClInclude Include="VegetationPhysicalDataCache.h" />
     <ClInclude Include="VegetationSystem.h" />
     <ClInclude Include="VegetationVirtualTable.h" />
-    <ClInclude Include="XetTextureGenerator.h" />
     <ClInclude Include="GPUData.h" />
     <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="LinearBufferAllocator.h" />
@@ -215,8 +210,6 @@
     <ClInclude Include="RvtPageLevelTableCell.h" />
     <ClInclude Include="RvtPhysicalTexture.h" />
     <ClInclude Include="RvtTiledTexture.h" />
-    <ClInclude Include="StreamVirtualTexture.h" />
-    <ClInclude Include="StreamVirtualTextureSystem.h" />
     <ClInclude Include="TAAPass.h" />
     <ClInclude Include="TerrainSystem.h" />
     <ClInclude Include="TerrainOfflineTask.h" />
@@ -241,25 +234,13 @@
     <ClInclude Include="SegregatedPoolHeapAllocator.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderManger.h" />
-    <ClInclude Include="StreamTexture.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="StreamTextureManger.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Texture.h" />
     <ClInclude Include="FixedTextureHelper.h" />
     <ClInclude Include="TileCache.h" />
-    <ClInclude Include="TileUpdater.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="TileUploader.h" />
     <ClInclude Include="ToneMappingPass.h" />
     <ClInclude Include="UploaderEngine.h" />
-    <ClInclude Include="UploadList.h" />
     <ClInclude Include="VolumetricCloudsPass.h" />
     <ClInclude Include="RvtUpdater.h" />
-    <ClInclude Include="XeTextureFormat.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AtmospherePass.cpp" />
@@ -270,12 +251,8 @@
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandSignatureManger.cpp" />
-    <ClCompile Include="DataUploader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="DeferredLightPass.cpp" />
     <ClCompile Include="DirectStorageTest.cpp" />
-    <ClCompile Include="FileHandle.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
@@ -303,7 +280,6 @@
     <ClCompile Include="VegetationPhysicalDataCache.cpp" />
     <ClCompile Include="VegetationSystem.cpp" />
     <ClCompile Include="VegetationVirtualTable.cpp" />
-    <ClCompile Include="XetTextureGenerator.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="LinearBufferAllocator.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -318,8 +294,6 @@
     <ClCompile Include="RvtPageTable.cpp" />
     <ClCompile Include="RvtPhysicalTexture.cpp" />
     <ClCompile Include="RvtTiledTexture.cpp" />
-    <ClCompile Include="StreamVirtualTexture.cpp" />
-    <ClCompile Include="StreamVirtualTextureSystem.cpp" />
     <ClCompile Include="TerrainSystem.cpp" />
     <ClCompile Include="TerrainOfflineTask.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -344,25 +318,13 @@
     <ClCompile Include="SegregatedPoolHeapAllocator.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderManger.cpp" />
-    <ClCompile Include="StreamTexture.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="StreamTextureManger.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="FixedTextureHelper.cpp" />
     <ClCompile Include="TileCache.cpp" />
-    <ClCompile Include="TileUpdater.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="TileUploader.cpp" />
     <ClCompile Include="ToneMappingPass.cpp" />
     <ClCompile Include="UploaderEngine.cpp" />
-    <ClCompile Include="UploadList.cpp" />
     <ClCompile Include="VolumetricCloudsPass.cpp" />
     <ClCompile Include="RvtUpdater.cpp" />
-    <ClCompile Include="XeTextureFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RenderGraph.inl" />

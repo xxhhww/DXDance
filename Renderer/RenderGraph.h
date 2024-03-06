@@ -4,8 +4,6 @@
 #include "ResourceStateTracker.h"
 #include "RenderGraphResourceStorage.h"
 
-#include "StreamTextureManger.h"
-
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -44,7 +42,6 @@ namespace Renderer {
 			LinearBufferAllocator* _dynamicAllocator, 
 			RenderGraphResourceStorage* _resourceStorage,
 			ResourceStateTracker* _resourceStateTracker,
-			StreamTextureManger* _streamTextureManger,
 			RingFrameTracker* _ringFrameTracker)
 		: display(_display)
 		, device(_device)
@@ -53,7 +50,6 @@ namespace Renderer {
 		, dynamicAllocator(_dynamicAllocator)
 		, resourceStorage(_resourceStorage)
 		, resourceStateTracker(_resourceStateTracker)
-		, streamTextureManger(_streamTextureManger) 
 		, frameTracker(_ringFrameTracker) {}
 
 		const GHL::Display* display{ nullptr };
@@ -64,7 +60,6 @@ namespace Renderer {
 		LinearBufferAllocator* dynamicAllocator{ nullptr };
 		RenderGraphResourceStorage* resourceStorage{ nullptr };
 		ResourceStateTracker* resourceStateTracker{ nullptr };
-		StreamTextureManger* streamTextureManger{ nullptr };
 		RingFrameTracker* frameTracker{ nullptr };
 	};
 
@@ -82,8 +77,7 @@ namespace Renderer {
 			ResourceStateTracker* stateTracker,
 			ShaderManger* shaderManger,
 			CommandSignatureManger* commandSignatureManger,
-			LinearBufferAllocator* dynamicAllocator,
-			StreamTextureManger* streamTextureManger);
+			LinearBufferAllocator* dynamicAllocator);
 		~RenderGraph() = default;
 
 		/*
@@ -193,7 +187,6 @@ namespace Renderer {
 		ShaderManger* mShaderManger{ nullptr };
 		CommandSignatureManger* mCommandSignatureManger{ nullptr };
 		LinearBufferAllocator* mDynamicAllocator{ nullptr };
-		StreamTextureManger* mStreamTextureManger{ nullptr };
 	};
 
 }

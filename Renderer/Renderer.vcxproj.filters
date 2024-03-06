@@ -82,9 +82,6 @@
     <Filter Include="头文件\Renderer\StreamVirtualTextureSystem">
       <UniqueIdentifier>{b3714281-59aa-48d6-93c6-88159617eb70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\StreamVirtualTextureSystem">
-      <UniqueIdentifier>{53e65f89-2b01-4703-934b-b3ca5b12dbc8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\Renderer\Terrain\VegetationSystem">
       <UniqueIdentifier>{002a59dc-3426-434c-a021-371b5e042c81}</UniqueIdentifier>
     </Filter>
@@ -108,6 +105,9 @@
     </Filter>
     <Filter Include="源文件\Misc">
       <UniqueIdentifier>{26cf6b99-36f4-4230-8973-edad757b01f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Renderer\StreamVirtualTextureSystem">
+      <UniqueIdentifier>{53e65f89-2b01-4703-934b-b3ca5b12dbc8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -201,27 +201,6 @@
     <ClInclude Include="RingFrameTracker.h">
       <Filter>头文件\Manger</Filter>
     </ClInclude>
-    <ClInclude Include="StreamTexture.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="StreamTextureManger.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="DataUploader.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="TileUpdater.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="XeTextureFormat.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="FileHandle.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="UploadList.h">
-      <Filter>头文件\Renderer\StreamTextureSystem</Filter>
-    </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>头文件\Resource</Filter>
     </ClInclude>
@@ -302,18 +281,6 @@
     </ClInclude>
     <ClInclude Include="RvtPhysicalTexture.h">
       <Filter>头文件\Renderer\Terrain</Filter>
-    </ClInclude>
-    <ClInclude Include="StreamVirtualTextureSystem.h">
-      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="StreamVirtualTexture.h">
-      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="TileUploader.h">
-      <Filter>头文件\Renderer\StreamVirtualTextureSystem</Filter>
-    </ClInclude>
-    <ClInclude Include="XetTextureGenerator.h">
-      <Filter>头文件\OfflineTaskHepler</Filter>
     </ClInclude>
     <ClInclude Include="Task_SplitHeightMap.h">
       <Filter>头文件\OfflineTaskHepler</Filter>
@@ -479,29 +446,8 @@
     <ClCompile Include="RingFrameTracker.cpp">
       <Filter>源文件\Manger</Filter>
     </ClCompile>
-    <ClCompile Include="StreamTexture.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="StreamTextureManger.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
     <ClCompile Include="DirectStorageTest.cpp">
       <Filter>源文件\Test</Filter>
-    </ClCompile>
-    <ClCompile Include="DataUploader.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="TileUpdater.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="XeTextureFormat.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="FileHandle.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="UploadList.cpp">
-      <Filter>源文件\Renderer\StreamTextureSystem</Filter>
     </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>源文件\Resource</Filter>
@@ -574,18 +520,6 @@
     </ClCompile>
     <ClCompile Include="RvtPhysicalTexture.cpp">
       <Filter>源文件\Renderer\Terrain</Filter>
-    </ClCompile>
-    <ClCompile Include="StreamVirtualTextureSystem.cpp">
-      <Filter>源文件\StreamVirtualTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="StreamVirtualTexture.cpp">
-      <Filter>源文件\StreamVirtualTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="TileUploader.cpp">
-      <Filter>源文件\StreamVirtualTextureSystem</Filter>
-    </ClCompile>
-    <ClCompile Include="XetTextureGenerator.cpp">
-      <Filter>源文件\OfflineTaskHelper</Filter>
     </ClCompile>
     <ClCompile Include="Task_SplitHeightMap.cpp">
       <Filter>源文件\OfflineTaskHelper</Filter>

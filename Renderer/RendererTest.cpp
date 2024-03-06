@@ -5,7 +5,6 @@
 
 #include "Renderer/TerrainOfflineTask.h"
 #include "Renderer/GenerateCloudNoiseTask.h"
-#include "Renderer/XetTextureGenerator.h"
 #include "Renderer/Task_SplitHeightMap.h"
 
 #include "Windows/Window.h"

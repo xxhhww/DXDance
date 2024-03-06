@@ -6,8 +6,10 @@
 #include "Renderer/RenderGraphPass.h"
 #include "Renderer/ResourceStateTracker.h"
 #include "Renderer/CommandBuffer.h"
+#include "Renderer/Buffer.h"
 
 #include "Renderer/PoolCommandListAllocator.h"
+#include "Renderer/PoolDescriptorAllocator.h"
 #include "Renderer/RingFrameTracker.h"
 
 #include "GHL/CommandQueue.h"
@@ -30,8 +32,7 @@ namespace Renderer {
 		ResourceStateTracker* stateTracker,
 		ShaderManger* shaderManger,
 		CommandSignatureManger* commandSignatureManger,
-		LinearBufferAllocator* dynamicAllocator,
-		StreamTextureManger* streamTextureManger)
+		LinearBufferAllocator* dynamicAllocator)
 	: mDisplay(display)
 	, mDevice(device)
 	, mFrameTracker(frameTracker) 
@@ -41,8 +42,7 @@ namespace Renderer {
 	, mResourceStateTracker(stateTracker) 
 	, mShaderManger(shaderManger)
 	, mCommandSignatureManger(commandSignatureManger)
-	, mDynamicAllocator(dynamicAllocator)
-	, mStreamTextureManger(streamTextureManger) {
+	, mDynamicAllocator(dynamicAllocator) {
 		uint32_t queueCount = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Count);
 		uint32_t graphicsQueueIndex = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Graphics);
 		uint32_t computeQueueIndex  = std::underlying_type<GHL::EGPUQueue>::type(GHL::EGPUQueue::Compute);
@@ -93,7 +93,6 @@ namespace Renderer {
 			mDynamicAllocator, 
 			mResourceStorage.get(), 
 			mResourceStateTracker, 
-			mStreamTextureManger, 
 			mFrameTracker
 		};
 

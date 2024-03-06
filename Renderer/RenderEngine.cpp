@@ -61,8 +61,7 @@ namespace Renderer {
 			mResourceStateTracker.get(),
 			mShaderManger.get(),
 			mCommandSignatureManger.get(),
-			mSharedMemAllocator.get(),
-			nullptr))
+			mSharedMemAllocator.get()))
 		, mPipelineResourceStorage(mRenderGraph->GetPipelineResourceStorage())
 		, mOfflineFence(std::make_unique<GHL::Fence>(mDevice.get())) {
 
@@ -492,7 +491,6 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			nullptr,
 			mFrameTracker.get()
 		};
 
@@ -647,7 +645,6 @@ namespace Renderer {
 			mSharedMemAllocator.get(),
 			mRenderGraph->GetPipelineResourceStorage(),
 			mResourceStateTracker.get(),
-			nullptr,
 			mFrameTracker.get()
 		};
 
