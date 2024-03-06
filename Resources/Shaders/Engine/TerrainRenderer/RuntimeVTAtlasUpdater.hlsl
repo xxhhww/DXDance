@@ -46,6 +46,7 @@ v2p VSMain(a2v input, uint instanceID : SV_INSTANCEID) {
 
 	v2p output;
 	output.currCsPos = mul(float4(input.lsPos, 1.0f), drawRequest.mvpMatrix);
+	output.currCsPos.y = - output.currCsPos.y;
 	output.uv = input.uv;
 	output.tileOffset = drawRequest.tileOffset;
 	output.blendOffset = drawRequest.blendOffset;

@@ -18,7 +18,7 @@ struct PassData {
 	uint  tileCountPerAxisInPage0Level;
 	uint  scaledVirtualTextureSizeInBytesInPage0Level;
 
-	uint  maxPageLevel;
+	uint  maxPageLevel;				// 实际最高的PageLevel
 	uint  pageLevelBias;
 	float pad1;
 	float pad2;
@@ -139,7 +139,7 @@ p2o PSMain(v2p input) {
 	}
 
 	p2o output;
-	output.terrainFeedback  = uint4(pagePos, mip , !overBound);
+	output.terrainFeedback  = uint4(pagePos, mip, !overBound);
 
 	return output;
 }

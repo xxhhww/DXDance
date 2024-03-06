@@ -28,6 +28,7 @@ namespace Renderer {
 	float    TerrainSetting::smRvtRectRadius = 512;				// 实时虚拟纹理的矩形半径(边长的一半)
 	uint32_t TerrainSetting::smRvtPixelSizePerMeter = 64;		// 每米的像素值
 
+	bool     TerrainSetting::smRvtUsePageLevelDebug = true;		// 渲染时是否显示PageLevel
 	uint32_t TerrainSetting::smRvtMaxPageLevel = 7;				// log2(smRvtRectRadius * 2)  7 => 512m 8=> 1024m
 	uint32_t TerrainSetting::smRvtPageLevelBias = 0;
 	uint32_t TerrainSetting::smRvtVirtualTextureSizeInBytesInPage0Level = smRvtRectRadius * 2 * smRvtPixelSizePerMeter;
@@ -40,7 +41,7 @@ namespace Renderer {
 
 	uint32_t TerrainSetting::smTerrainFeedbackBufferElementCount = (smRvtTileCountPerAxisInPage0Level * smRvtTileCountPerAxisInPage0Level / 2);
 
-	uint32_t TerrainSetting::smRvtDataLoadedLimit = 12;
+	uint32_t TerrainSetting::smRvtDataLoadedLimit = 6;
 
 	float    TerrainSetting::smRvtRealRectChangedViewDistance = 128;
 

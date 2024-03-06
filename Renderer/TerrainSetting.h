@@ -34,6 +34,7 @@ namespace Renderer {
 		static float    smRvtRectRadius;					// 实时虚拟纹理的矩形半径(边长的一半)
 		static uint32_t smRvtPixelSizePerMeter;				// 每米的像素值
 
+		static bool     smRvtUsePageLevelDebug;						// 渲染时是否显示PageLevel
 		static uint32_t smRvtMaxPageLevel;
 		static uint32_t smRvtPageLevelBias;
 		static uint32_t smRvtVirtualTextureSizeInBytesInPage0Level;	// VT大小InPage0Level

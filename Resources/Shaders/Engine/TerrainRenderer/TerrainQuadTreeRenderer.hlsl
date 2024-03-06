@@ -21,24 +21,19 @@ struct PassData {
 	uint  terrainAtlasTileCountPerAxis;
 	uint  terrainAtlasTileWidthInPixels;
 	uint  terrainPatchVertexCountPerAxis;
-	float pad1;
-
-	// x: page table size
-	// y: virtual texture size
-	// z: max mipmap level
-	// w: mipmap level bias
-	float4 vtFeedbackParams;
-	float4 vtRealRect;
-	// x: padding size
-	// y: tileSize
-	// z: physical texture size x
-	// w: physical texture size y
-	float4 vtPhysicalMapParams;
+	uint  pageLevelDebug;
 
 	uint  runtimeVTPageTableMapIndex;
 	uint  runtimeVTAlbedoAtlasIndex;
 	uint  runtimeVTNormalAtlasIndex;
-	float pad2;
+	float runtimeVTAtlasSize;
+
+	float4 runtimeVTRealRect;
+
+	float runtimeVTTileCountPerAxisInPage0Level;
+	float runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
+	float tilePaddingSize;
+	float tileSizeNoPadding;
 };
 
 #define PassDataType PassData

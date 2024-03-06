@@ -53,24 +53,19 @@ namespace Renderer {
 			uint32_t terrainAtlasTileCountPerAxis;
 			uint32_t terrainAtlasTileWidthInPixels;
 			uint32_t terrainPatchVertexCountPerAxis;
-			float    pad1;
-
-			// x: page table size
-			// y: virtual texture size
-			// z: max mipmap level
-			// w: mipmap level bias
-			Math::Vector4 vtFeedbackParams{};
-			Math::Vector4 vtRealRect{};
-			// x: padding size
-			// y: tileSize
-			// z: physical texture size x
-			// w: physical texture size y
-			Math::Vector4 vtPhysicalMapParams{};
+			uint32_t pageLevelDebug;
 
 			uint32_t runtimeVTPageTableMapIndex;
 			uint32_t runtimeVTAlbedoAtlasIndex;
 			uint32_t runtimeVTNormalAtlasIndex;
-			float    pad2;
+			float    runtimeVTAtlasSize;
+
+			Math::Vector4 runtimeVTRealRect{};
+
+			float    runtimeVTTileCountPerAxisInPage0Level;
+			float    runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
+			float    tilePaddingSize;
+			float    tileSizeNoPadding;
 		};
 
 		struct TerrainFeedbackPassData {
@@ -88,7 +83,7 @@ namespace Renderer {
 			uint32_t tileCountPerAxisInPage0Level;
 			uint32_t scaledVirtualTextureSizeInBytesInPage0Level;
 
-			uint32_t maxPageLevel;
+			uint32_t maxPageLevel;								// 实际最高的PageLevel
 			uint32_t pageLevelBias;
 			float pad1;
 			float pad2;

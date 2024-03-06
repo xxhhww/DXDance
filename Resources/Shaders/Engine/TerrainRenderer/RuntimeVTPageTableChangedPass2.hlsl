@@ -31,12 +31,15 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	// pixelOffset = int2(0, -32)
 	// srcPixelIndex = (64, 15)  dstPixelIndex = (64, (15 - 32) + 256)
 	int2 srcPixelIndex = dispatchThreadID.xy;
+	int2 dstPixelIndex = srcPixelIndex;
+	dstPixelIndex.x = dstPixelIndex.x - PassDataCB.pixelOffset.x;
+	dstPixelIndex.y = dstPixelIndex.y + PassDataCB.pixelOffset.y;
 
-	int2 dstPixelIndex = srcPixelIndex + PassDataCB.pixelOffset;
-	if(dstPixelIndex.x < 0) dstPixelIndex.x += PassDataCB.pageTableMapSize;
-	if(dstPixelIndex.x > PassDataCB.pageTableMapSize - 1) dstPixelIndex.x -= PassDataCB.pageTableMapSize;
-	if(dstPixelIndex.y < 0) dstPixelIndex.y += PassDataCB.pageTableMapSize;
-	if(dstPixelIndex.y > PassDataCB.pageTableMapSize - 1) dstPixelIndex.y -= PassDataCB.pageTableMapSize;
+	if(dstPixelIndex.x < 0)                                    dstPixelIndex.x += PassDataCB.pageTableMapSize;
+	else if(dstPixelIndex.x > PassDataCB.pageTableMapSize - 1) dstPixelIndex.x -= PassDataCB.pageTableMapSize;
+
+	if(dstPixelIndex.y < 0)                                    dstPixelIndex.y += PassDataCB.pageTableMapSize;
+	else if(dstPixelIndex.y > PassDataCB.pageTableMapSize - 1) dstPixelIndex.y -= PassDataCB.pageTableMapSize;
 
 	dstRuntimeVTPageTableMap[dstPixelIndex.xy] = srcRuntimeVTPageTableMap[srcPixelIndex.xy];
 }

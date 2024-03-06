@@ -404,7 +404,6 @@ namespace Renderer {
 				// 填充请求队列(注意剔除重复目标)
 				auto& currNodeRuntimeState = mRvtPageTables[pageLevel].GetNodeRuntimeStateTransformed((uint32_t)pagePosX, (uint32_t)pagePosY);
 
-
 				/*
 				if (currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
@@ -422,7 +421,6 @@ namespace Renderer {
 				// 剔除重复requestTask
 				currNodeRuntimeState.SetTempFlag(true);
 				*/
-
 
 				if (currNodeRuntimeState.inReady || currNodeRuntimeState.inQueue || currNodeRuntimeState.inLoading || currNodeRuntimeState.tempFlag) {
 					// 该节点对应的资源正在加载
@@ -991,9 +989,9 @@ namespace Renderer {
 		*/
 
 		int32_t invalidRegionXBeg = 0;
-		int32_t invalidRegionXEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+		int32_t invalidRegionXEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level - 1;
 		int32_t invalidRegionYBeg = 0;
-		int32_t invalidRegionYEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+		int32_t invalidRegionYEnd = mTerrainSetting.smRvtTileCountPerAxisInPage0Level - 1;
 
 		if (offsetInPage0Level.x > 0) {
 			invalidRegionXEnd = offsetInPage0Level.x - 1;
@@ -1337,11 +1335,11 @@ namespace Renderer {
 
 			std::vector<uint32_t> indices;
 			indices.emplace_back(0u);
-			indices.emplace_back(2u);
 			indices.emplace_back(1u);
 			indices.emplace_back(2u);
-			indices.emplace_back(0u);
+			indices.emplace_back(2u);
 			indices.emplace_back(3u);
+			indices.emplace_back(0u);
 
 			Renderer::BufferDesc vertexBufferDesc{};
 			vertexBufferDesc.stride = sizeof(Renderer::Vertex);
@@ -1383,7 +1381,6 @@ namespace Renderer {
 				[&](GraphicsStateProxy& proxy) {
 					proxy.vsFilepath = shaderPath + "TerrainRenderer/RuntimeVTPageTableUpdater.hlsl";
 					proxy.psFilepath = proxy.vsFilepath;
-					proxy.rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
 					proxy.depthStencilDesc.DepthEnable = false;
 					proxy.renderTargetFormatArray = {
 						mRenderer->GetRuntimeVTPageTableMap()->GetResourceFormat().GetTextureDesc().format

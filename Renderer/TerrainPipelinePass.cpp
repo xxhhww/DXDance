@@ -105,8 +105,8 @@ namespace Renderer {
 			},
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
-				auto* resourceStorage = renderContext.resourceStorage;
-				auto* resourceTracker = renderContext.resourceStateTracker;
+				auto* resourceStorage  = renderContext.resourceStorage;
+				auto* resourceTracker  = renderContext.resourceStateTracker;
 				auto* commandSigManger = renderContext.commandSignatureManger;
 
 				// 检测TerrainBackend是否存在资源更新任务
@@ -354,6 +354,71 @@ namespace Renderer {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
 
+				// 提交RuntimeVTBackend录制的命令
+				{
+					auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
+					auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
+					auto& recordedGpuCommandsInRealRectChanged = runtimeVTBackend->GetRecordedGpuCommandsInRealRectChanged();
+
+					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+					const auto& prevRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
+					const auto& prevRuntimeVTRealRectCenter = Math::Vector2{
+						prevRuntimeVTRealRect.x + mTerrainSetting.smRvtRectRadius,
+						prevRuntimeVTRealRect.y - mTerrainSetting.smRvtRectRadius
+					};
+
+					auto GetFixedPosition = [](const Math::Vector2& position, float cellSize) {
+						return Math::Int2{
+							(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
+							(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
+						};
+					};
+
+					// 更新RvtRealRect
+					Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
+					float xDiff = (float)fixedPos0.x - prevRuntimeVTRealRectCenter.x;
+					float yDiff = (float)fixedPos0.y - prevRuntimeVTRealRectCenter.y;
+
+					if (std::abs(xDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance || std::abs(yDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance) {
+						Math::Int2 currRuntimeVTRealRectCenter = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
+						Math::Vector4 currRuntimeVTRealRect = Math::Vector4{
+							(float)currRuntimeVTRealRectCenter.x - mTerrainSetting.smRvtRectRadius,
+							(float)currRuntimeVTRealRectCenter.y + mTerrainSetting.smRvtRectRadius,
+							2.0f * mTerrainSetting.smRvtRectRadius,
+							2.0f * mTerrainSetting.smRvtRectRadius
+						};
+
+						// 同步等待
+						mRenderer->OnRuntimeVTRealRectChanged(currRuntimeVTRealRect);
+
+						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
+						if (recordedGpuCommandsInRealRectChanged.TryPop(recordedGpuCommand)) {
+							// 修改节点实时状态
+							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
+
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList->D3DCommandList());
+
+							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+						}
+
+					}
+					else {
+						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
+						if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
+							// 修改节点实时状态
+							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
+
+							// 向GPU输送已被录制好的命令
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasCommandList->D3DCommandList());
+							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableCommandList->D3DCommandList());
+
+							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
+						}
+					}
+				}
+
 				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* indirectArgs        = resourceStorage->GetResourceByName("TerrainFeedbackRendererIndirectArgs")->GetBuffer();
 
@@ -528,73 +593,6 @@ namespace Renderer {
 				auto* resourceStorage  = renderContext.resourceStorage;
 				auto* resourceTracker  = renderContext.resourceStateTracker;
 
-				// 提交RuntimeVTBackend录制的命令
-				{
-					auto* runtimeVTBackend = mRenderer->mRuntimeVTBackend.get();
-					auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
-					auto& recordedGpuCommandsInRealRectChanged = runtimeVTBackend->GetRecordedGpuCommandsInRealRectChanged();
-
-					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
-					const auto& prevRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
-					const auto& prevRuntimeVTRealRectCenter = Math::Vector2{
-						prevRuntimeVTRealRect.x + mTerrainSetting.smRvtRectRadius,
-						prevRuntimeVTRealRect.y - mTerrainSetting.smRvtRectRadius
-					};
-
-					auto GetFixedPosition = [](const Math::Vector2& position, float cellSize) {
-						return Math::Int2{
-							(int32_t)std::floor(position.x / cellSize + 0.5f) * (int32_t)cellSize,
-							(int32_t)std::floor(position.y / cellSize + 0.5f) * (int32_t)cellSize
-						};
-					};
-
-					// 更新RvtRealRect
-					Math::Int2 fixedPos0 = GetFixedPosition(Math::Vector2{ cameraPosition.x, cameraPosition.z }, mTerrainSetting.smWorldMeterSizePerTileInPage0Level);
-					float xDiff = (float)fixedPos0.x - prevRuntimeVTRealRectCenter.x;
-					float yDiff = (float)fixedPos0.y - prevRuntimeVTRealRectCenter.y;
-
-					if (std::abs(xDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance || std::abs(yDiff) > mTerrainSetting.smRvtRealRectChangedViewDistance) {
-						Math::Int2 currRuntimeVTRealRectCenter = GetFixedPosition(Math::Vector2{ (float)fixedPos0.x, (float)fixedPos0.y }, mTerrainSetting.smRvtRealRectChangedViewDistance);
-						Math::Vector4 currRuntimeVTRealRect = Math::Vector4{
-							(float)currRuntimeVTRealRectCenter.x - mTerrainSetting.smRvtRectRadius,
-							(float)currRuntimeVTRealRectCenter.y + mTerrainSetting.smRvtRectRadius,
-							2.0f * mTerrainSetting.smRvtRectRadius,
-							2.0f * mTerrainSetting.smRvtRectRadius
-						};
-
-						// 同步等待
-						mRenderer->OnRuntimeVTRealRectChanged(currRuntimeVTRealRect);
-
-						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
-						if (recordedGpuCommandsInRealRectChanged.TryPop(recordedGpuCommand)) {
-							// 修改节点实时状态
-							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
-
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasInRealRectChangedCommandList->D3DCommandList());
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.makeRuntimeVTPageTableInvalidCommandList->D3DCommandList());
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableInRealRectChangedCommandList->D3DCommandList());
-
-							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-							graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-						}
-
-					}
-					else {
-						RuntimeVTBackend::RecordedGpuCommand recordedGpuCommand{};
-						if (recordedGpuCommands.TryPop(recordedGpuCommand)) {
-							// 修改节点实时状态
-							runtimeVTBackend->OnFrameLoading(recordedGpuCommand.frameIndex);
-
-							// 向GPU输送已被录制好的命令
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTAtlasCommandList->D3DCommandList());
-							graphicsQueue->ExecuteCommandList(recordedGpuCommand.updateRuntimeVTPageTableCommandList->D3DCommandList());
-
-							graphicsQueue->SignalFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-							graphicsQueue->WaitFence(*recordedGpuCommand.graphicsFence, recordedGpuCommand.graphicsFenceExpectedValue);
-						}
-					}
-				}
-
 				auto* nearIndirectArgs = resourceStorage->GetResourceByName("TerrainNearRendererIndirectArgs")->GetBuffer();
 				auto* farIndirectArgs  = resourceStorage->GetResourceByName("TerrainFarRendererIndirectArgs")->GetBuffer();
 				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
@@ -628,6 +626,7 @@ namespace Renderer {
 				*/
 
 				mTerrainRendererPassData.lodDebug             = mTerrainSetting.smUseLodDebug;
+				mTerrainRendererPassData.pageLevelDebug       = mTerrainSetting.smRvtUsePageLevelDebug;
 				mTerrainRendererPassData.terrainMeterSize     = mTerrainSetting.smTerrainMeterSize;
 				mTerrainRendererPassData.terrainHeightScale   = mTerrainSetting.smTerrainHeightScale;
 				mTerrainRendererPassData.culledPatchListIndex     = culledPatchList->GetSRDescriptor()->GetHeapIndex();
@@ -644,6 +643,12 @@ namespace Renderer {
 				mTerrainRendererPassData.runtimeVTPageTableMapIndex = mRenderer->GetRuntimeVTPageTableMap()->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.runtimeVTAlbedoAtlasIndex  = runtiemVTAlbedoAtlas->GetSRDescriptor()->GetHeapIndex();
 				mTerrainRendererPassData.runtimeVTNormalAtlasIndex  = runtiemVTNormalAtlas->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.runtimeVTAtlasSize                    = mTerrainSetting.smRvtAtlasTextureSize;
+				mTerrainRendererPassData.runtimeVTRealRect                     = mRenderer->GetRuntimeVTRealRect();
+				mTerrainRendererPassData.runtimeVTTileCountPerAxisInPage0Level = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
+				mTerrainRendererPassData.runtimeVTMaxPageLevel                 = std::log2(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
+				mTerrainRendererPassData.tilePaddingSize                       = mTerrainSetting.smRvtTilePaddingSize;
+				mTerrainRendererPassData.tileSizeNoPadding                     = mTerrainSetting.smRvtTileSizeNoPadding;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));

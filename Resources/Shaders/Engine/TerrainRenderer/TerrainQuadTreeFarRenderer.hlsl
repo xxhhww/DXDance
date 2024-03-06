@@ -21,24 +21,19 @@ struct PassData {
 	uint  terrainAtlasTileCountPerAxis;
 	uint  terrainAtlasTileWidthInPixels;
 	uint  terrainPatchVertexCountPerAxis;
-	float pad1;
-
-	// x: page table size
-	// y: virtual texture size
-	// z: max mipmap level
-	// w: mipmap level bias
-	float4 vtFeedbackParams;
-	float4 vtRealRect;
-	// x: padding size
-	// y: tileSize
-	// z: physical texture size x
-	// w: physical texture size y
-	float4 vtPhysicalMapParams;
+	uint  pageLevelDebug;
 
 	uint  runtimeVTPageTableMapIndex;
 	uint  runtimeVTAlbedoAtlasIndex;
 	uint  runtimeVTNormalAtlasIndex;
-	float pad2;
+	float runtimeVTAtlasSize;
+
+	float4 runtimeVTRealRect;
+
+	float runtimeVTTileCountPerAxisInPage0Level;
+	float runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
+	float tilePaddingSize;
+	float tileSizeNoPadding;
 };
 
 #define PassDataType PassData
@@ -165,10 +160,6 @@ p2o PSMain(v2p input) {
 	Texture2D runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
 
 	float3 currLodColor = GetLODColor(input.nodeLod);
-	float3 runtimeVTAlbedo = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
-	float3 runtimeVTNormal = runtimeVTNormalAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
-	uint3  runtimeVTPageTable = runtimeVTPageTableMap.SampleLevel(SamplerPointWrap, input.uv, 0u).rgb;
-	currLodColor = currLodColor + runtimeVTNormal * 0.01f + runtimeVTPageTable * 0.001f;
 
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
@@ -184,7 +175,7 @@ p2o PSMain(v2p input) {
 	float3 normal = float3(0.0f, 1.0f, 0.0f);
 
 	p2o output;
-	output.albedoMetalness  = float4(currLodColor, 0.0f);
+	output.albedoMetalness  = float4(input.terrainAlbedo.rgb, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
 	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);

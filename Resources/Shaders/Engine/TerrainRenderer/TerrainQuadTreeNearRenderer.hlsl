@@ -21,24 +21,19 @@ struct PassData {
 	uint  terrainAtlasTileCountPerAxis;
 	uint  terrainAtlasTileWidthInPixels;
 	uint  terrainPatchVertexCountPerAxis;
-	float pad1;
-
-	// x: page table size
-	// y: virtual texture size
-	// z: max mipmap level
-	// w: mipmap level bias
-	float4 vtFeedbackParams;
-	float4 vtRealRect;
-	// x: padding size
-	// y: tileSize
-	// z: physical texture size x
-	// w: physical texture size y
-	float4 vtPhysicalMapParams;
+	uint  pageLevelDebug;
 
 	uint  runtimeVTPageTableMapIndex;
 	uint  runtimeVTAlbedoAtlasIndex;
 	uint  runtimeVTNormalAtlasIndex;
-	float pad2;
+	float runtimeVTAtlasSize;
+
+	float4 runtimeVTRealRect;
+
+	float runtimeVTTileCountPerAxisInPage0Level;
+	float runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
+	float tilePaddingSize;
+	float tileSizeNoPadding;
 };
 
 #define PassDataType PassData
@@ -162,13 +157,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 p2o PSMain(v2p input) {
 	Texture2D runtimeVTAlbedoAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTAlbedoAtlasIndex];
 	Texture2D runtimeVTNormalAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTNormalAtlasIndex];
-	Texture2D runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
-
-	float3 currLodColor = GetLODColor(input.nodeLod);
-	float3 runtimeVTAlbedo = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
-	float3 runtimeVTNormal = runtimeVTNormalAtlas.SampleLevel(SamplerLinearWrap, input.uv, 0u).rgb;
-	uint3  runtimeVTPageTable = runtimeVTPageTableMap.SampleLevel(SamplerPointWrap, input.uv, 0u).rgb;
-	currLodColor = currLodColor + runtimeVTNormal * 0.01f + runtimeVTPageTable * 0.001f;
+	Texture2D<uint4> runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
 
 	// 当前帧的uv抖动
 	float2 uvJitter = FrameDataCB.CurrentEditorCamera.UVJitter;
@@ -180,11 +169,30 @@ p2o PSMain(v2p input) {
     float3 currUVSpacePos = float3(currScreenUV, input.currCsPos.z);
     float3 velocity = currUVSpacePos - prevUVSpacePos;
 
-	float3 albedo = currLodColor;
-	float3 normal = float3(0.0f, 1.0f, 0.0f);
+	// 计算uvVT
+	float2 uvVT = float2(0.0f, 0.0f);
+	uvVT.x = (input.wsPos.x - PassDataCB.runtimeVTRealRect.x) / PassDataCB.runtimeVTRealRect.z;
+	uvVT.y = (PassDataCB.runtimeVTRealRect.y - input.wsPos.z) / PassDataCB.runtimeVTRealRect.w;
+	uint2 pagePos = floor(uvVT * (float)PassDataCB.runtimeVTTileCountPerAxisInPage0Level);
+	uint4 pageData = runtimeVTPageTableMap[pagePos.xy].rgba;
+
+	float  tilePaddingSize = PassDataCB.tilePaddingSize;
+	float  tileSizeNoPadding = PassDataCB.tileSizeNoPadding;
+	float  tileSizeWithPadding = tileSizeNoPadding + tilePaddingSize * 2.0f;
+	float2 inTileOffset = frac(uvVT * exp2(PassDataCB.runtimeVTMaxPageLevel - pageData.z));
+	float2 uvAtlas = float2(0.0f, 0.0f);
+	uvAtlas.x = ((float)pageData.x * tileSizeWithPadding + tilePaddingSize + inTileOffset.x * tileSizeNoPadding) / PassDataCB.runtimeVTAtlasSize;
+	uvAtlas.y = ((float)pageData.y * tileSizeWithPadding + tilePaddingSize + inTileOffset.y * tileSizeNoPadding) / PassDataCB.runtimeVTAtlasSize;
+
+	float3 currLodColor = GetLODColor(input.nodeLod);
+	float3 runtimeVTAlbedo = runtimeVTAlbedoAtlas.SampleLevel(SamplerLinearWrap, uvAtlas, 0u).rgb;
+	float3 runtimeVTNormal = runtimeVTNormalAtlas.SampleLevel(SamplerLinearWrap, uvAtlas, 0u).rgb;
+
+	float3 pageLevelColor = float3(clamp(1.0f - pageData.z * 0.1f , 0.0f, 1.0f), 0.0f, 0.0f);
+
 
 	p2o output;
-	output.albedoMetalness  = float4(currLodColor, 0.0f);
+	output.albedoMetalness  = float4(runtimeVTAlbedo, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
 	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);
