@@ -761,6 +761,11 @@ namespace OfflineTask {
 
 			uint32_t tilePosX{ 255u };
 			uint32_t tilePosY{ 255u };
+
+			uint  branch{ 0u };
+			float pad1;
+			float pad2;
+			float pad3;
 		};
 
 		/*

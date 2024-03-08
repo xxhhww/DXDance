@@ -127,6 +127,14 @@ namespace Renderer {
 
 		inline auto* GetRenderEngine() const { return mRenderEngine; }
 
+		inline auto& GetTerrainLodDescriptors()    { return mTerrainLodDescriptors; }
+		inline auto& GetTerrainNodeDescriptors()   { return mTerrainNodeDescriptors; }
+		inline auto& GetTerrainNodeRuntimeStates() { return mTerrainNodeRuntimeStates; }
+
+		inline const auto& GetTerrainLodDescriptors()    const { return mTerrainLodDescriptors; }
+		inline const auto& GetTerrainNodeDescriptors()   const { return mTerrainNodeDescriptors; }
+		inline const auto& GetTerrainNodeRuntimeStates() const { return mTerrainNodeRuntimeStates; }
+
 		inline auto* GetFarTerrainHeightMapAtlas() const { return mFarTerrainHeightMapAtlas.get(); }
 		inline auto* GetFarTerrainAlbedoMapAtlas() const { return mFarTerrainAlbedoMapAtlas.get(); }
 		inline auto* GetFarTerrainNormalMapAtlas() const { return mFarTerrainNormalMapAtlas.get(); }
@@ -137,11 +145,11 @@ namespace Renderer {
 		inline auto& GetRuntimeVTPageTables() { return mRuntimeVTPageTables; }
 		inline const auto& GetRuntimeVTPageTables() const { return mRuntimeVTPageTables; }
 		
-		inline auto& GetRuntimeVTPageTableMap()  { return mRuntimeVTPageTableMap; }
+		inline auto& GetRuntimeVTPageTableMap() { return mRuntimeVTPageTableMap; }
 
 		inline auto* GetRuntimeVTAlbedoAtlas()    const { return mRuntimeVTAlbedoAtlas.get(); }
 		inline auto* GetRuntimeVTNormalAtlas()    const { return mRuntimeVTNormalAtlas.get(); }
-		inline auto* GetRuntimeVTAtlasTileCache() const{ return mRuntimeVTAtlasTileCache.get(); }
+		inline auto* GetRuntimeVTAtlasTileCache() const { return mRuntimeVTAtlasTileCache.get(); }
 
 		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
 
@@ -189,10 +197,17 @@ namespace Renderer {
 
 		std::unique_ptr<TerrainTiledTexture> mTerrainTiledSplatMap;											// SplatMap
 		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledSplatMapHeapAllocator;							// HeapAllocator
-		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledTextureTileRuntimeStates;				// 全Tile运行时状态
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledSplatMapTileRuntimeStates;			// 全Tile运行时状态
 		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledSplatMapHeapAllocationCache;	// HeapAllocatonCache
 		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledSplatMapBackend;
 		D3D12_SUBRESOURCE_TILING mTerrainTiledSplatMapBackendTiling;
+
+		std::unique_ptr<TerrainTiledTexture> mTerrainTiledGrassLandMap;											// SplatMap
+		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledGrassLandMapHeapAllocator;							// HeapAllocator
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledGrassLandMapTileRuntimeStates;			// 全Tile运行时状态
+		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledGrassLandMapHeapAllocationCache;	// HeapAllocatonCache
+		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledGrassLandMapBackend;
+		D3D12_SUBRESOURCE_TILING mTerrainTiledGrassLandMapBackendTiling;
 
 		// 实时虚拟纹理后台
 		std::unique_ptr<RuntimeVTBackend> mRuntimeVTBackend;

@@ -34,6 +34,11 @@ struct PassData {
 	float runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
 	float tilePaddingSize;
 	float tileSizeNoPadding;
+
+	uint  lodMapIndex;
+	float patchMeshGridSize;
+	float sectorMeterSize;
+	float pad3;
 };
 
 #define PassDataType PassData

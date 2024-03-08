@@ -26,6 +26,13 @@ namespace Renderer {
 		D3D12_DRAW_INDEXED_ARGUMENTS drawIndexedArguments;
 	};
 
+	struct TerrainNodeGpuRuntimeState {
+		uint32_t branch;
+		float    pad1;
+		float    pad2;
+		float    pad3;
+	};
+
 	TerrainPipelinePass::TerrainPipelinePass(TerrainRenderer* renderer)
 	: mRenderer(renderer) 
 	, mTerrainSetting(renderer->mTerrainSetting) {
@@ -88,6 +95,14 @@ namespace Renderer {
 				builder.DeclareBuffer("FinalNodeList", _FinalNodeListProperties);
 				builder.WriteBuffer("FinalNodeList");
 
+				NewBufferProperties _TerrainNodeGpuRuntimeStatesProperties;
+				_TerrainNodeGpuRuntimeStatesProperties.stride = sizeof(TerrainNodeGpuRuntimeState);
+				_TerrainNodeGpuRuntimeStatesProperties.size = mRenderer->GetTerrainNodeDescriptors().size() * _TerrainNodeGpuRuntimeStatesProperties.stride;
+				_TerrainNodeGpuRuntimeStatesProperties.miscFlag = GHL::EBufferMiscFlag::StructuredBuffer;
+				_TerrainNodeGpuRuntimeStatesProperties.aliased = false;
+				builder.DeclareBuffer("TerrainNodeGpuRuntimeStates", _TerrainNodeGpuRuntimeStatesProperties);
+				builder.WriteBuffer("TerrainNodeGpuRuntimeStates");
+
 				shaderManger.CreateComputeShader("TraverseQuadTree",
 					[&](ComputeStateProxy& proxy) {
 						proxy.csFilepath = shaderPath + "TerrainRenderer/TerrainQuadTreeBuilder.hlsl";
@@ -131,21 +146,26 @@ namespace Renderer {
 					}
 				}
 
-				auto* consumeNodeList = resourceStorage->GetResourceByName("ConsumeNodeList")->GetBuffer();
-				auto* appendNodeList  = resourceStorage->GetResourceByName("AppendNodeList")->GetBuffer();
-				auto* finalNodeList   = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
-				auto* indirectArgs    = resourceStorage->GetResourceByName("TraverseQuadTreeIndirectArgs")->GetBuffer();
+				auto* consumeNodeList      = resourceStorage->GetResourceByName("ConsumeNodeList")->GetBuffer();
+				auto* appendNodeList       = resourceStorage->GetResourceByName("AppendNodeList")->GetBuffer();
+				auto* finalNodeList        = resourceStorage->GetResourceByName("FinalNodeList")->GetBuffer();
+				auto* nodeGpuRuntimeStates = resourceStorage->GetResourceByName("TerrainNodeGpuRuntimeStates")->GetBuffer();
+				auto* indirectArgs         = resourceStorage->GetResourceByName("TraverseQuadTreeIndirectArgs")->GetBuffer();
+
 
 				mTerrainBuilderPassData.nodeEvaluationC.x  = mTerrainSetting.smNodeEvaluationC;
 				mTerrainBuilderPassData.terrainMeterSize   = mTerrainSetting.smTerrainMeterSize;
 				mTerrainBuilderPassData.terrainHeightScale = mTerrainSetting.smTerrainHeightScale;
 				mTerrainBuilderPassData.useFrustumCull     = mTerrainSetting.smUseFrustumCull;
+				mTerrainBuilderPassData.maxLod             = mTerrainSetting.smMaxLOD;
 				mTerrainBuilderPassData.currPassLOD        = mTerrainSetting.smMaxLOD;
-				mTerrainBuilderPassData.consumeNodeListIndex = consumeNodeList->GetUADescriptor()->GetHeapIndex();
-				mTerrainBuilderPassData.appendNodeListIndex  = appendNodeList->GetUADescriptor()->GetHeapIndex();
-				mTerrainBuilderPassData.finalNodeListIndex   = finalNodeList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.consumeNodeListIndex      = consumeNodeList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.appendNodeListIndex       = appendNodeList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.finalNodeListIndex        = finalNodeList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.nodeGpuRuntimeStatesIndex = nodeGpuRuntimeStates->GetUADescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.nodeDescriptorListIndex = mRenderer->mTerrainNodeDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.lodDescriptorListIndex  = mRenderer->mTerrainLodDescriptorBuffer->GetSRDescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.useRenderCameraDebug    = mTerrainSetting.smUseRenderCameraDebug;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainBuilderPassData), 256u);
 				memcpy(passDataAlloc.cpuAddress, &mTerrainBuilderPassData, sizeof(TerrainPipelinePass::TerrainBuilderPassData));
@@ -217,11 +237,59 @@ namespace Renderer {
 			});
 
 		renderGraph->AddPass(
+			"BuildTerrainLodMap",
+			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
+				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
+
+				builder.ReadBuffer("TerrainNodeGpuRuntimeStates", ShaderAccessFlag::NonPixelShader);
+
+				NewTextureProperties _TerrainLodMapProperties;
+				_TerrainLodMapProperties.width = mTerrainSetting.smTerrainMeterSize / mTerrainSetting.smMinLODNodeMeterSize;
+				_TerrainLodMapProperties.height = mTerrainSetting.smTerrainMeterSize / mTerrainSetting.smMinLODNodeMeterSize;
+				_TerrainLodMapProperties.format = DXGI_FORMAT_R8G8B8A8_UINT;
+				_TerrainLodMapProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
+				builder.DeclareTexture("TerrainLodMap", _TerrainLodMapProperties);
+				builder.WriteTexture("TerrainLodMap");
+
+				shaderManger.CreateComputeShader("BuildTerrainLodMap",
+					[&](ComputeStateProxy& proxy) {
+						proxy.csFilepath = shaderPath + "TerrainRenderer/TerrainQuadTreeBuilder.hlsl";
+						proxy.csEntryPoint = "BuildTerrainLodMap";
+					});
+			},
+			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
+				auto* dynamicAllocator = renderContext.dynamicAllocator;
+				auto* resourceStorage  = renderContext.resourceStorage;
+				auto* resourceTracker  = renderContext.resourceStateTracker;
+				auto* commandSigManger = renderContext.commandSignatureManger;
+
+				auto* nodeGpuRuntimeStates = resourceStorage->GetResourceByName("TerrainNodeGpuRuntimeStates")->GetBuffer();
+				auto* terrainLodMap        = resourceStorage->GetResourceByName("TerrainLodMap")->GetTexture();
+				auto& terrainLodMapDesc    = terrainLodMap->GetResourceFormat().GetTextureDesc();
+
+				mTerrainBuilderPassData.maxLod                    = mTerrainSetting.smMaxLOD;
+				mTerrainBuilderPassData.lodMapIndex               = terrainLodMap->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.nodeGpuRuntimeStatesIndex = nodeGpuRuntimeStates->GetSRDescriptor()->GetHeapIndex();
+
+				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainBuilderPassData), 256u);
+				memcpy(passDataAlloc.cpuAddress, &mTerrainBuilderPassData, sizeof(TerrainPipelinePass::TerrainBuilderPassData));
+
+				commandBuffer.SetComputeRootSignature();
+				commandBuffer.SetComputePipelineState("BuildTerrainLodMap");
+				commandBuffer.SetComputeRootCBV(0u, resourceStorage->rootConstantsPerFrameAddress);
+				commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+				uint32_t threadGroupCountX = (terrainLodMapDesc.width + smThreadSizeInGroup - 1) / smThreadSizeInGroup;
+				uint32_t threadGroupCountY = threadGroupCountX;
+				commandBuffer.Dispatch(threadGroupCountX, threadGroupCountY, 1u);
+			});
+
+		renderGraph->AddPass(
 			"BuildPatches",
 			[=](RenderGraphBuilder& builder, ShaderManger& shaderManger, CommandSignatureManger& commandSignatureManger) {
 				builder.SetPassExecutionQueue(GHL::EGPUQueue::Compute);
 
 				builder.ReadBuffer("FinalNodeList", ShaderAccessFlag::NonPixelShader);
+				builder.ReadTexture("TerrainLodMap", ShaderAccessFlag::NonPixelShader);
 
 				NewBufferProperties _CulledPatchListProperties{};
 				_CulledPatchListProperties.stride = sizeof(TerrainPipelinePass::RenderPatch);
@@ -268,13 +336,16 @@ namespace Renderer {
 				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* nearCulledPatchList = resourceStorage->GetResourceByName("NearCulledPatchList")->GetBuffer();
 				auto* farCulledPatchList  = resourceStorage->GetResourceByName("FarCulledPatchList")->GetBuffer();
+				auto* terrainLodMap       = resourceStorage->GetResourceByName("TerrainLodMap")->GetTexture();
 				auto* indirectArgs        = resourceStorage->GetResourceByName("BuildPatchesIndirectArgs")->GetBuffer();
 
 				mTerrainBuilderPassData.finalNodeListIndex       = finalNodeList->GetSRDescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.culledPatchListIndex     = culledPatchList->GetUADescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.nearCulledPatchListIndex = nearCulledPatchList->GetUADescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.farCulledPatchListIndex  = farCulledPatchList->GetUADescriptor()->GetHeapIndex();
+				mTerrainBuilderPassData.lodMapIndex              = terrainLodMap->GetSRDescriptor()->GetHeapIndex();
 				mTerrainBuilderPassData.runtimeVTRealRect        = mRenderer->GetRuntimeVTRealRect();
+				mTerrainBuilderPassData.sectorMeterSize          = mTerrainSetting.smMinLODNodeMeterSize;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainBuilderPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainBuilderPassData, sizeof(TerrainPipelinePass::TerrainBuilderPassData));
@@ -353,6 +424,7 @@ namespace Renderer {
 			[=](CommandBuffer& commandBuffer, RenderContext& renderContext) {
 				auto* dynamicAllocator = renderContext.dynamicAllocator;
 				auto* resourceStorage = renderContext.resourceStorage;
+				const auto& rootConstantsPerFrame = resourceStorage->rootConstantsPerFrame;
 
 				// 提交RuntimeVTBackend录制的命令
 				{
@@ -360,7 +432,8 @@ namespace Renderer {
 					auto& recordedGpuCommands = runtimeVTBackend->GetRecordedGpuCommands();
 					auto& recordedGpuCommandsInRealRectChanged = runtimeVTBackend->GetRecordedGpuCommandsInRealRectChanged();
 
-					const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+					const auto& cameraPosition = mTerrainSetting.smUseRenderCameraDebug ? rootConstantsPerFrame.currentRenderCamera.position : rootConstantsPerFrame.currentEditorCamera.position;
+
 					const auto& prevRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
 					const auto& prevRuntimeVTRealRectCenter = Math::Vector2{
 						prevRuntimeVTRealRect.x + mTerrainSetting.smRvtRectRadius,
@@ -439,9 +512,10 @@ namespace Renderer {
 				mTerrainFeedbackPassData.terrainPatchVertexCountPerAxis = mPatchMeshVertexCountPerAxis;
 				mTerrainFeedbackPassData.tileCountPerAxisInPage0Level                = mTerrainSetting.smRvtTileCountPerAxisInPage0Level;
 				mTerrainFeedbackPassData.scaledVirtualTextureSizeInBytesInPage0Level = mTerrainSetting.smRvtVirtualTextureSizeInBytesInPage0Level / mTerrainSetting.smTerrainFeedbackScale;
-				mTerrainFeedbackPassData.maxPageLevel  = mRenderer->GetMaxPageLevel();
-				mTerrainFeedbackPassData.pageLevelBias = mRenderer->GetPageLevelBias();
-				mTerrainFeedbackPassData.rvtRealRect   = mRenderer->GetRuntimeVTRealRect();
+				mTerrainFeedbackPassData.maxPageLevel         = mRenderer->GetMaxPageLevel();
+				mTerrainFeedbackPassData.pageLevelBias        = mRenderer->GetPageLevelBias();
+				mTerrainFeedbackPassData.rvtRealRect          = mRenderer->GetRuntimeVTRealRect();
+				mTerrainFeedbackPassData.useRenderCameraDebug = mTerrainSetting.smUseRenderCameraDebug;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainFeedbackPassData, sizeof(TerrainPipelinePass::TerrainFeedbackPassData));
@@ -520,6 +594,7 @@ namespace Renderer {
 				builder.ReadBuffer("CulledPatchList", ShaderAccessFlag::PixelShader);
 				builder.ReadBuffer("NearCulledPatchList", ShaderAccessFlag::PixelShader);
 				builder.ReadBuffer("FarCulledPatchList", ShaderAccessFlag::PixelShader);
+				builder.ReadTexture("TerrainLodMap", ShaderAccessFlag::NonPixelShader);
 
 				builder.WriteRenderTarget("GBufferAlbedoMetalness");
 				builder.WriteRenderTarget("GBufferPositionEmission");
@@ -598,6 +673,7 @@ namespace Renderer {
 				auto* culledPatchList     = resourceStorage->GetResourceByName("CulledPatchList")->GetBuffer();
 				auto* nearCulledPatchList = resourceStorage->GetResourceByName("NearCulledPatchList")->GetBuffer();
 				auto* farCulledPatchList  = resourceStorage->GetResourceByName("FarCulledPatchList")->GetBuffer();
+				auto* terrainLodMapIndex  = resourceStorage->GetResourceByName("TerrainLodMap")->GetTexture();
 				auto* gBufferAlbedoMetalness  = resourceStorage->GetResourceByName("GBufferAlbedoMetalness")->GetTexture();
 				auto* gBufferPositionEmission = resourceStorage->GetResourceByName("GBufferPositionEmission")->GetTexture();
 				auto* gBufferNormalRoughness  = resourceStorage->GetResourceByName("GBufferNormalRoughness")->GetTexture();
@@ -649,6 +725,9 @@ namespace Renderer {
 				mTerrainRendererPassData.runtimeVTMaxPageLevel                 = std::log2(mTerrainSetting.smRvtTileCountPerAxisInPage0Level);
 				mTerrainRendererPassData.tilePaddingSize                       = mTerrainSetting.smRvtTilePaddingSize;
 				mTerrainRendererPassData.tileSizeNoPadding                     = mTerrainSetting.smRvtTileSizeNoPadding;
+				mTerrainRendererPassData.lodMapIndex                           = terrainLodMapIndex->GetSRDescriptor()->GetHeapIndex();
+				mTerrainRendererPassData.patchMeshGridSize                     = mPatchMeshGridSize;
+				mTerrainRendererPassData.sectorMeterSize                       = mTerrainSetting.smMinLODNodeMeterSize;
 
 				auto passDataAlloc = dynamicAllocator->Allocate(sizeof(TerrainPipelinePass::TerrainRendererPassData));
 				memcpy(passDataAlloc.cpuAddress, &mTerrainRendererPassData, sizeof(TerrainPipelinePass::TerrainRendererPassData));
@@ -748,6 +827,7 @@ namespace Renderer {
 			uint32_t size = 8u;
 			mPatchMeshVertexCountPerAxis = size + 1u;
 			float sizePerGrid = 1u;
+			mPatchMeshGridSize = sizePerGrid;
 			float totalMeterSize = size * sizePerGrid;
 			float gridCount = size * size;
 			float triangleCount = gridCount * 2u;

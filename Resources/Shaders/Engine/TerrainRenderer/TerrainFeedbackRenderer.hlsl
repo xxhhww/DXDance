@@ -20,7 +20,7 @@ struct PassData {
 
 	uint  maxPageLevel;				// 实际最高的PageLevel
 	uint  pageLevelBias;
-	float pad1;
+	uint  useRenderCameraDebug;
 	float pad2;
 
 	float4 rvtRealRect;				// +x,-z 方向
@@ -101,12 +101,27 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	input.lsPos.y = output.terrainHeight * PassDataCB.terrainHeightScale;
 
 	// 地形位置不会变化，因此currWsPos与prevWsPos是一样的
+	float4x4 view;
+	float4x4 viewProjectionJitter;
+	float4x4 viewProjection;
+
+	if(PassDataCB.useRenderCameraDebug) {
+		view = FrameDataCB.CurrentRenderCamera.View;
+		viewProjectionJitter = FrameDataCB.CurrentRenderCamera.ViewProjectionJitter;
+		viewProjection = FrameDataCB.CurrentRenderCamera.ViewProjection;
+	}
+	else {
+		view = FrameDataCB.CurrentEditorCamera.View;
+		viewProjectionJitter = FrameDataCB.CurrentEditorCamera.ViewProjectionJitter;
+		viewProjection = FrameDataCB.CurrentEditorCamera.ViewProjection;		
+	}
+
 	float3 currWsPos = input.lsPos;
 	float3 prevWsPos = input.lsPos;
-	float3 currVsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.View).xyz;
-	float4 currCsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);
+	float3 currVsPos = mul(float4(currWsPos, 1.0f), view).xyz;
+	float4 currCsPos = mul(float4(currWsPos, 1.0f), viewProjectionJitter);
 	// 前一帧的CsPos，不需要加上上一帧的抖动，在PS中计算时再加上这一帧的uv抖动，从而保证计算motionVector时消除抖动
-	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), FrameDataCB.PreviousEditorCamera.ViewProjection);
+	float4 prevCsPos = mul(float4(prevWsPos, 1.0f), viewProjection);
 
 	output.currCsPos = currCsPos;
 	output.prevCsPos = prevCsPos;

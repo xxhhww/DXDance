@@ -239,12 +239,13 @@ namespace Renderer {
 		auto* mainRenderFrameFence = renderEngine->mRenderFrameFence.get();
 		uint64_t previousMainFrameFenceValue = 0u;
 		bool runtimeVTRealRectChanged = false;
+		static bool flag = false;
 
 		while (mThreadRunning) {
 			uint64_t currentMainFrameFenceValue = mainRenderFrameFence->CompletedValue();
 
 			// 新的主渲染帧完成
-			if (previousMainFrameFenceValue != currentMainFrameFenceValue) {
+			if (previousMainFrameFenceValue != currentMainFrameFenceValue /* && !flag */ ) {
 				previousMainFrameFenceValue = currentMainFrameFenceValue;
 
 				std::vector<RuntimeVTNodeRequestTask> rvtNodeRequestTasks;
@@ -280,6 +281,7 @@ namespace Renderer {
 			// 主线程检测到RuntimeVTRealRectChanged事件，并将该事件通知给RuntimeVTBackend线程，此时，主线程此时同步等待RuntimeVTBackend线程的处理
 			if (mRenderer->CheckRuntimeVTRealRectChanged() || runtimeVTRealRectChanged) {
 				runtimeVTRealRectChanged = false;
+				flag = true;
 
 				mRuntimeVTRealRect = mRenderer->GetRuntimeVTRealRect();
 
@@ -999,12 +1001,19 @@ namespace Renderer {
 		else if (offsetInPage0Level.x < 0) {
 			invalidRegionXBeg = invalidRegionXEnd + offsetInPage0Level.x + 1;
 		}
+		else {
+			// offsetInPage0Level.x == 0
+			invalidRegionXEnd = -1;
+		}
 
 		if (offsetInPage0Level.y > 0) {
 			invalidRegionYBeg = invalidRegionYEnd - offsetInPage0Level.y + 1;
 		}
 		else if (offsetInPage0Level.y < 0) {
 			invalidRegionYEnd = -(offsetInPage0Level.y + 1);
+		}
+		else {
+			invalidRegionYEnd = -1;
 		}
 
 		// 计算RequestTasks，加载MaxPageLevel

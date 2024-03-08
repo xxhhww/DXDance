@@ -377,6 +377,8 @@ namespace Renderer {
 		});
 
 		cameraJitterFrameIndex++;
+
+		rootConstantsPerFrame.currentRenderCamera.position.z = 54.6953278f;
 	}
 
 	void RenderEngine::UpdateItems() {

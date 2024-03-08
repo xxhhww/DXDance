@@ -21,7 +21,7 @@ struct PassData{
 void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	RWTexture2D<uint4> runtimeVTPageTable = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
 
-	uint2 pixelIndex = dispatchThreadID.xy;
+	int2 pixelIndex = dispatchThreadID.xy;
 
 	uint4 indexData = runtimeVTPageTable[pixelIndex.xy];
 

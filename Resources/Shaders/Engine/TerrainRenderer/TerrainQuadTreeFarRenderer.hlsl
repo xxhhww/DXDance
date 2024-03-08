@@ -34,6 +34,11 @@ struct PassData {
 	float runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
 	float tilePaddingSize;
 	float tileSizeNoPadding;
+
+	uint  lodMapIndex;
+	float patchMeshGridSize;
+	float sectorMeterSize;
+	float pad3;
 };
 
 #define PassDataType PassData
@@ -175,7 +180,7 @@ p2o PSMain(v2p input) {
 	float3 normal = float3(0.0f, 1.0f, 0.0f);
 
 	p2o output;
-	output.albedoMetalness  = float4(input.terrainAlbedo.rgb, 0.0f);
+	output.albedoMetalness  = float4(currLodColor, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
 	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);

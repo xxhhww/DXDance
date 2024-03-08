@@ -176,6 +176,10 @@ void GenerateTiledSplatMap() {
     TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/SplatMap/SplatMap.png", "E:/TerrainOfflineTask/001/TerrainNear/SplatMap/SplatMap.ret");
 }
 
+void GenerateTiledGrassMap() {
+    TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/GrassMap/GrassMap.png", "E:/TerrainOfflineTask/001/TerrainNear/GrassMap/GrassMap.ret");
+}
+
 void GenerateTerrainNodeData() {
     TextureProcessor::GenerateTerrainQuadNodeDescriptors("E:/TerrainOfflineTask/001/TerrainNear/HeightMap/HeightMap.png", "E:/TerrainOfflineTask/001/TerrainNear/");
 }
@@ -229,8 +233,9 @@ int main() {
 	{
         // GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
-        // GenerateTerrainNodeData();
-        GenerateTiledSplatMap();
+        GenerateTerrainNodeData();
+        // GenerateTiledSplatMap();
+        // GenerateTiledGrassMap();
 	}
 
 	// ÊÍ·ÅDLL

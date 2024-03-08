@@ -168,6 +168,7 @@
     <ClInclude Include="CommandSignatureManger.h" />
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="FormatConverter.h" />
+    <ClInclude Include="TerrainGrassLand.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="CascadeShadowPass.h" />
     <ClInclude Include="Misc.h" />
@@ -255,6 +256,7 @@
     <ClCompile Include="DirectStorageTest.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
+    <ClCompile Include="TerrainGrassLand.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
     <ClCompile Include="CascadeShadowPass.cpp" />
     <ClCompile Include="Misc.cpp" />

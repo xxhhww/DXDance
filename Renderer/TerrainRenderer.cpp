@@ -80,61 +80,124 @@ namespace Renderer {
 			mTerrainTextureArrayHeapAllocator = std::make_unique<Renderer::BuddyHeapAllocator>(device, frameTracker);
 
 			// TiledSplatMap
-			mTerrainTiledSplatMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledSplatMap.ret");
-			const auto& reTextureFileFormat = mTerrainTiledSplatMap->GetReTextureFileFormat();
-			const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
-			const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
+			{
+				mTerrainTiledSplatMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledSplatMap.ret");
+				const auto& reTextureFileFormat = mTerrainTiledSplatMap->GetReTextureFileFormat();
+				const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
+				const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
 
-			mTerrainTiledSplatMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
-			mTerrainTiledTextureTileRuntimeStates.resize(reTextureFileHeader.tileNums);
-			mTerrainTiledSplatMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache, mTerrainTiledSplatMapHeapAllocator.get(), reTextureFileHeader.tileSlicePitch);
-		
-			// only use mip 1 of the resource. Subsequent mips provide little additional coverage while complicating lookup arithmetic
-			uint32_t subresourceCount = 1;
-			// create a maximum size reserved resource
-			D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex2D((DXGI_FORMAT)reTextureFileHeader.dxgiFormat, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION);
-			rd.MipLevels = (UINT16)subresourceCount;
-			// Layout must be D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE when creating reserved resources
-			rd.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
+				mTerrainTiledSplatMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
+				mTerrainTiledSplatMapTileRuntimeStates.resize(reTextureFileHeader.tileNums);
+				mTerrainTiledSplatMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache, mTerrainTiledSplatMapHeapAllocator.get(), reTextureFileHeader.tileSlicePitch);
 
-			// this will only ever be a copy dest
-			HRASSERT(device->D3DDevice()->CreateReservedResource(&rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTerrainTiledSplatMapBackend)));
-			mTerrainTiledSplatMapBackend->SetName(L"TerrainTiledSplatMapBackend");
-			D3D12_PACKED_MIP_INFO packedMipInfo; // unused, for now
-			D3D12_TILE_SHAPE tileShape; // unused, for now
-			UINT numAtlasTiles = 0;
-			device->D3DDevice()->GetResourceTiling(mTerrainTiledSplatMapBackend.Get(), &numAtlasTiles, &packedMipInfo, &tileShape, &subresourceCount, 0, &mTerrainTiledSplatMapBackendTiling);
-			numAtlasTiles = mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache;
+				// only use mip 1 of the resource. Subsequent mips provide little additional coverage while complicating lookup arithmetic
+				uint32_t subresourceCount = 1;
+				// create a maximum size reserved resource
+				D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex2D((DXGI_FORMAT)reTextureFileHeader.dxgiFormat, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION);
+				rd.MipLevels = (UINT16)subresourceCount;
+				// Layout must be D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE when creating reserved resources
+				rd.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
 
-			// The following depends on the linear assignment order defined by D3D12_REGION_SIZE UseBox = FALSE
-			// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_tile_region_size
+				// this will only ever be a copy dest
+				HRASSERT(device->D3DDevice()->CreateReservedResource(&rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTerrainTiledSplatMapBackend)));
+				mTerrainTiledSplatMapBackend->SetName(L"TerrainTiledSplatMapBackend");
+				D3D12_PACKED_MIP_INFO packedMipInfo; // unused, for now
+				D3D12_TILE_SHAPE tileShape; // unused, for now
+				UINT numAtlasTiles = 0;
+				device->D3DDevice()->GetResourceTiling(mTerrainTiledSplatMapBackend.Get(), &numAtlasTiles, &packedMipInfo, &tileShape, &subresourceCount, 0, &mTerrainTiledSplatMapBackendTiling);
+				numAtlasTiles = mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache;
 
-			// we are updating a single region: all the tiles
-			uint32_t numResourceRegions = 1;
-			D3D12_TILED_RESOURCE_COORDINATE resourceRegionStartCoordinates{ 0, 0, 0, 0 };
-			D3D12_TILE_REGION_SIZE resourceRegionSizes{ numAtlasTiles, FALSE, 0, 0, 0 };
+				// The following depends on the linear assignment order defined by D3D12_REGION_SIZE UseBox = FALSE
+				// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_tile_region_size
 
-			// we can do this with a single range
-			uint32_t numRanges = 1;
-			uint32_t tileOffset = 0u;
-			std::vector<D3D12_TILE_RANGE_FLAGS>rangeFlags(numRanges, D3D12_TILE_RANGE_FLAG_NONE);
-			std::vector<UINT> rangeTileCounts(numRanges, numAtlasTiles);
+				// we are updating a single region: all the tiles
+				uint32_t numResourceRegions = 1;
+				D3D12_TILED_RESOURCE_COORDINATE resourceRegionStartCoordinates{ 0, 0, 0, 0 };
+				D3D12_TILE_REGION_SIZE resourceRegionSizes{ numAtlasTiles, FALSE, 0, 0, 0 };
 
-			mTempMappingQueue->D3DCommandQueue()->UpdateTileMappings(
-				mTerrainTiledSplatMapBackend.Get(),
-				numResourceRegions,
-				&resourceRegionStartCoordinates,
-				&resourceRegionSizes,
-				mTerrainTiledSplatMapHeapAllocator->GetHeap(0u)->D3DHeap(),
-				(UINT)rangeFlags.size(),
-				rangeFlags.data(),
-				&tileOffset,
-				rangeTileCounts.data(),
-				D3D12_TILE_MAPPING_FLAG_NONE
-			);
-			mTempMappingFence->IncrementExpectedValue();
-			mTempMappingQueue->SignalFence(*mTempMappingFence.get());
-			mTempMappingFence->Wait();
+				// we can do this with a single range
+				uint32_t numRanges = 1;
+				uint32_t tileOffset = 0u;
+				std::vector<D3D12_TILE_RANGE_FLAGS>rangeFlags(numRanges, D3D12_TILE_RANGE_FLAG_NONE);
+				std::vector<UINT> rangeTileCounts(numRanges, numAtlasTiles);
+
+				mTempMappingQueue->D3DCommandQueue()->UpdateTileMappings(
+					mTerrainTiledSplatMapBackend.Get(),
+					numResourceRegions,
+					&resourceRegionStartCoordinates,
+					&resourceRegionSizes,
+					mTerrainTiledSplatMapHeapAllocator->GetHeap(0u)->D3DHeap(),
+					(UINT)rangeFlags.size(),
+					rangeFlags.data(),
+					&tileOffset,
+					rangeTileCounts.data(),
+					D3D12_TILE_MAPPING_FLAG_NONE
+				);
+				mTempMappingFence->IncrementExpectedValue();
+				mTempMappingQueue->SignalFence(*mTempMappingFence.get());
+				mTempMappingFence->Wait();
+			}
+
+			/*
+			// TiledGrassLandMap
+			{
+				mTerrainTiledGrassLandMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledGrassLandMap.ret");
+				const auto& reTextureFileFormat = mTerrainTiledGrassLandMap->GetReTextureFileFormat();
+				const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
+				const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
+
+				mTerrainTiledGrassLandMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
+				mTerrainTiledGrassLandMapTileRuntimeStates.resize(reTextureFileHeader.tileNums);
+				mTerrainTiledGrassLandMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledGrassLandMapTileCountPerCache, mTerrainTiledGrassLandMapHeapAllocator.get(), reTextureFileHeader.tileSlicePitch);
+
+				// only use mip 1 of the resource. Subsequent mips provide little additional coverage while complicating lookup arithmetic
+				uint32_t subresourceCount = 1;
+				// create a maximum size reserved resource
+				D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex2D((DXGI_FORMAT)reTextureFileHeader.dxgiFormat, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION, D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION);
+				rd.MipLevels = (UINT16)subresourceCount;
+				// Layout must be D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE when creating reserved resources
+				rd.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
+
+				// this will only ever be a copy dest
+				HRASSERT(device->D3DDevice()->CreateReservedResource(&rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTerrainTiledSplatMapBackend)));
+				mTerrainTiledSplatMapBackend->SetName(L"TerrainTiledSplatMapBackend");
+				D3D12_PACKED_MIP_INFO packedMipInfo; // unused, for now
+				D3D12_TILE_SHAPE tileShape; // unused, for now
+				UINT numAtlasTiles = 0;
+				device->D3DDevice()->GetResourceTiling(mTerrainTiledSplatMapBackend.Get(), &numAtlasTiles, &packedMipInfo, &tileShape, &subresourceCount, 0, &mTerrainTiledSplatMapBackendTiling);
+				numAtlasTiles = mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache;
+
+				// The following depends on the linear assignment order defined by D3D12_REGION_SIZE UseBox = FALSE
+				// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_tile_region_size
+
+				// we are updating a single region: all the tiles
+				uint32_t numResourceRegions = 1;
+				D3D12_TILED_RESOURCE_COORDINATE resourceRegionStartCoordinates{ 0, 0, 0, 0 };
+				D3D12_TILE_REGION_SIZE resourceRegionSizes{ numAtlasTiles, FALSE, 0, 0, 0 };
+
+				// we can do this with a single range
+				uint32_t numRanges = 1;
+				uint32_t tileOffset = 0u;
+				std::vector<D3D12_TILE_RANGE_FLAGS>rangeFlags(numRanges, D3D12_TILE_RANGE_FLAG_NONE);
+				std::vector<UINT> rangeTileCounts(numRanges, numAtlasTiles);
+
+				mTempMappingQueue->D3DCommandQueue()->UpdateTileMappings(
+					mTerrainTiledSplatMapBackend.Get(),
+					numResourceRegions,
+					&resourceRegionStartCoordinates,
+					&resourceRegionSizes,
+					mTerrainTiledSplatMapHeapAllocator->GetHeap(0u)->D3DHeap(),
+					(UINT)rangeFlags.size(),
+					rangeFlags.data(),
+					&tileOffset,
+					rangeTileCounts.data(),
+					D3D12_TILE_MAPPING_FLAG_NONE
+				);
+				mTempMappingFence->IncrementExpectedValue();
+				mTempMappingQueue->SignalFence(*mTempMappingFence.get());
+				mTempMappingFence->Wait();
+			}
+			*/
 		}
 
 		// 创建并初始化GPU对象
@@ -232,7 +295,7 @@ namespace Renderer {
 		}
 
 		// 地形后台线程，负责资源调度
-		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledTextureTileRuntimeStates);
+		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledSplatMapTileRuntimeStates);
 
 		// 实时虚拟纹理线程
 		mRuntimeVTRealRectChangedCompletedEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -247,7 +310,8 @@ namespace Renderer {
 	}
 
 	void TerrainRenderer::Update() {
-		const auto& cameraPosition = mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+		const auto& rootConstantsPerFrame = mRenderEngine->mPipelineResourceStorage->rootConstantsPerFrame;
+		const auto& cameraPosition = mTerrainSetting.smUseRenderCameraDebug ? rootConstantsPerFrame.currentRenderCamera.position : rootConstantsPerFrame.currentEditorCamera.position;
 
 		// 如果是第一帧，需要同步加载地形数据(当前摄像机位置附近 + 最高级LOD)
 		static bool smFirstFrame = true;

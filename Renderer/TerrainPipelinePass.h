@@ -25,14 +25,19 @@ namespace Renderer {
 			uint32_t nodeDescriptorListIndex;
 			uint32_t lodDescriptorListIndex;
 			uint32_t culledPatchListIndex;
-			float    pad1;
+			uint32_t nodeGpuRuntimeStatesIndex;
 
 			uint32_t nearCulledPatchListIndex;
 			uint32_t farCulledPatchListIndex;
-			float    pad2;
-			float    pad3;
+			uint32_t maxLod;
+			uint32_t lodMapIndex;
 
 			Math::Vector4 runtimeVTRealRect{};
+
+			float sectorMeterSize;
+			uint32_t useRenderCameraDebug;
+			float pad2;
+			float pad3;
 		};
 
 		struct TerrainRendererPassData {
@@ -66,6 +71,11 @@ namespace Renderer {
 			float    runtimeVTMaxPageLevel;						// 理论最高的PageLevel,而不是实际最高的PageLevel
 			float    tilePaddingSize;
 			float    tileSizeNoPadding;
+
+			uint32_t lodMapIndex;
+			float    patchMeshGridSize;
+			float    sectorMeterSize;
+			float    pad3;
 		};
 
 		struct TerrainFeedbackPassData {
@@ -85,7 +95,7 @@ namespace Renderer {
 
 			uint32_t maxPageLevel;								// 实际最高的PageLevel
 			uint32_t pageLevelBias;
-			float pad1;
+			uint32_t useRenderCameraDebug;
 			float pad2;
 
 			Math::Vector4 rvtRealRect{};
@@ -105,6 +115,8 @@ namespace Renderer {
 
 		TerrainSetting& mTerrainSetting;
 
+		inline static uint32_t smThreadSizeInGroup = 8u;
+
 		struct RenderPatch {
 			Math::Vector2 position;
 			Math::Vector2 minmaxHeight;
@@ -118,6 +130,11 @@ namespace Renderer {
 			uint32_t patchOffsetY;
 			float pad2;
 			float pad3;
+
+			uint32_t lodTransX;
+			uint32_t lodTransY;
+			uint32_t lodTransZ;
+			uint32_t lodTransW;
 		};
 		struct NodeLocation {
 			uint32_t x;
@@ -129,6 +146,7 @@ namespace Renderer {
 		BufferWrap mPatchMeshVertexBuffer;
 		BufferWrap mPatchMeshIndexBuffer;
 		uint32_t   mPatchMeshIndexCount;
+		float      mPatchMeshGridSize;
 
 		TerrainBuilderPassData mTerrainBuilderPassData;
 		TerrainRendererPassData mTerrainRendererPassData;

@@ -8,12 +8,14 @@ struct RenderPatch {
 	float2 position;
 	float2 minmaxHeight;
 	
-	uint3  nodeLoc;
+	uint3  nodeLoc;				// 所属地形节点
 	float  pad1;
 	
-	uint2  patchOffset;
+	uint2  patchOffset;			// 地形节点内部偏移
 	float  pad2;
 	float  pad3;
+
+	uint4  lodTrans;
 };
 
 struct TerrainLodDescriptor {
@@ -30,6 +32,13 @@ struct TerrainNodeDescriptor {
 	
 	uint  tilePosX;		// 255表示资源未加载
 	uint  tilePosY;		// 255表示资源未加载
+};
+
+struct TerrainNodeGpuRuntimeState {
+	uint  branch;
+	float pad1;
+	float pad2;
+	float pad3;
 };
 
 struct GpuUpdateTerrainNodeDescriptorRequest {

@@ -62,7 +62,7 @@ namespace Renderer {
 			std::vector<TerrainLodDescriptor>&  terrainLodDescriptors,
 			std::vector<TerrainNodeDescriptor>& terrainNodeDescriptors,
 			std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates,
-			std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledTextureTileRuntimeStates);
+			std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledSplatMapTileRuntimeStates);
 
 		~TerrainBackend();
 
@@ -122,7 +122,7 @@ namespace Renderer {
 		std::vector<TerrainNodeDescriptor>& mTerrainNodeDescriptors;		// 地形全节点内容描述表
 		std::vector<TerrainNodeRuntimeState>& mTerrainNodeRuntimeStates;	// 地形全节点运行时状态
 
-		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledTextureTileRuntimeStates;	// Tile全节点运行时状态
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledSplatMapTileRuntimeStates;	// Tile全节点运行时状态
 
 		// For TerrainTiledTexutre(SplatMap)
 		std::unique_ptr<GHL::CommandQueue>          mBackMappingQueue;

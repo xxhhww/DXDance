@@ -4,6 +4,7 @@ namespace Renderer {
 
 	bool     TerrainSetting::smUseFrustumCull = false;
 	bool     TerrainSetting::smUseLodDebug = true;
+	bool     TerrainSetting::smUseRenderCameraDebug = true;
 	float	 TerrainSetting::smNodeEvaluationC = 1.2f;
 	float	 TerrainSetting::smTerrainMeterSize = 8192.0f;
 	float	 TerrainSetting::smTerrainHeightScale = 1325.0f;
@@ -17,13 +18,17 @@ namespace Renderer {
 	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25;	// 地形纹理图集每个轴的Tile个数
 	uint32_t TerrainSetting::smTerrainTiledSplatMapTileCountPerCache = 512;
 	int32_t  TerrainSetting::smTerrainTiledTextureDataLoadedRange = 8;			// 128 * 16 = 2048
-	uint32_t TerrainSetting::smTerrainTiledTextureDataLoadedLimit = 16;		// 一次加载16个Tile的数据
+	uint32_t TerrainSetting::smTerrainTiledTextureDataLoadedLimit = 16;			// 一次加载16个Tile的数据
+
+	uint32_t TerrainSetting::smTerrainTiledGrassLandMapTileCountPerCache = 512;
+	int32_t  TerrainSetting::smTerrainTiledGrassLandMapDataLoadedRange = 4;		// 256 * 4 = 1024
+	uint32_t TerrainSetting::smTerrainTiledGrassLandMapDataLoadedLimit = 8;		// 一次加载8个Tile的数据
 
 	uint32_t TerrainSetting::smTerrainFeedbackScale = 2;		// TerrainFeedback相对于FinalOutput的缩放大小
 	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
 	uint32_t TerrainSetting::smRvtTilePaddingSize = 4;			// 实时虚拟纹理中一个Tile的填充大小
 	uint32_t TerrainSetting::smRvtTileSizeWithPadding = smRvtTileSizeNoPadding + smRvtTilePaddingSize * 2u;
-	uint32_t TerrainSetting::smRvtTileCountPerAxisInAtlas = 30;	// 实时虚拟纹理中实际纹理上每个轴的Tile个数
+	uint32_t TerrainSetting::smRvtTileCountPerAxisInAtlas = 20;	// 实时虚拟纹理中实际纹理上每个轴的Tile个数
 	uint32_t TerrainSetting::smRvtAtlasTextureSize = smRvtTileSizeWithPadding * smRvtTileCountPerAxisInAtlas;
 	float    TerrainSetting::smRvtRectRadius = 512;				// 实时虚拟纹理的矩形半径(边长的一半)
 	uint32_t TerrainSetting::smRvtPixelSizePerMeter = 64;		// 每米的像素值

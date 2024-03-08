@@ -18,14 +18,19 @@ struct PassData {
 	uint   nodeDescriptorListIndex;
 	uint   lodDescriptorListIndex;
 	uint   culledPatchListIndex;
-	float  pad1;
+	uint   nodeGpuRuntimeStatesIndex;
 
 	uint   nearCulledPatchListIndex;
 	uint   farCulledPatchListIndex;
-	float  pad2;
-	float  pad3;
+	uint   maxLod;
+    uint   lodMapIndex;
 
 	float4 runtimeVTRealRect;
+
+	float sectorMeterSize;
+	uint  useRenderCameraDebug;
+	float pad2;
+	float pad3;
 };
 
 #define PassDataType PassData
@@ -106,9 +111,17 @@ bool EvaluateNode(uint2 nodeLoc, uint lod) {
 	// 对当前节点的距离进行评估
     float3 wsPositionXYZ = GetNodeWSPositionXYZ(nodeLoc, lod);
 	wsPositionXYZ.y = 0.0f;
-	float3 wsCameraPosition = FrameDataCB.CurrentEditorCamera.Position.xyz;
+
+	float3 wsCameraPosition = float3(0.0f, 0.0f, 0.0f);
+	if(PassDataCB.useRenderCameraDebug) {
+		wsCameraPosition = FrameDataCB.CurrentRenderCamera.Position.xyz;
+	}
+	else {
+		wsCameraPosition = FrameDataCB.CurrentEditorCamera.Position.xyz;
+	}
 	wsCameraPosition.y = 0.0f;
-    float dis = distance(wsCameraPosition, wsPositionXYZ.xyz);
+    
+	float dis = distance(wsCameraPosition, wsPositionXYZ.xyz);
     float f = dis / (currLodDescriptor.nodeMeterSize * PassDataCB.nodeEvaluationC.x);
     if(f < 1) { return true; }
     return false;
@@ -120,10 +133,14 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 	AppendStructuredBuffer<uint2>  nextNodeList  = ResourceDescriptorHeap[PassDataCB.nextNodeListIndex];
 	AppendStructuredBuffer<uint3>  finalNodeList = ResourceDescriptorHeap[PassDataCB.finalNodeListIndex];
 
+	RWStructuredBuffer<TerrainNodeGpuRuntimeState> nodeGpuRuntimeStates = ResourceDescriptorHeap[PassDataCB.nodeGpuRuntimeStatesIndex];
+
 	// xz平面下的二维坐标
 	uint2 nodeLoc = currNodeList.Consume();
 	// 判断当前节点是否可以四叉划分
 	bool needBranch = EvaluateNode(nodeLoc, PassDataCB.currPassLOD);
+	// 获取地形节点的全局ID
+	uint nodeGlobalID = GetGlobalNodeId(nodeLoc, PassDataCB.currPassLOD); 
 
 	if(needBranch) {
 		// 对节点进行四叉划分
@@ -131,11 +148,80 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 		nextNodeList.Append(nodeLoc * 2 + uint2(1, 0));
 		nextNodeList.Append(nodeLoc * 2 + uint2(0, 1));
 		nextNodeList.Append(nodeLoc * 2 + uint2(1, 1));
+		nodeGpuRuntimeStates[nodeGlobalID].branch = 1;
 	}
 	else {
 		// 不对节点进行划分，则是最终确定需要渲染的节点
 		finalNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
+		nodeGpuRuntimeStates[nodeGlobalID].branch = 0;
 	}
+}
+
+[numthreads(8, 8, 1)]
+void BuildTerrainLodMap(uint3 DTid : SV_DispatchThreadID) {
+	RWTexture2D<uint4> lodMap = ResourceDescriptorHeap[PassDataCB.lodMapIndex];
+
+	StructuredBuffer<TerrainNodeGpuRuntimeState> nodeGpuRuntimeStates = ResourceDescriptorHeap[PassDataCB.nodeGpuRuntimeStatesIndex];
+
+	// sector指Lod0下的地形节点
+	uint2 sectorLoc = DTid.xy;	
+    for(int lod = PassDataCB.maxLod; lod >= 0; lod--){
+		uint  powNumber = pow(2, lod);
+        uint2 nodeLoc = sectorLoc / powNumber;
+        uint  nodeGlobalID = GetGlobalNodeId(nodeLoc, lod);
+        if(nodeGpuRuntimeStates[nodeGlobalID].branch == 0){
+            lodMap[sectorLoc.xy].rgba = uint4(nodeLoc, lod, 0);
+            return;
+        }
+    }
+    lodMap[sectorLoc.xy].rgba = uint4(0, 0, 0, 0);
+}
+
+//返回一个地形节点覆盖的Sector(指Lod0下的地形节点)范围
+int4 GetSectorBounds(uint3 nodeLoc){
+    int  powNumber = pow(2, nodeLoc.z);
+    int2 sectorLocMin = nodeLoc.xy * powNumber;
+    return int4(sectorLocMin, sectorLocMin + powNumber - 1);
+}
+
+uint GetLod(uint2 sectorLoc){
+	Texture2D<uint4> lodMap = ResourceDescriptorHeap[PassDataCB.lodMapIndex];
+	uint sectorCountPerAxis = PassDataCB.terrainMeterSize.x / PassDataCB.sectorMeterSize;
+
+    if(sectorLoc.x < 0 || sectorLoc.y < 0 || sectorLoc.x >= sectorCountPerAxis || sectorLoc.y >= sectorCountPerAxis){
+        return 0;
+    }
+    return lodMap[sectorLoc.xy].b;
+}
+
+void SetLodTrans(inout RenderPatch patch, uint3 nodeLoc, uint2 patchOffset){
+    uint lod = nodeLoc.z;
+    uint4 sectorBounds = GetSectorBounds(nodeLoc);
+    int4 lodTrans = int4(0, 0, 0, 0);
+
+	// patchOffset等于groupThreadID.xy，是从左下角开始排序的
+	// sectorBounds.xy描述左上角的sector，sectorBounds.zw描述右下角的sector
+    if(patchOffset.x == 0){
+        // 左边缘
+        lodTrans.x = GetLod(sectorBounds.xy + int2(-1, 0)) - lod;
+    }
+
+    if(patchOffset.y == 0){
+        // 上边缘
+        lodTrans.y = GetLod(sectorBounds.xy + int2(0, -1)) - lod;
+    }
+
+    if(patchOffset.x == PATCH_COUNT_PER_NODE_PER_AXIS - 1) {
+        // 右边缘
+        lodTrans.z = GetLod(sectorBounds.zw + int2(1, 0)) - lod;
+    }
+
+    if(patchOffset.y == PATCH_COUNT_PER_NODE_PER_AXIS - 1) {
+        // 下边缘
+        lodTrans.w = GetLod(sectorBounds.zw + int2(0, 1)) - lod;
+    }
+
+    patch.lodTrans = (uint4)max(0, lodTrans);
 }
 
 RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset) {
@@ -167,6 +253,7 @@ RenderPatch CreatePatch(uint3 nodeLoc, uint2 patchOffset) {
 	patch.pad1 = 0.0f;
 	patch.pad2 = 0.0f;
 	patch.pad3 = 0.0f;
+	patch.lodTrans = uint4(0, 0, 0, 0);
 	return patch;
 }
 
@@ -193,7 +280,14 @@ BoundingBox GetPatchBoundingBox(RenderPatch patch) {
 
 bool Cull(BoundingBox boundingBox) {
 	if(PassDataCB.useFrustumCull){
-		if(FrustumCull(FrameDataCB.CurrentRenderCamera.Planes, boundingBox)) {
+		float4 cameraPlanes[6];
+		if(PassDataCB.useRenderCameraDebug) {
+			cameraPlanes = FrameDataCB.CurrentRenderCamera.Planes;
+		}
+		else {
+			cameraPlanes = FrameDataCB.CurrentEditorCamera.Planes;
+		}
+		if(FrustumCull(cameraPlanes, boundingBox)) {
 			return true;
 		}
 	}
@@ -209,8 +303,12 @@ void BuildPatches(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : 
 
 	uint3 nodeLoc = finalNodeList[groupID.x];
     uint2 patchOffset = groupThreadID.xy;
+	patchOffset.y = (PATCH_COUNT_PER_NODE_PER_AXIS - 1) - patchOffset.y;
+
     // 生成Patch
     RenderPatch patch = CreatePatch(nodeLoc, patchOffset);
+	SetLodTrans(patch, nodeLoc, patchOffset);
+
 
 	// 计算Patch的包围盒
 	BoundingBox patchBoundingBox = GetPatchBoundingBox(patch);
@@ -230,6 +328,7 @@ void BuildPatches(uint3 dispatchThreadID : SV_DispatchThreadID, uint3 groupID : 
 	float4 patchRect = float4(patchBoundingBox.minPosition.xz, patchLength);
 
 	if(IsRectInRect(patchRect, runtimeVTRealRect)) {
+		// if(patch.lodTrans.x == 0 && patch.lodTrans.y == 0 && patch.lodTrans.z == 0 && patch.lodTrans.w == 0) { return; }
 		nearCulledPatchList.Append(patch);
 	}
 	else {

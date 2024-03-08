@@ -28,13 +28,13 @@ namespace Renderer {
 		std::vector<TerrainLodDescriptor>& terrainLodDescriptors,
 		std::vector<TerrainNodeDescriptor>& terrainNodeDescriptors,
 		std::vector<TerrainNodeRuntimeState>& terrainNodeRuntimeStates,
-		std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledTextureTileRuntimeStates)
+		std::vector<TerrainTiledTextureTileRuntimeState>& terrainTiledSplatMapTileRuntimeStates)
 	: mRenderer(renderer)
 	, mTerrainSetting(terrainSetting)
 	, mTerrainLodDescriptors(terrainLodDescriptors)
 	, mTerrainNodeDescriptors(terrainNodeDescriptors) 
 	, mTerrainNodeRuntimeStates(terrainNodeRuntimeStates) 
-	, mTerrainTiledTextureTileRuntimeStates(terrainTiledTextureTileRuntimeStates) {
+	, mTerrainTiledSplatMapTileRuntimeStates(terrainTiledSplatMapTileRuntimeStates) {
 		mReservedTerrainNodeRequestTasks.resize(smMaxBackFrameCount);
 		mReservedTerrainTiledTextureTileRequestTasks.resize(smMaxBackFrameCount);
 		mFrameCompletedFlags.resize(smMaxBackFrameCount);
@@ -63,7 +63,7 @@ namespace Renderer {
 		auto* descriptorAllocator = renderEngine->mDescriptorAllocator.get();
 		auto* resourceStateTracker = renderEngine->mResourceStateTracker.get();
 
-		const auto& cameraPosition = resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+		const auto& cameraPosition = mTerrainSetting.smUseRenderCameraDebug ? resourceStorage->rootConstantsPerFrame.currentRenderCamera.position : resourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
 
 		auto* terrainTextureAtlasTileCache = mRenderer->mFarTerrainTextureAtlasTileCache.get();
 		
@@ -228,7 +228,7 @@ namespace Renderer {
 			// GPU任务完成后，更新CPU中节点资源驻留状态
 			auto* heapAllocationCache = mRenderer->mTerrainTiledSplatMapHeapAllocationCache.get();
 			for (const auto& requestTask : requestTasks) {
-				auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+				auto& currTileRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(requestTask.nextTileIndex);
 				currTileRuntimeState.SetInTexture();
 				currTileRuntimeState.cacheNode = requestTask.cacheNode;
 
@@ -391,7 +391,7 @@ namespace Renderer {
 				previousMainFrameFenceCompletedValue = previousMainFrameFenceCompletedValue;
 
 				// 根据当前摄像机所处的位置计算需要更新的地形节点
-				auto cameraPosition = pipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
+				auto cameraPosition = mTerrainSetting.smUseRenderCameraDebug ? pipelineResourceStorage->rootConstantsPerFrame.currentRenderCamera.position : pipelineResourceStorage->rootConstantsPerFrame.currentEditorCamera.position;
 				std::vector<TerrainNodeRequestTask> terrainNodeRequestTasks;
 				ProduceTerrainNodeRequest(terrainNodeRequestTasks, cameraPosition);
 
@@ -643,7 +643,7 @@ namespace Renderer {
 				uint32_t currTileIndex = currNodeLocationY * tileCountPerRow + currNodeLocationX;
 
 				// 获取该节点的实时状态
-				auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(currTileIndex);
+				auto& currTileRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(currTileIndex);
 
 				if (currTileRuntimeState.inReady || currTileRuntimeState.inQueue || currTileRuntimeState.inLoading) {
 					// 该节点对应的资源正在加载
@@ -683,10 +683,10 @@ namespace Renderer {
 			}
 			requestTask.cacheNode = cacheNode;
 
-			auto& currNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+			auto& currNodeRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(requestTask.nextTileIndex);
 			currNodeRuntimeState.SetInReady();
 			if (requestTask.prevTileIndex != -1) {
-				auto& prevNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.prevTileIndex);
+				auto& prevNodeRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(requestTask.prevTileIndex);
 				prevNodeRuntimeState.SetInReadyOut();
 			}
 		}
@@ -927,11 +927,11 @@ namespace Renderer {
 		auto& reservedRequestTasks = mReservedTerrainTiledTextureTileRequestTasks.at(frameIndex);
 		for (auto& requestTask : reservedRequestTasks) {
 			// 更新节点实时状态
-			auto& currTileRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.nextTileIndex);
+			auto& currTileRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(requestTask.nextTileIndex);
 			currTileRuntimeState.SetInTexture();
 			currTileRuntimeState.cacheNode = requestTask.cacheNode;
 			if (requestTask.prevTileIndex != -1) {
-				auto& prevNodeRuntimeState = mTerrainTiledTextureTileRuntimeStates.at(requestTask.prevTileIndex);
+				auto& prevNodeRuntimeState = mTerrainTiledSplatMapTileRuntimeStates.at(requestTask.prevTileIndex);
 				prevNodeRuntimeState.SetOutTexture();
 				prevNodeRuntimeState.cacheNode = nullptr;
 			}
