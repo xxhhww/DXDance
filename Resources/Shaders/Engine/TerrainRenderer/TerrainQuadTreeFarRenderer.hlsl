@@ -76,6 +76,137 @@ struct p2o {
 	float  viewDepth        : SV_TARGET4;
 };
 
+// 将边缘多余的顶点衔接到附近的顶点上
+void VertexConnect(RenderPatch patch, inout uint2 vertexIndex, inout float3 vertexPos) {
+	uint4 lodTrans = patch.lodTrans;
+
+	// 左边缘
+    uint lodDelta = lodTrans.x;
+    if(lodDelta > 0 && vertexIndex.x == 0){
+        uint gridStripCount = pow(2, lodDelta);
+        uint modIndex = vertexIndex.y % gridStripCount;
+        if(modIndex != 0){
+            vertexPos.z -= PassDataCB.patchMeshGridSize * (gridStripCount - modIndex);
+			vertexIndex.y += (gridStripCount - modIndex);
+            return;
+        }
+    }
+
+	// 上边缘
+    lodDelta = lodTrans.y;
+    if(lodDelta > 0 && vertexIndex.y == 0){
+        uint gridStripCount = pow(2, lodDelta);
+        uint modIndex = vertexIndex.x % gridStripCount;
+        if(modIndex != 0){
+            vertexPos.x += PassDataCB.patchMeshGridSize * (gridStripCount - modIndex);
+			vertexIndex.x += (gridStripCount - modIndex);
+            return;
+        }
+    }
+
+	// 右边缘
+    lodDelta = lodTrans.z;
+    if(lodDelta > 0 && vertexIndex.x == PassDataCB.terrainPatchVertexCountPerAxis - 1){
+        uint gridStripCount = pow(2,lodDelta);
+        uint modIndex = vertexIndex.y % gridStripCount;
+        if(modIndex != 0){
+            vertexPos.z += PassDataCB.patchMeshGridSize * modIndex;
+			vertexIndex.y -= modIndex;
+            return;
+        }
+    }
+
+	// 下边缘
+    lodDelta = lodTrans.w;
+    if(lodDelta > 0 && vertexIndex.y == PassDataCB.terrainPatchVertexCountPerAxis - 1){
+        uint gridStripCount = pow(2,lodDelta);
+        uint modIndex = vertexIndex.x % gridStripCount;
+        if(modIndex != 0){
+            vertexPos.x -= PassDataCB.patchMeshGridSize * modIndex;
+			vertexIndex.x -= modIndex;
+            return;
+        }
+    }
+}
+
+// 将边缘顶点升格至相邻更高的LodLevel
+void VertexUpgrade(RenderPatch patch, uint2 vertexIndex, float3 vertexPos, inout uint3 nodeLoc) {
+	Texture2D<uint4> terrainLodMap = ResourceDescriptorHeap[PassDataCB.lodMapIndex];
+
+	// 定位当前顶点所处的sectorLoc(LodMap中的坐标)
+
+	// 1.计算顶点所属的nodeLoc对应的sectorLoc
+	int  powNumber = pow(2, nodeLoc.z);
+	int2 sectorLoc = nodeLoc.xy * powNumber;
+
+	// 2.根据patchOffset计算初步顶点偏移
+	int2 patchStartVertexIndexFromSectorLoc = patch.patchOffset * (PassDataCB.terrainPatchVertexCountPerAxis - 1);
+
+	// 3.顶点总偏移量
+	int2 vertexIndexFromSectorLoc = patchStartVertexIndexFromSectorLoc + vertexIndex;
+
+	// 4.根据顶点总偏移量，计算出世界坐标下的偏移米数
+	float  vertexSpaceInSectorInMeterSize   = PassDataCB.sectorMeterSize / (float)(PATCH_COUNT_PER_NODE_PER_AXIS * (PassDataCB.terrainPatchVertexCountPerAxis - 1));
+	float  vertexSpaceInCurrLodInMeterSize  = vertexSpaceInSectorInMeterSize * powNumber;
+
+	float2 vertexOffsetInCurrLodInMeterSize = vertexIndexFromSectorLoc * vertexSpaceInCurrLodInMeterSize;
+	int2   vertexOffsetInSectorLoc = (int2)((vertexOffsetInCurrLodInMeterSize / PassDataCB.sectorMeterSize) - 0.01f);
+
+	int2 currSectorLoc = sectorLoc + vertexOffsetInSectorLoc;
+
+	uint4 lodTrans = patch.lodTrans;
+	// 左边缘
+    uint lodDelta = lodTrans.x;
+	uint maxDelta = 0;
+
+    if(lodDelta > 0 && vertexIndex.x == 0 && lodDelta > maxDelta){
+		maxDelta = lodDelta;
+        uint gridStripCount = pow(2, lodDelta);
+        uint modIndex = vertexIndex.y % gridStripCount;
+        if(modIndex == 0){
+			uint4 lodMapData = terrainLodMap[int2(currSectorLoc.x - 1, currSectorLoc.y)];
+			nodeLoc.xyz = lodMapData.rgb;
+        }
+    }
+
+
+	// 上边缘
+    lodDelta = lodTrans.y;
+    if(lodDelta > 0 && vertexIndex.y == 0 && lodDelta > maxDelta){
+		maxDelta = lodDelta;
+        uint gridStripCount = pow(2, lodDelta);
+        uint modIndex = vertexIndex.x % gridStripCount;
+        if(modIndex == 0){
+			uint4 lodMapData = terrainLodMap[int2(currSectorLoc.x, currSectorLoc.y - 1)];
+			nodeLoc.xyz = lodMapData.rgb;
+        }
+    }
+
+	// 右边缘
+    lodDelta = lodTrans.z;
+    if(lodDelta > 0 && vertexIndex.x == PassDataCB.terrainPatchVertexCountPerAxis - 1 && lodDelta > maxDelta){
+		maxDelta = lodDelta;
+        uint gridStripCount = pow(2,lodDelta);
+        uint modIndex = vertexIndex.y % gridStripCount;
+        if(modIndex == 0){
+			uint4 lodMapData = terrainLodMap[int2(currSectorLoc.x + 1, currSectorLoc.y)];
+			nodeLoc.xyz = lodMapData.rgb;
+        }
+    }
+
+	// 下边缘
+    lodDelta = lodTrans.w;
+    if(lodDelta > 0 && vertexIndex.y == PassDataCB.terrainPatchVertexCountPerAxis - 1 && lodDelta > maxDelta){
+		maxDelta = lodDelta;
+        uint gridStripCount = pow(2,lodDelta);
+        uint modIndex = vertexIndex.x % gridStripCount;
+        if(modIndex == 0){
+			uint4 lodMapData = terrainLodMap[int2(currSectorLoc.x, currSectorLoc.y + 1)];
+			nodeLoc.xyz = lodMapData.rgb;
+        }
+    }
+}
+
 // 根据Node的索引获得Node的全局ID
 uint GetGlobalNodeId(uint2 nodeLoc, uint lod) {
 	StructuredBuffer<TerrainLodDescriptor> lodDescriptorList = ResourceDescriptorHeap[PassDataCB.lodDescriptorListIndex];
@@ -95,7 +226,11 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	Texture2D terrainNormalMapAtlas = ResourceDescriptorHeap[PassDataCB.terrainNormalMapAtlasIndex];
 
 	RenderPatch renderPatch = culledPatchList[instanceID];
-	uint3 nodeLoc = renderPatch.nodeLoc;
+	uint3  nodeLoc = renderPatch.nodeLoc;
+	float3 vertexPos = input.lsPos;
+	uint2  vertexIndex = (uint2)input.color;
+	VertexConnect(renderPatch, vertexIndex, vertexPos);
+	VertexUpgrade(renderPatch, vertexIndex, vertexPos, nodeLoc);
 
 	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[nodeLoc.z];
 	uint nodeCountPerRow = PassDataCB.terrainMeterSize.x / currLodDescriptor.nodeMeterSize;
@@ -110,6 +245,16 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	uint tileXIndexInAtlas = tilePosX * PassDataCB.terrainAtlasTileWidthInPixels;
 	uint tileYIndexInAtlas = tilePosY * PassDataCB.terrainAtlasTileWidthInPixels;
 
+	float2 vertexPosXZInWorld = vertexPos.xz * pow(2, renderPatch.nodeLoc.z);
+	vertexPosXZInWorld += renderPatch.position;
+
+	float  nodeMeterSize = currLodDescriptor.nodeMeterSize;
+	float2 absCurrNodeZS = nodeLoc.xy * nodeMeterSize;
+	float2 absVertexPosXZInWorld = float2(vertexPosXZInWorld.x + 4096.0f, 4096.0f - vertexPosXZInWorld.y);
+	float2 vertexPosXZInNode = absVertexPosXZInWorld - absCurrNodeZS;
+	float2 finalfinal = (vertexPosXZInNode / nodeMeterSize) * 64.0f;
+
+	/*
 	// 第二步，计算当前Patch在Node对应的地形纹理中的索引偏移
 	uint patchXIndexInTile = renderPatch.patchOffset.x * PassDataCB.terrainPatchVertexCountPerAxis - (renderPatch.patchOffset.x);
 	uint patchYIndexInTile = renderPatch.patchOffset.y * PassDataCB.terrainPatchVertexCountPerAxis - (renderPatch.patchOffset.y);
@@ -121,6 +266,11 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	uint2 currIndex;
 	currIndex.x = tileXIndexInAtlas + patchXIndexInTile + vertexXIndexInPatch;
 	currIndex.y = tileYIndexInAtlas + patchYIndexInTile + vertexYIndexInPatch;
+	*/
+
+	uint2 currIndex;
+	currIndex.x = tileXIndexInAtlas + (uint)finalfinal.x;
+	currIndex.y = tileYIndexInAtlas + (uint)finalfinal.y;
 
 	v2p output;
 
@@ -133,14 +283,13 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
     output.terrainNormal.y  = sqrt(max(0u, 1u - dot(output.terrainNormal.xz, output.terrainNormal.xz)));
 	output.terrainNormal = normalize(output.terrainNormal);
 
-	float scale = pow(2, nodeLoc.z);
-	input.lsPos.xz *= scale;
-	input.lsPos.xz += renderPatch.position;
-	input.lsPos.y = output.terrainHeight * PassDataCB.terrainHeightScale;
+	vertexPos.xz *= pow(2, renderPatch.nodeLoc.z);
+	vertexPos.xz += renderPatch.position;
+	vertexPos.y = output.terrainHeight * PassDataCB.terrainHeightScale;
 
 	// 地形位置不会变化，因此currWsPos与prevWsPos是一样的
-	float3 currWsPos = input.lsPos;
-	float3 prevWsPos = input.lsPos;
+	float3 currWsPos = vertexPos;
+	float3 prevWsPos = vertexPos;
 
 	float3 currVsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.View).xyz;
 	float4 currCsPos = mul(float4(currWsPos, 1.0f), FrameDataCB.CurrentEditorCamera.ViewProjectionJitter);
@@ -152,17 +301,17 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	output.prevCsPos = prevCsPos;
 	output.wsPos = currWsPos;
 	output.vsPos = currVsPos;
-	// output.uvHeight = heightUV;
-	// output.uvVT = (currWsPos.xz - PassDataCB.vtRealRect.xy) / PassDataCB.vtRealRect.zw;
 	output.uv = input.uv;
-	output.nodeLod = nodeLoc.z;
+	output.nodeLod = renderPatch.nodeLoc.z;
 	return output;	
 }
 
 p2o PSMain(v2p input) {
 	Texture2D runtimeVTAlbedoAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTAlbedoAtlasIndex];
 	Texture2D runtimeVTNormalAtlas  = ResourceDescriptorHeap[PassDataCB.runtimeVTNormalAtlasIndex];
-	Texture2D runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
+
+	// unless
+	Texture2D<uint4> runtimeVTPageTableMap = ResourceDescriptorHeap[PassDataCB.runtimeVTPageTableMapIndex];
 
 	float3 currLodColor = GetLODColor(input.nodeLod);
 

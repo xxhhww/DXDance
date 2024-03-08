@@ -218,6 +218,34 @@ void GenerateReservedTextureFile() {
     TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNormalArray.dds", "E:/TerrainOfflineTask/001/TerrainNormal.ret");
 }
 
+void GenerateHeightMapRet() {
+    std::string prename = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Padding/HeightMap";
+    std::string dirname = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/MipMap/HeightMap";
+    std::string mipDirname = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/MipMap/";
+    std::string retname = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/TerrainHeightMapAtlas.ret";
+
+    uint32_t mipmapWidth[] = { 8193u, 4097u, 2049u, 1025u, 513u };
+
+    float	 minLodNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
+    float    worldMeterSize{ 8192.0f };         // 世界大小
+    uint32_t vertexCountPerNodePerAxis = 65u;   // 每一个地形节点每个轴的顶点个数
+
+    uint32_t nodeStartOffset{ 0u };
+    int32_t maxLod = 4u;
+    for (int32_t lod = maxLod; lod >= 0; --lod) {
+        // Resize
+        // TextureProcessor::Resize(prename + ".png", prename + std::to_string(lod) + ".png", mipmapWidth[lod], mipmapWidth[lod]);
+
+        // Split
+        // TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
+        float currLodNodeMeterSize = pow(2, lod) * minLodNodeMeterSize;
+        uint32_t nodeCountPerAxis = worldMeterSize / currLodNodeMeterSize;
+        nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
+    }
+
+    TextureProcessor::GenerateTextureAtlasFile1(mipDirname, "HeightMap", 0, nodeStartOffset - 1, retname);
+}
+
 int main() {
 
 	// HAPI的DLL的路径：
@@ -231,9 +259,10 @@ int main() {
 
 	// 执行离线任务
 	{
+        GenerateHeightMapRet();
         // GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
-        GenerateTerrainNodeData();
+        // GenerateTerrainNodeData();
         // GenerateTiledSplatMap();
         // GenerateTiledGrassMap();
 	}

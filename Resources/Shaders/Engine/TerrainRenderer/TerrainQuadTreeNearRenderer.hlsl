@@ -85,8 +85,8 @@ void VertexConnect(RenderPatch patch, inout uint2 vertexIndex, inout float3 vert
         uint gridStripCount = pow(2, lodDelta);
         uint modIndex = vertexIndex.y % gridStripCount;
         if(modIndex != 0){
-            vertexPos.z -= PassDataCB.patchMeshGridSize * modIndex;
-			vertexIndex.y += modIndex;
+            vertexPos.z -= PassDataCB.patchMeshGridSize * (gridStripCount - modIndex);
+			vertexIndex.y += (gridStripCount - modIndex);
             return;
         }
     }
@@ -97,8 +97,8 @@ void VertexConnect(RenderPatch patch, inout uint2 vertexIndex, inout float3 vert
         uint gridStripCount = pow(2, lodDelta);
         uint modIndex = vertexIndex.x % gridStripCount;
         if(modIndex != 0){
-            vertexPos.x -= PassDataCB.patchMeshGridSize * modIndex;
-			vertexIndex.x -= modIndex;
+            vertexPos.x += PassDataCB.patchMeshGridSize * (gridStripCount - modIndex);
+			vertexIndex.x += (gridStripCount - modIndex);
             return;
         }
     }
@@ -109,8 +109,8 @@ void VertexConnect(RenderPatch patch, inout uint2 vertexIndex, inout float3 vert
         uint gridStripCount = pow(2,lodDelta);
         uint modIndex = vertexIndex.y % gridStripCount;
         if(modIndex != 0){
-            vertexPos.z -= PassDataCB.patchMeshGridSize * modIndex;
-			vertexIndex.y += modIndex;
+            vertexPos.z += PassDataCB.patchMeshGridSize * modIndex;
+			vertexIndex.y -= modIndex;
             return;
         }
     }
@@ -226,13 +226,10 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 
 	RenderPatch renderPatch = culledPatchList[instanceID];
 	uint3  nodeLoc = renderPatch.nodeLoc;
-
 	float3 vertexPos = input.lsPos;
 	uint2  vertexIndex = (uint2)input.color;
-
 	VertexConnect(renderPatch, vertexIndex, vertexPos);
 	VertexUpgrade(renderPatch, vertexIndex, vertexPos, nodeLoc);
-
 
 	TerrainLodDescriptor currLodDescriptor = lodDescriptorList[nodeLoc.z];
 	uint nodeCountPerRow = PassDataCB.terrainMeterSize.x / currLodDescriptor.nodeMeterSize;
@@ -274,13 +271,6 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	uint2 currIndex;
 	currIndex.x = tileXIndexInAtlas + (uint)finalfinal.x;
 	currIndex.y = tileYIndexInAtlas + (uint)finalfinal.y;
-
-
-
-
-
-
-
 
 	v2p output;
 
@@ -351,9 +341,8 @@ p2o PSMain(v2p input) {
 
 	float3 pageLevelColor = float3(clamp(1.0f - pageData.z * 0.1f , 0.0f, 1.0f), 0.0f, 0.0f);
 
-
 	p2o output;
-	output.albedoMetalness  = float4(runtimeVTAlbedo, 0.0f);
+	output.albedoMetalness  = float4(currLodColor, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
 	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);

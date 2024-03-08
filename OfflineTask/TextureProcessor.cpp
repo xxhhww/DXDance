@@ -139,7 +139,7 @@ namespace OfflineTask {
 				*/
 
 				// 数据复制完成，存入磁盘(V轴命名需翻转)
-				std::string result = dirname + Tool::StrUtil::GetFilename(filename) + std::to_string(uid++) + ".png";
+				std::string result = dirname + std::to_string(uid++) + ".png";
 				HRASSERT(DirectX::SaveToWICFile(
 					dstImage,
 					DirectX::WIC_FLAGS_NONE,
@@ -175,7 +175,7 @@ namespace OfflineTask {
 				srcImage.GetImages()[0],
 				DirectX::WIC_FLAGS_NONE,
 				DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
-				Tool::StrUtil::UTF8ToWString(dirname + Tool::StrUtil::GetFilename(filename) + ".png").c_str()
+				Tool::StrUtil::UTF8ToWString(dirname).c_str()
 			));
 			return;
 		}
@@ -188,7 +188,7 @@ namespace OfflineTask {
 			dstImage.GetImages()[0],
 			DirectX::WIC_FLAGS_NONE,
 			DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
-			Tool::StrUtil::UTF8ToWString(dirname + Tool::StrUtil::GetFilename(filename) + ".png").c_str()
+			Tool::StrUtil::UTF8ToWString(dirname).c_str()
 		));
 	}
 
