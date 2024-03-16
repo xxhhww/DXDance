@@ -168,7 +168,8 @@
     <ClInclude Include="CommandSignatureManger.h" />
     <ClInclude Include="DeferredLightPass.h" />
     <ClInclude Include="FormatConverter.h" />
-    <ClInclude Include="TerrainGrassLand.h" />
+    <ClInclude Include="GrasslandBackend.h" />
+    <ClInclude Include="GrasslandLinearBuffer.h" />
     <ClInclude Include="HierarchyInstancedStaticMesh.h" />
     <ClInclude Include="CascadeShadowPass.h" />
     <ClInclude Include="Misc.h" />
@@ -183,7 +184,6 @@
     <ClInclude Include="TerrainBackend.h" />
     <ClInclude Include="TerrainTextureAtlasTileCache.h" />
     <ClInclude Include="TerrainPipelinePass.h" />
-    <ClInclude Include="TerrainQuadTree.h" />
     <ClInclude Include="TerrainRenderer.h" />
     <ClInclude Include="TerrainSetting.h" />
     <ClInclude Include="TerrainTextureArray.h" />
@@ -256,7 +256,8 @@
     <ClCompile Include="DirectStorageTest.cpp" />
     <ClCompile Include="FormatConverter.cpp" />
     <ClCompile Include="GenerateCloudNoiseTask.cpp" />
-    <ClCompile Include="TerrainGrassLand.cpp" />
+    <ClCompile Include="GrasslandBackend.cpp" />
+    <ClCompile Include="GrasslandLinearBuffer.cpp" />
     <ClCompile Include="HierarchyInstancedStaticMesh.cpp" />
     <ClCompile Include="CascadeShadowPass.cpp" />
     <ClCompile Include="Misc.cpp" />
@@ -272,7 +273,6 @@
     <ClCompile Include="TerrainBackend.cpp" />
     <ClCompile Include="TerrainTextureAtlasTileCache.cpp" />
     <ClCompile Include="TerrainPipelinePass.cpp" />
-    <ClCompile Include="TerrainQuadTree.cpp" />
     <ClCompile Include="TerrainRenderer.cpp" />
     <ClCompile Include="TerrainSetting.cpp" />
     <ClCompile Include="TerrainTextureArray.cpp" />

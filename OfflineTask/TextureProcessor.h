@@ -57,6 +57,11 @@ namespace OfflineTask {
 		* 生成每一个地形节点的描述
 		*/
 		static void GenerateTerrainQuadNodeDescriptors(const std::string& heightMapFilename, const std::string& dstDirname);
+
+		/*
+		* 根据地形高度图生成二进制数据
+		*/
+		static void GenerateHeightBinData(const std::string& heightMapFilename, const std::string& binDataFilename);
 	};
 
 }

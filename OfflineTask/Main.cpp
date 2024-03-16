@@ -234,10 +234,10 @@ void GenerateHeightMapRet() {
     int32_t maxLod = 4u;
     for (int32_t lod = maxLod; lod >= 0; --lod) {
         // Resize
-        // TextureProcessor::Resize(prename + ".png", prename + std::to_string(lod) + ".png", mipmapWidth[lod], mipmapWidth[lod]);
+        TextureProcessor::Resize(prename + ".png", prename + std::to_string(lod) + ".png", mipmapWidth[lod], mipmapWidth[lod]);
 
         // Split
-        // TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
+        TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
         float currLodNodeMeterSize = pow(2, lod) * minLodNodeMeterSize;
         uint32_t nodeCountPerAxis = worldMeterSize / currLodNodeMeterSize;
         nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
@@ -245,6 +245,10 @@ void GenerateHeightMapRet() {
 
     TextureProcessor::GenerateTextureAtlasFile1(mipDirname, "HeightMap", 0, nodeStartOffset - 1, retname);
 }
+
+void GenerateHeightBinData() {
+        
+};
 
 int main() {
 

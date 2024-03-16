@@ -891,4 +891,8 @@ namespace OfflineTask {
 		terrainLodDescriptorStream.close();
 	}
 
+	void TextureProcessor::GenerateHeightBinData(const std::string& heightMapFilename, const std::string& binDataFilename) {
+
+	}
+
 }

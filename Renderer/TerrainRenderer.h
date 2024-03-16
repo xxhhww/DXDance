@@ -222,7 +222,7 @@ namespace Renderer {
 			std::atomic<bool> isFresh{ false };		// 该变量由渲染主线程与入 RuntimeVTBackend线程进行访问与修改
 		};
 		std::vector<FeedbackReadbackQueued> mQueuedFeedbackReadbacks;
-		std::vector<Renderer::BufferWrap>  mTerrainFeedbackReadbackBuffers;
+		std::vector<Renderer::BufferWrap>   mTerrainFeedbackReadbackBuffers;
 
 		// RuntimeVTPageTable
 		uint32_t mMaxPageLevel;

@@ -303,9 +303,6 @@
     <ClInclude Include="TerrainRenderer.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainQuadTree.h">
-      <Filter>头文件\Renderer\TerrainRenderer</Filter>
-    </ClInclude>
     <ClInclude Include="TerrainTextureArray.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
@@ -348,7 +345,10 @@
     <ClInclude Include="TerrainTiledTextureHeapAllocationCache.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainGrassLand.h">
+    <ClInclude Include="GrasslandBackend.h">
+      <Filter>头文件\Renderer\TerrainRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="GrasslandLinearBuffer.h">
       <Filter>头文件\Renderer\TerrainRenderer</Filter>
     </ClInclude>
   </ItemGroup>
@@ -548,9 +548,6 @@
     <ClCompile Include="TerrainRenderer.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainQuadTree.cpp">
-      <Filter>源文件\Renderer\TerrainRenderer</Filter>
-    </ClCompile>
     <ClCompile Include="TerrainTextureArray.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
@@ -593,7 +590,10 @@
     <ClCompile Include="TerrainTiledTextureHeapAllocationCache.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainGrassLand.cpp">
+    <ClCompile Include="GrasslandBackend.cpp">
+      <Filter>源文件\Renderer\TerrainRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="GrasslandLinearBuffer.cpp">
       <Filter>源文件\Renderer\TerrainRenderer</Filter>
     </ClCompile>
   </ItemGroup>

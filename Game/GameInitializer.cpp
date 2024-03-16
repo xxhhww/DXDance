@@ -81,7 +81,7 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 2000.0f, testPositionXZ.y };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 550.0f, testPositionXZ.y };
             transform.worldScaling = Math::Vector3{ 0.02f,0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }
@@ -91,7 +91,7 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 1850.0f, testPositionXZ.y };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 650.0f, testPositionXZ.y };
             transform.worldScaling = Math::Vector3{ 0.02f, 0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }

@@ -27,6 +27,9 @@
     <ClInclude Include="TextureProcessor.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="BakeTerrainAlbedo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ResolveHDAFile.cpp">
@@ -42,6 +45,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TextureProcessor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BakeTerrainAlbedo.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
