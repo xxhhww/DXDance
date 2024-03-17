@@ -13,7 +13,12 @@ namespace OfflineTask {
 		uint32_t terrainHeightMapIndex;
 		uint32_t terrainNormalMapIndex;
 		uint32_t terrainSplatMapIndex;
-		float    pad0;
+		float    worldMeterSizePerTiledTexture;
+
+		uint32_t terrainAlbedoTextureArrayIndex;
+		uint32_t terrainNormalTextureArrayIndex;
+		uint32_t outputAlbedoMapIndex;
+		uint32_t outputNormalMapIndex;
 
 		Math::Matrix4 mvpMatrix;
 
@@ -31,6 +36,8 @@ namespace OfflineTask {
 		void Initialize(
 			const std::string& heightMapFilepath,
 			const std::string& splatMapFilepath,
+			const std::string& terrainAlbedoTextureArrayFilepath,
+			const std::string& terrainNormalTextureArrayFilepath,
 			const std::string& terrainNormalMapPath,
 			const std::string& albedoOutputPath,
 			const std::string& normalOutputPath,
@@ -47,6 +54,7 @@ namespace OfflineTask {
 		inline static int32_t smVertexCountPerAxis = 8193;				// 地形网格每个轴上的顶点个数8193
 		inline static float   smVertexSpaceInMeterSize = 1.0f;			// 地形两个顶点之间的间隔
 		inline static float   smTerrainHeightScale = 1325.0f;
+		inline static float   smMeterSizePerTiledTexture = 32.0f;		// 地形纹理平铺，一个纹理平铺
 
 		inline static uint32_t smThreadSizeInGroup = 8u;
 
@@ -57,6 +65,8 @@ namespace OfflineTask {
 
 		Renderer::TextureWrap mTerrainHeightMap;
 		Renderer::TextureWrap mTerrainSplatMap;
+		Renderer::TextureWrap mTerrainAlbedoTextureArray;
+		Renderer::TextureWrap mTerrainNormalTextureArray;
 
 		std::string mTerrainNormalMapPath;
 		Renderer::TextureWrap mTerrainNormalMap;

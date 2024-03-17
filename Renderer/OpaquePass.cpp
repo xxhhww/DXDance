@@ -96,7 +96,7 @@ namespace Renderer {
 				NewTextureProperties _GBufferPositionEmissionProperties{};
 				_GBufferPositionEmissionProperties.width = finalOutputDesc.width;
 				_GBufferPositionEmissionProperties.height = finalOutputDesc.height;
-				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				_GBufferPositionEmissionProperties.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				_GBufferPositionEmissionProperties.clearValue = GHL::ColorClearValue{ 0.0f, 0.0f, 0.0f, 0.0f };
 				builder.DeclareTexture("GBufferPositionEmission", _GBufferPositionEmissionProperties);
 				builder.WriteRenderTarget("GBufferPositionEmission");

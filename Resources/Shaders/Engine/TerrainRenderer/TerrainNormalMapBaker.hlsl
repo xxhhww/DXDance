@@ -1,11 +1,18 @@
 #ifndef _TerrainNormalMapBaker__
 #define _TerrainNormalMapBaker__
 
+#include "TerrainHeader.hlsl"
+
 struct PassData {
 	uint  terrainHeightMapIndex;
 	uint  terrainNormalMapIndex;
 	uint  terrainSplatMapIndex;
-	float pad0;
+	float worldMeterSizePerTiledTexture;
+
+	uint  terrainAlbedoTextureArrayIndex;
+	uint  terrainNormalTextureArrayIndex;
+	uint  outputAlbedoMapIndex;
+	uint  outputNormalMapIndex;
 
 	float4x4 mvpMatrix;
 
@@ -58,6 +65,7 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     n.y = 2;
 
     n = normalize(n);
+    n = (n + 1.0f) * 0.5f;
     normalMap[coord] = float4(n.xyz, 1.0f);
     /*
     float3 p0 = GetPosition(coord);

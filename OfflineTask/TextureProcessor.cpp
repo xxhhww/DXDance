@@ -150,13 +150,63 @@ namespace OfflineTask {
 		}
 	}
 
-	void TextureProcessor::Resize(const std::string& filename, const std::string& dirname, uint32_t targetWidth, uint32_t targetHeight) {
+	void TextureProcessor::GenerateTerrainMipMap(const std::string& filename, const std::string& dirname, uint32_t mipIndex, uint32_t targetWidth, uint32_t targetHeight) {
 		static bool coInitialized = false;
 		if (!coInitialized) {
 			CoInitialize(nullptr);
 			coInitialized = true;
 		}
 
+		DirectX::ScratchImage srcImage;
+		HRASSERT(DirectX::LoadFromWICFile(
+			Tool::StrUtil::UTF8ToWString(filename).c_str(),
+			DirectX::WIC_FLAGS::WIC_FLAGS_NONE,
+			nullptr,
+			srcImage
+		));
+		uint32_t srcImageWidth  = srcImage.GetImages()[0].width;
+		uint32_t srcImageHeight = srcImage.GetImages()[0].height;
+		uint32_t srcImageRowPitch = srcImage.GetImages()[0].rowPitch;
+		uint32_t elementByteSize = srcImageRowPitch / srcImageWidth;
+		uint8_t* srcPixels = srcImage.GetImages()[0].pixels;
+
+		// mipIndex == 0
+		if (mipIndex == 0) {
+			HRASSERT(DirectX::SaveToWICFile(
+				srcImage.GetImages()[0],
+				DirectX::WIC_FLAGS_NONE,
+				DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
+				Tool::StrUtil::UTF8ToWString(dirname).c_str()
+			));
+			return;
+		}
+
+		DirectX::Image dstImage;
+		dstImage.width = targetHeight;
+		dstImage.height = targetWidth;
+		dstImage.format = srcImage.GetImages()[0].format;
+		dstImage.rowPitch = dstImage.width * elementByteSize;
+		dstImage.slicePitch = dstImage.width * dstImage.height * elementByteSize;
+		dstImage.pixels = new uint8_t[dstImage.slicePitch];
+
+		uint32_t dstOffset = 0;
+		for (uint32_t rowIndex = 0; rowIndex < srcImageHeight; rowIndex += std::pow(2, mipIndex)) {
+			for (uint32_t colIndex = 0; colIndex < srcImageWidth; colIndex += std::pow(2, mipIndex)) {
+				uint32_t srcOffset = rowIndex * srcImageRowPitch + colIndex * elementByteSize;
+				memcpy(dstImage.pixels + dstOffset, srcPixels + srcOffset, elementByteSize);
+				dstOffset += elementByteSize;
+			}
+		}
+
+		// 保存
+		HRASSERT(DirectX::SaveToWICFile(
+			dstImage,
+			DirectX::WIC_FLAGS_NONE,
+			DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
+			Tool::StrUtil::UTF8ToWString(dirname).c_str()
+		));
+
+		/*
 		// 读取纹理数据至内存
 		DirectX::ScratchImage srcImage;
 		HRASSERT(DirectX::LoadFromWICFile(
@@ -190,6 +240,7 @@ namespace OfflineTask {
 			DirectX::GetWICCodec(DirectX::WIC_CODEC_PNG),
 			Tool::StrUtil::UTF8ToWString(dirname).c_str()
 		));
+		*/
 	}
 
 	void TextureProcessor::GenerateTextureAtlasFile1(const std::string& srcDirname, const std::string& baseFilename, uint32_t startIndex, uint32_t endIndex, const std::string& dstFilename) {

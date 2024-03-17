@@ -1,5 +1,5 @@
-#ifndef _TerrainTextureBaker__
-#define _TerrainTextureBaker__
+#ifndef _FarTerrainTextureBaker__
+#define _FarTerrainTextureBaker__
 
 #include "TerrainHeader.hlsl"
 
@@ -7,7 +7,12 @@ struct PassData{
 	uint  terrainHeightMapIndex;
 	uint  terrainNormalMapIndex;
 	uint  terrainSplatMapIndex;
-	float pad0;
+	float worldMeterSizePerTiledTexture;
+
+	uint  terrainAlbedoTextureArrayIndex;
+	uint  terrainNormalTextureArrayIndex;
+	uint  outputAlbedoMapIndex;
+	uint  outputNormalMapIndex;
 
 	float4x4 mvpMatrix;
 
@@ -25,39 +30,46 @@ struct PassData{
 #include "../Base/MainEntryPoint.hlsl"
 #include "../Base/Utils.hlsl"
 
-struct a2v {
-	float3 lsPos     : POSITION;
-	float2 uv        : TEXCOORD;
-	float3 lsNormal  : NORMAL;
-	float3 tangent   : TANGENT;
-	float3 bitangent : BITANGENT;
-	float4 color     : COLOR;
-};
+[numthreads(8, 8, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+	Texture2DArray terrainAlbedoTextureArray = ResourceDescriptorHeap[PassDataCB.terrainAlbedoTextureArrayIndex];
+	Texture2DArray terrainNormalTextureArray = ResourceDescriptorHeap[PassDataCB.terrainNormalTextureArrayIndex];
+	Texture2D      terrainTiledSplatMap      = ResourceDescriptorHeap[PassDataCB.terrainSplatMapIndex];
+	RWTexture2D<float4> outputAlbedoMap      = ResourceDescriptorHeap[PassDataCB.outputAlbedoMapIndex];
+	RWTexture2D<float4> outputNormalMap      = ResourceDescriptorHeap[PassDataCB.outputNormalMapIndex];
 
-struct v2p {
-	float4 currCsPos        : SV_POSITION;
-	float2 uv               : TEXCOORD;
-};
+	uint2 coord = id.xy;
+    if(coord.x < 0 || coord.x >= PassDataCB.vertexCountPerAxis || coord.y < 0 || coord.y >= PassDataCB.vertexCountPerAxis) return;
 
-struct p2o {
-	float4  terrainAlbedo : SV_TARGET0;
-	float4  terrainNormal : SV_TARGET1;
-};
+	// 计算当前纹理像素对应的地形顶点的uvHeight
+	float2 tmpPos = float2(coord.x * PassDataCB.vertexSpaceInMeterSize, coord.y * PassDataCB.vertexSpaceInMeterSize);
+	float2 uvHeight = tmpPos / PassDataCB.terrainMeterSize;
 
-v2p VSMain(a2v input) {
-	
-	float2 pos = saturate(mul(float4(input.lsPos, 1.0f), PassDataCB.mvpMatrix).xy);
-	pos.y = 1 - pos.y;
+	// 计算顶点在terrainAlbedoTexture中的偏移
+	float2 offsetInTileTexture = tmpPos % PassDataCB.worldMeterSizePerTiledTexture;
+	float2 uvTiled = offsetInTileTexture / PassDataCB.worldMeterSizePerTiledTexture;
 
-	v2p output;
-	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
-	output.uv = input.uv;
-	return output;
-}
+	// 根据uvHeight采样splatMap
+	float4 blend = terrainTiledSplatMap.SampleLevel(SamplerLinearWrap, uvHeight, 0u).rgba;
 
-p2o PSMain(v2p input) {
-	p2o output;
-	return output;
+	float4 rChannelAlbedo = pow(terrainAlbedoTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 0.0f), 0).rgba, 2.2f);
+	float4 rChannelNormal = terrainNormalTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 0.0f), 0).rgba;
+
+	float4 gChannelAlbedo = pow(terrainAlbedoTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 1.0f), 0).rgba, 2.2f);
+	float4 gChannelNormal = terrainNormalTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 1.0f), 0).rgba;
+
+	float4 bChannelAlbedo = pow(terrainAlbedoTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 2.0f), 0).rgba, 2.2f);
+	float4 bChannelNormal = terrainNormalTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 2.0f), 0).rgba;
+
+	float4 aChannelAlbedo = pow(terrainAlbedoTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 3.0f), 0).rgba, 2.2f);
+	float4 aChannelNormal = terrainNormalTextureArray.SampleLevel(SamplerLinearWrap, float3(uvTiled, 3.0f), 0).rgba;
+
+	// Blend
+	float3 blendAlbedo = blend.r * rChannelAlbedo.rgb + blend.g * gChannelAlbedo.rgb + blend.b * bChannelAlbedo.rgb + blend.a * aChannelAlbedo.rgb;
+    float3 blendNormal = blend.r * rChannelNormal.rgb + blend.g * gChannelNormal.rgb + blend.b * bChannelNormal.rgb + blend.a * aChannelNormal.rgb;
+
+	outputAlbedoMap[coord.xy].rgba = float4(blendAlbedo.rgb, 1.0f);
+	outputNormalMap[coord.xy].rgba = float4(coord.xy, 0.0f, 0.0f);
 }
 
 #endif

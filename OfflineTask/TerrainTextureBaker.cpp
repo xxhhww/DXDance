@@ -16,6 +16,8 @@ namespace OfflineTask {
 	void TerrainTextureBaker::Initialize(
 		const std::string& heightMapFilepath,
 		const std::string& splatMapFilepath,
+		const std::string& terrainAlbedoTextureArrayFilepath,
+		const std::string& terrainNormalTextureArrayFilepath,
 		const std::string& terrainNormalMapPath,
 		const std::string& albedoOutputPath,
 		const std::string& normalOutputPath,
@@ -58,6 +60,20 @@ namespace OfflineTask {
 			resourceStorage->ImportResource("TerrainSplatMap", mTerrainSplatMap);
 		}
 
+		// Load TerrainAlbedoTextureArray From File
+		{
+			mTerrainAlbedoTextureArray = Renderer::FixedTextureHelper::LoadFromFile(device, descriptorAllocator, resourceAllocator, dstorageQueue->GetDStorageQueue(), dstorageFence, terrainAlbedoTextureArrayFilepath);
+			resourceStateTracker->StartTracking(mTerrainAlbedoTextureArray);
+			resourceStorage->ImportResource("TerrainAlbedoTextureArray", mTerrainAlbedoTextureArray);
+		}
+
+		// Load TerrainNormalTextureArray From File
+		{
+			mTerrainNormalTextureArray = Renderer::FixedTextureHelper::LoadFromFile(device, descriptorAllocator, resourceAllocator, dstorageQueue->GetDStorageQueue(), dstorageFence, terrainNormalTextureArrayFilepath);
+			resourceStateTracker->StartTracking(mTerrainNormalTextureArray);
+			resourceStorage->ImportResource("TerrainNormalTextureArray", mTerrainNormalTextureArray);
+		}
+
 		// 创建TerrainNormalMap 与 ReadbackBuffer
 		{
 			Renderer::TextureDesc _TerrainNormalMapDesc{};
@@ -89,8 +105,8 @@ namespace OfflineTask {
 			_OutputAlbedoDesc.height = smVertexCountPerAxis;
 			_OutputAlbedoDesc.mipLevals = 1u;
 			_OutputAlbedoDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			_OutputAlbedoDesc.initialState = GHL::EResourceState::RenderTarget;
-			_OutputAlbedoDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
+			_OutputAlbedoDesc.initialState = GHL::EResourceState::UnorderedAccess;
+			_OutputAlbedoDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopySource;
 			mOutputAlbedoMap = resourceAllocator->Allocate(device, _OutputAlbedoDesc, descriptorAllocator, nullptr);
 			resourceStateTracker->StartTracking(mOutputAlbedoMap);
 			resourceStorage->ImportResource("OutputAlbedoMap", mOutputAlbedoMap);
@@ -112,9 +128,9 @@ namespace OfflineTask {
 			_OutputNormalDesc.width = smVertexCountPerAxis;
 			_OutputNormalDesc.height = smVertexCountPerAxis;
 			_OutputNormalDesc.mipLevals = 1u;
-			_OutputNormalDesc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			_OutputNormalDesc.initialState = GHL::EResourceState::RenderTarget;
-			_OutputNormalDesc.expectedState = GHL::EResourceState::RenderTarget | GHL::EResourceState::CopySource;
+			_OutputNormalDesc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			_OutputNormalDesc.initialState = GHL::EResourceState::UnorderedAccess;
+			_OutputNormalDesc.expectedState = GHL::EResourceState::UnorderedAccess | GHL::EResourceState::CopySource;
 			mOutputNormalMap = resourceAllocator->Allocate(device, _OutputNormalDesc, descriptorAllocator, nullptr);
 			resourceStateTracker->StartTracking(mOutputNormalMap);
 			resourceStorage->ImportResource("OutputNormalMap", mOutputNormalMap);
@@ -180,15 +196,9 @@ namespace OfflineTask {
 					proxy.csFilepath = shaderPath + "TerrainRenderer/TerrainNormalMapBaker.hlsl";
 				});
 
-			shaderManger->CreateGraphicsShader(smBakeFarTerrainTextureSN,
-				[&](Renderer::GraphicsStateProxy& proxy) {
-					proxy.vsFilepath = shaderPath + "TerrainRenderer/FarTerrainTextureBaker.hlsl";
-					proxy.psFilepath = proxy.vsFilepath;
-					proxy.depthStencilDesc.DepthEnable = false;
-					proxy.renderTargetFormatArray = {
-						mOutputAlbedoMap->GetResourceFormat().GetTextureDesc().format,	// OutputAlbedoMap
-						mOutputNormalMap->GetResourceFormat().GetTextureDesc().format	// OutputNormalMap
-					};
+			shaderManger->CreateComputeShader(smBakeFarTerrainTextureSN,
+				[&](Renderer::ComputeStateProxy& proxy) {
+					proxy.csFilepath = shaderPath + "TerrainRenderer/FarTerrainTextureBaker.hlsl";
 				});
 		}
 	}
@@ -224,11 +234,7 @@ namespace OfflineTask {
 			commandBuffer.SetComputePipelineState(smBakeTerrainNormalMapSN);
 			commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
 			commandBuffer.Dispatch(threadGroupCountX, threadGroupCountY, 1u);
-		}
 
-		// Second Pass Copy Terrain NormalMap to ReadbackBuffer
-		{
-			auto barrierBatch = GHL::ResourceBarrierBatch{};
 			barrierBatch =  commandBuffer.TransitionImmediately(mTerrainNormalMap, GHL::EResourceState::CopySource);
 			barrierBatch += commandBuffer.TransitionImmediately(mTerrainNormalMapReadbackBuffer, GHL::EResourceState::CopyDestination);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
@@ -261,16 +267,19 @@ namespace OfflineTask {
 			}
 		}
 
-		// Third Pass Bake Terrain AlbedoMap/NormalMap
+		// Second Pass Bake Terrain AlbedoMap/NormalMap
 		{
-			const auto outputAlbedoMapDesc = mOutputAlbedoMap->GetResourceFormat().GetTextureDesc();
-
 			mBakeTerrainTexturePassData.terrainHeightMapIndex = mTerrainHeightMap->GetSRDescriptor()->GetHeapIndex();
 			mBakeTerrainTexturePassData.terrainNormalMapIndex = mTerrainNormalMap->GetSRDescriptor()->GetHeapIndex();
 			mBakeTerrainTexturePassData.terrainSplatMapIndex = mTerrainSplatMap->GetSRDescriptor()->GetHeapIndex();
-			mBakeTerrainTexturePassData.mvpMatrix;
+			mBakeTerrainTexturePassData.terrainAlbedoTextureArrayIndex = mTerrainAlbedoTextureArray->GetSRDescriptor()->GetHeapIndex();
+			mBakeTerrainTexturePassData.terrainNormalTextureArrayIndex = mTerrainNormalTextureArray->GetSRDescriptor()->GetHeapIndex();
+			mBakeTerrainTexturePassData.outputAlbedoMapIndex = mOutputAlbedoMap->GetUADescriptor()->GetHeapIndex();
+			mBakeTerrainTexturePassData.outputNormalMapIndex = mOutputNormalMap->GetUADescriptor()->GetHeapIndex();
+			mBakeTerrainTexturePassData.mvpMatrix = Math::Matrix4{ Math::Vector3{}, Math::Quaternion{}, Math::Vector3{ 1.0f, 1.0f, 1.0f } }.Transpose();
 			mBakeTerrainTexturePassData.tileOffset;
 			mBakeTerrainTexturePassData.blendOffset;
+			mBakeTerrainTexturePassData.worldMeterSizePerTiledTexture = smMeterSizePerTiledTexture;
 
 			auto passDataAlloc = dynamicAllocator->Allocate(sizeof(BakeTerrainTexturePassData));
 			memcpy(passDataAlloc.cpuAddress, &mBakeTerrainTexturePassData, sizeof(BakeTerrainTexturePassData));
@@ -279,20 +288,49 @@ namespace OfflineTask {
 			barrierBatch =  commandBuffer.TransitionImmediately(mTerrainHeightMap, GHL::EResourceState::PixelShaderAccess);
 			barrierBatch += commandBuffer.TransitionImmediately(mTerrainNormalMap, GHL::EResourceState::PixelShaderAccess);
 			barrierBatch += commandBuffer.TransitionImmediately(mTerrainSplatMap, GHL::EResourceState::PixelShaderAccess);
-			barrierBatch += commandBuffer.TransitionImmediately(mOutputAlbedoMap, GHL::EResourceState::RenderTarget);
-			barrierBatch += commandBuffer.TransitionImmediately(mOutputNormalMap, GHL::EResourceState::RenderTarget);
+			barrierBatch += commandBuffer.TransitionImmediately(mTerrainAlbedoTextureArray, GHL::EResourceState::PixelShaderAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mTerrainNormalTextureArray, GHL::EResourceState::PixelShaderAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mOutputAlbedoMap, GHL::EResourceState::UnorderedAccess);
+			barrierBatch += commandBuffer.TransitionImmediately(mOutputNormalMap, GHL::EResourceState::UnorderedAccess);
 			commandBuffer.FlushResourceBarrier(barrierBatch);
 
-			commandBuffer.SetRenderTargets({ mOutputAlbedoMap, mOutputNormalMap });
-			commandBuffer.SetViewport(GHL::Viewport{ 0u, 0u, outputAlbedoMapDesc.width, outputAlbedoMapDesc.height });
-			commandBuffer.SetScissorRect(GHL::Rect{ 0u, 0u, outputAlbedoMapDesc.width, outputAlbedoMapDesc.height });
-			commandBuffer.SetGraphicsRootSignature();
-			commandBuffer.SetGraphicsPipelineState(smBakeFarTerrainTextureSN);
-			commandBuffer.SetGraphicsRootCBV(1u, passDataAlloc.gpuAddress);
-			commandBuffer.SetVertexBuffer(0u, mQuadMeshVertexBuffer);
-			commandBuffer.SetIndexBuffer(mQuadMeshIndexBuffer);
-			commandBuffer.SetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			commandBuffer.DrawIndexedInstanced(mQuadMeshIndexCount, 1u, 0u, 0u, 0u);
+			uint32_t threadGroupCountX = (mOutputAlbedoMap->GetResourceFormat().GetTextureDesc().width + smThreadSizeInGroup - 1) / smThreadSizeInGroup;
+			uint32_t threadGroupCountY = threadGroupCountX;
+			commandBuffer.SetComputeRootSignature();
+			commandBuffer.SetComputePipelineState(smBakeFarTerrainTextureSN);
+			commandBuffer.SetComputeRootCBV(1u, passDataAlloc.gpuAddress);
+			commandBuffer.Dispatch(threadGroupCountX, threadGroupCountY, 1u);
+
+			barrierBatch =  commandBuffer.TransitionImmediately(mOutputAlbedoMap, GHL::EResourceState::CopySource);
+			barrierBatch += commandBuffer.TransitionImmediately(mOutputAlbedoMapReadbackBuffer, GHL::EResourceState::CopyDestination);
+			commandBuffer.FlushResourceBarrier(barrierBatch);
+
+			uint32_t subresourceCount = mOutputAlbedoMap->GetResourceFormat().SubresourceCount();
+			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+			std::vector<uint32_t> numRows(subresourceCount);
+			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+			uint64_t requiredSize = 0u;
+			auto d3dResDesc = mOutputAlbedoMap->GetResourceFormat().D3DResourceDesc();
+			mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
+
+			for (uint32_t i = 0u; i < subresourceCount; i++) {
+				auto& placedLayout = placedLayouts.at(i);
+
+				// 将数据从显存复制到共享内存
+				auto rbPlacedLayout = placedLayout;
+				rbPlacedLayout.Footprint.RowPitch = (rbPlacedLayout.Footprint.RowPitch + 0x0ff) & ~0x0ff;
+
+				D3D12_TEXTURE_COPY_LOCATION srcLocation = CD3DX12_TEXTURE_COPY_LOCATION(mOutputAlbedoMap->D3DResource(), i);
+				D3D12_TEXTURE_COPY_LOCATION dstLocation = CD3DX12_TEXTURE_COPY_LOCATION(mOutputAlbedoMapReadbackBuffer->D3DResource(), rbPlacedLayout);
+
+				commandBuffer.D3DCommandList()->CopyTextureRegion(
+					&dstLocation,
+					0u, 0u, 0u,
+					&srcLocation,
+					nullptr
+				);
+			}
 		}
 	}
 
@@ -328,6 +366,40 @@ namespace OfflineTask {
 			DirectX::TexMetadata metadata = GetTexMetadata(mTerrainNormalMap->GetResourceFormat().GetTextureDesc());
 			DirectX::SaveToWICFile(images.data(), images.size(), WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), Tool::StrUtil::UTF8ToWString(mTerrainNormalMapPath).c_str());
 		}
+
+		// 2. Output Albedo Map
+		{
+			uint32_t startMipLevel = 0u;
+			uint32_t subresourceCount = mOutputAlbedoMap->GetResourceFormat().SubresourceCount();
+			std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> placedLayouts(subresourceCount);
+			std::vector<uint32_t> numRows(subresourceCount);
+			std::vector<uint64_t> rowSizesInBytes(subresourceCount);
+			uint64_t requiredSize = 0u;
+			auto d3dResDesc = mOutputAlbedoMap->GetResourceFormat().D3DResourceDesc();
+			mDevice->D3DDevice()->GetCopyableFootprints(&d3dResDesc, 0u, subresourceCount, 0u,
+				placedLayouts.data(), numRows.data(), rowSizesInBytes.data(), &requiredSize);
+
+			std::vector<DirectX::Image> images(subresourceCount);
+			for (uint32_t i = startMipLevel; i < subresourceCount; i++) {
+				auto& image = images.at(i);
+				auto& placedLayout = placedLayouts.at(i);
+
+				image.width = placedLayout.Footprint.Width;
+				image.height = placedLayout.Footprint.Height;
+				image.format = placedLayout.Footprint.Format;
+				image.rowPitch = placedLayout.Footprint.RowPitch;
+				image.slicePitch = image.rowPitch * numRows.at(i);
+				image.pixels = new uint8_t[image.slicePitch];
+
+				// 将数据从共享内存复制到内存堆上
+				memcpy(image.pixels, mOutputAlbedoMapReadbackBuffer->Map() + placedLayout.Offset, image.slicePitch);
+			}
+
+			DirectX::TexMetadata metadata = GetTexMetadata(mOutputAlbedoMap->GetResourceFormat().GetTextureDesc());
+			DirectX::SaveToWICFile(images.data(), images.size(), WIC_FLAGS_NONE, GetWICCodec(WIC_CODEC_PNG), Tool::StrUtil::UTF8ToWString(mOutputAlbedoMapPath).c_str());
+		}
+
+		int32_t i = 0;
 	}
 
 	DirectX::TexMetadata TerrainTextureBaker::GetTexMetadata(const Renderer::TextureDesc& textureDesc) {

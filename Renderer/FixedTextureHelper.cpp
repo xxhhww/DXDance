@@ -65,6 +65,22 @@ namespace Renderer {
 
 		// 纹理行数据对齐
 		uint8_t* alignedData = new uint8_t[requiredSize];
+		uint32_t subresourceIndex = 0;
+		for (uint32_t arrayIndex = 0; arrayIndex < textureDesc.arraySize; arrayIndex++) {
+			for (uint32_t mipIndex = 0; mipIndex < textureDesc.mipLevals; mipIndex++) {
+				auto* image = &baseImage.GetImages()[subresourceIndex];
+				for (uint32_t rowIndex = 0u; rowIndex < numRows[subresourceIndex]; rowIndex++) {
+					uint32_t realByteOffset = rowIndex * placedLayouts.at(subresourceIndex).Footprint.RowPitch + placedLayouts.at(subresourceIndex).Offset;
+					uint32_t fakeByteOffset = rowIndex * image->rowPitch;
+
+					memcpy(alignedData + realByteOffset, image->pixels + fakeByteOffset, image->rowPitch);
+				}
+
+				subresourceIndex++;
+			}
+		}
+
+		/*
 		for (uint32_t subresourceIndex = 0u; subresourceIndex < subresourceCount; subresourceIndex++) {
 			for (uint32_t sliceIndex = 0u; sliceIndex < placedLayouts.at(subresourceIndex).Footprint.Depth; sliceIndex++) {
 				auto* image = baseImage.GetImage(subresourceIndex, 0u, sliceIndex);
@@ -79,6 +95,7 @@ namespace Renderer {
 				}
 			}
 		}
+		*/
 
 		// 上传至显存
 		DSTORAGE_REQUEST request = {};

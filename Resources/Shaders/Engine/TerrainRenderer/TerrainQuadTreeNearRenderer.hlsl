@@ -277,11 +277,7 @@ v2p VSMain(a2v input, uint instanceID : SV_InstanceID) {
 	// 对地形纹理图形(heightMap albedoMap normalMap)进行采样
 	output.terrainHeight = terrainHeightMapAtlas.mips[0][currIndex.xy].r;
 	output.terrainAlbedo = terrainAlbedoMapAtlas.mips[0][currIndex.xy].rgb;
-	output.terrainNormal = terrainNormalMapAtlas.mips[0][currIndex.xy].rgb;
-
-	output.terrainNormal.xz = output.terrainNormal.xy * 2.0f - 1.0f;
-    output.terrainNormal.y  = sqrt(max(0u, 1u - dot(output.terrainNormal.xz, output.terrainNormal.xz)));
-	output.terrainNormal = normalize(output.terrainNormal);
+	output.terrainNormal = normalize(terrainNormalMapAtlas.mips[0][currIndex.xy].rgb * 2.0f - 1.0f);
 
 	vertexPos.xz *= pow(2, renderPatch.nodeLoc.z);
 	vertexPos.xz += renderPatch.position;

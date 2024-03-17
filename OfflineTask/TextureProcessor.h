@@ -19,9 +19,9 @@ namespace OfflineTask {
 		static void Split(const std::string& filename, const std::string& dirname, uint32_t subSize, uint32_t step, uint32_t startNameIndex);
 
 		/*
-		* 图像缩放
+		* 图像GenerateLodMap
 		*/
-		static void Resize(const std::string& filename, const std::string& dirname, uint32_t targetWidth, uint32_t targetHeight);
+		static void GenerateTerrainMipMap(const std::string& filename, const std::string& dirname, uint32_t mipIndex, uint32_t targetWidth, uint32_t targetHeight);
 
 		/*
 		* 将dirname下的所有图像合并为TextureAtlasFile

@@ -36,7 +36,7 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Sky>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
+            transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV2, 0.0f, 0.0f };
 
             auto& sky = entity.GetComponent<ECS::Sky>();
         }

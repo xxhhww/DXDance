@@ -34,6 +34,8 @@ void RunTerrainTextureBaker() {
     baker.Initialize(
         "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Padding/HeightMap.png",
         "E:/TerrainOfflineTask/001/TerrainNear/SplatMap/SplatMap.png",
+        "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedoArray.dds",
+        "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainNormalArray.dds",
         "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png",
         "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/AlbedoMap.png",
         "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png",
@@ -97,6 +99,7 @@ void GenerateHeightMap() {
     }
 }
 
+/*
 void GenerateFarTerrainAtlas(bool needPrepare) {
 
     {
@@ -164,6 +167,7 @@ void GenerateFarTerrainAtlas(bool needPrepare) {
         }
     }
 }
+*/
 
 void GenerateNearTerrainAtlas(bool needPrepare) {
     TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedoArray.dds", "E:/TerrainOfflineTask/001/TerrainNear/TextureArray/TerrainAlbedo.ret");
@@ -217,7 +221,7 @@ void GenerateReservedTextureFile() {
     TextureProcessor::GenerateTextureAtlasFile2("E:/TerrainOfflineTask/001/TerrainNormalArray.dds", "E:/TerrainOfflineTask/001/TerrainNormal.ret");
 }
 
-void GenerateHeightMapRet() {
+void GenerateTerrainHeightMapRet() {
     std::string prename = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Padding/HeightMap";
     std::string dirname = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/MipMap/HeightMap";
     std::string mipDirname = "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/MipMap/";
@@ -232,8 +236,8 @@ void GenerateHeightMapRet() {
     uint32_t nodeStartOffset{ 0u };
     int32_t maxLod = 4u;
     for (int32_t lod = maxLod; lod >= 0; --lod) {
-        // Resize
-        TextureProcessor::Resize(prename + ".png", prename + std::to_string(lod) + ".png", mipmapWidth[lod], mipmapWidth[lod]);
+        // GenerateMipMap
+        TextureProcessor::GenerateTerrainMipMap(prename + ".png", prename + std::to_string(lod) + ".png", lod, mipmapWidth[lod], mipmapWidth[lod]);
 
         // Split
         TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
@@ -243,6 +247,61 @@ void GenerateHeightMapRet() {
     }
 
     TextureProcessor::GenerateTextureAtlasFile1(mipDirname, "HeightMap", 0, nodeStartOffset - 1, retname);
+}
+
+void GenerateTerrainAlbedoMapRet() {
+    std::string prename = "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/Padding/AlbedoMap";
+    std::string dirname = "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/MipMap/AlbedoMap";
+    std::string mipDirname = "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/MipMap/";
+    std::string retname = "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/TerrainAlbedoMapAtlas.ret";
+
+    uint32_t mipmapWidth[] = { 8193u, 4097u, 2049u, 1025u, 513u };
+
+    float	 minLodNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
+    float    worldMeterSize{ 8192.0f };         // 世界大小
+    uint32_t vertexCountPerNodePerAxis = 65u;   // 每一个地形节点每个轴的顶点个数
+
+    uint32_t nodeStartOffset{ 0u };
+    int32_t maxLod = 4u;
+    for (int32_t lod = maxLod; lod >= 0; --lod) {
+        // Resize
+        TextureProcessor::GenerateTerrainMipMap(prename + ".png", prename + std::to_string(lod) + ".png", lod, mipmapWidth[lod], mipmapWidth[lod]);
+
+        // Split
+        TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
+        float currLodNodeMeterSize = pow(2, lod) * minLodNodeMeterSize;
+        uint32_t nodeCountPerAxis = worldMeterSize / currLodNodeMeterSize;
+        nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
+    }
+
+    TextureProcessor::GenerateTextureAtlasFile1(mipDirname, "AlbedoMap", 0, nodeStartOffset - 1, retname);
+}
+void GenerateTerrainNormalMapRet() {
+    std::string prename = "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/Padding/NormalMap";
+    std::string dirname = "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/MipMap/NormalMap";
+    std::string mipDirname = "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/MipMap/";
+    std::string retname = "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/TerrainNormalMapAtlas.ret";
+
+    uint32_t mipmapWidth[] = { 8193u, 4097u, 2049u, 1025u, 513u };
+
+    float	 minLodNodeMeterSize{ 64.0f };		// LOD0对应的地块大小为64.0f
+    float    worldMeterSize{ 8192.0f };         // 世界大小
+    uint32_t vertexCountPerNodePerAxis = 65u;   // 每一个地形节点每个轴的顶点个数
+
+    uint32_t nodeStartOffset{ 0u };
+    int32_t maxLod = 4u;
+    for (int32_t lod = maxLod; lod >= 0; --lod) {
+        // Resize
+        TextureProcessor::GenerateTerrainMipMap(prename + ".png", prename + std::to_string(lod) + ".png", lod, mipmapWidth[lod], mipmapWidth[lod]);
+
+        // Split
+        TextureProcessor::Split(prename + std::to_string(lod) + ".png", dirname, vertexCountPerNodePerAxis, vertexCountPerNodePerAxis - 1, nodeStartOffset);
+        float currLodNodeMeterSize = pow(2, lod) * minLodNodeMeterSize;
+        uint32_t nodeCountPerAxis = worldMeterSize / currLodNodeMeterSize;
+        nodeStartOffset += nodeCountPerAxis * nodeCountPerAxis;
+    }
+
+    TextureProcessor::GenerateTextureAtlasFile1(mipDirname, "NormalMap", 0, nodeStartOffset - 1, retname);
 }
 
 void GenerateHeightBinData() {
@@ -262,8 +321,10 @@ int main() {
 
 	// 执行离线任务
 	{
-        RunTerrainTextureBaker();
-        // GenerateHeightMapRet();
+        // GenerateTerrainHeightMapRet();
+        // GenerateTerrainAlbedoMapRet();
+        GenerateTerrainNormalMapRet();
+        // RunTerrainTextureBaker();
         // GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
         // GenerateTerrainNodeData();
