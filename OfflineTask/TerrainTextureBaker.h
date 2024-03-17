@@ -1,13 +1,14 @@
 #pragma once
 #include <DirectXTex/DirectXTex.h>
 #include <string>
+
 #include "Renderer/RenderEngine.h"
 #include "Math/Vector.h"
 #include "Math/Matrix.h"
 
 namespace OfflineTask {
 
-	struct BakeTerrainAlbedoPassData {
+	struct BakeTerrainTexturePassData {
 	public:
 		uint32_t terrainHeightMapIndex;
 		uint32_t terrainNormalMapIndex;
@@ -18,14 +19,19 @@ namespace OfflineTask {
 
 		Math::Vector4 tileOffset;
 		Math::Vector4 blendOffset;
+
+		uint32_t  vertexCountPerAxis;
+		float     vertexSpaceInMeterSize;   // 地形两个顶点之间的间隔
+		float     terrainMeterSize;
+		float     terrainHeightScale;
 	};
 
-	class BakeTerrainAlbedo {
+	class TerrainTextureBaker {
 	public:
 		void Initialize(
 			const std::string& heightMapFilepath,
-			const std::string& normalMapFilepath,
 			const std::string& splatMapFilepath,
+			const std::string& terrainNormalMapPath,
 			const std::string& albedoOutputPath,
 			const std::string& normalOutputPath,
 			Renderer::RenderEngine* renderEngine);
@@ -34,27 +40,41 @@ namespace OfflineTask {
 
 		void OnCompleted();
 
+		DirectX::TexMetadata GetTexMetadata(const Renderer::TextureDesc& textureDesc);
+
 	private:
 		inline static float   smTerrainMeterSize = 8192.0f;				// 地形8192 * 8192
-		inline static int32_t smTerrainMeshVertexCountPerAxis = 8193;	// 地形网格每个轴上的顶点个数8193
-		inline static std::string smBakeTerrainTextureSN = "BakeTerrainTexture";
+		inline static int32_t smVertexCountPerAxis = 8193;				// 地形网格每个轴上的顶点个数8193
+		inline static float   smVertexSpaceInMeterSize = 1.0f;			// 地形两个顶点之间的间隔
+		inline static float   smTerrainHeightScale = 1325.0f;
+
+		inline static uint32_t smThreadSizeInGroup = 8u;
+
+		inline static std::string smBakeTerrainNormalMapSN = "BakeTerrainNormalMap";
+		inline static std::string smBakeFarTerrainTextureSN = "BakeFarTerrainTexture";
+
+		GHL::Device* mDevice{ nullptr };
 
 		Renderer::TextureWrap mTerrainHeightMap;
-		Renderer::TextureWrap mTerrainNormalMap;
 		Renderer::TextureWrap mTerrainSplatMap;
 
+		std::string mTerrainNormalMapPath;
+		Renderer::TextureWrap mTerrainNormalMap;
+		Renderer::BufferWrap  mTerrainNormalMapReadbackBuffer;
+
+		std::string mOutputAlbedoMapPath;
 		Renderer::TextureWrap mOutputAlbedoMap;
-		Renderer::BufferWrap  mOutputAlbedoReadbackBuffer;
+		Renderer::BufferWrap  mOutputAlbedoMapReadbackBuffer;
+
 		Renderer::TextureWrap mOutputNormalMap;
-		Renderer::BufferWrap  mOutputNormalReadbackBuffer;
+		Renderer::BufferWrap  mOutputNormalMapReadbackBuffer;
 
 		uint32_t             mQuadMeshVertexCountPerAxis;
 		Renderer::BufferWrap mQuadMeshVertexBuffer;
 		Renderer::BufferWrap mQuadMeshIndexBuffer;
 		uint32_t             mQuadMeshIndexCount;
 
-		BakeTerrainAlbedoPassData mBakeTerrainAlbedoPassData;
-
+		BakeTerrainTexturePassData mBakeTerrainTexturePassData;
 	};
 
 }

@@ -13,6 +13,11 @@ struct PassData{
 
 	float4 tileOffset;
 	float4 blendOffset;
+
+    uint  vertexCountPerAxis;
+    float vertexSpaceInMeterSize;   // 地形两个顶点之间的间隔
+    float terrainMeterSize;
+    float terrainHeightScale;
 };
 
 #define PassDataType PassData
@@ -40,7 +45,13 @@ struct p2o {
 };
 
 v2p VSMain(a2v input) {
+	
+	float2 pos = saturate(mul(float4(input.lsPos, 1.0f), PassDataCB.mvpMatrix).xy);
+	pos.y = 1 - pos.y;
+
 	v2p output;
+	output.currCsPos = float4(2.0f * pos - 1.0f, 0.5f, 1.0f);
+	output.uv = input.uv;
 	return output;
 }
 

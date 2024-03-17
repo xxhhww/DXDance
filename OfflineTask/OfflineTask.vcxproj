@@ -133,14 +133,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BakeTerrainAlbedo.h" />
+    <ClInclude Include="TerrainTextureBaker.h" />
     <ClInclude Include="GeneralTasks.h" />
     <ClInclude Include="GenerateGrassBlade.h" />
     <ClInclude Include="ResolveHDAFile.h" />
     <ClInclude Include="TextureProcessor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BakeTerrainAlbedo.cpp" />
+    <ClCompile Include="TerrainTextureBaker.cpp" />
     <ClCompile Include="GeneralTasks.cpp" />
     <ClCompile Include="GenerateGrassBlade.cpp" />
     <ClCompile Include="Main.cpp" />

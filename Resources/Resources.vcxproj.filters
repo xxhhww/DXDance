@@ -117,6 +117,7 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\RuntimeVTPageTableChangedPass2.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeNearRenderer.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainQuadTreeFarRenderer.hlsl" />
-    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainTextureBaker.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\FarTerrainTextureBaker.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainNormalMapBaker.hlsl" />
   </ItemGroup>
 </Project>

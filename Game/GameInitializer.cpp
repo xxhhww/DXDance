@@ -36,7 +36,7 @@ namespace Game {
             auto entity = ECS::Entity::Create<ECS::Transform, ECS::Sky>();
 
             auto& transform = entity.GetComponent<ECS::Transform>();
-            transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV2, 0.0f, 0.0f };
+            transform.worldRotation = Math::Vector3{ DirectX::XM_PIDIV4, 0.0f, 0.0f };
 
             auto& sky = entity.GetComponent<ECS::Sky>();
         }
@@ -81,7 +81,7 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 550.0f, testPositionXZ.y };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 2550.0f, testPositionXZ.y };
             transform.worldScaling = Math::Vector3{ 0.02f,0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }
@@ -91,7 +91,7 @@ namespace Game {
             auto& meshRenderer = entity.GetComponent<ECS::MeshRenderer>();
             auto& collisionBody = entity.GetComponent<ECS::CollisionBody>();
 
-            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 650.0f, testPositionXZ.y };
+            transform.worldPosition = Math::Vector3{ testPositionXZ.x, 2650.0f, testPositionXZ.y };
             transform.worldScaling = Math::Vector3{ 0.02f, 0.02f, 0.02f };
             meshRenderer.mesh = CORESERVICE(AssetManger).GetMesh("Cube");
         }

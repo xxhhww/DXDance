@@ -342,9 +342,10 @@ p2o PSMain(v2p input) {
 	float3 pageLevelColor = float3(clamp(1.0f - pageData.z * 0.1f , 0.0f, 1.0f), 0.0f, 0.0f);
 
 	p2o output;
-	output.albedoMetalness  = float4(currLodColor, 0.0f);
+	output.albedoMetalness  = float4(runtimeVTAlbedo, 0.0f);
 	output.positionEmission = float4(input.wsPos, 0.0f);
 	output.normalRoughness  = float4(input.terrainNormal.rgb, 1.0f);
+	// output.normalRoughness  = float4(normalize(float3(0.0f, 10.0f, 0.5f)), 1.0f);
 	output.motionVector     = float4(velocity.xy, 0.0f, 0.0f);
 	output.viewDepth        = input.vsPos.z;
 

@@ -2,6 +2,7 @@
 #include "OfflineTask/GeneralTasks.h"
 #include "OfflineTask/GenerateGrassBlade.h"
 #include "OfflineTask/TextureProcessor.h"
+#include "OfflineTask/TerrainTextureBaker.h"
 #include "HoudiniApi/HoudiniApi.h"
 #include "GHL/DebugLayer.h"
 #include "Windows/Window.h"
@@ -17,7 +18,7 @@ using namespace OfflineTask;
 inline static uint32_t sWindowWidth = 1920u;
 inline static uint32_t sWindowHeight = 1080u;
 
-void DoGenerateGrassBladeTask() {
+void RunTerrainTextureBaker() {
     GHL::EnableDebugLayer();
 
     WindowSetting setting{};
@@ -28,20 +29,18 @@ void DoGenerateGrassBladeTask() {
     Window window{ setting };
 
     RenderEngine renderEngine(window.GetHWND(), setting.width, setting.height);
-    GenerateGrassBlade generateGrassBlade;
-    generateGrassBlade.Initialize(
-        "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/HeightMap.png",
-        "E:/MyProject/DXDance/Resources/Textures/Terrain/Mountain01/GrassLayer.png",
-        "E:/MyProject/DXDance/Resources/Textures/Grass/GrassBlockData",
+
+    TerrainTextureBaker baker;
+    baker.Initialize(
+        "E:/TerrainOfflineTask/001/TerrainFar/HeightMap/Padding/HeightMap.png",
+        "E:/TerrainOfflineTask/001/TerrainNear/SplatMap/SplatMap.png",
+        "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png",
+        "E:/TerrainOfflineTask/001/TerrainFar/AlbedoMap/AlbedoMap.png",
+        "E:/TerrainOfflineTask/001/TerrainFar/NormalMap/NormalMap.png",
         &renderEngine
     );
-    renderEngine.mOfflineTaskPass += std::bind(
-        &GenerateGrassBlade::Generate, &generateGrassBlade,
-        std::placeholders::_1, std::placeholders::_2);
-
-    renderEngine.mOfflineCompletedCallback += std::bind(
-        &GenerateGrassBlade::OnCompleted, &generateGrassBlade
-    );
+    renderEngine.mOfflineTaskPass += std::bind(&TerrainTextureBaker::Generate, &baker, std::placeholders::_1, std::placeholders::_2);
+    renderEngine.mOfflineCompletedCallback += std::bind(&TerrainTextureBaker::OnCompleted, &baker);
 
     Tool::Clock clock;
     bool done = false;
@@ -263,7 +262,8 @@ int main() {
 
 	// 执行离线任务
 	{
-        GenerateHeightMapRet();
+        RunTerrainTextureBaker();
+        // GenerateHeightMapRet();
         // GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
         // GenerateTerrainNodeData();

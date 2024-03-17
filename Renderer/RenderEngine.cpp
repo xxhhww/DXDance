@@ -654,7 +654,7 @@ namespace Renderer {
 			// 标识新的任务
 			mOfflineFence->IncrementExpectedValue();
 			{
-				auto commandList = mCommandListAllocator->AllocateComputeCommandList();
+				auto commandList = mCommandListAllocator->AllocateGraphicsCommandList();
 				auto* descriptorHeap = mDescriptorAllocator->GetCBSRUADescriptorHeap().D3DDescriptorHeap();
 				commandList->D3DCommandList()->SetDescriptorHeaps(1u, &descriptorHeap);
 				CommandBuffer commandBuffer{ commandList.Get(), &renderContext };
@@ -664,10 +664,10 @@ namespace Renderer {
 
 				// 执行离线任务
 				commandList->Close();
-				mComputeQueue->ExecuteCommandList(commandList->D3DCommandList());
+				mGraphicsQueue->ExecuteCommandList(commandList->D3DCommandList());
 
 				// 设置完成后的达到的值
-				mComputeQueue->SignalFence(*mOfflineFence.get());
+				mGraphicsQueue->SignalFence(*mOfflineFence.get());
 			}
 			// 同步等待离线任务的完成
 			mOfflineFence->Wait();
