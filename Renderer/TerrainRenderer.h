@@ -29,6 +29,8 @@ namespace Renderer {
 	class TerrainBackend;
 	class TerrainPipelinePass;
 
+	class GrasslandLinearBuffer;
+
 	class RuntimeVTBackend;
 	class RuntimeVTAtlas;
 
@@ -111,6 +113,8 @@ namespace Renderer {
 		friend class TerrainTextureArray;
 		friend class TerrainTiledTexture;
 		friend class TerrainPipelinePass;
+
+		friend class GrasslandLinearBuffer;
 
 		friend class RuntimeVTBackend;
 		friend class RuntimeVTAtlas;

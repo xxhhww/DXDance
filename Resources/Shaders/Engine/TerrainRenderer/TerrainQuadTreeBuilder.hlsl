@@ -151,9 +151,11 @@ void TraverseQuadTree(uint3 DTid : SV_DispatchThreadID) {
 		nodeGpuRuntimeStates[nodeGlobalID].branch = 1;
 	}
 	else {
+		if(PassDataCB.currPassLOD == 0) {
 		// 不对节点进行划分，则是最终确定需要渲染的节点
 		finalNodeList.Append(uint3(nodeLoc, PassDataCB.currPassLOD));
 		nodeGpuRuntimeStates[nodeGlobalID].branch = 0;
+		}
 	}
 }
 
