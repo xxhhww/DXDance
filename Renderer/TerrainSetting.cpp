@@ -51,4 +51,11 @@ namespace Renderer {
 	float    TerrainSetting::smRvtRealRectChangedViewDistance = 128;
 
 	uint32_t TerrainSetting::smWorldMeterSizePerTiledTexture = 32;
+
+
+	float    TerrainSetting::smGrasslandNodeMeterSize = 64.0f;
+	uint32_t TerrainSetting::smGrasslandLinearBufferTileCount = 32;
+	uint32_t TerrainSetting::smGrassBladePerAxis = 512;
+	float    TerrainSetting::smClumpMapSize = 512.0f;
+	int32_t  TerrainSetting::smGrasslandNodeBakedRange = 2;
 }

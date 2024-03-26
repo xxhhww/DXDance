@@ -21,8 +21,6 @@ namespace Renderer {
 		TerrainTextureAtlasTileCache::Node* atlasNode{ nullptr };	// 一个图集元素
 		int32_t prevTerrainNodeIndex{ -1 };		// 前任地形节点索引
 		int32_t nextTerrainNodeIndex{ -1 };		// 下任地形节点索引
-
-	public:
 	};
 
 	/*

@@ -57,6 +57,13 @@ namespace Renderer {
 		static float smRvtRealRectChangedViewDistance;				// Rvt更新一次对应摄像机移动的大小
 
 		static uint32_t smWorldMeterSizePerTiledTexture;			// 对地形进行纹理平铺，多少米平铺一个地形纹理，此处的地形纹理是地形纹理数组中的纹理
+
+		
+		static float    smGrasslandNodeMeterSize;					// 草地节点的大小
+		static uint32_t smGrasslandLinearBufferTileCount;			// LinearBufferTileCount
+		static uint32_t smGrassBladePerAxis;
+		static float    smClumpMapSize;								// ClumpSize
+		static int32_t  smGrasslandNodeBakedRange;					// 草节点烘焙范围
 	};
 
 }

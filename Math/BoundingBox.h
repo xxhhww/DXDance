@@ -83,4 +83,12 @@ namespace Math {
 		}
 	};
 
+	static bool IsPositionOutSidePlane(Math::Vector4 plane, Math::Vector3 position);
+
+	// 测试AABB盒是否在平面外侧
+	static bool IsAABBOutSidePlane(Math::Vector4 plane, Math::Vector4 minPosition, Math::Vector4 maxPosition);
+
+	// 使用摄像机的视锥体进行裁剪
+	static bool FrustumCull(Math::Vector4 plane[6], BoundingBox boundingBox);
+
 }

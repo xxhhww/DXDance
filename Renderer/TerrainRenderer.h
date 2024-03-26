@@ -139,6 +139,12 @@ namespace Renderer {
 		inline const auto& GetTerrainNodeDescriptors()   const { return mTerrainNodeDescriptors; }
 		inline const auto& GetTerrainNodeRuntimeStates() const { return mTerrainNodeRuntimeStates; }
 
+		inline auto& GetTerrainNodeDescriptorsBuffer() { return mTerrainNodeDescriptorBuffer; }
+		inline auto& GetTerrainLodDescriptorsBuffer()  { return mTerrainLodDescriptorBuffer; }
+
+		inline const auto& GetTerrainNodeDescriptorsBuffer() const { return mTerrainNodeDescriptorBuffer; }
+		inline const auto& GetTerrainLodDescriptorsBuffer()  const { return mTerrainLodDescriptorBuffer; }
+
 		inline auto* GetFarTerrainHeightMapAtlas() const { return mFarTerrainHeightMapAtlas.get(); }
 		inline auto* GetFarTerrainAlbedoMapAtlas() const { return mFarTerrainAlbedoMapAtlas.get(); }
 		inline auto* GetFarTerrainNormalMapAtlas() const { return mFarTerrainNormalMapAtlas.get(); }

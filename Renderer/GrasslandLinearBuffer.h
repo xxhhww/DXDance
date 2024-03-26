@@ -1,14 +1,13 @@
 #pragma once
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/PoolDescriptorAllocator.h"
-#include "Renderer/TerrainRenderer.h"
-
+#include "Renderer/GrasslandRenderer.h"
 
 namespace Renderer {
 
 	class GrasslandLinearBuffer {
 	public:
-		GrasslandLinearBuffer(TerrainRenderer* renderer, uint32_t tileCount, uint32_t bytesPerBalde, uint32_t bladesPerTile);
+		GrasslandLinearBuffer(GrasslandRenderer* renderer, uint32_t tileCount, uint32_t bytesPerBalde, uint32_t bladesPerTile);
 		inline ~GrasslandLinearBuffer() = default;
 
 		inline const auto& GetTileCount()     const { return mTileCount; }
@@ -19,7 +18,7 @@ namespace Renderer {
 		inline auto& GetLinearBuffer() const { return mLinearBuffer; }
 
 	private:
-		TerrainRenderer* mRenderer{ nullptr };
+		GrasslandRenderer* mRenderer{ nullptr };
 
 		uint32_t mTileCount;		// 切片个数
 		uint32_t mBytesPerBlade;	// 每一个Blade的字节大小

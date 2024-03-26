@@ -4,7 +4,7 @@
 
 namespace Renderer {
 
-	GrasslandLinearBuffer::GrasslandLinearBuffer(TerrainRenderer* renderer, uint32_t tileCount, uint32_t bytesPerBalde, uint32_t bladesPerTile)
+	GrasslandLinearBuffer::GrasslandLinearBuffer(GrasslandRenderer* renderer, uint32_t tileCount, uint32_t bytesPerBalde, uint32_t bladesPerTile)
 	: mRenderer(renderer)
 	, mTileCount(tileCount)
 	, mBytesPerBlade(bytesPerBalde)
