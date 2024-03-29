@@ -13,19 +13,19 @@ namespace Renderer {
 	/*
 	* 草的顶点属性(用于在着色器重建草的顶点坐标)
 	*/
-	struct GrassVertexAttribute {
+	struct GrassVertex {
 	public:
 		Math::Vector2 uv0;	// 顶点UV
 		float t;			// 描述当前顶点沿着叶脉从草的根部移动的距离
 		float side;			// 描述叶片边长(使用时需要恢复到 [-1, 1]的区域)
 
 	public:
-		inline GrassVertexAttribute(const Math::Vector2& _uv0, float _t, float _side)
+		inline GrassVertex(const Math::Vector2& _uv0, float _t, float _side)
 			: uv0(_uv0)
 			, t(_t)
 			, side(_side) {}
 
-		inline ~GrassVertexAttribute() = default;
+		inline ~GrassVertex() = default;
 	};
 
 	/*
@@ -47,7 +47,7 @@ namespace Renderer {
 	/*
 	* 草的群落参数
 	*/
-	struct ClumpParameter {
+	struct GrassClumpParameter {
 	public:
 		float pullToCentre;
 		float pointInSameDirection;
@@ -76,7 +76,7 @@ namespace Renderer {
 	*/
 	struct GrasslandNodeDescriptor {
 	public:
-		uint32_t tileIndex = 65536;	// 65536表示资源未烘焙
+		uint32_t tileIndex = 255;	// 255表示资源未烘焙
 		float pad1;
 		float pad2;
 		float pad3;
@@ -120,17 +120,23 @@ namespace Renderer {
 
 		void Initialize();
 
+		void Update();
+
 		void AddPass();
 
-		void ProduceGrasslandNodeRequest(std::vector<GrasslandNodeRequestTask>& requestTasks);
+		// requestTasks: 需要执行烘焙的任务列表, visibleGrasslandNode: 可见的GrasslandNodes的索引列表
+		void ProduceGrasslandNodeRequest(std::vector<GrasslandNodeRequestTask>& requestTasks, std::vector<int32_t>& visibleGrasslandNodes);
 
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
 		TerrainRenderer* mTerrainRenderer{ nullptr };
+		inline static bool smInitialized{ false };
 
 		TerrainSetting mTerrainSetting;
 
 		std::vector<GrasslandNodeDescriptor>   mGrasslandNodeDescriptors;		// 草地全节点描述状态表(GPU端)
+		BufferWrap mGrasslandNodeDescriptorsBuffer;
+
 		std::vector<GrasslandNodeRuntimeState> mGrasslandNodeRuntimeStates;		// 草地全节点运行时状态(CPU端)
 
 		std::unique_ptr<GrasslandLinearBuffer>      mGrasslandLinearBuffer;
@@ -144,7 +150,7 @@ namespace Renderer {
 			uint32_t      numClumps{ 3u };
 			uint32_t      clumpMapIndex;
 		};
-		std::vector<ClumpParameter> mClumpParameters;
+		std::vector<GrassClumpParameter> mClumpParameters;
 		GenerateClumpMapPassData mGenerateClumpMapPassData;
 		inline static uint32_t smGenerateClumpMapThreadSizeInGroup = 8u;
 
@@ -156,13 +162,13 @@ namespace Renderer {
 
 			uint32_t      terrainNodeDescriptorListIndex;
 			uint32_t      terrainLodDescriptorListIndex;
-			uint32_t      visibleGrasslandNodeRequestTaskListIndex;
+			uint32_t      grasslandNodeRequestTaskListIndex;
 			uint32_t      grasslandMapIndex;
 
+			uint32_t      grasslandNodeDescriptorListIndex;
 			uint32_t      grasslandLinearBufferIndex;
 			uint32_t      grassResolution;
 			float         jitterStrength{ 0.5f };
-			float         pad1;
 
 			uint32_t      clumpMapIndex;
 			float         clumpMapScale{ 0.1f };
@@ -172,16 +178,44 @@ namespace Renderer {
 		BakeGrassBladePassData mBakeGrassBladePassData;
 		inline static uint32_t smBakeGrassBladeThreadSizeInGroup = 8u;
 
+		struct CullGrassBladePassData {
+		public:
+			uint32_t visibleGrasslandNodeListIndex;
+			uint32_t grasslandLinearBufferIndex;
+			uint32_t visibleLOD0GrassBladeIndexListIndex;
+			uint32_t visibleLOD1GrassBladeIndexListIndex;
 
-		std::vector<GrassVertexAttribute> mLOD0GrassVertices;
+			float grassResolution;
+			float distanceCullStartDist{ 30.0f };
+			float distanceCullEndDist{ 60.0f };
+			float distanceCullMinimumGrassAmount{ 0.2f };
+		};
+		CullGrassBladePassData mCullGrassBladePassData;
+		inline static uint32_t smCullGrassBladeThreadSizeInGroup = 8u;
+
+		std::vector<GrassVertex> mLOD0GrassVertices;
 		std::vector<uint32_t> mLOD0GrassIndices;
 		BufferWrap mLOD0GrassVertexBuffer;
 		BufferWrap mLOD0GrassIndexBuffer;
 
-		std::vector<GrassVertexAttribute> mLOD1GrassVertices;
+		std::vector<GrassVertex> mLOD1GrassVertices;
 		std::vector<uint32_t> mLOD1GrassIndices;
 		BufferWrap mLOD1GrassVertexBuffer;
 		BufferWrap mLOD1GrassIndexBuffer;
+
+		/*
+		* GPU端请求任务
+		*/
+		struct GpuGrasslandNodeRequestTask {
+		public:
+			uint32_t prevGrasslandNodeIndex{ 65536u };	// 前任地形节点索引
+			uint32_t nextGrasslandNodeIndex;			// 下任地形节点索引
+
+			uint32_t tileIndex;
+		};
+		std::vector<GrasslandNodeRequestTask> mCurrFrameGrasslandNodeRequestTasks;
+		std::vector<GpuGrasslandNodeRequestTask> mCurrFrameGpuGrasslandNodeRequestTasks;
+		std::vector<int32_t> mCurrFrameVisibleGrasslandNodes;
 	};
 
 }

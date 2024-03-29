@@ -138,17 +138,16 @@ namespace Renderer {
 				mTempMappingFence->Wait();
 			}
 
-			/*
 			// TiledGrassLandMap
 			{
-				mTerrainTiledGrassLandMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledGrassLandMap.ret");
-				const auto& reTextureFileFormat = mTerrainTiledGrassLandMap->GetReTextureFileFormat();
+				mTerrainTiledGrasslandMap = std::make_unique<TerrainTiledTexture>(this, dirname + "TerrainTiledGrasslandMap.ret");
+				const auto& reTextureFileFormat = mTerrainTiledGrasslandMap->GetReTextureFileFormat();
 				const auto& reTextureFileHeader = reTextureFileFormat.GetFileHeader();
 				const auto& reTileDataInfos = reTextureFileFormat.GetTileDataInfos();
 
-				mTerrainTiledGrassLandMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
-				mTerrainTiledGrassLandMapTileRuntimeStates.resize(reTextureFileHeader.tileNums);
-				mTerrainTiledGrassLandMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledGrassLandMapTileCountPerCache, mTerrainTiledGrassLandMapHeapAllocator.get(), reTextureFileHeader.tileSlicePitch);
+				mTerrainTiledGrasslandMapHeapAllocator = std::make_unique<BuddyHeapAllocator>(device, frameTracker);
+				mTerrainTiledGrasslandMapTileRuntimeStates.resize(reTextureFileHeader.tileNums);
+				mTerrainTiledGrasslandMapHeapAllocationCache = std::make_unique<TerrainTiledTextureHeapAllocationCache>(mTerrainSetting.smTerrainTiledGrasslandMapTileCountPerCache, mTerrainTiledGrasslandMapHeapAllocator.get(), reTextureFileHeader.tileSlicePitch);
 
 				// only use mip 1 of the resource. Subsequent mips provide little additional coverage while complicating lookup arithmetic
 				uint32_t subresourceCount = 1;
@@ -159,13 +158,13 @@ namespace Renderer {
 				rd.Layout = D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
 
 				// this will only ever be a copy dest
-				HRASSERT(device->D3DDevice()->CreateReservedResource(&rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTerrainTiledSplatMapBackend)));
-				mTerrainTiledSplatMapBackend->SetName(L"TerrainTiledSplatMapBackend");
+				HRASSERT(device->D3DDevice()->CreateReservedResource(&rd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTerrainTiledGrasslandMapBackend)));
+				mTerrainTiledGrasslandMapBackend->SetName(L"TerrainTiledGrasslandMapBackend");
 				D3D12_PACKED_MIP_INFO packedMipInfo; // unused, for now
 				D3D12_TILE_SHAPE tileShape; // unused, for now
 				UINT numAtlasTiles = 0;
-				device->D3DDevice()->GetResourceTiling(mTerrainTiledSplatMapBackend.Get(), &numAtlasTiles, &packedMipInfo, &tileShape, &subresourceCount, 0, &mTerrainTiledSplatMapBackendTiling);
-				numAtlasTiles = mTerrainSetting.smTerrainTiledSplatMapTileCountPerCache;
+				device->D3DDevice()->GetResourceTiling(mTerrainTiledGrasslandMapBackend.Get(), &numAtlasTiles, &packedMipInfo, &tileShape, &subresourceCount, 0, &mTerrainTiledGrasslandMapBackendTiling);
+				numAtlasTiles = mTerrainSetting.smTerrainTiledGrasslandMapTileCountPerCache;
 
 				// The following depends on the linear assignment order defined by D3D12_REGION_SIZE UseBox = FALSE
 				// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_tile_region_size
@@ -182,11 +181,11 @@ namespace Renderer {
 				std::vector<UINT> rangeTileCounts(numRanges, numAtlasTiles);
 
 				mTempMappingQueue->D3DCommandQueue()->UpdateTileMappings(
-					mTerrainTiledSplatMapBackend.Get(),
+					mTerrainTiledGrasslandMapBackend.Get(),
 					numResourceRegions,
 					&resourceRegionStartCoordinates,
 					&resourceRegionSizes,
-					mTerrainTiledSplatMapHeapAllocator->GetHeap(0u)->D3DHeap(),
+					mTerrainTiledGrasslandMapHeapAllocator->GetHeap(0u)->D3DHeap(),
 					(UINT)rangeFlags.size(),
 					rangeFlags.data(),
 					&tileOffset,
@@ -197,7 +196,6 @@ namespace Renderer {
 				mTempMappingQueue->SignalFence(*mTempMappingFence.get());
 				mTempMappingFence->Wait();
 			}
-			*/
 		}
 
 		// 创建并初始化GPU对象
@@ -295,7 +293,7 @@ namespace Renderer {
 		}
 
 		// 地形后台线程，负责资源调度
-		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates, mTerrainTiledSplatMapTileRuntimeStates);
+		mTerrainBackend = std::make_unique<TerrainBackend>(this, mTerrainSetting, mTerrainLodDescriptors, mTerrainNodeDescriptors, mTerrainNodeRuntimeStates);
 
 		// 实时虚拟纹理线程
 		mRuntimeVTRealRectChangedCompletedEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -364,8 +362,6 @@ namespace Renderer {
 		// 同步等待RuntimeVTBackend完成处理
 		::WaitForSingleObject(mRuntimeVTRealRectChangedCompletedEvent, INFINITE);
 
-		// TODO...
-		int32_t i = 0;
 	}
 
 	bool TerrainRenderer::CheckRuntimeVTRealRectChanged() {

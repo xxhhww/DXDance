@@ -8,13 +8,13 @@ struct PassData {
 
 	uint   terrainNodeDescriptorListIndex;
 	uint   terrainLodDescriptorListIndex;
-	uint   visibleGrasslandNodeRequestTaskListIndex;
+	uint   grasslandNodeRequestTaskListIndex;
 	uint   grasslandMapIndex;
 
+	uint   grasslandNodeDescriptorListIndex;
 	uint   grasslandLinearBufferIndex;
 	uint   grassResolution;
 	float  jitterStrength;
-	float  pad1;
 
 	uint   clumpMapIndex;
 	float  clumpMapScale;

@@ -1,9 +1,10 @@
 #pragma once
 #include "Renderer/ResourceAllocator.h"
 #include "Renderer/PoolDescriptorAllocator.h"
-#include "Renderer/GrasslandRenderer.h"
 
 namespace Renderer {
+
+	class GrasslandRenderer;
 
 	class GrasslandLinearBuffer {
 	public:

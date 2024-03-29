@@ -628,7 +628,7 @@ namespace Renderer {
 						// proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R32G32B32A32_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R32_FLOAT
@@ -644,7 +644,7 @@ namespace Renderer {
 						// proxy.rasterizerDesc.FillMode = D3D12_FILL_MODE_WIREFRAME;
 						proxy.renderTargetFormatArray = {
 							DXGI_FORMAT_R8G8B8A8_UNORM,
-							DXGI_FORMAT_R16G16B16A16_FLOAT,
+							DXGI_FORMAT_R32G32B32A32_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R16G16B16A16_FLOAT,
 							DXGI_FORMAT_R32_FLOAT

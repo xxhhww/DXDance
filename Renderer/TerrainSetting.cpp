@@ -17,12 +17,8 @@ namespace Renderer {
 
 	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25;	// 地形纹理图集每个轴的Tile个数
 	uint32_t TerrainSetting::smTerrainTiledSplatMapTileCountPerCache = 512;
-	int32_t  TerrainSetting::smTerrainTiledTextureDataLoadedRange = 8;			// 128 * 16 = 2048
-	uint32_t TerrainSetting::smTerrainTiledTextureDataLoadedLimit = 16;			// 一次加载16个Tile的数据
-
-	uint32_t TerrainSetting::smTerrainTiledGrassLandMapTileCountPerCache = 512;
-	int32_t  TerrainSetting::smTerrainTiledGrassLandMapDataLoadedRange = 4;		// 256 * 4 = 1024
-	uint32_t TerrainSetting::smTerrainTiledGrassLandMapDataLoadedLimit = 8;		// 一次加载8个Tile的数据
+	int32_t  TerrainSetting::smTerrainTiledSplatMapDataLoadedRange = 8;			// 128 * 16 = 2048
+	uint32_t TerrainSetting::smTerrainTiledSplatMapDataLoadedLimit = 16;			// 一次加载16个Tile的数据
 
 	uint32_t TerrainSetting::smTerrainFeedbackScale = 2;		// TerrainFeedback相对于FinalOutput的缩放大小
 	uint32_t TerrainSetting::smRvtTileSizeNoPadding = 256;		// 实时虚拟纹理中一个Tile的大小
@@ -55,7 +51,13 @@ namespace Renderer {
 
 	float    TerrainSetting::smGrasslandNodeMeterSize = 64.0f;
 	uint32_t TerrainSetting::smGrasslandLinearBufferTileCount = 32;
-	uint32_t TerrainSetting::smGrassBladePerAxis = 512;
+	uint32_t TerrainSetting::smGrassBladePerAxisInSingleNode = 512;
+	uint32_t TerrainSetting::smGrassBladeCountInSingleNode = smGrassBladePerAxisInSingleNode * smGrassBladePerAxisInSingleNode;
 	float    TerrainSetting::smClumpMapSize = 512.0f;
 	int32_t  TerrainSetting::smGrasslandNodeBakedRange = 2;
+	int32_t  TerrainSetting::smGrasslandNodeAroundCount = smGrasslandNodeBakedRange * 2u * smGrasslandNodeBakedRange * 2u;
+
+	uint32_t TerrainSetting::smTerrainTiledGrasslandMapTileCountPerCache = 512;
+	int32_t  TerrainSetting::smTerrainTiledGrasslandMapDataLoadedRange = 4;		// 256 * 4 = 1024
+	uint32_t TerrainSetting::smTerrainTiledGrasslandMapDataLoadedLimit = 8;		// 一次加载8个Tile的数据
 }

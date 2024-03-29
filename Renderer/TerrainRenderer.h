@@ -161,7 +161,8 @@ namespace Renderer {
 		inline auto* GetRuntimeVTNormalAtlas()    const { return mRuntimeVTNormalAtlas.get(); }
 		inline auto* GetRuntimeVTAtlasTileCache() const { return mRuntimeVTAtlasTileCache.get(); }
 
-		inline auto* GetTerrainTiledSplatMap() const { return mTerrainTiledSplatMap.get(); }
+		inline auto* GetTerrainTiledSplatMap()     const { return mTerrainTiledSplatMap.get(); }
+		inline auto* GetTerrainTiledGrasslandMap() const { return mTerrainTiledGrasslandMap.get(); }
 
 		inline const auto& GetMaxPageLevel()  const { return mMaxPageLevel; }
 		inline const auto& GetPageLevelBias() const { return mPageLevelBias; }
@@ -173,6 +174,23 @@ namespace Renderer {
 
 		bool CheckRuntimeVTRealRectChanged();
 		void SetRuntimeVTRealRectChangedCompletedEvnet();
+
+
+		// ===============================================TiledTexture===============================================
+		inline auto* GetTerrainTiledSplatMap() { return mTerrainTiledSplatMap.get(); }
+		inline auto* GetTerrainTiledSplatMapHeapAllocator() { return mTerrainTiledSplatMapHeapAllocator.get(); }
+		inline auto& GetTerrainTiledSplatMapTileRuntimeStates() { return mTerrainTiledSplatMapTileRuntimeStates; }
+		inline auto* GetTerrainTiledSplatMapHeapAllocationCache() { return mTerrainTiledSplatMapHeapAllocationCache.get(); }
+		inline auto* GetTerrainTiledSplatMapBackend() { return mTerrainTiledSplatMapBackend.Get(); }
+		inline const auto& GetTerrainTiledSplatMapBackendTiling() const { return mTerrainTiledSplatMapBackendTiling; }
+
+		inline auto* GetTerrainTiledGrasslandMap() { return mTerrainTiledGrasslandMap.get(); }
+		inline auto* GetTerrainTiledGrasslandMapHeapAllocator() { return mTerrainTiledGrasslandMapHeapAllocator.get(); }
+		inline auto& GetTerrainTiledGrasslandMapTileRuntimeStates() { return mTerrainTiledGrasslandMapTileRuntimeStates; }
+		inline auto* GetTerrainTiledGrasslandMapHeapAllocationCache() { return mTerrainTiledGrasslandMapHeapAllocationCache.get(); }
+		inline auto* GetTerrainTiledGrasslandMapBackend() { return mTerrainTiledGrasslandMapBackend.Get(); }
+		inline const auto& GetTerrainTiledGrasslandMapBackendTiling() const { return mTerrainTiledGrasslandMapBackendTiling; }
+		// 
 
 	private:
 		RenderEngine* mRenderEngine{ nullptr };
@@ -212,12 +230,12 @@ namespace Renderer {
 		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledSplatMapBackend;
 		D3D12_SUBRESOURCE_TILING mTerrainTiledSplatMapBackendTiling;
 
-		std::unique_ptr<TerrainTiledTexture> mTerrainTiledGrassLandMap;											// SplatMap
-		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledGrassLandMapHeapAllocator;							// HeapAllocator
-		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledGrassLandMapTileRuntimeStates;			// 全Tile运行时状态
-		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledGrassLandMapHeapAllocationCache;	// HeapAllocatonCache
-		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledGrassLandMapBackend;
-		D3D12_SUBRESOURCE_TILING mTerrainTiledGrassLandMapBackendTiling;
+		std::unique_ptr<TerrainTiledTexture> mTerrainTiledGrasslandMap;											// GrasslandMap
+		std::unique_ptr<BuddyHeapAllocator>  mTerrainTiledGrasslandMapHeapAllocator;							// HeapAllocator
+		std::vector<TerrainTiledTextureTileRuntimeState> mTerrainTiledGrasslandMapTileRuntimeStates;			// 全Tile运行时状态
+		std::unique_ptr<TerrainTiledTextureHeapAllocationCache> mTerrainTiledGrasslandMapHeapAllocationCache;	// HeapAllocatonCache
+		Microsoft::WRL::ComPtr<ID3D12Resource> mTerrainTiledGrasslandMapBackend;
+		D3D12_SUBRESOURCE_TILING mTerrainTiledGrasslandMapBackendTiling;
 
 		// 实时虚拟纹理后台
 		std::unique_ptr<RuntimeVTBackend> mRuntimeVTBackend;

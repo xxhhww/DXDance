@@ -23,12 +23,8 @@ namespace Renderer {
 
 		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;	// 地形纹理图集每个轴的Tile个数
 		static uint32_t smTerrainTiledSplatMapTileCountPerCache;	// TiledSplatMap最多保留多少Tile
-		static int32_t  smTerrainTiledTextureDataLoadedRange;		// TiledTextureTile的加载范围
-		static uint32_t smTerrainTiledTextureDataLoadedLimit;		// TiledTexture一次加载多少个Tile的数据
-
-		static uint32_t smTerrainTiledGrassLandMapTileCountPerCache;
-		static int32_t  smTerrainTiledGrassLandMapDataLoadedRange;
-		static uint32_t smTerrainTiledGrassLandMapDataLoadedLimit;
+		static int32_t  smTerrainTiledSplatMapDataLoadedRange;		// TiledTextureTile的加载范围
+		static uint32_t smTerrainTiledSplatMapDataLoadedLimit;		// TiledTexture一次加载多少个Tile的数据
 
 		static uint32_t smTerrainFeedbackScale;				// TerrainFeedback相对于FinalOutput的缩放大小
 		static uint32_t smRvtTileSizeNoPadding;				// 实时虚拟纹理中一个Tile的大小
@@ -61,9 +57,15 @@ namespace Renderer {
 		
 		static float    smGrasslandNodeMeterSize;					// 草地节点的大小
 		static uint32_t smGrasslandLinearBufferTileCount;			// LinearBufferTileCount
-		static uint32_t smGrassBladePerAxis;
+		static uint32_t smGrassBladePerAxisInSingleNode;			// 单个节点中，每个轴上的GrassBlade个数
+		static uint32_t smGrassBladeCountInSingleNode;				// 单个节点中，所有的GrassBlade个数
 		static float    smClumpMapSize;								// ClumpSize
 		static int32_t  smGrasslandNodeBakedRange;					// 草节点烘焙范围
+		static int32_t  smGrasslandNodeAroundCount;					// 周围草节点的个数
+
+		static uint32_t smTerrainTiledGrasslandMapTileCountPerCache;
+		static int32_t  smTerrainTiledGrasslandMapDataLoadedRange;
+		static uint32_t smTerrainTiledGrasslandMapDataLoadedLimit;
 	};
 
 }

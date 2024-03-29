@@ -65,4 +65,21 @@ struct GpuUpdateRuntimeVTPageTableRequest {
 	float4x4 mvpMatrix;	// 转换到图片空间中的矩阵
 };
 
+
+// ==========================================Grassland==========================================
+
+struct GrasslandNodeDescriptor {
+	uint  tileIndex;	// 255表示资源未烘焙
+	float pad1;
+	float pad2;
+	float pad3;
+};
+
+struct GpuGrasslandNodeRequestTask {
+	uint prevGrasslandNodeIndex;	// 前任地形节点索引
+	uint nextGrasslandNodeIndex;	// 下任地形节点索引
+
+	uint tileIndex;
+};
+
 #endif

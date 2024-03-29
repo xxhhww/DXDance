@@ -121,5 +121,7 @@
     <FxCompile Include="Shaders\Engine\TerrainRenderer\TerrainNormalMapBaker.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\GrassClumpMapGenerator.hlsl" />
     <FxCompile Include="Shaders\Engine\TerrainRenderer\GrassBladeBaker.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\GrassBladeSelector.hlsl" />
+    <FxCompile Include="Shaders\Engine\TerrainRenderer\GrassBladeRenderer.hlsl" />
   </ItemGroup>
 </Project>

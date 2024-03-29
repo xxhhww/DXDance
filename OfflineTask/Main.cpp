@@ -323,13 +323,13 @@ int main() {
 	{
         // GenerateTerrainHeightMapRet();
         // GenerateTerrainAlbedoMapRet();
-        GenerateTerrainNormalMapRet();
+        // GenerateTerrainNormalMapRet();
         // RunTerrainTextureBaker();
         // GenerateFarTerrainAtlas(true);
         // GenerateNearTerrainAtlas(true);
         // GenerateTerrainNodeData();
         // GenerateTiledSplatMap();
-        // GenerateTiledGrassMap();
+        GenerateTiledGrassMap();
 	}
 
 	// ÊÍ·ÅDLL

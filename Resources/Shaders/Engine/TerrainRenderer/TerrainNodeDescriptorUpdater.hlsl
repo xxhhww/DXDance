@@ -26,7 +26,7 @@ void CSMain(uint3 dispatchThreadID : SV_DispatchThreadID) {
 	// 将srcTerrainNodeIndex对应的tilePos设为无效
 	if(request.srcTerrainNodeIndex != 65536) {
 		terrainNodeDescriptorBuffer[request.srcTerrainNodeIndex].tilePosX = 255;
-		terrainNodeDescriptorBuffer[request.srcTerrainNodeIndex].tilePosY = 255;		
+		terrainNodeDescriptorBuffer[request.srcTerrainNodeIndex].tilePosY = 255;
 	}
 }
 
