@@ -40,6 +40,7 @@
 #include "Renderer/FinalBarrierPass.h"
 
 #include "Renderer/TerrainRenderer.h"
+#include "Renderer/GrasslandRenderer.h"
 
 #include "Renderer/Mesh.h"
 
@@ -160,7 +161,9 @@ namespace Renderer {
 		std::unique_ptr<RenderGraph> mRenderGraph;
 
 		// ==========================...RenderPasses...==========================
-		std::unique_ptr<TerrainRenderer> mTerrainRenderer;			// 地形系统
+		std::unique_ptr<TerrainRenderer> mTerrainRenderer;			// 地形渲染
+		std::unique_ptr<GrasslandRenderer> mGrasslandRenderer;		// 草地渲染
+
 		std::unique_ptr<TerrainSystem> mTerrainSystem;				// 地形系统
 		std::unique_ptr<VegetationSystem> mVegetationSystem;		// 草地系统
 		std::unique_ptr<DetailObjectSystem> mDetailObjectSystem;	// 细节物理系统

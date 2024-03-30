@@ -15,7 +15,9 @@ namespace Renderer {
 	int32_t  TerrainSetting::smTerrainDataLoadedRange = 4;		// 地形数据加载范围(离摄像机)
 	uint32_t TerrainSetting::smTerrainDataLoadedLimit = 16;		// 一次加载16个地形节点的数据
 
-	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25;	// 地形纹理图集每个轴的Tile个数
+	uint32_t TerrainSetting::smFarTerrainTextureAtlasTileCountPerAxis = 25;			// 地形纹理图集每个轴的Tile个数
+	float    TerrainSetting::smMeterSpacingBetweenTerrainAtlasTilePixelsInLod0 = 1.0f;	// 每个像素点之间的插值为1米
+
 	uint32_t TerrainSetting::smTerrainTiledSplatMapTileCountPerCache = 512;
 	int32_t  TerrainSetting::smTerrainTiledSplatMapDataLoadedRange = 8;			// 128 * 16 = 2048
 	uint32_t TerrainSetting::smTerrainTiledSplatMapDataLoadedLimit = 16;			// 一次加载16个Tile的数据

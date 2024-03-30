@@ -77,9 +77,9 @@ namespace Renderer {
 	struct GrasslandNodeDescriptor {
 	public:
 		uint32_t tileIndex = 255;	// 255表示资源未烘焙
-		float pad1;
-		float pad2;
-		float pad3;
+		uint32_t nodeLocationX;
+		uint32_t nodeLocationY;
+		float    nodeMeterSize;
 	};
 
 	/*
@@ -174,6 +174,11 @@ namespace Renderer {
 			float         clumpMapScale{ 0.1f };
 			uint32_t      clumpParameterBufferIndex;
 			uint32_t      clumpParameterNums;
+
+			float         grasslandNodeMeterSize;
+			uint32_t      terrainAtlasTileCountPerAxis;
+			uint32_t      terrainAtlasTileWidthInPixels;
+			float         meterSpacingBetweenTerrainAtlasTilePixelsInLod0;
 		};
 		BakeGrassBladePassData mBakeGrassBladePassData;
 		inline static uint32_t smBakeGrassBladeThreadSizeInGroup = 8u;

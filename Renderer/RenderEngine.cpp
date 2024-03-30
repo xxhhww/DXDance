@@ -216,14 +216,18 @@ namespace Renderer {
 		// 初始化一些系统
 		{
 			mTerrainRenderer = std::make_unique<TerrainRenderer>(this);
+			mGrasslandRenderer = std::make_unique<GrasslandRenderer>(this, mTerrainRenderer.get());
+
 			mTerrainSystem = std::make_unique<TerrainSystem>(this);
-			// mVegetationSystem = std::make_unique<VegetationSystem>(this);
+			mVegetationSystem = std::make_unique<VegetationSystem>(this);
 			mDetailObjectSystem = std::make_unique<DetailObjectSystem>(this);
 		}
 
 		// 初始化RenderPass
 		{
 			mTerrainRenderer->Initialize();
+			mGrasslandRenderer->Initialize();
+
 			// mTerrainSystem->Initialize(this);
 			// mVegetationSystem->Initialize(this);
 			// mDetailObjectSystem->Initialize(this);
@@ -258,6 +262,7 @@ namespace Renderer {
 			mOpaquePass.AddPass(*mRenderGraph);
 			mRngSeedGenerationPass.AddPass(*mRenderGraph);
 			mTerrainRenderer->AddPass();
+			mGrasslandRenderer->AddPass();
 			mDeferredLightPass.AddPass(*mRenderGraph);
 			mAtmospherePass.AddPass(*mRenderGraph);
 			mTAAPass.AddPass(*mRenderGraph);
@@ -311,6 +316,7 @@ namespace Renderer {
 		UpdateShadow();
 		
 		mTerrainRenderer->Update();
+		mGrasslandRenderer->Update();
 	}
 
 	void RenderEngine::UpdateCameras() {
@@ -377,8 +383,6 @@ namespace Renderer {
 		});
 
 		cameraJitterFrameIndex++;
-
-		rootConstantsPerFrame.currentRenderCamera.position.z = 54.6953278f;
 	}
 
 	void RenderEngine::UpdateItems() {
@@ -579,8 +583,8 @@ namespace Renderer {
 
 
 				mOutputBackBufferPassData.finalOutputMapIndex = mFinalOutput->GetSRDescriptor()->GetHeapIndex();
-				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
-				mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledGrasslandMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
+				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledSplatMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
+				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetTerrainTiledGrasslandMap()->GetTiledTexture()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetNearTerrainAlbedoArray()->GetTextureArray()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainHeightMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();
 				// mOutputBackBufferPassData.finalOutputMapIndex = mTerrainRenderer->GetFarTerrainAlbedoMapAtlas()->GetTextureAtlas()->GetSRDescriptor()->GetHeapIndex();

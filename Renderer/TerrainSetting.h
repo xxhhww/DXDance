@@ -21,7 +21,9 @@ namespace Renderer {
 		static int32_t  smTerrainDataLoadedRange;		// 地形数据加载的范围
 		static uint32_t smTerrainDataLoadedLimit;		// 一次加载多少个节点的数据
 
-		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;	// 地形纹理图集每个轴的Tile个数
+		static uint32_t smFarTerrainTextureAtlasTileCountPerAxis;			// 地形纹理图集每个轴的Tile个数
+		static float    smMeterSpacingBetweenTerrainAtlasTilePixelsInLod0;	// 地形纹理图集在Lod的层级下每个像素点之间对应世界空间下的米数间隔
+
 		static uint32_t smTerrainTiledSplatMapTileCountPerCache;	// TiledSplatMap最多保留多少Tile
 		static int32_t  smTerrainTiledSplatMapDataLoadedRange;		// TiledTextureTile的加载范围
 		static uint32_t smTerrainTiledSplatMapDataLoadedLimit;		// TiledTexture一次加载多少个Tile的数据
