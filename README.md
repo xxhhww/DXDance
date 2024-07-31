@@ -1,3 +1,9 @@
+## 序
+
+![image](https://github.com/xxhhww/DXDance/tree/master/Resources/Pictures/0-0.png)
+![image](https://github.com/xxhhww/DXDance/tree/master/Resources/Pictures/0-1.png)
+
+
 ## 图形基础组件
 以帧为概念进行资源的分配与回收，包括GPU资源（如共享内存），CPU资源（如LRU Cache）。
 
